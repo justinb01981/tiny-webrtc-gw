@@ -1,0 +1,21 @@
+<script language="javascript">
+function onPeerClick(peername, elem) {
+    document.theform.peerstream_recv.value = peername;
+    document.theform.appendsdp.value = 'a=watch=' + peername + '\n';
+    document.theform.appendsdp.value += 'a=myname=' + document.theform.my_name.value + '\n';
+}
+</script>
+
+<html>
+<p>Statistics:
+<br>
+<br>
+Users:
+<br>
+%$PEERLISTHTML$%
+<br>
+<br>
+<button name='button_ok' id='button_ok'>OK</button>
+</html>
+
+
