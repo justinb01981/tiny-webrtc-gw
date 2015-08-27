@@ -1,0 +1,78 @@
+# Install script for directory: /home/justin/webRTC/udp_redirect/boringssl/boringssl/crypto
+
+# Set the install prefix
+IF(NOT DEFINED CMAKE_INSTALL_PREFIX)
+  SET(CMAKE_INSTALL_PREFIX "/usr/local")
+ENDIF(NOT DEFINED CMAKE_INSTALL_PREFIX)
+STRING(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
+
+# Set the install configuration name.
+IF(NOT DEFINED CMAKE_INSTALL_CONFIG_NAME)
+  IF(BUILD_TYPE)
+    STRING(REGEX REPLACE "^[^A-Za-z0-9_]+" ""
+           CMAKE_INSTALL_CONFIG_NAME "${BUILD_TYPE}")
+  ELSE(BUILD_TYPE)
+    SET(CMAKE_INSTALL_CONFIG_NAME "")
+  ENDIF(BUILD_TYPE)
+  MESSAGE(STATUS "Install configuration: \"${CMAKE_INSTALL_CONFIG_NAME}\"")
+ENDIF(NOT DEFINED CMAKE_INSTALL_CONFIG_NAME)
+
+# Set the component getting installed.
+IF(NOT CMAKE_INSTALL_COMPONENT)
+  IF(COMPONENT)
+    MESSAGE(STATUS "Install component: \"${COMPONENT}\"")
+    SET(CMAKE_INSTALL_COMPONENT "${COMPONENT}")
+  ELSE(COMPONENT)
+    SET(CMAKE_INSTALL_COMPONENT)
+  ENDIF(COMPONENT)
+ENDIF(NOT CMAKE_INSTALL_COMPONENT)
+
+# Install shared libraries without execute permission?
+IF(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
+  SET(CMAKE_INSTALL_SO_NO_EXE "1")
+ENDIF(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
+
+IF(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for each subdirectory.
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/stack/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/lhash/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/err/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/buf/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/base64/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/bytestring/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/sha/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/md4/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/md5/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/modes/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/aes/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/des/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/rc4/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/conf/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/chacha/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/poly1305/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/digest/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/cipher/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/rand/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/bio/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/bn/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/obj/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/asn1/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/engine/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/dh/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/dsa/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/rsa/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/ec/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/ecdh/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/ecdsa/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/hmac/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/cmac/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/evp/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/hkdf/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/pem/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/x509/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/x509v3/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/pkcs8/cmake_install.cmake")
+  INCLUDE("/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/test/cmake_install.cmake")
+
+ENDIF(NOT CMAKE_INSTALL_LOCAL_ONLY)
+

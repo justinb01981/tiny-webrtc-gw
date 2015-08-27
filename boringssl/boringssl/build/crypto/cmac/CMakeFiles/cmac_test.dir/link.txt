@@ -1,0 +1,1 @@
+/usr/bin/c++    -Wall -Werror -ggdb -std=c++0x -fvisibility=hidden -Wshadow    CMakeFiles/cmac_test.dir/cmac_test.cc.o  -o cmac_test -rdynamic ../libcrypto.a -lpthread 

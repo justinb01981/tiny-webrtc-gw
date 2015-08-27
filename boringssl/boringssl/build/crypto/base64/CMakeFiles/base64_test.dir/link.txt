@@ -1,0 +1,1 @@
+/usr/bin/c++    -Wall -Werror -ggdb -std=c++0x -fvisibility=hidden -Wshadow    CMakeFiles/base64_test.dir/base64_test.cc.o ../test/CMakeFiles/test_support.dir/file_test.cc.o ../test/CMakeFiles/test_support.dir/malloc.cc.o  -o base64_test -rdynamic ../libcrypto.a -lpthread 

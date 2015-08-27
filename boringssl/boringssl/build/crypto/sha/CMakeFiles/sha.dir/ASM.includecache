@@ -1,0 +1,14 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/sha/sha1-x86_64.S
+
+/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/sha/sha256-x86_64.S
+
+/home/justin/webRTC/udp_redirect/boringssl/boringssl/build/crypto/sha/sha512-x86_64.S
+

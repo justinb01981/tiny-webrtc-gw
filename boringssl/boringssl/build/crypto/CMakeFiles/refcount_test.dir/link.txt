@@ -1,0 +1,1 @@
+/usr/bin/cc   -Wall -Werror -ggdb -fvisibility=hidden -Wshadow    CMakeFiles/refcount_test.dir/refcount_test.c.o  -o refcount_test -rdynamic libcrypto.a -lpthread 

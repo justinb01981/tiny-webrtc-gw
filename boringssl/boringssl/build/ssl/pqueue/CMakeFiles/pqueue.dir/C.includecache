@@ -1,0 +1,42 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../ssl/../include/openssl/base.h
+stddef.h
+-
+stdint.h
+-
+sys/types.h
+-
+openssl/opensslfeatures.h
+-
+
+../ssl/../include/openssl/mem.h
+openssl/base.h
+-
+stdlib.h
+-
+stdarg.h
+-
+
+../ssl/../include/openssl/opensslfeatures.h
+
+../ssl/../include/openssl/pqueue.h
+openssl/base.h
+-
+
+/home/justin/webRTC/udp_redirect/boringssl/boringssl/ssl/pqueue/pqueue.c
+openssl/pqueue.h
+-
+assert.h
+-
+string.h
+-
+openssl/mem.h
+-
+

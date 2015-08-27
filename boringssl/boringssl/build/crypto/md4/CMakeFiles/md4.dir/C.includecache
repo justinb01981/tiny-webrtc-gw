@@ -1,0 +1,38 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../crypto/../include/openssl/base.h
+stddef.h
+-
+stdint.h
+-
+sys/types.h
+-
+openssl/opensslfeatures.h
+-
+
+../crypto/../include/openssl/md4.h
+openssl/base.h
+-
+
+../crypto/../include/openssl/opensslfeatures.h
+
+/home/justin/webRTC/udp_redirect/boringssl/boringssl/crypto/digest/md32_common.h
+openssl/base.h
+-
+
+/home/justin/webRTC/udp_redirect/boringssl/boringssl/crypto/md4/md4.c
+openssl/md4.h
+-
+stdlib.h
+-
+string.h
+-
+../digest/md32_common.h
+/home/justin/webRTC/udp_redirect/boringssl/boringssl/crypto/digest/md32_common.h
+

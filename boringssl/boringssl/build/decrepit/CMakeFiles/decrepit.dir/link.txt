@@ -1,0 +1,2 @@
+/usr/bin/ar cr libdecrepit.a  cast/CMakeFiles/cast.dir/cast.c.o cast/CMakeFiles/cast.dir/cast_tables.c.o blowfish/CMakeFiles/blowfish.dir/blowfish.c.o
+/usr/bin/ranlib libdecrepit.a
