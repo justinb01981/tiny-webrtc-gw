@@ -20,3 +20,23 @@ table {
     border-collapse: collapse;
     display:inline-block;
 }
+
+video {
+    width:320;
+    height:240;
+}
+
+video.videoChild {
+    width:64;
+    height:64;
+}
+
+video.videoLocal {
+    width:320;
+    height:240;
+}
+
+video.videoMain {
+    width:640;
+    height:480;
+}

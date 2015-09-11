@@ -22,19 +22,19 @@
         <tr>
             <td id="thPresenter">
                 <div id="presenterDiv">
-                    <video id='videoMain' autoplay width=640 height=480></video>
+                    <video class="videoMain" id='videoMain' autoplay width=640 height=480></video>
                 </div>
             </td>
             <td>
                 <div id="localPreviewDiv">
-                    <video id="localVideo" autoplay muted width=320 height=240></video>
+                    <video class="videoLocal" id="localVideo" autoplay muted></video>
                     <P>Join to begin streaming...
                 </div>
 
-                <div id="remoteVideoMirrorDiv" hidden=true width=320 height=240>
+                <div id="remoteVideoMirrorDiv" hidden=true>
                     <P>Join Succesful:
                     <br>
-                    <video id="remoteVideoMirror" autoplay muted></video>
+                    <video class="videoLocal" id="remoteVideoMirror" autoplay muted width=320 height=240></video>
                     <br>
                     <P>Streaming...
                     <br>
@@ -94,7 +94,7 @@ var divVideoHTML = "" +
 "<td>" +
 "<table id=\"table_$USERNAME\" border=0>"+
     "<tr><td>" +
-        "<video autoplay id=\"video_$USERNAME_remote\" width="+vidChildW.toString()+" height="+vidChildH.toString()+"></video>" +
+        "<video autoplay class='videoChild' id=\"video_$USERNAME_remote\" width="+vidChildW.toString()+" height="+vidChildH.toString()+"></video>" +
     "</td>"+
     "<td>" +
         "<button id=\"btn_$USERNAME_1\" onClick=\"connectVideo(document.getElementById('video_$USERNAME_remote'), joinSDP(), true, '$USERNAME')\">show</button>" +
@@ -236,7 +236,11 @@ function macroHelper(a, b, c) {
 
 function joinPopupClose(connection, userName, recvOnlyChecked) {
     winPopupRemoteConnection = connection;
+    var w = winPopupVideoTarget.width;
+    var h = winPopupVideoTarget.height;
     attachMediaStream(winPopupVideoTarget, winPopupRemoteConnection.getRemoteStreams()[0]);
+    winPopupVideoTarget.width=w;
+    winPopupVideoTarget.height=h;
     //var hostPort = '%$HOSTPORT$%';
     var hostPort = '%$WEBPORT$%';
     if(!recvOnlyChecked)

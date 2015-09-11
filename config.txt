@@ -1,6 +1,6 @@
 webserver_port=8008
 
-udpserver_addr=192.168.57.29
+udpserver_addr=10.33.121.183
 udpserver_port=3478 
 
 udp_read_timeout_usec=16
