@@ -104,7 +104,7 @@ var divVideoHTML = "" +
         "<video autoplay id=\"video_$USERNAME_remote\" width="+vidChildW.toString()+" height="+vidChildH.toString()+"></video>" +
     "</td>"+
     "<td>" +
-        "<button id=\"btn_$USERNAME_1\" onClick=\"connectVideo(document.getElementById('video_$USERNAME_remote'), joinSDP(), true, '$USERNAME')\">show $USERNAME</button>" +
+        "<button id=\"btn_$USERNAME_1\" onClick=\"connectVideo(document.getElementById('video_$USERNAME_remote'), joinSDP(), true, '$USERNAME')\">show</button>" +
         "<button id=\"btn_$USERNAME_2\" onClick=\"onBtnMakePresent(this, '$USERNAME');\">presenter-ify</button>" +
         "<button id=\"btn_$USERNAME_3\" onClick=\"onBtnMute(this, '$USERNAME');\">stfu</button>" +
         "<button id=\"btn_$USERNAME_4\" onClick=\"onBtnClose(this, '$USERNAME');\">bye</button>" +
@@ -112,9 +112,9 @@ var divVideoHTML = "" +
     "</td></tr>"+
 "</table>" +
 "</td>" +
-"<img hidden=true src='http://domain17.net/domain17/NeonLightSm.JPG' onLoad='if(addUserLoad) addUserLoad(\"$USERNAME\"); this.hidden=true;'>" +
+"<img hidden=true src='adduser.jpg' onLoad='if(addUserLoad) addUserLoad(\"$USERNAME\"); this.hidden=true;'>" +
 "";
-var addUserHTML = "<td><table border=1 style='display:inline-block;'><tr><td><img src='newUser.jpg'></td></tr><tr><td><button onClick='onBtnAddUser(\"\");'>Add User</button></td></tr></table></td>";
+var addUserHTML = "<td><table border=1 style='margin:0; padding:0; display:inline-block; border-collapse:collapse; '><tr><td><img src='newUser.jpg'></td></tr><tr><td><button onClick='onBtnAddUser(\"\");'>Add User</button></td></tr></table></td>";
 var winPopup = null;
 var winPopupSdp = null;
 var winPopupVideoTarget = null;

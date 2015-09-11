@@ -120,100 +120,14 @@ char* get_answer_sdp_idx(char* val, unsigned int idx) { return get_sdp_idx_file(
 char* get_answer_sdp_idx2(char* val, unsigned int idx, char* begin_key) { return get_sdp_idx_file(sdp_file_prefix, FILENAME_SDP_ANSWER, val, idx, begin_key); }
 char* get_config(char* val) { return get_sdp_idx_file("", "config.txt", val, 0, NULL); }
 
-/*
-char* get_offer_sdp_ret[16] = {NULL};
-int get_offer_search_idx = 0;
-
-char* get_sdp_idx_file(const char* filename, const char* val, int n)
-{
-    if(get_offer_sdp_ret[get_offer_search_idx])
-    {
-        free(get_offer_sdp_ret[get_offer_search_idx]);
-        get_offer_sdp_ret[get_offer_search_idx] = NULL;
-    }
-
-    char* buf = file_read((char*) filename, NULL);
-    if(buf)
-    {
-        char *search = buf;
-        while(n >= 0)
-        {
-            char* p = strstr(search, val);
-            if(p)
-            {
-                p += strlen(val);
-
-                if(n > 0)
-                {
-                    n--;
-                    search = p;
-                    continue;
-                }
-
-                char* e = p;
-                while(*e != '\0' && *e != '\n' && *e != '\r') e++;
-                *e = '\0';
-
-                get_offer_sdp_ret[get_offer_search_idx] = malloc((e-p) + 1);
-                if(get_offer_sdp_ret[get_offer_search_idx])
-                {
-                    char* ret = get_offer_sdp_ret[get_offer_search_idx];
-                    get_offer_search_idx++;
-                    if(get_offer_search_idx >= 16) get_offer_search_idx = 0;
-                    strcpy(ret, p);
-                    return ret;
-                }
-            }
-        }
-        free(buf);
-    }
-
-    char* ret = get_offer_sdp_ret[get_offer_search_idx];
-
-    get_offer_search_idx++;
-    if(get_offer_search_idx >= 16) get_offer_search_idx = 0;
-    return ret;
-}
-*/
-
-char* stun_user = NULL;
-char* get_stun_user()
-{
-    if(stun_user) free(stun_user);
-    stun_user = file_read("stun_user.txt", NULL);
-    return stun_user;
-}
-
-char* stun_pwd = NULL;
-char* get_stun_pwd()
-{
-    if(stun_pwd) free(stun_pwd);
-    stun_pwd = file_read("stun_pwd.txt", NULL);
-    return stun_pwd;
-}
-
-char* stun_pwd_cli = NULL;
-char* get_stun_pwd_client()
-{
-    if(stun_pwd_cli) free(stun_pwd_cli);
-    stun_pwd_cli = file_read("stun_pwd_client.txt", NULL);
-    return stun_pwd_cli;
-}
-
-char *stun_local_addr = NULL;
 char* get_stun_local_addr()
 {
-    if(stun_local_addr) free(stun_local_addr);
-    stun_local_addr = file_read("stun_local_addr.txt", NULL);
-    return stun_local_addr;
+    return get_config("udpserver_addr=");
 }
 
-char *stun_local_port = NULL;
 char* get_stun_local_port()
 {
-    if(stun_local_port) free(stun_local_port);
-    stun_local_port = file_read("stun_local_port.txt", NULL);
-    return stun_local_port;
+    return get_config("udpserver_port=");
 }
 
 int

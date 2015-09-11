@@ -16,27 +16,22 @@
 
 <div id="mainDiv">
     <table border=0 id="mainDivTable">
-        <!--
         <tr>
             <th>Presenter</th><th>Local</th>
         </tr>
-        -->
         <tr>
             <td id="thPresenter">
-                <p>Presenter:
-                <video id='videoMain' width=640 height=480></video>
+                <div id="presenterDiv">
+                    <video id='videoMain' autoplay width=640 height=480></video>
+                </div>
             </td>
             <td>
-                Local:
                 <div id="localPreviewDiv">
-                    <p>Local preview:
-                    <br>
-                    <video id="localVideo" autoplay muted width=640 height=480></video>
-                    <br>
+                    <video id="localVideo" autoplay muted width=320 height=240></video>
                     <P>Join to begin streaming...
                 </div>
 
-                <div id="remoteVideoMirrorDiv" hidden=true width=640 height=480>
+                <div id="remoteVideoMirrorDiv" hidden=true width=320 height=240>
                     <P>Join Succesful:
                     <br>
                     <video id="remoteVideoMirror" autoplay muted></video>
@@ -102,7 +97,7 @@ var divVideoHTML = "" +
         "<video autoplay id=\"video_$USERNAME_remote\" width="+vidChildW.toString()+" height="+vidChildH.toString()+"></video>" +
     "</td>"+
     "<td>" +
-        "<button id=\"btn_$USERNAME_1\" onClick=\"connectVideo(document.getElementById('video_$USERNAME_remote'), joinSDP(), true, '$USERNAME')\">show $USERNAME</button>" +
+        "<button id=\"btn_$USERNAME_1\" onClick=\"connectVideo(document.getElementById('video_$USERNAME_remote'), joinSDP(), true, '$USERNAME')\">show</button>" +
         "<button id=\"btn_$USERNAME_2\" onClick=\"onBtnMakePresent(this, '$USERNAME');\">presenter-ify</button>" +
         "<button id=\"btn_$USERNAME_3\" onClick=\"onBtnMute(this, '$USERNAME');\">stfu</button>" +
         "<button id=\"btn_$USERNAME_4\" onClick=\"onBtnClose(this, '$USERNAME');\">bye</button>" +
@@ -112,7 +107,7 @@ var divVideoHTML = "" +
 "</td>" +
 "<img hidden=true src='http://domain17.net/domain17/NeonLightSm.JPG' onLoad='if(addUserLoad) addUserLoad(\"$USERNAME\"); this.hidden=true;'>" +
 "";
-var addUserHTML = "<td><table border=1 style='display:inline-block;'><tr><td><img src='newUser.jpg'></td></tr><tr><td><button onClick='onBtnAddUser(\"\");'>Add User</button></td></tr></table></td>";
+var addUserHTML = "<td><table border=1 style='margin:0; padding:0; display:inline-block; border-collapse:collapse;'><tr><td><img src='newUser.jpg'></td></tr><tr><td><button onClick='onBtnAddUser(\"\");'>Add User</button></td></tr></table></td>";
 var winPopup = null;
 var winPopupSdp = null;
 var winPopupVideoTarget = null;
@@ -302,6 +297,8 @@ function onBtnClose(btn, userName) {
         reattachMediaStream(vidMain, null);
     }
 }
+var divPresenterClientWidth = 0;
+var divPresenterClientHeight = 0;
 function onBtnMakePresent(btn, userName) {
     var vid = document.getElementById('videoMain');
     var vidSrc = document.getElementById('video_'+userName+'_remote');
@@ -310,8 +307,10 @@ function onBtnMakePresent(btn, userName) {
     vidPresenter = vidSrc;
 
     var divPresenter = document.getElementById('thPresenter');
-    vid.width = divPresenter.clientWidth;
-    vid.height = divPresenter.clientHeight;
+    if(divPresenterClientWidth == 0) divPresenterClientWidth = divPresenter.clientWidth;
+    if(divPresenterClientHeight == 0) divPresenterClientHeight = divPresenter.clientHeight;
+    vid.width = divPresenterClientWidth;
+    vid.height = divPresenterClientHeight;
 }
 </script>
 </html>

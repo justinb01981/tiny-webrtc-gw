@@ -1,6 +1,7 @@
 webserver_port=8008
 
-udpserver_addr=172.16.130.249
+udpserver_addr=192.168.57.29
+udpserver_port=3478 
 
 udp_read_timeout_usec=16
 #in multiples of the select-timeout (probably == max_peers)
