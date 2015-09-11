@@ -38,7 +38,7 @@
                     <br>
                     <P>Streaming...
                     <br>
-                    <button onclick="reattachMediaStream(document.getElementById('remoteVideoMirror'), null);">stop</button>
+                    <button onclick="document.getElementById('remoteVideoMirror').pause();">stop</button>
 
                     <div id="streamLinkDiv">
                     </div>
@@ -88,7 +88,7 @@
 var divRoom = null;
 
 var vidChildW = 128;
-var vidChildH = 128;
+var vidChildH = 96;
 
 var divVideoHTML = "" + 
 "<td>" +
@@ -133,14 +133,16 @@ var mainDivH = 600;
 var mainDivX = 10;
 var mainDivY = 10;
 
-var vidChildX = mainDivX+20;
-var vidChildYStart = mainDivY+120;
+var vidChildX = mainDivX;
+//var vidChildYStart = mainDivY+120;
+var vidChildYStart = mainDivY+mainDivH;
 var vidChildY = vidChildYStart;
 var addUserLoad = function(name) {
     var check = document.getElementById("check_"+name);
     if(!check.checked) {
         resizeObjectWithID("table_"+name, vidChildX, vidChildY, vidChildW+20, vidChildH+controlHeight);
-        vidChildY += vidChildH + (controlHeight);
+        //vidChildY += vidChildH + (controlHeight);
+        vidChildX += vidChildW + 100;
         /*
         if(vidChildY >= 400) { 
             vidChildY = vidChildYStart;
@@ -154,8 +156,8 @@ var addUserLoad = function(name) {
 function onLoad() {
     divRoom = document.getElementById("roomDivCursor");
 
-    mainDivW = document.body.clientWidth;
-    mainDivH = document.body.clientHeight;
+    //mainDivW = document.body.clientWidth;
+    //mainDivH = document.body.clientHeight;
     resizeObjectWithID("mainDiv", mainDivX, mainDivY, mainDivW, mainDivH);
     resizeObjectWithID("mainDivTable", mainDivX, mainDivY, mainDivW, mainDivH);
 
@@ -293,12 +295,13 @@ function onBtnMute(btn, userName) {
 }
 function onBtnClose(btn, userName) {
     var vidSrc = document.getElementById('video_'+userName+'_remote');
+    vidSrc.pause();
     var vidMain = document.getElementById('videoMain');
-    vidSrc.muted = !vidSrc.muted;
-    reattachMediaStream(vidSrc, null);
+    //reattachMediaStream(vidSrc, null);
     if(vidPresenter == vidSrc) {
-        vidMain.muted = vidSrc.muted;
-        reattachMediaStream(vidMain, null);
+    vidSrc.pause();
+        vidMain.pause();
+        //reattachMediaStream(vidMain, null);
     }
 }
 var divPresenterClientWidth = 0;
