@@ -1485,7 +1485,8 @@ int main( int argc, char* argv[] ) {
 
     srtp_init();
 
-    strcpy(udpserver.inip, get_config("udpserver_addr="));
+    //strcpy(udpserver.inip, get_config("udpserver_addr="));
+    strcpy(udpserver.inip, "0.0.0.0"); // for now bind to all interfaces
     udpserver.inport = strToInt(get_config("udpserver_port="));
 
     strcpy(webserver.inip, udpserver.inip);
