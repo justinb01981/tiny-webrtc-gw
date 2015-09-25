@@ -1066,9 +1066,14 @@ macro_str_expand(char* buf, char* tag, char* replace)
 }
 
 struct {
-    char* inip;
+    char inip[64];
     int running;
 } webserver;
+
+struct {
+    char inip[64];
+    unsigned short inport;
+} udpserver;
 
 typedef struct {
     int sock;
@@ -1167,6 +1172,8 @@ webserver_worker(void* p)
                 char *pbody = NULL;
                 char *pend = NULL;
                 char *response = NULL;
+                int response_binary = 0;
+                unsigned int file_buf_len = 0;
                 char *file_buf = NULL;
                 int cmd_post = 0;
 
@@ -1226,8 +1233,8 @@ webserver_worker(void* p)
                 if(!cmd_post)
                 {
                     sprintf(path, "./%s", purl);
-                    
-                    file_buf = file_read(path, NULL);
+                     
+                    file_buf = file_read(path, &file_buf_len);
 
                     printf("%s:%d webserver GET for file (%s):\n\t%s\n", __func__, __LINE__, file_buf? "": "failed", path);
                     if(!file_buf || strcmp(purl, "/") == 0)
@@ -1245,6 +1252,8 @@ webserver_worker(void* p)
                         if(strstr(purl, ".js")) content_type = "Content-Type: text/javascript\r\n\r\n";
                         else if(strstr(purl, ".html")) content_type = content_type_html;
                         else if(strstr(purl, ".css")) content_type = "Content-Type: text/css\r\n\r\n";
+                        else if(strstr(purl, ".jpg")) { response_binary = 1; content_type = "Content-Type: image/jpeg\r\n\r\n"; }
+                        else if(strstr(purl, ".gif")) { response_binary = 1; content_type = "Content-Type: image/gif\r\n\r\n"; }
                         else if(strstr(purl, tag_watchuser)) content_type = content_type_html;
                         else content_type = content_type = "Content-Type: application/octet-stream\r\n\r\n";
                     }
@@ -1396,7 +1405,7 @@ webserver_worker(void* p)
 
                     r = send(sock, hdr, strlen(hdr), flags);
                     r = send(sock, content_type, strlen(content_type), flags);
-                    r = send(sock, response, strlen(response), flags);
+                    r = send(sock, response, response_binary? file_buf_len: strlen(response), flags);
                 }
 
                 if(do_shutdown)
@@ -1461,25 +1470,12 @@ webserver_accept_worker(void* p)
 
 int main( int argc, char* argv[] ) {
     int i, listen, output;
-    char *inip, *inpt, *srcip, *dstip, *dstpt;
     struct sockaddr_in src;
     struct sockaddr_in dst;
     struct sockaddr_in ret;
 
     signal(SIGPIPE, SIG_IGN);
 
-    int bounce_mode = 0;
-
-    /*
-    struct sockaddr_in saList[16];
-    unsigned int saListID[16];
-    unsigned int saListFwd[16];
-    peer_session_t saListPeerData[16];
-    int saListLen = 0;
-    int saListMax = 0;
-
-    memset(&saList, 0, sizeof(saList));
-    */
     int peersLen = 0;
     pthread_t thread_webserver;
 
@@ -1489,38 +1485,16 @@ int main( int argc, char* argv[] ) {
 
     srtp_init();
 
-    if( 3 != argc && 5 != argc && 6 != argc ) {
-        fprintf( stderr, "Usage: %s <listen-ip> <listen-port> [[source-ip] <destination-ip> <destination-port>]\n", argv[ 0 ] );
-        exit( 1 );
-    }
- 
-    i = 1;
-    inip = argv[ i++ ];     /* 1 */
-    inpt = argv[ i++ ];     /* 2 */
-    if( 6 == argc )
-        srcip = argv[ i++ ];    /* 3 */
-    if( 3 != argc ) {
-        dstip = argv[ i++ ];    /* 3 or 4 */
-        dstpt = argv[ i++ ];    /* 4 or 5 */
-    }
-    webserver.inip = inip;
+    strcpy(udpserver.inip, get_config("udpserver_addr="));
+    udpserver.inport = strToInt(get_config("udpserver_port="));
 
-    if(strstr(argv[0], "bounce") != 0) bounce_mode = 1;
+    strcpy(webserver.inip, udpserver.inip);
      
-    listen = bindsocket( inip, strToInt( inpt ), 0 );
-    if( 6 == argc ) {
-        output = bindsocket( srcip, strToInt( inpt ), 0 );
-    } else {
-        output = listen;
-    }
+    listen = bindsocket( udpserver.inip, udpserver.inport, 0 );
+    output = listen;
 
-    listen_port = strToInt(inpt);
+    listen_port = udpserver.inport;
  
-    if( 3 != argc ) {
-        dst.sin_family = AF_INET;
-        dst.sin_addr.s_addr = inet_addr( dstip );
-        dst.sin_port = htons( strToInt( dstpt ) );
-    }
     ret.sin_addr.s_addr = 0;
 
     int timeout_freq = /* MAX_PEERS */ strToInt(get_config("udp_peer_write_interval="));
@@ -1528,13 +1502,10 @@ int main( int argc, char* argv[] ) {
     int udp_recv_timeout_usec = strToInt(get_config("udp_read_timeout_usec="));
 
     webserver.running = 0;
-    if(bounce_mode)
-    {
-        DTLS_init(strToInt(inpt));
+    DTLS_init(udpserver.inport);
 
-        webserver.running = 1;
-        pthread_create(&thread_webserver, NULL, webserver_accept_worker, NULL);
-    }
+    webserver.running = 1;
+    pthread_create(&thread_webserver, NULL, webserver_accept_worker, NULL);
 
     while( 1 )
     {
@@ -1566,283 +1537,266 @@ int main( int argc, char* argv[] ) {
         int length_last = length;
         memcpy(buffer_last, buffer, length_last);
 
-        if( 3 == argc && !bounce_mode) {
-            /* echo, without tracking return packets */
-            sendto( listen, buffer, length, 0, (struct sockaddr*)&src, size );
-        } else if(bounce_mode) {
-            static time_t time_last_stats = 0;
+        static time_t time_last_stats = 0;
 
-            if(time(NULL) - time_last_stats > 2)
+        if(time(NULL) - time_last_stats > 2)
+        {
+            /* print counters */
+            int c;
+            printf("\n");            
+            for(c = 0; c < sizeof(counts)/sizeof(int); c++) printf("%s:%d ", counts_names[c], counts[c]);
+            printf("time=%lu", get_time_ms());
+            printf("\n");
+            time_last_stats = time(NULL);
+
+            for(c = 0; c < MAX_PEERS; c++)
             {
-                /* print counters */
-                int c;
-                printf("\n");            
-                for(c = 0; c < sizeof(counts)/sizeof(int); c++) printf("%s:%d ", counts_names[c], counts[c]);
-                printf("time=%lu", get_time_ms());
-                printf("\n");
-                time_last_stats = time(NULL);
-
-                for(c = 0; c < MAX_PEERS; c++)
+                if(peers[c].alive)
                 {
-                    if(peers[c].alive)
+                    printf("peer[%d] stats:", c);
+
+                    peers[c].stats.stat[0] = peers[c].stun_ice.bind_req_rtt;
+                    peers[c].stats.stat[1] = time(NULL) - peers[c].time_start;
+
+                    int si;
+                    for(si = 0; si < sizeof(peers[c].stats)/sizeof(peers[c].stats.stat[0]); si++)
                     {
-                        printf("peer[%d] stats:", c);
-
-                        peers[c].stats.stat[0] = peers[c].stun_ice.bind_req_rtt;
-                        peers[c].stats.stat[1] = time(NULL) - peers[c].time_start;
-
-                        int si;
-                        for(si = 0; si < sizeof(peers[c].stats)/sizeof(peers[c].stats.stat[0]); si++)
-                        {
-                            printf(", %lu", peers[c].stats.stat[si]);
-                        }
-                        printf("\n");
+                        printf(", %lu", peers[c].stats.stat[si]);
                     }
+                    printf("\n");
+                }
+            }
+        }
+
+        int inkey = 0;
+
+        pkt_type_t type = pktType(buffer, length);
+
+        if(type == PKT_TYPE_STUN) counts[0]++;
+        else if(type == PKT_TYPE_SRTP) counts[1]++;
+        else counts[2]++;
+
+        int i;
+        int sidx = -1;
+        for(i = 0; i < MAX_PEERS; i++)
+        {
+            if((src.sin_addr.s_addr == peers[i].addr.sin_addr.s_addr &&
+                src.sin_port == peers[i].addr.sin_port) /*||
+               peers[i].stunID32 == stunID(buffer, length)*/)
+            {
+                //printf("found stunID: %d\n", stunID(buffer, length));
+                sidx = i;
+                peers[sidx].time_pkt_last = time(NULL);
+                break;
+            }
+        }
+
+        while(sidx == -1)
+        {
+            /* init new peer */
+            printf("%s:%d adding new peer\n", __func__, __LINE__);
+
+            sidx = 0;
+            while(peers[sidx].alive) sidx++;
+
+            if(sidx >= MAX_PEERS) break;
+
+            peer_init(&peers[sidx], sidx);
+
+            peers[sidx].addr = src;
+            peers[sidx].addr_listen = bindsocket_addr_last;
+            peers[sidx].stunID32 = stunID(buffer, length);
+            peers[sidx].fwd = MAX_PEERS;
+            peers[sidx].sock = output;
+
+            stun_username(buffer, length, peers[sidx].stun_ice.uname);
+
+            DTLS_peer_init(&peers[sidx]);
+
+            peers[sidx].cleartext.len = 0;
+
+            peers[sidx].alive = 1;
+            if(!peers[sidx].thread)
+            {
+                pthread_mutex_init(&peers[sidx].mutex, NULL);
+                PEER_LOCK(sidx);
+
+                pthread_create(&peers[sidx].thread, NULL, connection_worker, (void*) &peers[sidx]);
+
+                int rtp_idx;
+                for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_WRITE; rtp_idx++)
+                {
+                    peer_rtp_send_worker_args_t *args = (peer_rtp_send_worker_args_t*) malloc(sizeof(peer_rtp_send_worker_args_t));
+                    args->peer = &peers[sidx];
+                    args->rtp_idx = rtp_idx;
+                    pthread_create(&peers[sidx].thread_rtp_send, NULL, peer_rtp_send_worker, (void*) args);
                 }
             }
 
-            int inkey = 0;
+            counts[6]++;
+        }
+        
+        if(sidx < 0) goto select_timeout;
 
-            pkt_type_t type = pktType(buffer, length);
+        if(src.sin_addr.s_addr != peers[sidx].addr.sin_addr.s_addr ||
+           src.sin_port != peers[sidx].addr.sin_port)
+        {
+            /* ignore (same peer) */
+            printf("%s:%d peer address updated (duplicate STUN cookie)\n", __func__, __LINE__);
+            memcpy(&peers[sidx].addr, &src, sizeof(src));
+        }
 
-            if(type == PKT_TYPE_STUN) counts[0]++;
-            else if(type == PKT_TYPE_SRTP) counts[1]++;
-            else counts[2]++;
+        /* drop packets until peer thread starts */
+        //if(!peers[sidx].running) goto select_timeout_unlock;
 
-            int i;
-            int sidx = -1;
-            for(i = 0; i < MAX_PEERS; i++)
+        if(length < 1 || length >= PEER_BUFFER_NODE_BUFLEN) goto select_timeout_unlock;
+
+        peer_buffer_node_t* node = buffer_node_alloc(), *tail_prev;
+        if(!node) goto select_timeout_unlock;
+
+        memcpy(node->buf, buffer, length);
+        node->len = length;
+        node->recv_time = get_time_ms();
+
+        node->next = NULL;
+
+        tail_prev = peer_buffer_node_list_get_tail(&(peers[sidx].in_buffers_head));
+        peer_buffer_node_list_add(&(peers[sidx].in_buffers_head), node);
+
+        if(node->recv_time - tail_prev->recv_time < peers[sidx].in_rate_ms) peers[sidx].in_rate_ms--;
+        else peers[sidx].in_rate_ms++;
+
+        continue;
+
+        select_timeout_unlock:
+
+        /* signal peer thread to run */
+        //PEER_UNLOCK(sidx);
+        //PEER_LOCK(sidx);
+
+        select_timeout:
+        i = 0;
+        while(i < MAX_PEERS)
+        {
+            unsigned int peer_timeout_sec = 10;
+
+            if(peers[i].alive)
             {
-                if((src.sin_addr.s_addr == peers[i].addr.sin_addr.s_addr &&
-                    src.sin_port == peers[i].addr.sin_port) /*||
-                   peers[i].stunID32 == stunID(buffer, length)*/)
-                {
-                    //printf("found stunID: %d\n", stunID(buffer, length));
-                    sidx = i;
-                    peers[sidx].time_pkt_last = time(NULL);
-                    break;
-                }
+                /* signal peer thread to run */
+                PEER_UNLOCK(i);
+                PEER_LOCK(i);
             }
-
-            while(sidx == -1)
+            else
             {
-                /* init new peer */
-                printf("%s:%d adding new peer\n", __func__, __LINE__);
-
-                sidx = 0;
-                while(peers[sidx].alive) sidx++;
-
-                if(sidx >= MAX_PEERS) break;
-
-                peer_init(&peers[sidx], sidx);
-
-                peers[sidx].addr = src;
-                peers[sidx].addr_listen = bindsocket_addr_last;
-                peers[sidx].stunID32 = stunID(buffer, length);
-                peers[sidx].fwd = MAX_PEERS;
-                peers[sidx].sock = output;
-
-                stun_username(buffer, length, peers[sidx].stun_ice.uname);
-
-                DTLS_peer_init(&peers[sidx]);
-
-                peers[sidx].cleartext.len = 0;
-
-                peers[sidx].alive = 1;
-                if(!peers[sidx].thread)
-                {
-                    pthread_mutex_init(&peers[sidx].mutex, NULL);
-                    PEER_LOCK(sidx);
-
-                    pthread_create(&peers[sidx].thread, NULL, connection_worker, (void*) &peers[sidx]);
-
-                    int rtp_idx;
-                    for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_WRITE; rtp_idx++)
-                    {
-                        peer_rtp_send_worker_args_t *args = (peer_rtp_send_worker_args_t*) malloc(sizeof(peer_rtp_send_worker_args_t));
-                        args->peer = &peers[sidx];
-                        args->rtp_idx = rtp_idx;
-                        pthread_create(&peers[sidx].thread_rtp_send, NULL, peer_rtp_send_worker, (void*) args);
-                    }
-                }
-
-                counts[6]++;
-            }
-            
-            if(sidx < 0) goto select_timeout;
-
-            if(src.sin_addr.s_addr != peers[sidx].addr.sin_addr.s_addr ||
-               src.sin_port != peers[sidx].addr.sin_port)
-            {
-                /* ignore (same peer) */
-                printf("%s:%d peer address updated (duplicate STUN cookie)\n", __func__, __LINE__);
-                memcpy(&peers[sidx].addr, &src, sizeof(src));
-            }
-
-            /* drop packets until peer thread starts */
-            //if(!peers[sidx].running) goto select_timeout_unlock;
-
-            if(length < 1 || length >= PEER_BUFFER_NODE_BUFLEN) goto select_timeout_unlock;
-
-            peer_buffer_node_t* node = buffer_node_alloc(), *tail_prev;
-            if(!node) goto select_timeout_unlock;
-
-            memcpy(node->buf, buffer, length);
-            node->len = length;
-            node->recv_time = get_time_ms();
-
-            node->next = NULL;
-
-            tail_prev = peer_buffer_node_list_get_tail(&(peers[sidx].in_buffers_head));
-            peer_buffer_node_list_add(&(peers[sidx].in_buffers_head), node);
-
-            if(node->recv_time - tail_prev->recv_time < peers[sidx].in_rate_ms) peers[sidx].in_rate_ms--;
-            else peers[sidx].in_rate_ms++;
-
-            continue;
-
-            select_timeout_unlock:
-
-            /* signal peer thread to run */
-            //PEER_UNLOCK(sidx);
-            //PEER_LOCK(sidx);
-
-            select_timeout:
-            i = 0;
-            while(i < MAX_PEERS)
-            {
-                unsigned int peer_timeout_sec = 10;
-
-                if(peers[i].alive)
-                {
-                    /* signal peer thread to run */
-                    PEER_UNLOCK(i);
-                    PEER_LOCK(i);
-                }
-                else
-                {
-                    i++;
-                    continue;
-                }
-
-                if(peers[i].bufs.out_len > 0)
-                {
-                    int r = sendto( output, peers[i].bufs.out, peers[i].bufs.out_len, 0, (struct sockaddr*)&peers[i].addr, sizeof(peers[i].addr));
-                    //printf("UDP sent %d bytes (%s:%d)\n", r, inet_ntoa(peers[i].addr.sin_addr), ntohs(peers[i].addr.sin_port));
-                    peers[i].bufs.out_len = 0;
-                }
-
-                if(time(NULL) - peers[i].time_cleanup_last > 15)
-                {
-                    /* HACK: lock out all reader-threads */
-                    peers[i].cleanup_in_progress = 1;
-                    sleep_msec(peer_rtp_send_worker_delay_max * 2);
-
-                    peers[i].time_cleanup_last = time(NULL);
-
-                    while(1)
-                    {
-                        peer_buffer_node_t *curfree = peers[i].in_buffers_head.next;
-                        if(!curfree) break;
-                        if(!curfree->consumed) break;
-
-                        peer_buffer_node_list_remove(&peers[i].in_buffers_head, curfree);
-                        free(curfree);
-                        counts[12]++;
-                    }
-
-                    int rtp_idx;
-                    for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_COUNT; rtp_idx++)
-                    {
-                        peer_buffer_node_t* head = &(peers[i].rtp_buffers_head[rtp_idx]);
-
-                        peer_buffer_node_t* cur = head->next;
-                        while(cur)
-                        {
-                            int p;
-                            for(p = 0; p < MAX_PEERS; p++)
-                            {
-                                if(peers[p].subscription_ptr[rtp_idx] == cur) { cur = NULL; break; }
-                            }
-
-                            if(!cur) break;
-
-                            peer_buffer_node_t* next = cur->next;
-
-                            if(cur->reclaimable)
-                            {
-                                peer_buffer_node_list_remove(head, cur);
-                                free(cur);
-                                counts[13]++;
-                            }
-                            cur = next;
-                        }
-                    }
-
-                    peers[i].cleanup_in_progress = 0;
-                }
-
-                peer_timeout_sec = 10;
-                if(peers[i].time_pkt_last != 0 && time(NULL) - peers[i].time_pkt_last > peer_timeout_sec)
-                {
-                    printf("%s:%d timeout peer\n", __func__, __LINE__);
-
-                    /* HACK: lock out all reader-threads */
-                    peers[i].cleanup_in_progress = 1;
-                    sleep_msec(peer_rtp_send_worker_delay_max * 2);
-
-                    int p;
-                    for(p = 0; p < MAX_PEERS; p++)
-                    {
-                        if(peers[p].alive && peers[p].subscriptionID == i)
-                            memset(&peers[p].subscription_ptr, 0, sizeof(peers[p].subscription_ptr));
-                    }
-
-                    peers[i].alive = 0;
-                    peers[i].cleanup_in_progress = 0;
-
-                    PEER_UNLOCK(i);
-                    pthread_join(peers[i].thread_rtp_send, NULL);
-                    pthread_join(peers[i].thread, NULL);
-
-                    DTLS_peer_uninit(&peers[i]);
-
-                    int err = 
-                    peer_buffer_node_list_free_all(&peers[i].in_buffers_head);
-
-                    int rtp_idx = 0;
-                    while(rtp_idx < PEER_RTP_CTX_COUNT) {
-                        err = 
-                        peer_buffer_node_list_free_all(&peers[i].rtp_buffers_head[rtp_idx]);
-                        rtp_idx++;
-                    }
-
-                    int s = 0;
-                    while(s < PEER_RTP_CTX_COUNT)
-                    {
-                        if(peers[i].srtp[s].inited) srtp_dealloc(peers[i].srtp[s].session);
-                        s++;
-                    }
-
-                    memset(&peers[i], 0, sizeof(peers[i]));
-
-                    printf("%s:%d timeout peer DONE\n", __func__, __LINE__);
-                }
-
                 i++;
+                continue;
             }
-        } else if( ( src.sin_addr.s_addr == dst.sin_addr.s_addr ) && ( src.sin_port == dst.sin_port ) ) {
-            /* If we receive a return packet back from our destination ... */
-            if( ret.sin_addr.s_addr )
-                /* ... and we've previously remembered having sent packets to this location,
-                   then return them to the original sender */
-                sendto( output, buffer, length, 0, (struct sockaddr*)&ret, sizeof( ret ) );
-                printf("bridging UDP (len=%d)\n", length);
-        } else {
-            sendto( output, buffer, length, 0, (struct sockaddr*)&dst, sizeof( dst ) );
-            /* Remeber original sender to direct return packets towards */
-            ret = src;
-            printf("received UDP (len=%d)\n", length);
+
+            if(peers[i].bufs.out_len > 0)
+            {
+                int r = sendto( output, peers[i].bufs.out, peers[i].bufs.out_len, 0, (struct sockaddr*)&peers[i].addr, sizeof(peers[i].addr));
+                //printf("UDP sent %d bytes (%s:%d)\n", r, inet_ntoa(peers[i].addr.sin_addr), ntohs(peers[i].addr.sin_port));
+                peers[i].bufs.out_len = 0;
+            }
+
+            if(time(NULL) - peers[i].time_cleanup_last > 15)
+            {
+                /* HACK: lock out all reader-threads */
+                peers[i].cleanup_in_progress = 1;
+                sleep_msec(peer_rtp_send_worker_delay_max * 2);
+
+                peers[i].time_cleanup_last = time(NULL);
+
+                while(1)
+                {
+                    peer_buffer_node_t *curfree = peers[i].in_buffers_head.next;
+                    if(!curfree) break;
+                    if(!curfree->consumed) break;
+
+                    peer_buffer_node_list_remove(&peers[i].in_buffers_head, curfree);
+                    free(curfree);
+                    counts[12]++;
+                }
+
+                int rtp_idx;
+                for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_COUNT; rtp_idx++)
+                {
+                    peer_buffer_node_t* head = &(peers[i].rtp_buffers_head[rtp_idx]);
+
+                    peer_buffer_node_t* cur = head->next;
+                    while(cur)
+                    {
+                        int p;
+                        for(p = 0; p < MAX_PEERS; p++)
+                        {
+                            if(peers[p].subscription_ptr[rtp_idx] == cur) { cur = NULL; break; }
+                        }
+
+                        if(!cur) break;
+
+                        peer_buffer_node_t* next = cur->next;
+
+                        if(cur->reclaimable)
+                        {
+                            peer_buffer_node_list_remove(head, cur);
+                            free(cur);
+                            counts[13]++;
+                        }
+                        cur = next;
+                    }
+                }
+
+                peers[i].cleanup_in_progress = 0;
+            }
+
+            peer_timeout_sec = 10;
+            if(peers[i].time_pkt_last != 0 && time(NULL) - peers[i].time_pkt_last > peer_timeout_sec)
+            {
+                printf("%s:%d timeout peer\n", __func__, __LINE__);
+
+                /* HACK: lock out all reader-threads */
+                peers[i].cleanup_in_progress = 1;
+                sleep_msec(peer_rtp_send_worker_delay_max * 2);
+
+                int p;
+                for(p = 0; p < MAX_PEERS; p++)
+                {
+                    if(peers[p].alive && peers[p].subscriptionID == i)
+                        memset(&peers[p].subscription_ptr, 0, sizeof(peers[p].subscription_ptr));
+                }
+
+                peers[i].alive = 0;
+                peers[i].cleanup_in_progress = 0;
+
+                PEER_UNLOCK(i);
+                pthread_join(peers[i].thread_rtp_send, NULL);
+                pthread_join(peers[i].thread, NULL);
+
+                DTLS_peer_uninit(&peers[i]);
+
+                int err = 
+                peer_buffer_node_list_free_all(&peers[i].in_buffers_head);
+
+                int rtp_idx = 0;
+                while(rtp_idx < PEER_RTP_CTX_COUNT) {
+                    err = 
+                    peer_buffer_node_list_free_all(&peers[i].rtp_buffers_head[rtp_idx]);
+                    rtp_idx++;
+                }
+
+                int s = 0;
+                while(s < PEER_RTP_CTX_COUNT)
+                {
+                    if(peers[i].srtp[s].inited) srtp_dealloc(peers[i].srtp[s].session);
+                    s++;
+                }
+
+                memset(&peers[i], 0, sizeof(peers[i]));
+
+                printf("%s:%d timeout peer DONE\n", __func__, __LINE__);
+            }
+
+            i++;
         }
     }
 

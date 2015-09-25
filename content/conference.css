@@ -1,5 +1,5 @@
 body {
-    background-color: lightblue;
+    background-color: white;
 }
 
 h1 {
@@ -12,6 +12,7 @@ td {
     padding:0;
     border-collapse: collapse;
     display:inline-block;
+    overflow:scroll;
 }
 
 table {
@@ -19,7 +20,7 @@ table {
     padding:0;
     border-collapse: collapse;
     display:inline-block;
-    overflow:auto;
+    overflow:scroll;
 }
 
 video {
@@ -32,12 +33,16 @@ video.videoChild {
     height:96;
 }
 
+/*
 video.videoLocal {
     width:320;
     height:240;
 }
+*/
 
+/*
 video.videoMain {
     width:640;
     height:480;
 }
+*/

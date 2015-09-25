@@ -15,7 +15,7 @@
 </div>
 
 <div id="mainDiv">
-    <table border=0 id="mainDivTable">
+    <table border=1 id="mainDivTable">
         <tr>
             <th>Presenter</th><th>Local</th>
         </tr>
@@ -46,6 +46,7 @@
                 <button onclick="document.getElementById('remoteVideoMirrorDiv').hidden = false; document.getElementById('localPreviewDiv').hidden = true; connectVideo(document.getElementById('remoteVideoMirror'), joinSDP(), false, '');">Join</button>
             </td>
         </tr>
+
         <tr>
             <!--
             <td>
@@ -63,14 +64,24 @@
                 </table>
             </td>
             -->
-            <td>
-                <div id="roomDivCursor">
-                </div>
-            </td>
+            <table>
+            <tr>
+              <div id="roomDivCursor">
+              </div>
+            </tr>
+            </table>
         </tr>
     </table>
 </div>
-
+<div id="roomAddButtonDiv" style="display: none;">
+    <table border=1 style="display:inline-block;">
+    <tr>
+        <td>
+            <button onClick='onBtnAddUser("");'>Add User</button>
+        </td>
+    </tr>
+    </table>
+</div>
 </body>
 
 <script src="src/js/adapter.js"></script>
@@ -105,10 +116,11 @@ var divVideoHTML = "" +
     "</td></tr>"+
 "</table>" +
 "</td>" +
-"<img hidden=true src='http://domain17.net/domain17/NeonLightSm.JPG' onLoad='if(addUserLoad) addUserLoad(\"$USERNAME\"); this.hidden=true;'>" +
+"<img hidden=true src='logo.jpg' onLoad='if(addUserLoad) addUserLoad(\"$USERNAME\"); this.hidden=true;'>" +
 "";
 var addUserHTML = "<td><table border=1 style='margin:0; padding:0; display:inline-block; border-collapse:collapse;'><tr><td><img src='newUser.jpg'></td></tr><tr><td><button onClick='onBtnAddUser(\"\");'>Add User</button></td></tr></table></td>";
 var winPopup = null;
+var roomPopup = null;
 var winPopupSdp = null;
 var winPopupVideoTarget = null;
 var winPopupRemoteConnection = null;
@@ -133,31 +145,34 @@ var mainDivH = 600;
 var mainDivX = 10;
 var mainDivY = 10;
 
-var vidChildX = mainDivX;
-//var vidChildYStart = mainDivY+120;
-var vidChildYStart = mainDivY+mainDivH;
-var vidChildY = vidChildYStart;
+var vidChildX;
+var vidChildY;
 var addUserLoad = function(name) {
     var check = document.getElementById("check_"+name);
     if(!check.checked) {
         resizeObjectWithID("table_"+name, vidChildX, vidChildY, vidChildW+20, vidChildH+controlHeight);
-        //vidChildY += vidChildH + (controlHeight);
         vidChildX += vidChildW + 100;
-        /*
-        if(vidChildY >= 400) { 
-            vidChildY = vidChildYStart;
-            vidChildX += vidChildW+20;
+        if(vidChildX >= mainDivW) { 
+            vidChildY += vidChildH+20;
+            vidChildX = mainDivX;
         }
-        */
         check.checked = true;
     }
+}
+
+function vidChildInit() {
+    vidChildX = mainDivX;
+    vidChildY = mainDivY + mainDivH;
 }
 
 function onLoad() {
     divRoom = document.getElementById("roomDivCursor");
 
-    //mainDivW = document.body.clientWidth;
-    //mainDivH = document.body.clientHeight;
+    mainDivW = (document.body.clientWidth / 100) * 80;
+    mainDivH = (document.body.clientHeight / 100) * 70;
+
+    vidChildInit();
+
     resizeObjectWithID("mainDiv", mainDivX, mainDivY, mainDivW, mainDivH);
     resizeObjectWithID("mainDivTable", mainDivX, mainDivY, mainDivW, mainDivH);
 
@@ -213,14 +228,16 @@ function onLoad() {
     }
 
     var userTotal = 0;
+    /*
     i = 0;
     while(i < peerList.length) {
         onBtnAddUser(peerList[i].name);
         i++;
         userTotal++;
     }
+    */
 
-    while(userTotal < 5) {
+    while(userTotal < 1) {
         onBtnAddUser('');
         userTotal++;
     }
@@ -249,6 +266,7 @@ function joinPopupClose(connection, userName, recvOnlyChecked) {
     {
         document.getElementById('streamLinkDiv').innerHTML = '' +
         '<a href="http:\/\/%$HOSTNAME$%:' + hostPort + '/watch.html?args=' + userName + '">' + 'shareable link: ' + userName + '</a>';
+        roomPopup = window.open('stats.html', 'room', 'width=250,height=400');
     }
 }
 
@@ -273,18 +291,16 @@ function connectVideo(videoElem, videoSDPOffer, recvOnly, watchUser) {
   winPopup = rtcPopupCreate(joinPopupOpen, joinPopupClose, recvOnly, watchUser);
 }
 function onBtnAddUser(userName) {
-    //var userName = "user" + userCounter.toString()
+    resizeObjectWithID("roomAddButtonDiv", mainDivX+(userCounter*(vidChildW+100)), vidChildY+vidChildH/2, 50, 50);
+    vidChildInit();
+
     if(userName.length == 0) userName = userCounter.toString();
     var val = macroHelper(divVideoHTML, '$USERNAME', userName);
     roomTable += val;
     roomTableCols++;
-    //divRoom.innerHTML = "<table border=2><tr><th colspan="+roomTableCols.toString()+"><p>Presenter:<br><video id='videoMain'></video></th></tr><tr>" + roomTable + "</tr></table>";
     var divRoomCurs = document.getElementById("roomDivCursor");
     divRoomCurs.innerHTML = divRoomCurs.innerHTML + val;
-    //alert(divRoom.innerHTML);
     userCounter ++;
-
-    var thPresenter = document.getElementById("thPresenter");
 }
 function onBtnMute(btn, userName) {
     var vidSrc = document.getElementById('video_'+userName+'_remote');
