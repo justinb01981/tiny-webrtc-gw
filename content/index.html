@@ -24,6 +24,8 @@
                 <div id="presenterDiv">
                     <video class="videoMain" id='videoMain' autoplay width=640 height=480></video>
                 </div>
+                <button onclick='mainVideoEmbiggen(120);'>+</button>
+                <button onclick='mainVideoEmbiggen(80);'>-</button>
             </td>
             <td>
                 <div id="localPreviewDiv">
@@ -171,13 +173,12 @@ function onLoad() {
     mainDivW = (document.body.clientWidth / 100) * 80;
     mainDivH = (document.body.clientHeight / 100) * 70;
 
+    resizeObjectWithID("videoMain", mainDivX, mainDivY, (mainDivW/100)*60, (mainDivH/100)*50);
+
     vidChildInit();
 
     resizeObjectWithID("mainDiv", mainDivX, mainDivY, mainDivW, mainDivH);
     resizeObjectWithID("mainDivTable", mainDivX, mainDivY, mainDivW, mainDivH);
-
-    //var previewHeight = 600;
-    //resizeObjectWithID("videoMain", mainDivX, mainDivY + previewHeight, mainDivW, mainDivH);
 
     MediaStreamTrack.getSources(
         function(sourceInfos) {
@@ -334,6 +335,8 @@ function onBtnMakePresent(btn, userName) {
     if(divPresenterClientHeight == 0) divPresenterClientHeight = divPresenter.clientHeight;
     vid.width = divPresenterClientWidth;
     vid.height = divPresenterClientHeight;
+}
+function mainVideoEmbiggen(pct) { 
 }
 </script>
 </html>
