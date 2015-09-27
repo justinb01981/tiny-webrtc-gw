@@ -335,6 +335,8 @@ function onBtnMakePresent(btn, userName) {
     if(divPresenterClientHeight == 0) divPresenterClientHeight = divPresenter.clientHeight;
     vid.width = divPresenterClientWidth;
     vid.height = divPresenterClientHeight;
+
+    resizeObjectWithID("videoMain", mainDivX, mainDivY, (mainDivW/100)*60, (mainDivH/100)*50);
 }
 function mainVideoEmbiggen(pct) { 
 }
