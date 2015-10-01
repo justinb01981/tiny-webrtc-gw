@@ -49,6 +49,8 @@ struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS];
 FILECACHE_INSTANTIATE();
 
+char g_chatlog[2048016];
+
 int listen_port = 0;
 
 char* counts_names[] = {"in_STUN", "in_SRTP", "in_UNK", "DROP", "BYTES_FWD", "", "USER_ID", "master", "rtp_underrun", "rtp_ok", "unk_rtp_ssrc", "srtp_unprotect_fail", "buf_reclaimed_pkt", "buf_reclaimed_rtp"};
@@ -943,7 +945,7 @@ connection_worker(void* p)
                     rtp_report_pli_vp8_t report_pli_vp8;
                     rtp_report_pli_t *report_pli = (rtp_report_pli_t*) &report_pli_vp8;
                    
-                    memset(report_pli, 0, sizeof(*report_pli));
+                    memset(report_pli, 0, sizeof(rtp_report_pli_vp8_t));
                     report_pli->ver = (2 << 6) | RTP_PSFB;
                     report_pli->payload_type = 206;
                     report_pli->length = htons((sizeof(*report_pli)/4)-1);
@@ -952,7 +954,8 @@ connection_worker(void* p)
                     /* send picture-loss-indicator to request full-frame refresh */
                     peer_send_block(peer, (char*) report_pli, sizeof(*report_pli));
                 
-                    report_pli_vp8.ver = (2 << 6) | 0x04; /* FIR command */
+                    /* see https://tools.ietf.org/html/draft-ietf-payload-vp8-17 */
+                    report_pli_vp8.ver = (2 << 6) | RTP_PSFB; /* FIR command */
                     report_pli_vp8.fci = htonl(answer_ssrc[rtp_idx]);
                     report_pli_vp8.length = htons((sizeof(report_pli_vp8)/4)-1);
                     peer_send_block(peer, (char*) &report_pli_vp8, sizeof(report_pli_vp8));
@@ -1086,6 +1089,8 @@ webserver_worker(void* p)
     char *page_buf_welcome = "<html><p>Welcome</p></html>";
     char *page_buf_400 = "<html>Huh?<br><a href='/index.html'>index.html</a></html>";
     char *page_buf_uploaded = "<html><p>OK...closing</p><script language='javascript'>window.close();</script></html>";
+    char *page_buf_redirect_chat = "<html><body onload='window.location=\"content/peersPopup.html\";'>redirecting...</body></html>";
+    char *page_buf_redirect_back = "<html><body onload='window.history.back();'>redirecting...</body></html>";
     char *ok_hdr = "HTTP/1.0 200 OK\r\n";
     char *content_type = "";
     char *fail_hdr = "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n";
@@ -1100,6 +1105,7 @@ webserver_worker(void* p)
     char *tag_peerlist_jsarray = "%$PEERLISTJSARRAY$%";
     char *tag_stunconfig_js = "%$STUNCONFIGJS$%";
     char *tag_icecandidate = "%$RTCICECANDIDATE$%";
+    char *tag_chatlogvalue = "%$CHATLOGTEXTAREAVALUE$%";
     char *tag_watchuser = "watch?user=";
     const size_t buf_size = 4096;
     int use_user_fragment_prefix = 1;
@@ -1356,6 +1362,11 @@ webserver_worker(void* p)
                         sprintf(stuncandidate_js, "candidate:1 1 UDP 1234 %s %s typ host", get_config("udpserver_addr="), listen_port_str);
                         response = macro_str_expand(response, tag_icecandidate, stuncandidate_js);
                     }
+
+                    if(1)
+                    {
+                        response = macro_str_expand(response, tag_chatlogvalue, g_chatlog);
+                    }
                 }
                 else
                 {
@@ -1393,12 +1404,30 @@ webserver_worker(void* p)
 
                         free(sdp);
                     }
+                    else if(strcmp(purl, "/chatmsg") == 0)
+                    {
+                        char *pchatmsg = pbody;
+
+                        if(strncmp(pchatmsg, "msg=", 4)==0) pchatmsg += 4;
+                        pchatmsg = sdp_decode(strdup(pchatmsg));
+                      
+                        char *pto = g_chatlog, *pfrom = g_chatlog;
+                        while(*pfrom && strlen(pfrom) + strlen(pchatmsg) >= sizeof(g_chatlog)-1) pfrom++;
+
+                        memmove(pto, pfrom, strlen(pfrom));
+                        strcat(pto, pchatmsg);
+                       
+                        response = strdup(page_buf_redirect_chat);
+                        content_type = content_type_html;
+                        goto response_override;
+                    }
 
                     free(response);
                     response = strdup(page_buf_uploaded);
                     content_type = content_type_html;
                 }
 
+                response_override:
                 if(response && !timed_out)
                 {
                     char *hdr = ok_hdr;
@@ -1478,6 +1507,8 @@ int main( int argc, char* argv[] ) {
 
     int peersLen = 0;
     pthread_t thread_webserver;
+
+    memset(g_chatlog, 0, sizeof(g_chatlog));
 
     memset(&peers, 0, sizeof(peers));
 

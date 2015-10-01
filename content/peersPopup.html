@@ -1,8 +1,61 @@
 <html>
+<meta http-equiv="Cache-Control" content="no-store" />
+<script language="javascript">
+var textfield1;
+var msgfield1;
+var div1;
+var focused = null;
+function onload() {
+    var refresh_interval = 5000;
+
+    focused = null;
+
+    textfield1 = document.getElementById("chatlog");
+    msgfield1 = document.getElementById("chatmsg");
+    div1 = document.getElementById("div1");
+
+    msgfield1.onfocus = function() { setFocus(msgfield1);};
+    msgfield1.onblur = function() { loseFocus(msgfield1);};
+
+    setInterval(function () {if(focused == null) window.location.reload();}, refresh_interval);
+
+    textfield1.scrollTop = textfield1.scrollHeight;
+}
+function setFocus(e) {
+    div1.innerHTML="refreshing STOPPED";
+    focused = e;
+}
+function loseFocus(e) {
+    div1.innerHTML="refreshing...";
+    if(focused == e) focused = null;
+}
+function sendmsg() {
+    var msg = msgfield1.value;
+    var find = ' ';
+    var re = new RegExp(find, 'g');
+    msg = msg.replace(re, '&nbsp;');
+    msg += '\n';
+    msgfield1.value = msg;
+    document.msgform.submit();
+}
+</script>
+<body onload='onload();'>
 <select name='inputAddUser' id='inputAddUser'>
 %$PEERLISTHTMLOPTIONS$%
 </select>
 <br>
 <button onclick="parent.document.getElementById('inputAddUser').value = document.getElementById('inputAddUser').value; window.close();">Watch</button>
 <br>
+chatlog:
+<textarea id="chatlog" cols=40 rows=10>%$CHATLOGTEXTAREAVALUE$%</textarea>
+<br>
+<form method=POST name="msgform" action="/chatmsg">
+chatsay:
+<textarea name="msg" id="chatmsg"></textarea>
+</form>
+<button onclick="sendmsg();">send msg</button>
+<div id="div1">
+refreshing...
+</div>
+</body>
 </html>

@@ -3,7 +3,7 @@ webserver_port=8008
 
 # the address of the interface to listen on (ifconfig)
 # 0.0.0.0 won't work
-udpserver_addr=10.33.121.170
+udpserver_addr=10.33.121.128
 udpserver_port=3478 
 
 udp_read_timeout_usec=16
