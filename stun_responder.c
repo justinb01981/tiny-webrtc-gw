@@ -49,6 +49,8 @@ struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS];
 FILECACHE_INSTANTIATE();
 
+void chatlog_append(const char* msg);
+
 char g_chatlog[2048016];
 
 int listen_port = 0;
@@ -596,6 +598,9 @@ connection_worker(void* p)
     {
         printf("%s:%d %s\n", __func__, __LINE__, my_name);
         strcpy(peer->name, my_name);
+        chatlog_append("streaming user joined:");
+        chatlog_append(peer->name);
+        chatlog_append("\n");
     }
     else
     {
@@ -1068,6 +1073,15 @@ macro_str_expand(char* buf, char* tag, char* replace)
     return ret;
 }
 
+void
+chatlog_append(const char* pchatmsg)
+{ 
+    char *pto = g_chatlog, *pfrom = g_chatlog;
+    while(*pfrom && strlen(pfrom) + strlen(pchatmsg) >= sizeof(g_chatlog)-1) pfrom++;
+        memmove(pto, pfrom, strlen(pfrom));
+        strcat(pto, pchatmsg);
+}
+
 struct {
     char inip[64];
     int running;
@@ -1411,11 +1425,7 @@ webserver_worker(void* p)
                         if(strncmp(pchatmsg, "msg=", 4)==0) pchatmsg += 4;
                         pchatmsg = sdp_decode(strdup(pchatmsg));
                       
-                        char *pto = g_chatlog, *pfrom = g_chatlog;
-                        while(*pfrom && strlen(pfrom) + strlen(pchatmsg) >= sizeof(g_chatlog)-1) pfrom++;
-
-                        memmove(pto, pfrom, strlen(pfrom));
-                        strcat(pto, pchatmsg);
+                        chatlog_append(pchatmsg);
                        
                         response = strdup(page_buf_redirect_chat);
                         content_type = content_type_html;
