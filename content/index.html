@@ -24,8 +24,11 @@
                 <div id="presenterDiv">
                     <video class="videoMain" id='videoMain' autoplay width=640 height=480></video>
                 </div>
+                <!--
                 <button onclick='mainVideoEmbiggen(120);'>+</button>
                 <button onclick='mainVideoEmbiggen(80);'>-</button>
+                -->
+                <button onclick='openChat();'>chat</button>
             </td>
             <td>
                 <div id="localPreviewDiv">
@@ -254,6 +257,10 @@ function macroHelper(a, b, c) {
     return v;
 }
 
+function openChat() {
+    roomPopup = window.open('peersPopup.html', 'room', 'width=300,height=300');
+}
+
 function joinPopupClose(connection, userName, recvOnlyChecked) {
     winPopupRemoteConnection = connection;
     var w = winPopupVideoTarget.width;
@@ -267,7 +274,7 @@ function joinPopupClose(connection, userName, recvOnlyChecked) {
     {
         document.getElementById('streamLinkDiv').innerHTML = '' +
         '<a href="http:\/\/%$HOSTNAME$%:' + hostPort + '/watch.html?args=' + userName + '">' + 'shareable link: ' + userName + '</a>';
-        roomPopup = window.open('stats.html', 'room', 'width=250,height=400');
+        openChat(); //roomPopup = window.open('peersPopup.html', 'room', 'width=300,height=300');
     }
 }
 
