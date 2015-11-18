@@ -5,6 +5,7 @@ var textfield1;
 var msgfield1;
 var div1;
 var focused = null;
+var myUserName = '';
 function onload() {
     var refresh_interval = 5000;
 
@@ -20,6 +21,8 @@ function onload() {
     setInterval(function () {if(focused == null) window.location.reload();}, refresh_interval);
 
     textfield1.scrollTop = textfield1.scrollHeight;
+
+    myUserName = window.opener.document.getElementById('userName').value;
 }
 function setFocus(e) {
     div1.innerHTML="refreshing STOPPED";
@@ -30,7 +33,7 @@ function loseFocus(e) {
     if(focused == e) focused = null;
 }
 function sendmsg() {
-    var msg = msgfield1.value;
+    var msg = myUserName + ':' + msgfield1.value;
     var find = ' ';
     var re = new RegExp(find, 'g');
     msg = msg.replace(re, '&nbsp;');

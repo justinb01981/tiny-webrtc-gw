@@ -28,7 +28,8 @@
                 <button onclick='mainVideoEmbiggen(120);'>+</button>
                 <button onclick='mainVideoEmbiggen(80);'>-</button>
                 -->
-                <button onclick='openChat();'>chat</button>
+                Chat username:<textarea rows=1 cols=16 id='userName'></textarea>
+                <button onclick='openChat();'>chat</button><br>
             </td>
             <td>
                 <div id="localPreviewDiv">
@@ -245,6 +246,8 @@ function onLoad() {
         onBtnAddUser('');
         userTotal++;
     }
+
+    document.getElementById('userName').value = 'user' + Math.ceil(Math.random() % 10 * 1000);
 }
 
 function macroHelper(a, b, c) {
@@ -283,7 +286,8 @@ function joinPopupOpen() {
     winPopup.document.theform.answersdp.value = '';
     winPopup.localStream = localStream;
     winPopup.remoteVideo = winPopupVideoTarget;
-    var randomUser = 'user' + Math.ceil(Math.random() % 10 * 1000);
+    /*var randomUser = 'user' + Math.ceil(Math.random() % 10 * 1000);*/
+    var randomUser = document.getElementById('userName').value;
     winPopup.document.theform.my_name.value = randomUser;
     winPopup.document.theform.peerstream_recv.value = randomUser;
     winPopup.closeHandler = joinPopupClose;
