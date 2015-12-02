@@ -71,6 +71,11 @@ int main( int argc, char* argv[] );
     }                         \
 }
 
+void thread_init()
+{
+    signal(SIGPIPE, SIG_IGN);
+}
+
 unsigned long get_time_ms()
 {
     struct timeval te; 
@@ -301,6 +306,8 @@ peer_rtp_send_worker(void* p)
     peer_session_t* peer = args->peer;
     int rtp_idx;
     u32 offer_ssrc[2];
+
+    thread_init();
 
     /* wait for file to be created */
     sleep_msec(CONNECTION_DELAY_MS + 1000);
@@ -547,6 +554,8 @@ connection_worker(void* p)
 
     u32 answer_ssrc[PEER_RTP_CTX_WRITE];
     u32 offer_ssrc[PEER_RTP_CTX_WRITE];
+
+    thread_init();
 
     sdp_prefix_set(peer->stun_ice.uname);
 
@@ -1127,6 +1136,8 @@ webserver_worker(void* p)
     unsigned int content_len = 0;
     char listen_port_str[64];
 
+    thread_init();
+
     sprintf(listen_port_str, "%d", listen_port);
 
     do
@@ -1472,6 +1483,8 @@ webserver_accept_worker(void* p)
     int backlog = 10;
     pthread_t thread;
 
+    thread_init();
+
     int sock_web = bindsocket(webserver.inip, strToInt(get_config("webserver_port=")), 1);
 
     printf("%s:%d starting (sock_web=%d)\n", __func__, __LINE__, sock_web);
@@ -1513,7 +1526,7 @@ int main( int argc, char* argv[] ) {
     struct sockaddr_in dst;
     struct sockaddr_in ret;
 
-    signal(SIGPIPE, SIG_IGN);
+    thread_init();
 
     int peersLen = 0;
     pthread_t thread_webserver;
