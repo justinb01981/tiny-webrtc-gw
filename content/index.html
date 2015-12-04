@@ -47,7 +47,8 @@
                     <P>Streaming...
                     <br>
                     <button onclick="document.getElementById('remoteVideoMirror').pause();">stop</button>
-
+                    <br>
+                    <button onclick="alert('switch tabs back/forth (on andrid/chrome)\nmake sure correct video device selected');">problem?</button>
                     <div id="streamLinkDiv">
                     </div>
                 </div>
@@ -273,7 +274,22 @@ function openChat() {
     roomPopup = window.open('peersPopup.html', 'room', 'width=300,height=300');
 }
 
+var joinPopupLast = {connection:null, userName:null, recvOnlyChecked:null, stream:null};
+
+function joinPopupCloseAgain() {
+    reattachMediaStream(winPopupVideoTarget, joinPopupLast.stream);
+    winPopupVideoTarget.pause();
+    winPopupVideoTarget.play();
+    joinPopupClose(joinPopupLast.connection, joinPopupLast.userName, joinPopupLast.recvOnlyChecked);
+}
+
 function joinPopupClose(connection, userName, recvOnlyChecked) {
+
+    joinPopupLast.connection = connection;
+    joinPopupLast.userName = userName;
+    joinPopupLast.recvOnlyChecked = recvOnlyChecked;
+    joinPopupLast.stream = connection.getRemoteStreams()[0];
+
     winPopupRemoteConnection = connection;
     var w = winPopupVideoTarget.width;
     var h = winPopupVideoTarget.height;
@@ -286,7 +302,7 @@ function joinPopupClose(connection, userName, recvOnlyChecked) {
     {
         document.getElementById('streamLinkDiv').innerHTML = '' +
         '<a href="http:\/\/%$HOSTNAME$%:' + hostPort + '/watch.html?args=' + userName + '">' + 'shareable link: ' + userName + '</a>';
-        openChat(); //roomPopup = window.open('peersPopup.html', 'room', 'width=300,height=300');
+        //openChat(); //roomPopup = window.open('peersPopup.html', 'room', 'width=300,height=300');
     }
 }
 
@@ -310,6 +326,8 @@ function connectVideo(videoElem, videoSDPOffer, recvOnly, watchUser) {
   //winPopup = window.open('answer_upload2.html', 'sdp_answer_upload', ''/*'width=400,height=600'*/);
   //winPopup.onload = joinPopupOpen;
   winPopup = rtcPopupCreate(joinPopupOpen, joinPopupClose, recvOnly, watchUser);
+
+  if(!winPopup) alert('popup blocked?');
 }
 function onBtnAddUser(userName) {
     resizeObjectWithID("roomAddButtonDiv", mainDivX+(userCounter*(vidChildW+100)), vidChildY+vidChildH/2, 50, 50);

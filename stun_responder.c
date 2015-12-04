@@ -601,14 +601,16 @@ connection_worker(void* p)
         printf("%s:%d %s\n", __func__, __LINE__, watch_name);
         int i; for(i = 0; i < MAX_PEERS; i++) if(strcmp(peers[i].name, watch_name) == 0) {peer->subscriptionID = i; break;}
     }
+    char* recv_only = get_answer_sdp_idx("a=recvonly", 0);
 
     char* my_name = get_answer_sdp_idx("a=myname=", 0);
     if(my_name)
     {
         printf("%s:%d %s\n", __func__, __LINE__, my_name);
         strcpy(peer->name, my_name);
-        chatlog_append("streaming user joined:");
+        chatlog_append("join: ");
         chatlog_append(peer->name);
+        chatlog_append(recv_only?" (watching)":" (streaming)");
         chatlog_append("\n");
     }
     else
