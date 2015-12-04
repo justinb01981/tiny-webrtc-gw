@@ -5,6 +5,7 @@ var textfield1;
 var msgfield1;
 var div1;
 var focused = null;
+var bChatrefresh = true;
 var myUserName = '';
 function onload() {
     var refresh_interval = 5000;
@@ -18,22 +19,28 @@ function onload() {
     msgfield1.onfocus = function() { setFocus(msgfield1);};
     msgfield1.onblur = function() { loseFocus(msgfield1);};
 
-    setInterval(function () {if(focused == null) window.location.reload();}, refresh_interval);
+    setInterval(function () {if(focused == null && bChatrefresh) window.location.reload();}, refresh_interval);
 
     textfield1.scrollTop = textfield1.scrollHeight;
 
     myUserName = window.opener.document.getElementById('userName').value;
 }
+function setRefresh(b) {
+    bChatrefresh = b;
+    if(bChatrefresh) div1.innerHTML = "refreshing...";
+    else div1.innerHTML = "refreshing PAUSED";
+}
 function setFocus(e) {
-    div1.innerHTML="refreshing STOPPED";
+    setRefresh(false);
     focused = e;
 }
 function loseFocus(e) {
-    div1.innerHTML="refreshing...";
+    setRefresh(true);
     if(focused == e) focused = null;
 }
 function sendmsg() {
-    var msg = myUserName + ':' + msgfield1.value;
+    var d = new Date();
+    var msg = '<'+myUserName+'@'+d.toLocaleString()+'>:' + msgfield1.value;
     var find = ' ';
     var re = new RegExp(find, 'g');
     msg = msg.replace(re, '&nbsp;');
@@ -54,11 +61,12 @@ chatlog:
 <br>
 <form method=POST name="msgform" action="/chatmsg">
 chatsay:
-<textarea name="msg" id="chatmsg"></textarea>
+<textarea name="msg" id="chatmsg" cols=40 rows=2></textarea>
 </form>
 <button onclick="sendmsg();">send msg</button>
 <div id="div1">
-refreshing...
+refreshing...<br>
 </div>
+<input type='checkbox' onchange='setRefresh(!bChatrefresh);' checked>autorefresh</input>
 </body>
 </html>
