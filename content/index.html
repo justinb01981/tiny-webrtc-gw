@@ -4,23 +4,17 @@
 </head>
 
 <body onLoad="onLoad()">
-
-<div id='addUserLinkDiv' hidden=true>
-    <p>Click to auto-start watching "%$URLARGUMENTS$%":
-    <br>
-    <button onClick="connectVideo(document.getElementById('video_autoStart'), joinSDP(), true, '%$URLARGUMENTS$%');">%$URLARGUMENTS$%</button>
-    <br>
-    <video id="video_autoStart" autoplay></video>
-    <br>
-</div>
-
 <div id="mainDiv">
     <table border=1 id="mainDivTable">
         <tr>
             <th>Presenter</th><th>Local</th>
         </tr>
         <tr>
-            <td id="thPresenter">
+            <td id="thPresenter" align="center" >
+               <div id='addUserLinkDiv' hidden=true>
+                   <h3>Click to auto-start watching "%$URLARGUMENTS$%":</h3>
+                   <button onClick="connectVideo(document.getElementById('videoMain'), joinSDP(), true, '%$URLARGUMENTS$%');">%$URLARGUMENTS$%</button>
+                </div>
                 <!--
                 <div id="presenterDiv">
                 -->
@@ -297,11 +291,16 @@ function joinPopupClose(connection, userName, recvOnlyChecked) {
     winPopupVideoTarget.width=w;
     winPopupVideoTarget.height=h;
     //var hostPort = '%$HOSTPORT$%';
-    var hostPort = '%$WEBPORT$%';
+    var hostPort1 = '%$WEBPORT$%';
+    var hostName1 = '%$HOSTNAME$%';
+    var proto = document.location.protocol;
+    var hostName = document.location.hostname;
+    var hostPort = document.location.port;
     if(!recvOnlyChecked)
     {
+        
         document.getElementById('streamLinkDiv').innerHTML = '' +
-        '<a href="http:\/\/%$HOSTNAME$%:' + hostPort + '/watch.html?args=' + userName + '">' + 'shareable link: ' + userName + '</a>';
+        '<a href="'+proto+'\/\/'+hostName+':'+hostPort+document.location.pathname + '?args=' + userName + '"&watchbegin=1>' + 'shareable link: ' + userName + '</a>';
         //openChat(); //roomPopup = window.open('peersPopup.html', 'room', 'width=300,height=300');
     }
 }
