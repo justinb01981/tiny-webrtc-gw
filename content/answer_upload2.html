@@ -27,20 +27,36 @@ SDP Answer:
 </div>
 <br>
 <div id="myUsernameDiv">
-My username:<input type="text" id="my_name" name="my_name" value="user1"></input>
-<br>
-Join room name:<input type="text" id="room" name="room" value="conference1"></input>
-<br>
+<table>
+<tr>
+    <td>
+        My username:
+    </td>
+    <td>
+        <input type="text" id="my_name" name="my_name" value="user1"></input>
+    </td>
+</tr>
+<tr>
+    <td>
+        Join room name:
+    </td>
+    <td>
+        <input type="text" id="room" name="room" value="conference1"></input>
+    </td>
+</tr>
+</table>
 </div>
 <br>
-<input type='checkbox' disabled name='recvonly' id='recvonly' value=true>receive only</input>
+<table>
+<tr><td>receive only:</td><td><input type='checkbox' disabled name='recvonly' id='recvonly' value=true></input></td></tr>
+<tr><td>advanced debug:</td><td><input type='checkbox' name='debugEnable' id='debugEnable' onclick="document.getElementById('debugDiv').hidden=(!this.checked);"></input></td></tr>
+</table>
+
+<input type="hidden" id="peerstream_recv" name="peerstream_recv" value="%$URLARGUMENTS$%"></input>
+
+<div id="watchableUsersDiv" style="height:100px; overflow:auto; background-color:grey;">
+<p>User streams:
 <br>
-<input type='checkbox' name='debugEnable' id='debugEnable' onclick="document.getElementById('debugDiv').hidden=(!this.checked);">advanced</input>
-<br>
-<input type="hidden" id="peerstream_recv" name="peerstream_recv">%$URLARGUMENTS$%</input>
-<br>
-<div id="watchableUsersDiv">
-<p>Watchable users:
 <!--
 <br>
 %$PEERLISTHTML$%
@@ -51,8 +67,16 @@ Join room name:<input type="text" id="room" name="room" value="conference1"></in
     var i;
     for(i = 0; i < peerList.length; i++) {
         var attrs = '';
-        if(peerList[i].recvonly) attrs += ' disabled';
-        d.innerHTML += '<input type="checkbox" onClick="onPeerClick(\''+peerList[i].name+'\', this);" '+attrs+'>'+peerList[i].name+'</input><br>';
+        var watchDesc = '';
+        if(peerList[i].recvonly) {
+            attrs += ' disabled';
+            watchDesc = '(just watching)';
+        }
+        d.innerHTML += '<input type="checkbox" onClick="onPeerClick(\''+peerList[i].name+'\', this);" '+attrs+'>'+peerList[i].name+' '+watchDesc+'</input><br>';
+    }
+
+    if(peerList.length == 0) {
+        d.innerHTML += '<p>nobody here<br>'
     }
 
     if('%$URLARGUMENTS$%'.length > 0)

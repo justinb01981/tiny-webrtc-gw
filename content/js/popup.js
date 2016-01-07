@@ -97,7 +97,7 @@ function handlerOpen1() {
 }
 function rtcPopupCreate(handlerOpen, handlerClose, recvOnly, watchUser) {
     var randomNum = Math.ceil(Math.random() % 10 * 1000);
-    var w = window.open('answer_upload2.html?args='+watchUser, 'sdp_answer_upload' + randomNum, 'width=250,height=550');
+    var w = window.open('answer_upload2.html?args='+watchUser, 'sdp_answer_upload' + randomNum, 'width=250,height=300');
     popupRecvOnly = recvOnly;
     w.document.body.onload = handlerOpen1;
     handlerOpenStage2 = handlerOpen;
@@ -105,7 +105,7 @@ function rtcPopupCreate(handlerOpen, handlerClose, recvOnly, watchUser) {
     return w;
 }
 function roomlistPopupCreate(roomName) {
-    var w = window.open('room.html?args='+roomName, 'room' + roomName, 'width=250,height=550');
+    var w = window.open('room.html?args='+roomName, 'room' + roomName, 'width=250,height=300');
 }
 function resizeObjectWithID(idName, x, y, w, h) {
     var d = document.getElementById(idName);

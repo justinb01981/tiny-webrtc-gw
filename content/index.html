@@ -7,13 +7,16 @@
 <div id="mainDiv">
     <table border=1 id="mainDivTable">
         <tr>
+            <th colspan=2>gitHub:<a href='https://github.com/justinb01981/tiny-webrtc-gw'>https://github.com/justinb01981/tiny-webrtc-gw</a>
+        </tr>
+        <tr>
             <th>Presenter</th><th>Local</th>
         </tr>
         <tr>
             <td id="thPresenter" align="center" >
                <div id='addUserLinkDiv' hidden=true>
-                   <h3>Click to auto-start watching "%$URLARGUMENTS$%"</h3>
-                   <button onClick="connectVideo(document.getElementById('videoMain'), joinSDP(), true, '%$URLARGUMENTS$%');">%$URLARGUMENTS$%</button>
+                   <h3>Click to start watching "%$URLARGUMENTS$%"</h3>
+                   <button onClick="connectVideo(document.getElementById('videoMain'), joinSDP(), true, '%$URLARGUMENTS$%');" style="width:200px;height:100px;background-color:blue;">Click to start watching %$URLARGUMENTS$%</button>
                 </div>
                 <!--
                 <div id="presenterDiv">
@@ -95,7 +98,7 @@
     <table border=1 style="display:inline-block;">
     <tr>
         <td>
-            <button onClick='onBtnAddUser("");'>Add User</button>
+            <button onClick='onBtnAddUser("");'>Watch another User</button>
         </td>
     </tr>
     </table>
@@ -120,6 +123,7 @@ var vidChildW = 128;
 var vidChildH = 96;
 
 var divVideoHTML = "" + 
+"<div id=\"div_$USERNAME_child\">" +
 "<td>" +
 "<table id=\"table_$USERNAME\" border=0>"+
     "<tr><td>" +
@@ -135,6 +139,7 @@ var divVideoHTML = "" +
 "</table>" +
 "</td>" +
 "<img hidden=true src='logo.jpg' onLoad='if(addUserLoad) addUserLoad(\"$USERNAME\"); this.hidden=true;'>" +
+"</div>" +
 "";
 var addUserHTML = "<td><table border=1 style='margin:0; padding:0; display:inline-block; border-collapse:collapse;'><tr><td><img src='newUser.jpg'></td></tr><tr><td><button onClick='onBtnAddUser(\"\");'>Add User</button></td></tr></table></td>";
 var winPopup = null;
@@ -234,7 +239,7 @@ function onLoad() {
                 }
                 ,
                 function(e) {
-                    alert('get media failed\n(maybe try https?)');
+                    alert('get media failed\nmaybe try https?\ncamera/mic enabled?');
                 }
             );
         }
@@ -254,10 +259,13 @@ function onLoad() {
     }
     */
 
+    /*
     while(userTotal < 1) {
         onBtnAddUser('');
         userTotal++;
     }
+    */
+    resizeObjectWithID("roomAddButtonDiv", mainDivX, vidChildY+vidChildH/2, 50, 50);
 
     document.getElementById('userName').value = 'user' + Math.ceil(Math.random() % 10 * 1000);
 }
@@ -306,9 +314,10 @@ function joinPopupClose(connection, userName, recvOnlyChecked) {
     var hostPort = document.location.port;
     if(!recvOnlyChecked)
     {
-        
-        document.getElementById('streamLinkDiv').innerHTML = '' +
-        '<a href="'+proto+'\/\/'+hostName+':'+hostPort+document.location.pathname + '?args=' + userName + '"&watchbegin=1>' + 'shareable link: ' + userName + '</a>';
+        var d = document.getElementById('streamLinkDiv');
+        var shareLink = proto+'\/\/'+hostName+':'+hostPort+document.location.pathname+'?args='+userName;
+        d.innerHTML = '<a href="'+shareLink+'">' + 'Your shareable URL: ' + userName + '</a>' +
+            '<br><p>'+shareLink+'<br>';
         //openChat(); //roomPopup = window.open('peersPopup.html', 'room', 'width=300,height=300');
     }
 }
@@ -375,6 +384,9 @@ function onBtnClose(btn, userName) {
         vidMain.pause();
         //reattachMediaStream(vidMain, null);
     }
+
+    var d = document.getElementById('div_'+userName+'_child');
+    d.style.cssText = 'display:none;';
 }
 var divPresenterClientWidth = 0;
 var divPresenterClientHeight = 0;
