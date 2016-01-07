@@ -1,0 +1,21 @@
+<html>
+    <head>
+    </head>
+    <body>
+        <p>upload complete! (returning to parent window)...
+        <br>
+        <p>(some browsers (android) may require manually switching back to parent...)
+    </body>
+    <script language='javascript'>
+        if(navigator.userAgent.indexOf('android') >= 0 ||
+           navigator.userAgent.indexOf('Android') >= 0) {
+           /* TODO: find a way to restore focus on Android that works?
+            * (hack around a problem with pop closing/connecting video
+            *  stream)
+            */
+        }
+        else {
+            window.close();
+        }
+    </script>
+</html>

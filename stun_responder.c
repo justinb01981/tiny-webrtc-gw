@@ -1113,7 +1113,8 @@ webserver_worker(void* p)
     int r;
     char *page_buf_welcome = "<html><p>Welcome</p></html>";
     char *page_buf_400 = "<html>Huh?<br><a href='/index.html'>index.html</a></html>";
-    char *page_buf_uploaded = "<html><p>OK...closing</p><script language='javascript'>window.close();</script></html>";
+    //char *page_buf_uploaded = "<html><p>OK...closing<br><button onclick=\"window.focus(window.parent);\">close</button></p><script language='javascript'>window.setTimeout(function() {window.close();}, 3000);</script></html>";
+    char *page_buf_uploaded = "<html><body onload='window.location=\"content/uploadDone.html\";'>redirecting...</body></html>";
     char *page_buf_redirect_chat = "<html><body onload='window.location=\"content/peersPopup.html\";'>redirecting...</body></html>";
     char *page_buf_redirect_back = "<html><body onload='window.history.back();'>redirecting...</body></html>";
     char *ok_hdr = "HTTP/1.0 200 OK\r\n";
