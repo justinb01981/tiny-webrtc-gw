@@ -7,16 +7,16 @@
 <div id="mainDiv">
     <table border=1 id="mainDivTable">
         <tr>
-            <th colspan=2>gitHub:<a href='https://github.com/justinb01981/tiny-webrtc-gw'>https://github.com/justinb01981/tiny-webrtc-gw</a>
+            <th colspan=2>gitHub:<a href='https://github.com/justinb01981/tiny-webrtc-gw'>https://github.com/justinb01981/tiny-webrtc-gw</a></th>
         </tr>
         <tr>
-            <th>Presenter</th><th>Local</th>
+            <th colspan=1>Presenter</th><th colspan=1>Local</th>
         </tr>
         <tr>
-            <td id="thPresenter" align="center" >
+            <td colspan=1 id="thPresenter" align="center" >
                <div id='addUserLinkDiv' hidden=true>
                    <h3>Click to start watching "%$URLARGUMENTS$%"</h3>
-                   <button onClick="connectVideo(document.getElementById('videoMain'), joinSDP(), true, '%$URLARGUMENTS$%');" style="width:200px;height:100px;background-color:blue;">Click to start watching %$URLARGUMENTS$%</button>
+                   <button onClick="connectVideo(document.getElementById('videoMain'), joinSDP(), true, '%$URLARGUMENTS$%');" style="width:200px;height:100px;">Click to start watching %$URLARGUMENTS$%</button>
                 </div>
                 <!--
                 <div id="presenterDiv">
@@ -30,7 +30,7 @@
                 <button onclick='mainVideoEmbiggen(80);'>-</button>
                 -->
             </td>
-            <td align="center">
+            <td colspan=1 align="center">
                 <div id="localPreviewDiv">
                     <video class="videoLocal" id="localVideo" autoplay muted></video>
                     <P>Join to begin streaming...
@@ -239,7 +239,7 @@ function onLoad() {
                 }
                 ,
                 function(e) {
-                    alert('get media failed\nmaybe try https?\ncamera/mic enabled?');
+                    alert('get media failed\nmaybe try https?\ncamera/mic enabled?\n\n(You can still watch other users)');
                 }
             );
         }
