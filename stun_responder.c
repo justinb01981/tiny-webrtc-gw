@@ -45,7 +45,7 @@
 #define MAX_PEERS 64
 #define CONNECTION_DELAY_MS 2000
 
-#define RTP_PICT_LOSS_INDICATOR_INTERVAL 5
+#define RTP_PICT_LOSS_INDICATOR_INTERVAL 0
 #define RTP_PSFB 1 
 
 int dtls_handoff = 0;
@@ -1040,8 +1040,11 @@ connection_worker(void* p)
                     }
                 }
 
-                if(time(NULL) - peer->srtp[rtp_idx].pli_last >= RTP_PICT_LOSS_INDICATOR_INTERVAL)
+                if(time(NULL) - peer->srtp[rtp_idx].pli_last >= RTP_PICT_LOSS_INDICATOR_INTERVAL &&
+                   RTP_PICT_LOSS_INDICATOR_INTERVAL > 0)
                 {
+                    peer->srtp[rtp_idx].pli_last = time(NULL);
+
                     /* see RFC 4585 */
                     rtp_report_pli_vp8_t report_pli_vp8;
                     rtp_report_pli_t *report_pli = (rtp_report_pli_t*) &report_pli_vp8;
@@ -1073,7 +1076,6 @@ connection_worker(void* p)
 	                    peer_send_block(peer, (char*) &report_pli_vp8, pli_len);
 			}
                     */
-                    peer->srtp[rtp_idx].pli_last = time(NULL);
                 }
             }   
             goto peer_again;
