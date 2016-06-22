@@ -356,7 +356,7 @@ peer_rtp_send_worker(void* p)
     u32 ts_start_time = 0;
     u32 ts_delta_min = 10;
     u32 ts_counter = 0;
-    int peer_send_rewrite_seq = 1, peer_send_rewrite_ts = 1;
+    int peer_send_rewrite_seq = 0, peer_send_rewrite_ts = 0;
 
     rtp_idx = args->rtp_idx;
     while(peer->alive && !peer->srtp_inited)
@@ -892,13 +892,11 @@ connection_worker(void* p)
                 if(in_ssrc == answer_ssrc[0] /*strToInt(get_answer_sdp_idx("a=ssrc:", 0))*/) {
                     rtp_idx = 0;
                     write_ssrc = /*strToInt(get_offer_sdp_idx("a=ssrc:", 0))*/ offer_ssrc[0];
-                    if(is_receiver_report || is_sender_report) printf("report from ssrc[0]\n");
                 }
                 else
                 if(in_ssrc == answer_ssrc[1] /*strToInt(get_answer_sdp_idx2("a=ssrc:", 0, "m=video"))*/) {
                     rtp_idx = 1;
                     write_ssrc = /*strToInt(get_offer_sdp_idx2("a=ssrc:", 0, "m=video"))*/ offer_ssrc[1];
-                    if(is_receiver_report|| is_sender_report) printf("report from ssrc[1]\n");
                 }
                 else if(is_receiver_report) {
                 }
@@ -918,12 +916,13 @@ connection_worker(void* p)
                         rtp_report_receiver_block_t *repblocks;
 
                         if(is_sender_report) {
-                            printf("fixing sender report\n");
+                            printf("fixing sender report: ");
                             sendreport->hdr.seq_src_id = htonl(offer_ssrc[rtp_idx]);
                             reportsize = sizeof(rtp_report_sender_t);
                             repblocks = &sendreport->blocks[0];
                         }
                         else { 
+                            printf("fixing receiver report: ");
                             report->hdr.seq_src_id = htonl(offer_ssrc[rtp_idx]);
                             reportsize = sizeof(rtp_report_receiver_t);
                             repblocks = &report->blocks[0];
@@ -933,46 +932,52 @@ connection_worker(void* p)
 			for(i = 0; reportsize + (i*sizeof(rtp_report_receiver_block_t)) <= length; i++) {
 			    u32 blockssrc = ntohl(repblocks[i].ssrc_block1);
 
+                            printf("block[%d] ssrc=%u (", i, blockssrc);
 			    if(blockssrc == offer_ssrc[0]) { 
 				repblocks[i].ssrc_block1 = htonl(peers[peer->subscriptionID].srtp[0].ssrc);
-				printf("offer_ssrc[0]:%u\n", blockssrc);
+				printf("offer_ssrc[0]");
 			    }
 			    else if(blockssrc == offer_ssrc[1]) {
 				repblocks[i].ssrc_block1 = htonl(peers[peer->subscriptionID].srtp[1].ssrc);
-				printf("offer_ssrc[1]:%u\n", blockssrc);
+				printf("offer_ssrc[1]");
 			    }
                             else if(blockssrc == answer_ssrc[0]) {
                                 repblocks[i].ssrc_block1 = htonl(offer_ssrc[0]);
-                                printf("fixing sender report(2)\n");
+                                printf("answer_ssrc[0]");
                             }
                             else if(blockssrc == answer_ssrc[1]) {
                                 repblocks[i].ssrc_block1 = htonl(offer_ssrc[1]);
-                                printf("fixing sender report(2)\n");
+                                printf("answer_ssrc[1]");
                             }
                             else if(is_sender_report) {
                                 repblocks[i].ssrc_block1 = htonl(offer_ssrc[rtp_idx]);
-                                printf("fixing sender report(3)\n");
+                                printf("SENDER_SSRC");
                             }
 			    else {
-				printf("unknown report block SSRC:%u\n", blockssrc);
+				printf("UNKNOWN");
 				goto peer_again;
 			    }
 			}
 
+                        printf(")\n");
+
                         if(is_sender_report) {
                             int p;
+                            rtp_report_sender_t reportPeer;
+                            int lengthPeer;
+                           
                             for(p = 0; p < MAX_PEERS; p++) {
                                 if(peers[p].alive && &peers[p].subscriptionID == peer) {
-                                    if(srtp_protect_rtcp(peers[p].srtp[rtp_idx].session, sendreport, &length) == err_status_ok) {
-                                        printf("RTP sender report forwarded\n");
-                                        peer_send_block(&peers[p], (char*) report, length);
+                                    lengthPeer = length;
+                                    memcpy(&reportPeer, sendreport, lengthPeer);
+                                    if(srtp_protect_rtcp(peers[p].srtp[rtp_idx].session, &reportPeer, &lengthPeer) == err_status_ok) {
+                                        peer_send_block(&peers[p], (char*) &reportPeer, lengthPeer);
                                     }
                                 }
                             }
                         }
                         else  {
                             if(srtp_protect_rtcp(peers[peer->subscriptionID].srtp[rtp_idx].session, report, &length) == err_status_ok) {
-                                printf("RTP receiver report forwarded\n");
                                 peer_send_block(&peers[peer->subscriptionID], (char*) report, length);
                             }
 		        }
@@ -1021,7 +1026,7 @@ connection_worker(void* p)
                         rtp_buffer->timestamp_delta_initial = rtp_buffer->timestamp - peer->rtp_timestamp_initial[rtp_idx];
                         rtp_buffer->recv_time = buffer_next_recv_time;
                         rtp_buffer->seq = cur->seq+1;
-                        rtp_buffer->reclaimable = /*(rtp_buffer->seq >= PEER_RTP_SEQ_MIN_RECLAIMABLE ? 1: 0*/ 1 /*rtp_frame_marker(rtpFrame)*/;
+                        rtp_buffer->reclaimable = (rtp_buffer->seq >= PEER_RTP_SEQ_MIN_RECLAIMABLE ? 1: 0) /*rtp_frame_marker(rtpFrame)*/;
                         rtp_buffer->next = NULL;
                         rtp_buffer->len = srtp_len;
                         rtp_buffer->rtp_idx = rtp_idx;
