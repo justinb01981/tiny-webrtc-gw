@@ -34,23 +34,39 @@ typedef struct {
 } ATTR_PACKED rtp_frame_noxtn_t;
 
 typedef struct {
-    rtp_header_t hdr;
+    u32 ssrc_block1;
+    u32 frac_lost_and_cumpktlost; // high 8 bits = x, low 24 = y, (x / y)
+    u32 seq_received_max;
+    u32 interarrival_jitter;
+    u32 last_sr_timestamp;
+    u32 last_sr_timestamp_delay;
+} ATTR_PACKED rtp_report_receiver_block_t;
+
+typedef rtp_report_receiver_block_t rtp_report_sender_block_t;
+
+typedef struct {
+    struct {
+        u8 ver;
+        u8 payload_type;
+        u16 length;
+        u32 seq_src_id;
+    } ATTR_PACKED hdr;
     u32 timestamp_msw;
     u32 timestamp_lsw;
     u32 timestamp_rtp;
     u32 pkt_count;
     u32 octet_count;
+    rtp_report_sender_block_t blocks[1];
 } ATTR_PACKED rtp_report_sender_t;
 
 typedef struct {
-    rtp_header_t hdr;
-    u32 id;
-    u32 frac_lost; // high 8 bits = x, low 24 = y, (x / y)
-    u16 seq_received_cycles;
-    u16 seq_received_max;
-    u32 interarrival_jitter;
-    u32 last_sr_timestamp;
-    u32 last_sr_timestamp_delay;
+    struct {
+        u8 ver;
+        u8 payload_type;
+        u16 length;
+        u32 seq_src_id;
+    } ATTR_PACKED hdr;
+    rtp_report_receiver_block_t blocks[1];
 } ATTR_PACKED rtp_report_receiver_t;
 
 typedef struct {

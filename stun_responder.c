@@ -10,6 +10,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <time.h>
+#include <math.h>
 
 #include <openssl/ssl.h>
 #include <openssl/bio.h>
@@ -44,6 +45,9 @@
 #define MAX_PEERS 64
 #define CONNECTION_DELAY_MS 2000
 
+#define RTP_PICT_LOSS_INDICATOR_INTERVAL 5
+#define RTP_PSFB 1 
+
 int dtls_handoff = 0;
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS];
@@ -76,8 +80,31 @@ void thread_init()
     signal(SIGPIPE, SIG_IGN);
 }
 
+u_int32_t get_rtp_timestamp32()
+{
+    struct timeval te;
+
+    gettimeofday(&te, NULL); // get current time
+
+    float m = 0xffff / 1000;
+    m = ((float) te.tv_usec / 1000000) * 0xffff;
+
+    float sec = time(NULL) + 2208988800; // seconds since 1900
+
+    u_int16_t tmp1 = fmod(sec, 0xffff);
+
+    u_int32_t tmp = htons(tmp1);
+    
+    tmp << 16;
+    u_int16_t tmp2 = m;
+    tmp |= htons(tmp2);
+    
+    return tmp;
+}
+
 unsigned long get_time_ms()
 {
+
     struct timeval te; 
     gettimeofday(&te, NULL); // get current time
     long long milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // caculate milliseconds
@@ -329,6 +356,7 @@ peer_rtp_send_worker(void* p)
     u32 ts_start_time = 0;
     u32 ts_delta_min = 10;
     u32 ts_counter = 0;
+    int peer_send_rewrite_seq = 1, peer_send_rewrite_ts = 1;
 
     rtp_idx = args->rtp_idx;
     while(peer->alive && !peer->srtp_inited)
@@ -340,7 +368,7 @@ peer_rtp_send_worker(void* p)
 
     peer->srtp[rtp_idx].seq_counter = peers[peer->subscriptionID].rtp_seq_initial[rtp_idx];
 
-    int need_ffwd = 1;
+    int need_ffwd = 0;
     while(peer->alive)
     {
         while(peer->alive && (peer->cleanup_in_progress || peer_cleanup_in_progress(peers, peer->subscriptionID)))
@@ -353,7 +381,9 @@ peer_rtp_send_worker(void* p)
         if(need_ffwd)
         {
             peer_buffer_node_t* cur = &peers[peer->subscriptionID].rtp_buffers_head[rtp_idx];
+            while(cur->next) cur = cur->next;
             peer->subscription_ptr[rtp_idx] = cur;
+            need_ffwd = 0;
         }
 
         for(rtp_idx = args->rtp_idx; rtp_idx == args->rtp_idx; rtp_idx++)
@@ -365,13 +395,6 @@ peer_rtp_send_worker(void* p)
                 peer_buffer_node_t* cur;
                 char buf_send[4096];
                 u32 ts_initial = peer_subscription_ts_initial(peers, peer->subscriptionID, rtp_idx);
-                
-                if(need_ffwd)
-                {
-                    while(cur) cur = cur->next;
-                    need_ffwd = 0;
-                }
-
                 cur = peer_subscription(peers, peer->subscriptionID, rtp_idx, &(peer->subscription_ptr[rtp_idx]));
 
                 if(!cur)
@@ -390,6 +413,7 @@ peer_rtp_send_worker(void* p)
                 counts[9]++;
 
                 rtp_frame_t* rtpframe_send = (rtp_frame_t*) buf_send;
+                /* TODO: crash seen here with cur=0x110 */
                 int srtp_len = cur->len;
 
                 /* TODO: crash seen in peer_rtp_send_worker() : memcpy */
@@ -401,11 +425,13 @@ peer_rtp_send_worker(void* p)
                 
                 if(/*ts_m > 0*/ 1)
                 {
-                    rtpframe_send->hdr.sequence = htons(peer->srtp[rtp_idx].seq_counter);
+                    if(peer_send_rewrite_seq)
+                        rtpframe_send->hdr.sequence = htons(peer->srtp[rtp_idx].seq_counter);
                     peer->srtp[rtp_idx].seq_counter++;
 
                     ts_counter += cur->timestamp_delta;
-                    rtpframe_send->hdr.timestamp = htonl(ts_initial + ts_counter);
+                    if(peer_send_rewrite_ts)
+                        rtpframe_send->hdr.timestamp = htonl(ts_initial + ts_counter);
 
                     if(srtp_protect(peer->srtp[rtp_idx_write].session, rtpframe_send, &srtp_len) == err_status_ok)
                     {
@@ -857,18 +883,24 @@ connection_worker(void* p)
                 u32 timestamp_in = ntohl(rtpFrame->hdr.timestamp);
                 u16 sequence_in = ntohs(rtpFrame->hdr.sequence);
                 int is_receiver_report = 0, is_sender_report = 0;
- 
-                if(rtpFrame->hdr.payload_type == rtp_receiver_report_type) is_receiver_report = 1;
-                if(rtpFrame->hdr.payload_type == rtp_sender_report_type) is_sender_report = 1;
+                rtp_report_receiver_t* report = (rtp_report_receiver_t*) rtpFrame;
+                rtp_report_sender_t* sendreport = (rtp_report_sender_t*) rtpFrame;
+                
+                if(rtpFrame->hdr.payload_type == rtp_receiver_report_type) { is_receiver_report = 1; in_ssrc = ntohl(report->hdr.seq_src_id); }
+                if(rtpFrame->hdr.payload_type == rtp_sender_report_type) { is_sender_report = 1; in_ssrc = ntohl(sendreport->hdr.seq_src_id); }
 
                 if(in_ssrc == answer_ssrc[0] /*strToInt(get_answer_sdp_idx("a=ssrc:", 0))*/) {
                     rtp_idx = 0;
                     write_ssrc = /*strToInt(get_offer_sdp_idx("a=ssrc:", 0))*/ offer_ssrc[0];
+                    if(is_receiver_report || is_sender_report) printf("report from ssrc[0]\n");
                 }
                 else
                 if(in_ssrc == answer_ssrc[1] /*strToInt(get_answer_sdp_idx2("a=ssrc:", 0, "m=video"))*/) {
                     rtp_idx = 1;
                     write_ssrc = /*strToInt(get_offer_sdp_idx2("a=ssrc:", 0, "m=video"))*/ offer_ssrc[1];
+                    if(is_receiver_report|| is_sender_report) printf("report from ssrc[1]\n");
+                }
+                else if(is_receiver_report) {
                 }
                 else {
                     //printf("unknown RTP SSID: %u\n", in_ssrc);
@@ -876,22 +908,77 @@ connection_worker(void* p)
                     goto peer_again;
                 }
 
-                if(is_sender_report)
-                {
-                    goto peer_again;
-                }
+		if((is_receiver_report || is_sender_report) &&
+                   srtp_unprotect_rtcp(peer->srtp[rtp_idx].session, report, &length) == err_status_ok)
+		{
+		    if(is_sender_report || (peers[peer->subscriptionID].alive && peer != &peers[peer->subscriptionID]))
+		    {
 
-                if(is_receiver_report)
-                {
-                    rtp_report_receiver_t* report = (rtp_report_receiver_t*) rtpFrame;
-                    memcpy(peer->srtp[rtp_idx].recv_report_buflast, rtpFrame, length);
-                    peer->srtp[rtp_idx].recv_report_buflast_len = length;
+                        int reportsize;
+                        rtp_report_receiver_block_t *repblocks;
 
-                    peer->srtp[rtp_idx].recv_report_seqlast = ntohs(report->seq_received_max);
-                    peer->srtp[rtp_idx].recv_report_tslast = ntohl(report->last_sr_timestamp);
-                    peer->srtp[rtp_idx].seq_counter = peer->srtp[rtp_idx].recv_report_seqlast;
-                    goto peer_again;
-                }
+                        if(is_sender_report) {
+                            printf("fixing sender report\n");
+                            sendreport->hdr.seq_src_id = htonl(offer_ssrc[rtp_idx]);
+                            reportsize = sizeof(rtp_report_sender_t);
+                            repblocks = &sendreport->blocks[0];
+                        }
+                        else { 
+                            report->hdr.seq_src_id = htonl(offer_ssrc[rtp_idx]);
+                            reportsize = sizeof(rtp_report_receiver_t);
+                            repblocks = &report->blocks[0];
+                        }
+
+			int i;
+			for(i = 0; reportsize + (i*sizeof(rtp_report_receiver_block_t)) <= length; i++) {
+			    u32 blockssrc = ntohl(repblocks[i].ssrc_block1);
+
+			    if(blockssrc == offer_ssrc[0]) { 
+				repblocks[i].ssrc_block1 = htonl(peers[peer->subscriptionID].srtp[0].ssrc);
+				printf("offer_ssrc[0]:%u\n", blockssrc);
+			    }
+			    else if(blockssrc == offer_ssrc[1]) {
+				repblocks[i].ssrc_block1 = htonl(peers[peer->subscriptionID].srtp[1].ssrc);
+				printf("offer_ssrc[1]:%u\n", blockssrc);
+			    }
+                            else if(blockssrc == answer_ssrc[0]) {
+                                repblocks[i].ssrc_block1 = htonl(offer_ssrc[0]);
+                                printf("fixing sender report(2)\n");
+                            }
+                            else if(blockssrc == answer_ssrc[1]) {
+                                repblocks[i].ssrc_block1 = htonl(offer_ssrc[1]);
+                                printf("fixing sender report(2)\n");
+                            }
+                            else if(is_sender_report) {
+                                repblocks[i].ssrc_block1 = htonl(offer_ssrc[rtp_idx]);
+                                printf("fixing sender report(3)\n");
+                            }
+			    else {
+				printf("unknown report block SSRC:%u\n", blockssrc);
+				goto peer_again;
+			    }
+			}
+
+                        if(is_sender_report) {
+                            int p;
+                            for(p = 0; p < MAX_PEERS; p++) {
+                                if(peers[p].alive && &peers[p].subscriptionID == peer) {
+                                    if(srtp_protect_rtcp(peers[p].srtp[rtp_idx].session, sendreport, &length) == err_status_ok) {
+                                        printf("RTP sender report forwarded\n");
+                                        peer_send_block(&peers[p], (char*) report, length);
+                                    }
+                                }
+                            }
+                        }
+                        else  {
+                            if(srtp_protect_rtcp(peers[peer->subscriptionID].srtp[rtp_idx].session, report, &length) == err_status_ok) {
+                                printf("RTP receiver report forwarded\n");
+                                peer_send_block(&peers[peer->subscriptionID], (char*) report, length);
+                            }
+		        }
+                    }
+		    goto peer_again;
+		}
 
                 peer->rtp_states[rtp_idx].timestamp = timestamp_in;
 
@@ -934,7 +1021,7 @@ connection_worker(void* p)
                         rtp_buffer->timestamp_delta_initial = rtp_buffer->timestamp - peer->rtp_timestamp_initial[rtp_idx];
                         rtp_buffer->recv_time = buffer_next_recv_time;
                         rtp_buffer->seq = cur->seq+1;
-                        rtp_buffer->reclaimable = rtp_buffer->seq > PEER_RTP_SEQ_MIN_RECLAIMABLE ? 1: 0 /*rtp_frame_marker(rtpFrame)*/;
+                        rtp_buffer->reclaimable = /*(rtp_buffer->seq >= PEER_RTP_SEQ_MIN_RECLAIMABLE ? 1: 0*/ 1 /*rtp_frame_marker(rtpFrame)*/;
                         rtp_buffer->next = NULL;
                         rtp_buffer->len = srtp_len;
                         rtp_buffer->rtp_idx = rtp_idx;
@@ -953,8 +1040,6 @@ connection_worker(void* p)
                     }
                 }
 
-                #define RTP_PICT_LOSS_INDICATOR_INTERVAL 5 
-                #define RTP_PSFB 1 
                 if(time(NULL) - peer->srtp[rtp_idx].pli_last >= RTP_PICT_LOSS_INDICATOR_INTERVAL)
                 {
                     /* see RFC 4585 */
@@ -962,19 +1047,32 @@ connection_worker(void* p)
                     rtp_report_pli_t *report_pli = (rtp_report_pli_t*) &report_pli_vp8;
                    
                     memset(report_pli, 0, sizeof(rtp_report_pli_vp8_t));
-                    report_pli->ver = (2 << 6) | RTP_PSFB;
+                    report_pli->ver = (2 << 6) | 1;
                     report_pli->payload_type = 206;
                     report_pli->length = htons((sizeof(*report_pli)/4)-1);
                     report_pli->seq_src_id = htonl(offer_ssrc[rtp_idx]);
                     report_pli->seq_src_id_ref = htonl(answer_ssrc[rtp_idx]);
                     /* send picture-loss-indicator to request full-frame refresh */
-                    peer_send_block(peer, (char*) report_pli, sizeof(*report_pli));
+                    /* TODO: srtp_protect_rtcp() */
+                    int pli_len = sizeof(*report_pli);
+                    if(srtp_protect_rtcp(peer->srtp[rtp_idx].session, report_pli, &pli_len) == err_status_ok) {
+			printf("sent peer pli\n");
+	                    peer_send_block(peer, (char*) report_pli, pli_len);
+			}
                 
                     /* see https://tools.ietf.org/html/draft-ietf-payload-vp8-17 */
-                    report_pli_vp8.ver = (2 << 6) | RTP_PSFB; /* FIR command */
+                    /*
+                    report_pli_vp8.ver = (2 << 6) | RTP_PSFB; // FIR command
                     report_pli_vp8.fci = htonl(answer_ssrc[rtp_idx]);
                     report_pli_vp8.length = htons((sizeof(report_pli_vp8)/4)-1);
-                    peer_send_block(peer, (char*) &report_pli_vp8, sizeof(report_pli_vp8));
+
+                    pli_len = sizeof(report_pli_vp8);
+                    if(srtp_protect_rtcp(peer->srtp[rtp_idx].session, &report_pli_vp8, &pli_len) == err_status_ok) {
+
+			printf("sent peer pli\n");
+	                    peer_send_block(peer, (char*) &report_pli_vp8, pli_len);
+			}
+                    */
                     peer->srtp[rtp_idx].pli_last = time(NULL);
                 }
             }   
@@ -1523,6 +1621,10 @@ webserver_accept_worker(void* p)
     printf("%s:%d exiting\n", __func__, __LINE__);
 }
 
+void bogus_srtp_event_handler(struct srtp_event_data_t* data)
+{
+}
+
 int main( int argc, char* argv[] ) {
     int i, listen, output;
     struct sockaddr_in src;
@@ -1541,6 +1643,7 @@ int main( int argc, char* argv[] ) {
     FILECACHE_INIT();
 
     srtp_init();
+    srtp_install_event_handler(bogus_srtp_event_handler);
 
     //strcpy(udpserver.inip, get_config("udpserver_addr="));
     strcpy(udpserver.inip, "0.0.0.0"); // for now bind to all interfaces

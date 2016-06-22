@@ -49,6 +49,7 @@ SDP Answer:
 <br>
 <table>
 <tr><td>receive only:</td><td><input type='checkbox' disabled name='recvonly' id='recvonly' value=true></input></td></tr>
+<tr><td>send only (no mirror):</td><td><input type='checkbox' name='sendonly' id='sendonly' onclick="document.theform.offersdp.value=document.theform.offersdp.value.replace(/sendrecv/g, 'recvonly'); alert('no mirror'); " value=false></input></td></tr>
 <tr><td>advanced debug:</td><td><input type='checkbox' name='debugEnable' id='debugEnable' onclick="document.getElementById('debugDiv').hidden=(!this.checked);"></input></td></tr>
 </table>
 

@@ -4,7 +4,8 @@
 #define PEER_RTP_CTX_COUNT 8
 #define PEER_RTP_CTX_WRITE 4
 
-#define PEER_RTP_SEQ_MIN_RECLAIMABLE 128
+//#define PEER_RTP_SEQ_MIN_RECLAIMABLE 128
+#define PEER_RTP_SEQ_MIN_RECLAIMABLE 0
 
 #define PEER_LOCK(x) pthread_mutex_lock(&peers[(x)].mutex)
 #define PEER_UNLOCK(x) pthread_mutex_unlock(&peers[(x)].mutex)
