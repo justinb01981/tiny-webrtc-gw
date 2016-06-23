@@ -84,7 +84,6 @@ typedef struct {
     u32 seq_src_id;
     u32 seq_src_id_ref;
     u32 fci;
-    u32 fci_seq;
 } ATTR_PACKED rtp_report_pli_vp8_t;
 
 typedef struct {

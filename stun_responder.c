@@ -45,7 +45,7 @@
 #define MAX_PEERS 64
 #define CONNECTION_DELAY_MS 2000
 
-#define RTP_PICT_LOSS_INDICATOR_INTERVAL 0
+#define RTP_PICT_LOSS_INDICATOR_INTERVAL 10
 #define RTP_PSFB 1 
 
 int dtls_handoff = 0;
@@ -368,7 +368,7 @@ peer_rtp_send_worker(void* p)
 
     peer->srtp[rtp_idx].seq_counter = peers[peer->subscriptionID].rtp_seq_initial[rtp_idx];
 
-    int need_ffwd = 0;
+    int need_ffwd = PEER_RTP_SEQ_MIN_RECLAIMABLE == 0;
     while(peer->alive)
     {
         while(peer->alive && (peer->cleanup_in_progress || peer_cleanup_in_progress(peers, peer->subscriptionID)))
@@ -715,6 +715,7 @@ connection_worker(void* p)
 
         char buffer[4096];
         char buffer_last[4096];
+        char buffer_report[4096];
         int length = buffer_next->len;
 
         memcpy(buffer, buffer_next->buf, length);
@@ -963,21 +964,24 @@ connection_worker(void* p)
 
                         if(is_sender_report) {
                             int p;
-                            rtp_report_sender_t reportPeer;
+                            rtp_report_sender_t *reportPeer = (rtp_report_sender_t*) buffer_report;
                             int lengthPeer;
                            
                             for(p = 0; p < MAX_PEERS; p++) {
-                                if(peers[p].alive && &peers[p].subscriptionID == peer) {
+                                if(peers[p].alive &&
+                                   peers[p].subscriptionID == peer->id &&
+                                   peers[p].srtp[rtp_idx].inited) {
                                     lengthPeer = length;
-                                    memcpy(&reportPeer, sendreport, lengthPeer);
-                                    if(srtp_protect_rtcp(peers[p].srtp[rtp_idx].session, &reportPeer, &lengthPeer) == err_status_ok) {
-                                        peer_send_block(&peers[p], (char*) &reportPeer, lengthPeer);
+                                    memcpy(reportPeer, report, lengthPeer);
+                                    if(srtp_protect_rtcp(peers[p].srtp[rtp_idx].session, reportPeer, &lengthPeer) == err_status_ok) {
+                                        peer_send_block(&peers[p], buffer_report, lengthPeer);
                                     }
                                 }
                             }
                         }
                         else  {
-                            if(srtp_protect_rtcp(peers[peer->subscriptionID].srtp[rtp_idx].session, report, &length) == err_status_ok) {
+                            if(peers[peer->subscriptionID].srtp[rtp_idx].inited &&
+                               srtp_protect_rtcp(peers[peer->subscriptionID].srtp[rtp_idx].session, report, &length) == err_status_ok) {
                                 peer_send_block(&peers[peer->subscriptionID], (char*) report, length);
                             }
 		        }
@@ -1060,9 +1064,10 @@ connection_worker(void* p)
                     report_pli->length = htons((sizeof(*report_pli)/4)-1);
                     report_pli->seq_src_id = htonl(offer_ssrc[rtp_idx]);
                     report_pli->seq_src_id_ref = htonl(answer_ssrc[rtp_idx]);
+                    int first=0, mblocks=450, picid = 1;
+                    report_pli_vp8.fci = htonl((0 << 18) + (mblocks<<6) + picid);
                     /* send picture-loss-indicator to request full-frame refresh */
-                    /* TODO: srtp_protect_rtcp() */
-                    int pli_len = sizeof(*report_pli);
+                    int pli_len = sizeof(report_pli_vp8);
                     if(srtp_protect_rtcp(peer->srtp[rtp_idx].session, report_pli, &pli_len) == err_status_ok) {
 			printf("sent peer pli\n");
 	                    peer_send_block(peer, (char*) report_pli, pli_len);
