@@ -1052,40 +1052,27 @@ connection_worker(void* p)
                 if(time(NULL) - peer->srtp[rtp_idx].pli_last >= RTP_PICT_LOSS_INDICATOR_INTERVAL &&
                    RTP_PICT_LOSS_INDICATOR_INTERVAL > 0)
                 {
+                    rtp_report_pli_vp8_t report_pli_vp8;
+                    int report_len = sizeof(report_pli_vp8);
                     peer->srtp[rtp_idx].pli_last = time(NULL);
 
                     /* see RFC 4585 */
-                    rtp_report_pli_vp8_t report_pli_vp8;
+                    memset(&report_pli_vp8, 0, sizeof(rtp_report_pli_vp8_t));
+                    
                     rtp_report_pli_t *report_pli = (rtp_report_pli_t*) &report_pli_vp8;
                    
-                    memset(report_pli, 0, sizeof(rtp_report_pli_vp8_t));
                     report_pli->ver = (2 << 6) | 1;
                     report_pli->payload_type = 206;
-                    report_pli->length = htons((sizeof(*report_pli)/4)-1);
+                    report_pli->length = htons((report_len/4)-1);
                     report_pli->seq_src_id = htonl(offer_ssrc[rtp_idx]);
                     report_pli->seq_src_id_ref = htonl(answer_ssrc[rtp_idx]);
-                    int first=0, mblocks=450, picid = 1;
-                    report_pli_vp8.fci = htonl((0 << 18) + (mblocks<<6) + picid);
+                    int first=0, mblocks=450, picid = 0;
+                    report_pli_vp8.fci = htonl((first << 18) + (mblocks<<6) + picid);
                     /* send picture-loss-indicator to request full-frame refresh */
-                    int pli_len = sizeof(report_pli_vp8);
-                    if(srtp_protect_rtcp(peer->srtp[rtp_idx].session, report_pli, &pli_len) == err_status_ok) {
-			printf("sent peer pli\n");
-	                    peer_send_block(peer, (char*) report_pli, pli_len);
-			}
-                
-                    /* see https://tools.ietf.org/html/draft-ietf-payload-vp8-17 */
-                    /*
-                    report_pli_vp8.ver = (2 << 6) | RTP_PSFB; // FIR command
-                    report_pli_vp8.fci = htonl(answer_ssrc[rtp_idx]);
-                    report_pli_vp8.length = htons((sizeof(report_pli_vp8)/4)-1);
-
-                    pli_len = sizeof(report_pli_vp8);
-                    if(srtp_protect_rtcp(peer->srtp[rtp_idx].session, &report_pli_vp8, &pli_len) == err_status_ok) {
-
-			printf("sent peer pli\n");
-	                    peer_send_block(peer, (char*) &report_pli_vp8, pli_len);
-			}
-                    */
+                    if(srtp_protect_rtcp(peer->srtp[rtp_idx].session, report_pli, &report_len) == err_status_ok) {
+                        printf("sent peer pli\n");
+	                peer_send_block(peer, (char*) report_pli, report_len);
+		    }
                 }
             }   
             goto peer_again;

@@ -43,7 +43,7 @@
                     <br>
                     <P>Streaming...
                     <br>
-                    <button onclick="document.getElementById('remoteVideoMirror').pause();">stop</button>
+                    <button onclick="stopSending()">pause/resume</button>
                     <br>
                     <button onclick="alert('switch tabs back/forth (on andrid/chrome)\nmake sure correct video device selected'); rebootLocalVideo(document.getElementById('remoteVideoMirror'));">problem?</button>
                     <div id="streamLinkDiv">
@@ -162,6 +162,7 @@ var vidPresenter = null;
 var joinPopupLast = {connection:null, userName:null, recvOnlyChecked:null, stream:null};
 var joinPopupClose2Steps = 0;
 
+var stoppedStreamLast = null;
 var userCounter = 1;
 var roomTable = '' + addUserHTML;
 var roomTableCols = 1;
@@ -435,6 +436,16 @@ function onBtnMakePresent(btn, userName) {
     //resizeObjectWithID("videoMain", mainDivX, mainDivY, (mainDivW/100)*60, (mainDivH/100)*50);
 }
 function mainVideoEmbiggen(pct) { 
+}
+function stopSending() {
+    s = joinPopupLast.connection.getLocalStreams()[0]
+    if (s) {
+        stoppedStreamLast = s
+        joinPopupLast.connection.removeStream(s)
+    }
+    else {
+        joinPopupLast.connection.addStream(stoppedStreamLast)
+    }
 }
 </script>
 </html>
