@@ -368,7 +368,7 @@ peer_rtp_send_worker(void* p)
 
     peer->srtp[rtp_idx].seq_counter = peers[peer->subscriptionID].rtp_seq_initial[rtp_idx];
 
-    int need_ffwd = PEER_RTP_SEQ_MIN_RECLAIMABLE == 0;
+    int need_ffwd = 0;
     while(peer->alive)
     {
         while(peer->alive && (peer->cleanup_in_progress || peer_cleanup_in_progress(peers, peer->subscriptionID)))
@@ -377,9 +377,22 @@ peer_rtp_send_worker(void* p)
         }
         if(!peer->alive) break;
 
+        /* wait for subscription to come back online */
+        if(peer->subscription_reset[rtp_idx])
+        {
+            if(peers[peer->subscriptionID].rtp_buffers_head[rtp_idx].next != NULL)
+            {
+                peer->subscription_ptr[rtp_idx] = peers[peer->subscriptionID].rtp_buffers_head[rtp_idx].next;
+                peer->subscription_reset[rtp_idx] = 0;
+            }
+            sleep_msec(10);
+            continue;
+        }
+
         /* perform FFWD */
         if(need_ffwd)
         {
+            peer->subscription_reset[rtp_idx] = 0;
             peer_buffer_node_t* cur = &peers[peer->subscriptionID].rtp_buffers_head[rtp_idx];
             while(cur->next) cur = cur->next;
             peer->subscription_ptr[rtp_idx] = cur;
@@ -1030,7 +1043,7 @@ connection_worker(void* p)
                         rtp_buffer->timestamp_delta_initial = rtp_buffer->timestamp - peer->rtp_timestamp_initial[rtp_idx];
                         rtp_buffer->recv_time = buffer_next_recv_time;
                         rtp_buffer->seq = cur->seq+1;
-                        rtp_buffer->reclaimable = (rtp_buffer->seq >= PEER_RTP_SEQ_MIN_RECLAIMABLE ? 1: 0) /*rtp_frame_marker(rtpFrame)*/;
+                        rtp_buffer->reclaimable = /*(rtp_buffer->seq >= PEER_RTP_SEQ_MIN_RECLAIMABLE ? 1: 0)*/ /*rtp_frame_marker(rtpFrame)*/ peer_rtp_buffer_reclaimable(peer, rtp_idx);
                         rtp_buffer->next = NULL;
                         rtp_buffer->len = srtp_len;
                         rtp_buffer->rtp_idx = rtp_idx;
@@ -1212,7 +1225,7 @@ webserver_worker(void* p)
     char *page_buf_400 = "<html>Huh?<br><a href='/index.html'>index.html</a></html>";
     //char *page_buf_uploaded = "<html><p>OK...closing<br><button onclick=\"window.focus(window.parent);\">close</button></p><script language='javascript'>window.setTimeout(function() {window.close();}, 3000);</script></html>";
     char *page_buf_uploaded = "<html><body onload='window.location=\"content/uploadDone.html\";'>redirecting...</body></html>";
-    char *page_buf_redirect_chat = "<html><body onload='window.location=\"content/peersPopup.html\";'>redirecting...</body></html>";
+    char *page_buf_redirect_chat = "<html><body onload='window.location=\"content/chatroom.html\";'>redirecting...</body></html>";
     char *page_buf_redirect_back = "<html><body onload='window.history.back();'>redirecting...</body></html>";
     char *ok_hdr = "HTTP/1.0 200 OK\r\n";
     char *content_type = "";
@@ -1921,8 +1934,11 @@ int main( int argc, char* argv[] ) {
                 int p;
                 for(p = 0; p < MAX_PEERS; p++)
                 {
-                    if(peers[p].alive && peers[p].subscriptionID == i)
+                    if(peers[p].alive && peers[p].subscriptionID == i) {
                         memset(&peers[p].subscription_ptr, 0, sizeof(peers[p].subscription_ptr));
+                        int rtp_idx;
+                        for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_COUNT; rtp_idx++) { peers[p].subscription_reset[rtp_idx] = 1; }
+                    }
                 }
 
                 peers[i].alive = 0;

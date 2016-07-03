@@ -14,9 +14,9 @@
         </tr>
         <tr>
             <td colspan=1 id="thPresenter" align="center" >
-               <div id='addUserLinkDiv' hidden=true>
+               <div id='addUserLinkDiv'>
                    <h3>Click to start watching "%$URLARGUMENTS$%"</h3>
-                   <button onClick="connectVideo(document.getElementById('videoMain'), joinSDP(), true, '%$URLARGUMENTS$%');" style="width:200px;height:100px;">Click to start watching %$URLARGUMENTS$%</button>
+                   <button onClick="connectVideo(document.getElementById('videoMain'), joinSDP(), true, '');" style="width:200px;height:100px;">Click to start watching</button>
                 </div>
                 <!--
                 <div id="presenterDiv">
@@ -56,19 +56,13 @@
 
         <tr>
             <td align="center">
-                Chat username:<textarea rows=1 cols=16 id='userName'></textarea>
+                Chat username:<textarea rows=1 cols=16 id='userName'>user123</textarea>
                 <button onclick='openChat();'>chat</button>
             </td>
-            <!--
-            <td align="center">
-                <button onclick="onBtnUsersExpand()">Hide/Expand users</button>
-            </td>
-            -->
         </tr>
 
+        <!--
         <tr>
-            <td>
-            <!--
             <td>
                 <table border=1 style="display:inline-block;">
                     <tr>
@@ -83,27 +77,11 @@
                     </tr>
                 </table>
             </td>
-            -->
-            <table>
-            <tr>
-              <div id="roomDivCursor">
-              </div>
-            </tr>
-            </table>
-            </td>
         </tr>
-    </table>
-</div>
+	-->
 
-<div id="roomAddButtonDiv" style="display: none;">
-    <table border=1 style="display:inline-block;">
-    <tr>
-        <td>
-            <button onClick='onBtnAddUser("");'>Watch another User</button>
-        </td>
-    </tr>
     </table>
-</div>
+</div> <!-- mainDiv -->
 </body>
 
 <script src="src/js/adapter.js"></script>

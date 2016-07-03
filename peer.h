@@ -93,7 +93,10 @@ typedef struct
         u32 recv_report_tslast;
 
         time_t pli_last;
+
     } srtp[PEER_RTP_CTX_COUNT];
+
+    int subscription_reset[PEER_RTP_CTX_COUNT];
 
     int subscriptionID;
     int subscribed;
@@ -195,6 +198,14 @@ peer_subscription(peer_session_t* peers, int id, int stream_id, peer_buffer_node
 
 int peer_cleanup_in_progress(peer_session_t* peers, int id) {
     return peers[id].cleanup_in_progress;
+}
+
+int peer_rtp_buffer_reclaimable(peer_session_t* peer, int rtp_idx) {
+    if(time(NULL) - peer->time_start < 60 ) {
+        /* retain full stream for 1 minute */
+        return 0;
+    }
+    return 1;
 }
 
 #endif
