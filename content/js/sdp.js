@@ -43,10 +43,6 @@ var sdpStatic = "v=0\n" +
 " nack" +
 "\n" + 
 /*
-"a=rtcp-fb:120 nack\n" + 
-"a=rtcp-fb:120 nack pli\n" + 
-*/
-/*
 "a=rtcp-fb:120 ccm fir\n" + 
 */
 /*

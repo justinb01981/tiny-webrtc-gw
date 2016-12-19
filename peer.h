@@ -152,6 +152,7 @@ typedef struct
     } stats;
 
     char name[64];
+    char subscription_name[64];
 
     int recv_only;
 } peer_session_t;
@@ -201,7 +202,7 @@ int peer_cleanup_in_progress(peer_session_t* peers, int id) {
 }
 
 int peer_rtp_buffer_reclaimable(peer_session_t* peer, int rtp_idx) {
-    if(time(NULL) - peer->time_start < 60 ) {
+    if(time(NULL) - peer->time_start < 300 ) {
         /* retain full stream for 1 minute */
         return 0;
     }
