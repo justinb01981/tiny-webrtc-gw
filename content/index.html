@@ -46,6 +46,7 @@
                     <button onclick="stopSending()">pause/resume</button>
                     <br>
                     <button onclick="alert('switch tabs back/forth (on andrid/chrome)\nmake sure correct video device selected'); rebootLocalVideo(document.getElementById('remoteVideoMirror'));">problem?</button>
+                    <button onclick="alert('starting...'); attachMediaStreamToOutlet(winPopupVideoTarget, winPopupRemoteConnection.getRemoteStreams()[0]);">begin broadcast</button>
                     <div id="streamLinkDiv">
                     </div>
                 </div>
@@ -322,6 +323,10 @@ function joinPopupCloseAgain() {
     }
 }
 
+function attachMediaStreamToOutlet(videoTarget, stream) {
+    attachMediaStream(target, stream);
+}
+
 function joinPopupClose(connection, userName, recvOnlyChecked) {
     joinPopupLast.connection = connection;
     joinPopupLast.userName = userName;
@@ -333,7 +338,8 @@ function joinPopupClose(connection, userName, recvOnlyChecked) {
     winPopupRemoteConnection = connection;
     var w = winPopupVideoTarget.width;
     var h = winPopupVideoTarget.height;
-    attachMediaStream(winPopupVideoTarget, winPopupRemoteConnection.getRemoteStreams()[0]);
+    //attachMediaStream(winPopupVideoTarget, winPopupRemoteConnection.getRemoteStreams()[0]);
+    //attachMediaStreamToOutlet(winPopupVideoTarget, winPopupRemoteConnection.getRemoteStreams()[0]);
     winPopupVideoTarget.width=w;
     winPopupVideoTarget.height=h;
     //var hostPort = '%$HOSTPORT$%';

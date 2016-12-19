@@ -326,6 +326,7 @@ typedef struct {
 
 const unsigned int peer_rtp_send_worker_delay_max = 50;
 
+#if 0
 void *
 peer_rtp_send_worker(void* p)
 {
@@ -464,6 +465,7 @@ peer_rtp_send_worker(void* p)
 
     return NULL;
 }
+#endif /*0*/
 
 void
 connection_srtp_init(peer_session_t* peer, int rtp_idx, u32 ssid, u32 write_ssrc)
@@ -640,15 +642,6 @@ connection_worker(void* p)
         int i;
         printf("%s:%d %s\n", __func__, __LINE__, watch_name);
         strcpy(peer->subscription_name, watch_name);
-
-        for(i = 0; i < MAX_PEERS; i++)
-        {
-            if(strcmp(peers[i].name, watch_name) == 0)
-            {
-                peer->subscriptionID = i;
-                break;
-            }
-        }
     }
     char* recv_only = get_answer_sdp_idx("a=recvonly", 0);
 
@@ -657,12 +650,21 @@ connection_worker(void* p)
     {
         int si;
 
+        for(si = 0; si < MAX_PEERS; si++)
+        {
+            if(strcmp(peers[si].name, my_name) == 0)
+            {
+                strcpy(peers[si].name, "(replaced)");
+            }
+        }
+
         printf("%s:%d %s\n", __func__, __LINE__, my_name);
         strcpy(peer->name, my_name);
         chatlog_append("join: ");
         chatlog_append(peer->name);
-        chatlog_append(recv_only?" (watching)":" (streaming)");
-        chatlog_append("\n");
+        chatlog_append(recv_only?" (watching":" (streaming");
+        chatlog_append(recv_only && watch_name ? watch_name: "");
+        chatlog_append(")\n");
 
         if(!recv_only) strcpy(peer->subscription_name, peer->name);
 
