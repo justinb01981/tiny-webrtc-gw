@@ -662,9 +662,19 @@ connection_worker(void* p)
         strcpy(peer->name, my_name);
         chatlog_append("join: ");
         chatlog_append(peer->name);
-        chatlog_append(recv_only?" (watching":" (streaming");
-        chatlog_append(recv_only && watch_name ? watch_name: "");
-        chatlog_append(")\n");
+
+        if(watch_name && recv_only)
+        {
+            chatlog_append(" ...wants to watch ");
+            chatlog_append(peer->subscription_name);
+            chatlog_append(" (restart may be necessary)");
+        }
+        else
+        {
+            chatlog_append("streaming...");
+        }
+
+        chatlog_append("\n");
 
         if(!recv_only) strcpy(peer->subscription_name, peer->name);
 
@@ -1280,7 +1290,7 @@ webserver_worker(void* p)
     char *page_buf_400 = "<html>Huh?<br><a href='/index.html'>index.html</a></html>";
     //char *page_buf_uploaded = "<html><p>OK...closing<br><button onclick=\"window.focus(window.parent);\">close</button></p><script language='javascript'>window.setTimeout(function() {window.close();}, 3000);</script></html>";
     char *page_buf_uploaded = "<html><body onload='window.location=\"content/uploadDone.html\";'>redirecting...</body></html>";
-    char *page_buf_redirect_chat = "<html><body onload='window.location=\"content/chatroom.html\";'>redirecting...</body></html>";
+    char *page_buf_redirect_chat = "<html><body onload='window.location=\"content/peersPopup.html\";'>redirecting...</body></html>";
     char *page_buf_redirect_back = "<html><body onload='window.history.back();'>redirecting...</body></html>";
     char *ok_hdr = "HTTP/1.0 200 OK\r\n";
     char *content_type = "";

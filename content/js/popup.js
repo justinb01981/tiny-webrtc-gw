@@ -109,5 +109,7 @@ function roomlistPopupCreate(roomName) {
 }
 function resizeObjectWithID(idName, x, y, w, h) {
     var d = document.getElementById(idName);
-    d.style.cssText = 'position:fixed; top:'+y.toString()+'px; left:'+x.toString()+'px; width:'+w.toString()+'px; height:'+h.toString()+'px;';
+    if(d) { 
+        d.style.cssText = 'position:fixed; top:'+y.toString()+'px; left:'+x.toString()+'px; width:'+w.toString()+'px; height:'+h.toString()+'px;';
+    }
 }

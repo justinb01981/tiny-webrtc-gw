@@ -43,13 +43,15 @@
                     <br>
                     <P>Streaming...
                     <br>
+                    <!--
                     <button onclick="stopSending()">pause/resume</button>
                     <br>
                     <button onclick="alert('switch tabs back/forth (on andrid/chrome)\nmake sure correct video device selected'); rebootLocalVideo(document.getElementById('remoteVideoMirror'));">problem?</button>
+                    -->
                     <div id="streamLinkDiv">
                     </div>
                 </div>
-                <button onclick="document.getElementById('remoteVideoMirrorDiv').hidden = false; document.getElementById('localPreviewDiv').hidden = true; connectVideo(document.getElementById('remoteVideoMirror'), joinSDP(), false, '');">Join</button>
+                <button onclick="document.getElementById('remoteVideoMirrorDiv').hidden = false; document.getElementById('localPreviewDiv').hidden = true; connectVideo(document.getElementById('remoteVideoMirror'), joinSDP(), false, '');">Join/Restart</button>
                 <br>
             </td>
         </tr>
