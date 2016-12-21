@@ -639,9 +639,17 @@ connection_worker(void* p)
     char* watch_name = get_answer_sdp_idx("a=watch=", 0);
     if(watch_name && strlen(watch_name) > 0)
     {
-        int i;
+        int si;
         printf("%s:%d %s\n", __func__, __LINE__, watch_name);
         strcpy(peer->subscription_name, watch_name);
+
+        for(si = 0; si < MAX_PEERS; si++)
+        {
+            if(strcmp(peers[si].name, peer->subscription_name) == 0)
+            {
+                peers[si].subscriptionID = peer->id;
+            }
+         }
     }
     char* recv_only = get_answer_sdp_idx("a=recvonly", 0);
 
@@ -676,7 +684,7 @@ connection_worker(void* p)
 
         chatlog_append("\n");
 
-        if(!recv_only) strcpy(peer->subscription_name, peer->name);
+        if(peer->subscription_name[0] == '\0' && !recv_only) strcpy(peer->subscription_name, peer->name);
 
         for(si = 0; si < MAX_PEERS; si++)
         {
@@ -934,18 +942,18 @@ connection_worker(void* p)
                 int is_receiver_report = 0, is_sender_report = 0;
                 rtp_report_receiver_t* report = (rtp_report_receiver_t*) rtpFrame;
                 rtp_report_sender_t* sendreport = (rtp_report_sender_t*) rtpFrame;
-                
+                /* fix sender/receiver reports */
                 if(rtpFrame->hdr.payload_type == rtp_receiver_report_type) { is_receiver_report = 1; in_ssrc = ntohl(report->hdr.seq_src_id); }
                 if(rtpFrame->hdr.payload_type == rtp_sender_report_type) { is_sender_report = 1; in_ssrc = ntohl(sendreport->hdr.seq_src_id); }
 
-                if(in_ssrc == answer_ssrc[0] /*strToInt(get_answer_sdp_idx("a=ssrc:", 0))*/) {
+                if(in_ssrc == answer_ssrc[0]) {
                     rtp_idx = 0;
-                    write_ssrc = /*strToInt(get_offer_sdp_idx("a=ssrc:", 0))*/ offer_ssrc[0];
+                    write_ssrc = offer_ssrc[0];
                 }
                 else
-                if(in_ssrc == answer_ssrc[1] /*strToInt(get_answer_sdp_idx2("a=ssrc:", 0, "m=video"))*/) {
+                if(in_ssrc == answer_ssrc[1]) {
                     rtp_idx = 1;
-                    write_ssrc = /*strToInt(get_offer_sdp_idx2("a=ssrc:", 0, "m=video"))*/ offer_ssrc[1];
+                    write_ssrc = offer_ssrc[1];
                 }
                 else if(is_receiver_report) {
                 }
@@ -955,6 +963,7 @@ connection_worker(void* p)
                     goto peer_again;
                 }
 
+                int rtp_idx_write = 4 + rtp_idx;
 		if((is_receiver_report || is_sender_report) &&
                    srtp_unprotect_rtcp(peer->srtp[rtp_idx].session, report, &length) == err_status_ok)
 		{
@@ -1005,7 +1014,8 @@ connection_worker(void* p)
 
                         counts[stat_idx]++;
 
-                        if(is_sender_report) {
+                        if(is_sender_report)
+                        {
                             int p;
                             rtp_report_sender_t *reportPeer = (rtp_report_sender_t*) buffer_report;
                             int lengthPeer;
@@ -1013,18 +1023,19 @@ connection_worker(void* p)
                             for(p = 0; p < MAX_PEERS; p++) {
                                 if(peers[p].alive &&
                                    peers[p].subscriptionID == peer->id &&
+                                   peer->id != peers[p].subscriptionID &&
                                    peers[p].srtp[rtp_idx].inited) {
                                     lengthPeer = length;
                                     memcpy(reportPeer, report, lengthPeer);
-                                    if(srtp_protect_rtcp(peers[p].srtp[rtp_idx].session, reportPeer, &lengthPeer) == err_status_ok) {
+                                    if(srtp_protect_rtcp(peers[p].srtp[rtp_idx_write].session, reportPeer, &lengthPeer) == err_status_ok) {
                                         peer_send_block(&peers[p], buffer_report, lengthPeer);
                                     }
                                 }
                             }
                         }
                         else  {
-                            if(peers[peer->subscriptionID].srtp[rtp_idx].inited &&
-                               srtp_protect_rtcp(peers[peer->subscriptionID].srtp[rtp_idx].session, report, &length) == err_status_ok) {
+                            if(peers[peer->subscriptionID].srtp[rtp_idx_write].inited &&
+                               srtp_protect_rtcp(peers[peer->subscriptionID].srtp[rtp_idx_write].session, report, &length) == err_status_ok) {
                                 peer_send_block(&peers[peer->subscriptionID], (char*) report, length);
                             }
 		        }
@@ -1034,16 +1045,7 @@ connection_worker(void* p)
 
                 peer->rtp_states[rtp_idx].timestamp = timestamp_in;
 
-                int rtp_idx_write = 4 + rtp_idx;
-
                 if(!peer->srtp[rtp_idx].inited) goto peer_again;
-
-                /*
-                if(!peer->subscribed)
-                {
-                    goto peer_again;
-                }
-                */
 
                 int srtp_len = length;
                 if(srtp_unprotect(peer->srtp[rtp_idx].session, rtpFrame, &srtp_len) != err_status_ok)

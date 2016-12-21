@@ -6,6 +6,10 @@
 <script src="js/peers.js"></script>
 <script language='javascript'>
 var popupRecvOnly = false;
+function nameChanged() {
+    document.theform.my_link.value =
+        window.location + document.theform.my_name.value;
+}
 </script>
 </head>
 
@@ -33,7 +37,16 @@ SDP Answer:
         My username:
     </td>
     <td>
-        <input type="text" id="my_name" name="my_name" value="user1"></input>
+        <input type="text" id="my_name" name="my_name" value="user1" onKeyup="nameChanged()"></input>
+        <br>
+    </td>
+</tr>
+<tr>
+    <td>
+        My broadcast link (share before starting):
+    </td>
+    <td>
+        <input type="text" id="my_link" name="my_link" value=""></input>
     </td>
 </tr>
 <tr>
@@ -66,7 +79,7 @@ SDP Answer:
 <script language='javascript'>
     var d = document.getElementById('watchableUsersDiv');
     var i;
-    for(i = 0; i < peerList.length; i++) {
+    for(i = 0; i < peerList.length && '%$URLARGUMENTS$%'.length == 0; i++) {
         var attrs = '';
         var watchDesc = '';
         if(peerList[i].recvonly) {
@@ -85,7 +98,7 @@ SDP Answer:
         document.theform.peerstream_recv.hidden = false;
         document.theform.peerstream_recv.value = '%$URLARGUMENTS$%';
         document.theform.appendsdp.value += 'a=watch=' + '%$URLARGUMENTS$%\n';
-        document.getElementById('watchableUsersDiv').hidden = true;
+        d.innerHTML += '<p>click OK to start watching %$URLARGUMENTS$%<br>'
     }
 </script>
 <br>
