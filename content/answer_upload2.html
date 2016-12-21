@@ -7,8 +7,8 @@
 <script language='javascript'>
 var popupRecvOnly = false;
 function nameChanged() {
-    document.theform.my_link.value =
-        window.location + document.theform.my_name.value;
+    var l = 'https://' + window.location.hostname + ':' + window.location.port + '/content/index_broadcast.html?args=' + document.theform.my_name.value;
+    document.theform.my_link.value = l;
 }
 </script>
 </head>
