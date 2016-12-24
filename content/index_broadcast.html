@@ -60,6 +60,8 @@
             <td align="center">
                 Chat username:<textarea rows=1 cols=16 id='userName'>user123</textarea>
                 <button onclick='openChat();'>chat</button>
+                <button onclick='logout();'>logout</button>
+        
             </td>
         </tr>
 
@@ -155,6 +157,9 @@ var mainDivY = 10;
 
 var vidChildX;
 var vidChildY;
+
+var cookieUserName; 
+
 var addUserLoad = function(name) {
     var check = document.getElementById("check_"+name);
     if(!check.checked) {
@@ -220,6 +225,8 @@ function getMedia() {
 }
 
 function onLoad() {
+    document.cookie = "authCookieJS12242016=%$AUTHCOOKIE$%; path=/";
+    cookieUserName = 'user%$AUTHCOOKIE$%';
     divRoom = document.getElementById("roomDivCursor");
 
     mainDivW = (document.body.clientWidth / 100) * 80;
@@ -257,7 +264,12 @@ function onLoad() {
     
     resizeObjectWithID("roomAddButtonDiv", mainDivX, vidChildY+vidChildH/2, 50, 50);
 
-    document.getElementById('userName').value = 'user' + Math.ceil(Math.random() % 10 * 1000);
+    document.getElementById('userName').value = cookieUserName;
+}
+
+function logout() {
+    document.cookie = "authCookieJS12242016=%$AUTHCOOKIE$%; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
+    alert(cookieUserName + ' logged out...');
 }
 
 function macroHelper(a, b, c) {

@@ -13,7 +13,8 @@ var sdpStatic = "v=0\n" +
 "a=sendrecv\n" + 
 "a=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level\n" + 
 "a=ice-pwd:230r89wef32jsdsjJlkj23rndasf23rlknas\n" +
-"a=ice-ufrag:aaaaaaaa\n" + 
+/*"a=ice-ufrag:aaaaaaaa\n" + */
+"a=ice-ufrag:%$AUTHCOOKIE$%\n" +
 "a=mid:sdparta_0\n" + 
 "a=msid:{7e5b1422-7cbe-3649-9897-864febd59342} {6fca7dee-f59d-3c4f-be9c-8dd1092b10e3}\n" + 
 "a=rtcp-mux\n" + 
@@ -33,7 +34,7 @@ var sdpStatic = "v=0\n" +
 "a=fmtp:126 profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1\n" + 
 "a=fmtp:97 profile-level-id=42e01f;level-asymmetry-allowed=1\n" + 
 "a=ice-pwd:230r89wef32jsdsjJlkj23rndasf23rlknas\n" +
-"a=ice-ufrag:aaaaaaaa\n" + 
+"a=ice-ufrag:%$AUTHCOOKIE$%\n" +
 "a=mid:sdparta_1\n" + 
 "a=msid:{7e5b1422-7cbe-3649-9897-864febd59342} {f46f496f-30aa-bd40-8746-47bda9150d23}\n" + 
 "a=rtcp-fb:120" +

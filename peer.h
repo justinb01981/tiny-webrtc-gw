@@ -1,6 +1,8 @@
 #ifndef __PEER_H__
 #define __PEER_H__
 
+#define MAX_PEERS 64
+
 #define PEER_RTP_CTX_COUNT 8
 #define PEER_RTP_CTX_WRITE 4
 
@@ -153,8 +155,10 @@ typedef struct
 
     char name[64];
     char subscription_name[64];
+    char cookie[256];
 
     int recv_only;
+    unsigned long sequence_next[PEER_RTP_CTX_COUNT];
 } peer_session_t;
 
 extern unsigned long get_time_ms();
