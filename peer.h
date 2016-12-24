@@ -158,7 +158,6 @@ typedef struct
     char cookie[256];
 
     int recv_only;
-    unsigned long sequence_next[PEER_RTP_CTX_COUNT];
 } peer_session_t;
 
 extern unsigned long get_time_ms();

@@ -1101,7 +1101,6 @@ connection_worker(void* p)
                                 memcpy(rtpFrameOut, rtpFrame, lengthPeer);
 
                                 rtpFrameOut->hdr.seq_src_id = htonl(offer_ssrc[rtp_idx]);
-                                rtpFrameOut->hdr.sequence = htons(peers[p].sequence_next[rtp_idx]++);
 
                                 if(srtp_protect(peers[p].srtp[rtp_idx_write].session, rtpFrameOut, &lengthPeer) == err_status_ok) {
                                     peer_send_block(&peers[p], (char*) rtpFrameOut, lengthPeer);
