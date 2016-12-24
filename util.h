@@ -2,6 +2,9 @@
 #define __util_h__
 
 #include "peer.h"
+
+extern peer_session_t peers[];
+
 static int
 str_read(const char* src, char* dest, char *endChars, unsigned int maxlen)
 {
@@ -33,7 +36,16 @@ hex_print(char* dest, u8 *buf, int buf_len)
 
 peer_session_t*
 peer_find_by_cookie(const char* cookie) {
+    int p = 0;
+    while( p < MAX_PEERS ) {
+        if(strncmp(peers[p].http.cookie, cookie, sizeof(peers[p].http.cookie)) == 0) {
+            return &peers[p];
+        }
+        p++;
+    }
     return NULL;
 }
+
+
 
 #endif /* __util_h__ */

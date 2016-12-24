@@ -75,10 +75,7 @@ int main( int argc, char* argv[] );
     }                         \
 }
 
-void thread_init()
-{
-    signal(SIGPIPE, SIG_IGN);
-}
+#include "thread.h"
 
 u_int32_t get_rtp_timestamp32()
 {
@@ -615,7 +612,8 @@ connection_worker(void* p)
 
     strcpy(peer->stun_ice.ufrag_offer, get_offer_sdp("a=ice-ufrag:"));
     if(strcmp(peer->stun_ice.ufrag_offer, "aaaaaaaa") == 0) {
-        strcpy(peer->stun_ice.ufrag_offer, gCookieLast);
+        strcpy(peer->http.cookie, gCookieLast);
+        strcpy(peer->stun_ice.ufrag_offer, peer->http.cookie);
     }
     strcpy(peer->stun_ice.ufrag_answer, get_answer_sdp("a=ice-ufrag:"));
     strcpy(peer->stun_ice.answer_pwd, get_answer_sdp("a=ice-pwd:"));
@@ -629,8 +627,6 @@ connection_worker(void* p)
     char* watch_name = get_answer_sdp_idx("a=watch=", 0);
     if(watch_name && strlen(watch_name) > 0)
     {
-        int si;
-        printf("%s:%d %s\n", __func__, __LINE__, watch_name);
         strcpy(peer->subscription_name, watch_name);
     }
     char* recv_only = get_answer_sdp_idx("a=recvonly", 0);
@@ -666,7 +662,9 @@ connection_worker(void* p)
 
         chatlog_append("\n");
 
-        if(peer->subscription_name[0] == '\0' && !recv_only) strcpy(peer->subscription_name, peer->name);
+        if(peer->subscription_name[0] == '\0' && !recv_only) {
+            strcpy(peer->subscription_name, peer->name);
+        }
 
         for(si = 0; si < MAX_PEERS; si++)
         {

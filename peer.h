@@ -98,6 +98,10 @@ typedef struct
 
     } srtp[PEER_RTP_CTX_COUNT];
 
+    struct {
+        char cookie[256];
+    } http;
+
     int subscription_reset[PEER_RTP_CTX_COUNT];
 
     int subscriptionID;

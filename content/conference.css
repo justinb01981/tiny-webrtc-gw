@@ -11,8 +11,13 @@ td {
     margin:0;
     padding:0;
     border-collapse: collapse;
-    display:inline-block;
-    overflow:scroll;
+    overflow:hidden;
+    width:300px;
+}
+
+tr {
+    overflow:hidden;
+    height:400px;
 }
 
 table {
@@ -20,7 +25,8 @@ table {
     padding:0;
     border-collapse: collapse;
     display:inline-block;
-    overflow:scroll;
+    overflow:hidden;
+    table-layout:fixed;
 }
 
 video {
@@ -41,6 +47,6 @@ video.videoLocal {
 */
 
 video.videoMain {
-    width:640;
-    height:480;
+    width:320;
+    height:240;
 }
