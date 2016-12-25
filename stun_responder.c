@@ -680,13 +680,6 @@ connection_worker(void* p)
         strcpy(peer->name, peer->stun_ice.ufrag_answer);
     }
 
-    char* room_name = get_answer_sdp_idx("a=room=", 0);
-    if(room_name && strlen(room_name) > 0)
-    {
-        printf("%s:%d %s\n", __func__, __LINE__, room_name);
-        strcpy(peer->room_name, room_name);
-    }
-
     printf("%s:%d peer running\n", __func__, __LINE__);
 
     peers[peer->subscriptionID].subscribed = 1;
@@ -946,7 +939,7 @@ connection_worker(void* p)
 		if((is_receiver_report || is_sender_report) &&
                    srtp_unprotect_rtcp(peer->srtp[rtp_idx].session, report, &length) == err_status_ok)
 		{
-		    if(is_sender_report || (peers[peer->subscriptionID].alive && peer != &peers[peer->subscriptionID]))
+		    if(is_sender_report || (peers[peer->subscriptionID].alive /*&& peer != &peers[peer->subscriptionID]*/))
 		    {
 
                         int reportsize;
@@ -1002,7 +995,7 @@ connection_worker(void* p)
                             for(p = 0; p < MAX_PEERS; p++) {
                                 if(peers[p].alive &&
                                    peers[p].subscriptionID == peer->id &&
-                                   peer->id != peers[p].subscriptionID &&
+                                   //peer->id != peers[p].subscriptionID &&
                                    peers[p].srtp[rtp_idx].inited) {
                                     lengthPeer = length;
                                     memcpy(reportPeer, report, lengthPeer);
