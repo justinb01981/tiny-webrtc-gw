@@ -907,7 +907,6 @@ connection_worker(void* p)
 
                 memcpy(rtpFrame, buffer, length);
 
-                u32 write_ssrc = 0;
                 u32 in_ssrc = ntohl(rtpFrame->hdr.seq_src_id);
                 u32 timestamp_in = ntohl(rtpFrame->hdr.timestamp);
                 u16 sequence_in = ntohs(rtpFrame->hdr.sequence);
@@ -920,14 +919,15 @@ connection_worker(void* p)
 
                 if(in_ssrc == answer_ssrc[0]) {
                     rtp_idx = 0;
-                    write_ssrc = offer_ssrc[0];
                 }
-                else
-                if(in_ssrc == answer_ssrc[1]) {
+                else if(in_ssrc == answer_ssrc[1]) {
                     rtp_idx = 1;
-                    write_ssrc = offer_ssrc[1];
                 }
-                else if(is_receiver_report) {
+                else if(in_ssrc == offer_ssrc[0]) {
+                    rtp_idx = 0;
+                }
+                else if(in_ssrc == offer_ssrc[1]) {
+                    rtp_idx = 1;
                 }
                 else {
                     printf("unknown RTP SSID: %u\n", in_ssrc);
@@ -1005,7 +1005,7 @@ connection_worker(void* p)
                                 }
                             }
                         }
-                        else  {
+                        else  /* is_receiver_report */ {
                             if(peers[peer->subscriptionID].srtp[rtp_idx_write].inited &&
                                srtp_protect_rtcp(peers[peer->subscriptionID].srtp[rtp_idx_write].session, report, &length) == err_status_ok) {
                                 peer_send_block(&peers[peer->subscriptionID], (char*) report, length);
@@ -1013,7 +1013,9 @@ connection_worker(void* p)
 		        }
                     }
 		    goto peer_again;
-		}
+		} else if(is_sender_report || is_receiver_report) {
+        printf("srtp_unprotect_failed\n");
+    }
 
                 peer->rtp_states[rtp_idx].timestamp = timestamp_in;
 

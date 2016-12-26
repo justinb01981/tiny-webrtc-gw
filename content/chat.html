@@ -6,7 +6,6 @@ var msgfield1;
 var div1;
 var focused = null;
 var bChatrefresh = true;
-var myUserName = '';
 function onload() {
     var refresh_interval = 5000;
 
@@ -22,8 +21,6 @@ function onload() {
     setInterval(function () {if(focused == null && bChatrefresh) window.location.reload();}, refresh_interval);
 
     textfield1.scrollTop = textfield1.scrollHeight;
-
-    myUserName = window.opener.document.getElementById('userName').value;
 }
 function setRefresh(b) {
     bChatrefresh = b;
@@ -39,6 +36,7 @@ function loseFocus(e) {
     if(focused == e) focused = null;
 }
 function sendmsg() {
+    var myUserName = document.msgform.userName.value;
     var d = new Date();
     var msg = '<'+myUserName+'@'+d.toLocaleString()+'>:' + msgfield1.value;
     var find = ' ';
@@ -60,6 +58,8 @@ chatlog:
 <textarea id="chatlog" cols=40 rows=10>%$CHATLOGTEXTAREAVALUE$%</textarea>
 <br>
 <form method=POST name="msgform" action="/chatmsg">
+Username:<input type="text" name="userName"></input>
+<br>
 chatsay:
 <textarea name="msg" id="chatmsg" cols=40 rows=2></textarea>
 </form>

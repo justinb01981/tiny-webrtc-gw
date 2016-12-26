@@ -5,40 +5,74 @@
 <script src="js/popup.js"></script>
 <script src="js/peers.js"></script>
 <script language='javascript'>
+
 var popupRecvOnly = false;
+
 function nameChanged() {
     var l = 'https://' + window.location.hostname + ':' + window.location.port + '/content/index_broadcast.html?args=' + document.theform.my_name.value;
     document.theform.my_link.value = l;
 }
+
+function onLoad() {
+    nameChanged();
+    showDebug();
+}
+
+function showDebug(show) {
+    if (show) {
+        document.getElementById('debugDiv').style = '';
+    }
+    else {
+        document.getElementById('debugDiv').style = 'display: none;';
+    }
+}
+
+function getForm() {
+    return document.theform;
+}
+
+function connect(sender) {
+    getForm().appendsdp.value += 'a=myname='+getForm().my_name.value + '\n';
+    sender.hidden = true;
+    onConnect();
+    document.getElementById('msgDiv').hidden=false;
+}
+
 </script>
 </head>
 
-<body>
-<div id='debugDiv' hidden=true>
-<br>
-SDP Answer:
-<br>
+<body onLoad='onLoad()'>
+
+<div id='debugDiv'>
+
+<table>
+<tr>
+  <td colspan=2>
+    SDP Answer:
+  </td>
+</tr>
+<tr><td colspan=2>
 <form method=POST name="finalform" action="/sdp_answer.txt">
 <textarea name="answersdp" hidden=true></textarea>
 </form>
+</td></tr><tr><td colspan=2>
 <form method=POST name="theform" action="/sdp_answer.txt">
 <textarea name="answersdp" rows=10 cols=40></textarea>
-<br>
+</td></tr><tr><td colspan=2>
 <textarea name="appendsdp" rows=2 cols=40></textarea>
-<br>
+</td></tr><tr><td colspan=2>
 <textarea name="offersdp" rows=2 cols=40></textarea>
-<br>
+</td></tr>
+</table>
 </div>
-<br>
-<div id="myUsernameDiv">
 <table>
+<div id="myUsernameDiv">
 <tr>
     <td>
         My username:
     </td>
     <td>
         <input type="text" id="my_name" name="my_name" value="user1" onKeyup="nameChanged()"></input>
-        <br>
     </td>
 </tr>
 <tr>
@@ -49,21 +83,13 @@ SDP Answer:
         <input type="text" id="my_link" name="my_link" value=""></input>
     </td>
 </tr>
-<tr>
-    <td>
-        Join room name:
-    </td>
-    <td>
-        <input type="text" id="room" name="room" value="conference1"></input>
-    </td>
-</tr>
 </table>
 </div>
 <br>
 <table>
 <tr><td>receive only:</td><td><input type='checkbox' disabled name='recvonly' id='recvonly' value=true></input></td></tr>
-<tr><td>send only (no mirror):</td><td><input type='checkbox' name='sendonly' id='sendonly' onclick="document.theform.offersdp.value=document.theform.offersdp.value.replace(/sendrecv/g, 'recvonly'); alert('no mirror'); " value=false></input></td></tr>
-<tr><td>advanced debug:</td><td><input type='checkbox' name='debugEnable' id='debugEnable' onclick="document.getElementById('debugDiv').hidden=(!this.checked);"></input></td></tr>
+<tr><td>send only (no mirror):</td><td><input type='checkbox' name='sendonly' id='sendonly' onclick="getForm().offersdp.value=getForm().offersdp.value.replace(/sendrecv/g, 'recvonly');" value=false></input></td></tr>
+<tr><td>show sdp debug:</td><td><input type='checkbox' name='debugEnable' id='debugEnable' onclick="showDebug(this.checked);"></input></td></tr>
 </table>
 
 <input type="hidden" id="peerstream_recv" name="peerstream_recv" value="%$URLARGUMENTS$%"></input>
@@ -105,7 +131,7 @@ SDP Answer:
 
 <br>
 </form>
-<button name='button_connect' id='button_connect' onclick="document.theform.appendsdp.value += 'a=myname='+document.theform.my_name.value + '\n' + 'a=room='+document.theform.room.value; this.hidden=true; onConnect(); document.getElementById('msgDiv').hidden=false;">Ok</button>
+<button name='button_connect' id='button_connect' onclick="connect(self);">Ok</button>
 <div id='msgDiv' hidden=true>
 <p>Connecting...wait...
 <!--
@@ -118,5 +144,7 @@ document.getElementById("recvonly").checked = opener.popupRecvOnly;
 document.getElementById('watchableUsersDiv').hidden = !opener.popupRecvOnly;
 document.getElementById('myUsernameDiv').hidden = opener.popupRecvOnly;
 </script>
+<iframe name='iframe_submit' width=200 height=100>
+</iframe>
 </html>
 

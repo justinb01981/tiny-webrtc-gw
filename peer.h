@@ -148,7 +148,6 @@ typedef struct
     volatile int cleanup_in_progress;
 
     int id;
-    char room_name[64];
 
     unsigned long time_last_run;
     unsigned long in_rate_ms;

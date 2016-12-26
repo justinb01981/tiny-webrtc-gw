@@ -32,16 +32,16 @@
             </td>
             <td colspan=1 align="center">
                 <div id="localPreviewDiv">
-                    <video class="videoLocal" id="localVideo" autoplay muted></video>
+                    <video class="videoLocal" id="localVideo" controls autoplay muted></video>
                     <P>Join to begin streaming...
                 </div>
 
-                <iframe src='iframe_video.html' id='iframe_video'>
+                <iframe src='iframe_video.html' id='iframe_video' width=10 height=10>
                 </iframe>
                 <div id="remoteVideoMirrorDiv" hidden=true>
                     <P>Join Succesful:
                     <br>
-                    <video class="videoLocal" id="remoteVideoMirror" autoplay muted width=320 height=240></video>
+                    <video class="videoLocal" id="remoteVideoMirror" controls autoplay muted width=320 height=240></video>
                     <br>
                     <P>Streaming...
                     <br>
@@ -59,7 +59,7 @@
         </tr>
 
         <tr>
-            <td colspan=2 align="center">
+            <td colspan=2 align='center'>
                 Chat username:<textarea rows=1 cols=16 id='userName'>user123</textarea>
                 <button onclick='openChat();'>chat</button>
                 <button onclick='logout();'>logout</button>
@@ -73,8 +73,12 @@
                     </form>
                     </iframe>
                 </div>
+           </td>
+        </tr>
+        <tr>
+           <td colspan=2 align='center'>
         
-                <iframe name='chatFrame' src='iframe_chat.html' width='400px' height='300px'>
+                <iframe name='chatFrame' src='chat.html' width='100%' height='100%'>
                 </iframe>
             </td>
         </tr>
