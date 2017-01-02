@@ -1,7 +1,7 @@
 function joinSDP()
 {
 var sdpStatic = "v=0\n" + 
-"o=mozilla...THIS_IS_SDPARTA-38.0.1 1702670192771025677 0 IN IP4 0.0.0.0\n" + 
+"o=mozilla...THIS_IS_SDPARTA-38.0.1_cookie%$AUTHCOOKIE$% 1702670192771025677 0 IN IP4 0.0.0.0\n" + 
 "s=-\n" + 
 "t=0 0\n" + 
 "a=fingerprint:sha-256 5C:FF:65:F6:7E:39:38:E6:CF:49:08:E5:73:2C:93:0E:59:13:24:23:22:37:10:50:6E:F1:9E:4A:45:DB:25:F4\n" + 
@@ -13,8 +13,7 @@ var sdpStatic = "v=0\n" +
 "a=sendrecv\n" + 
 "a=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level\n" + 
 "a=ice-pwd:230r89wef32jsdsjJlkj23rndasf23rlknas\n" +
-/*"a=ice-ufrag:aaaaaaaa\n" + */
-"a=ice-ufrag:%$AUTHCOOKIE$%\n" +
+"a=ice-ufrag:aaaaaaaa\n" +
 "a=mid:sdparta_0\n" + 
 "a=msid:{7e5b1422-7cbe-3649-9897-864febd59342} {6fca7dee-f59d-3c4f-be9c-8dd1092b10e3}\n" + 
 "a=rtcp-mux\n" + 
@@ -34,7 +33,7 @@ var sdpStatic = "v=0\n" +
 "a=fmtp:126 profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1\n" + 
 "a=fmtp:97 profile-level-id=42e01f;level-asymmetry-allowed=1\n" + 
 "a=ice-pwd:230r89wef32jsdsjJlkj23rndasf23rlknas\n" +
-"a=ice-ufrag:%$AUTHCOOKIE$%\n" +
+"a=ice-ufrag:aaaaaaaa\n" +
 "a=mid:sdparta_1\n" + 
 "a=msid:{7e5b1422-7cbe-3649-9897-864febd59342} {f46f496f-30aa-bd40-8746-47bda9150d23}\n" + 
 "a=rtcp-fb:120" +

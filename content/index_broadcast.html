@@ -6,10 +6,10 @@
 <body onLoad="broadcastOnLoad()">
 <div id="mainDiv">
     <table border=1 id="mainDivTable">
-        <tr style='height:50px;'>
+        <tr style='height:5%;'>
             <th colspan=2>gitHub:<a href='https://github.com/justinb01981/tiny-webrtc-gw'>https://github.com/justinb01981/tiny-webrtc-gw</a></th>
         </tr>
-        <tr style='height:50px;'>
+        <tr style='height:5%;'>
             <th colspan=1>Presenter</th><th colspan=1>Local</th>
         </tr>
         <tr>
@@ -18,17 +18,7 @@
                    <h3>Click to start watching "%$URLARGUMENTS$%"</h3>
                    <button onClick="connectVideo(document.getElementById('videoMain'), joinSDP(), true, '%$URLARGUMENTS$%');" style="">Click to start watching</button>
                 </div>
-                <!--
-                <div id="presenterDiv">
-                -->
-                    <video class="videoMain" id='videoMain' autoplay width=640 height=480></video>
-                <!--
-                </div>
-                -->
-                <!--
-                <button onclick='mainVideoEmbiggen(120);'>+</button>
-                <button onclick='mainVideoEmbiggen(80);'>-</button>
-                -->
+                    <video class="videoMain" id='videoMain' autoplay width='100%' height='100%'></video>
             </td>
             <td colspan=1 align="center">
                 <div id="localPreviewDiv">
@@ -58,8 +48,9 @@
             </td>
         </tr>
 
-        <tr>
+        <tr id='rowChat'>
             <td colspan=2 align='center'>
+                <br>
                 Chat username:<textarea rows=1 cols=16 id='userName'>user123</textarea>
                 <button onclick='openChat();'>chat</button>
                 <button onclick='logout();'>logout</button>

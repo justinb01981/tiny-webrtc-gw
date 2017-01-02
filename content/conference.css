@@ -50,4 +50,5 @@ video.videoLocal {
 video.videoMain {
     width:320;
     height:240;
+    controls:true;
 }

@@ -59,7 +59,7 @@ typedef struct
         char answer_pwd[128];
         unsigned long bind_req_rtt;
         int bind_req_calc;
-        char uname[64];
+        //char uname[64];
     } stun_ice;
 
     struct {
@@ -99,7 +99,12 @@ typedef struct
     } srtp[PEER_RTP_CTX_COUNT];
 
     struct {
+        u32 receiver_tslast;
+    } report;
+
+    struct {
         char cookie[256];
+        //char ice_ufrag_answer[256];
     } http;
 
     int subscription_reset[PEER_RTP_CTX_COUNT];
@@ -157,15 +162,36 @@ typedef struct
     } stats;
 
     char name[64];
-    char subscription_name[64];
-    char cookie[256];
+
+    int timeout_sec;
 
     int recv_only;
+
+    struct {
+        char offer[2048];
+        char answer[2048];
+    } sdp;
+
+    int restart_needed;
+    int restart_done;
 } peer_session_t;
+
+const static int PEER_TIMEOUT_DEFAULT = 10;
 
 extern unsigned long get_time_ms();
 
 extern void peer_buffer_node_list_init(peer_buffer_node_t* head);
+
+int peer_cookie_init(peer_session_t* peer, const char* cookie)
+{
+    if(strlen(strcpy(peer->http.cookie, cookie)) > 0)
+    {
+        peer->timeout_sec = 300;
+        return 1;
+    }
+    peer->timeout_sec = PEER_TIMEOUT_DEFAULT;
+    return 0;
+}
 
 void peer_init(peer_session_t* peer, int id)
 {
@@ -179,6 +205,8 @@ void peer_init(peer_session_t* peer, int id)
     peer_buffer_node_list_init(&peer->in_buffers_head);
 
     peer->time_start = time(NULL);
+
+    peer_cookie_init(peer, "");
 }
 
 static unsigned long
@@ -214,5 +242,11 @@ int peer_rtp_buffer_reclaimable(peer_session_t* peer, int rtp_idx) {
     }
     return 1;
 }
+
+int peer_stun_init(peer_session_t* peer)
+{
+    peer->stun_ice.reverse_bind = peer->stun_ice.bound = 0;
+}
+
 
 #endif

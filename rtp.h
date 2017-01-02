@@ -57,6 +57,7 @@ typedef struct {
     u32 pkt_count;
     u32 octet_count;
     rtp_report_sender_block_t blocks[1];
+    //u32 profile_specific_xtns;
 } ATTR_PACKED rtp_report_sender_t;
 
 typedef struct {
@@ -67,6 +68,7 @@ typedef struct {
         u32 seq_src_id;
     } ATTR_PACKED hdr;
     rtp_report_receiver_block_t blocks[1];
+    //u32 profile_specific_xtns;
 } ATTR_PACKED rtp_report_receiver_t;
 
 typedef struct {
