@@ -143,6 +143,7 @@ typedef struct
     pthread_t thread;
     pthread_t thread_rtp_send;
     pthread_mutex_t mutex;
+    int thread_inited;
 
     int fwd;
 
@@ -176,7 +177,7 @@ typedef struct
     int restart_done;
 } peer_session_t;
 
-const static int PEER_TIMEOUT_DEFAULT = 10;
+const static int PEER_TIMEOUT_DEFAULT = 60;
 
 extern unsigned long get_time_ms();
 

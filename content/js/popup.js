@@ -112,7 +112,7 @@ function iframeOnLoad() {
     broadcastStart(
         function() {
             closeHandler(remoteConnection, document.theform.my_name.value, document.theform.recvonly.checked);
-            
+            window.close();
         },
         function() {
             alert('broadcastStart failed');

@@ -3,6 +3,12 @@
 
 #include "peer.h"
 
+#define PEER_ANSWER_SDP_GET(peer, val, index) \
+    str_read_unsafe((peer)->sdp.answer, val, index)
+
+#define PEER_OFFER_SDP_GET(peer, val, index) \
+    str_read_unsafe((peer)->sdp.offer, val, index)
+
 extern peer_session_t peers[];
 
 static int
@@ -22,21 +28,31 @@ str_read(const char* src, char* dest, char *endChars, unsigned int maxlen)
 }
 
 static int
-str_read_from_key(const char* key, const char* buf, char* dest, char* endchars, unsigned int maxlen)
+str_read_from_key(const char* key, const char* buf, char* dest, char* endchars, unsigned int maxlen, int index)
 {
-    char* p = strstr(key, buf);;
-    if(!p) return 0;
+    const char *p = buf;
 
-    p += strlen(key);
+    while(index >= 0)
+    {
+        p = strstr(p, key);
+        if(!p) return 0;
+        p += strlen(key);
+        index--;
+    }
+
     return str_read(p, dest, endchars, maxlen);
 }
 
-char str_read_key_buf[2048];
+extern char str_read_key_buf[2048];
 
-static const char* str_read_unsafe(const char* buf, const char* key)
+static const char* str_read_unsafe(const char* buf, const char* key, int index)
 {
+    const char* delimSSRC = ":+\r\n";
+    char* delim = ":\r\n";
+    if(strstr(key, "ssrc=")) delim = (char*) delimSSRC;
     memset(str_read_key_buf, 0, sizeof(str_read_key_buf));
-    str_read_from_key(key, buf, str_read_key_buf, "\r\n;", sizeof(str_read_key_buf));
+    /* hack: */
+    str_read_from_key(key, buf, str_read_key_buf, (const char*) delim, sizeof(str_read_key_buf), index);
     return str_read_key_buf;
 }
 

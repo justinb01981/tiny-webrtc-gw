@@ -224,6 +224,8 @@ void peer_send_block(peer_session_t* peer, char* buf, int len)
     }
     else
     {
+        peer->time_pkt_last = time(NULL);
+
         int r = sendto(peer->sock, buf, len, 0, (struct sockaddr*)&(peer->addr), sizeof(peer->addr));
     }
 }
@@ -572,64 +574,42 @@ connection_worker(void* p)
 {
     peer_session_t* peer = (peer_session_t*) p;
     peer_buffer_node_t *buffer_next = NULL;
-    int answer_retries = 10;
     int si;
 
     int rtp_idx;
     int buffer_count_max = 1000;
 
-    u32 answer_ssrc[PEER_RTP_CTX_WRITE];
+    u32 answer_ssrc[PEER_RTP_CTX_WRITE] = {1, 2};
     u32 offer_ssrc[PEER_RTP_CTX_WRITE];
 
     thread_init();
 
     printf("%s:%d sdp answer:\n %s\nsdp offer:\n%s\n", __func__, __LINE__, peer->sdp.answer, peer->sdp.offer);
 
-    /* wait for file to be created */
-    sleep_msec(CONNECTION_DELAY_MS + 1000);
-    while(answer_retries > 0 &&
-          (get_answer_sdp_idx("a=ssrc:", 0) == NULL || get_answer_sdp_idx2("a=ssrc:", 0, "m=video") == NULL))
+    if(strstr(peer->sdp.answer, "a=recvonly")) { peer->recv_only = 1; }
+
+    int ssrc_idx = 0;
+    answer_ssrc[0] = strToInt(PEER_ANSWER_SDP_GET(peer, "a=ssrc:", ssrc_idx));
+    answer_ssrc[1] = answer_ssrc[0];
+    while(!peer->recv_only && peer->alive &&
+          answer_ssrc[0] == answer_ssrc[1])
     {
-        if(get_answer_sdp_idx("a=recvonly", 0) != NULL) { peer->recv_only = 1; break; }
-        sleep_msec(1000);
-        answer_retries--;
+        answer_ssrc[1] = strToInt(PEER_ANSWER_SDP_GET(peer, "a=ssrc:", ssrc_idx));
+        ssrc_idx++;
     }
 
-    if(answer_retries == 0) goto connection_worker_exit;
-
-    if(!peer->recv_only)
+    offer_ssrc[0] = strToInt(PEER_OFFER_SDP_GET(peer, "a=ssrc:", 0));
+    offer_ssrc[1] = offer_ssrc[0];
+    ssrc_idx = 0;
+    while(offer_ssrc[1] == offer_ssrc[0])
     {
-        answer_ssrc[0] = strToInt(get_answer_sdp_idx("a=ssrc:", 0));
-        answer_ssrc[1] = strToInt(get_answer_sdp_idx2("a=ssrc:", 0, "m=video"));
-    }
-    else
-    {
-        answer_ssrc[0] = 1;
-        answer_ssrc[1] = 2;
+        offer_ssrc[1] = strToInt(PEER_OFFER_SDP_GET(peer, "a=ssrc:", ssrc_idx));
+        ssrc_idx++;
     }
 
-    offer_ssrc[0] = strToInt(get_offer_sdp_idx("a=ssrc:", 0));
-    offer_ssrc[1] = strToInt(get_offer_sdp_idx2("a=ssrc:", 0, "m=video"));
-
-    if(strcmp(peer->stun_ice.ufrag_offer, "aaaaaaaa") == 0) {
-    }
-    else {
-    /*
-    strcpy(peer->stun_ice.ufrag_offer, get_offer_sdp("a=ice-ufrag:"));
-    if(strcmp(peer->stun_ice.ufrag_offer, "aaaaaaaa") == 0) {
-        //strcpy(peer->http.cookie, gCookieLast);
-        int p;
-        for(p = 0; p < MAX_PEERS; p++) {
-            if(strlen(peers[p].http.cookie) > 0) printf("user:%s\n", peers[p].http.cookie);
-        }
-        strcpy(peer->stun_ice.ufrag_offer, peer->http.cookie);
-    }
-    */
-        strcpy(peer->stun_ice.ufrag_offer, peer->http.cookie);
-    }
-    strcpy(peer->stun_ice.ufrag_answer, get_answer_sdp("a=ice-ufrag:"));
-    strcpy(peer->stun_ice.answer_pwd, get_answer_sdp("a=ice-pwd:"));
-    strcpy(peer->stun_ice.offer_pwd, get_offer_sdp("a=ice-pwd:"));
+    strcpy(peer->stun_ice.ufrag_answer, PEER_ANSWER_SDP_GET(peer, "a=ice-ufrag:", 0));
+    strcpy(peer->stun_ice.answer_pwd, PEER_ANSWER_SDP_GET(peer, "a=ice-pwd:", 0));
+    strcpy(peer->stun_ice.offer_pwd, PEER_OFFER_SDP_GET(peer, "a=ice-pwd:", 0));
 
     printf("%s:%d (ufrag-offer:%s ufrag-answer:%s pwd-answer:%s pwd-offer:%s)\n", __func__, __LINE__, peer->stun_ice.ufrag_offer, peer->stun_ice.ufrag_answer, peer->stun_ice.answer_pwd, peer->stun_ice.offer_pwd);
 
@@ -637,24 +617,24 @@ connection_worker(void* p)
 
     peer->subscriptionID = peer->id;
 
-    char* watch_chan = get_answer_sdp_idx("a=channel=", 0);
+    char* watch_chan = PEER_ANSWER_SDP_GET(peer, "a=channel=", 0);
     if(watch_chan && strlen(watch_chan) > 0)
     {
         peer->subscriptionID = atoi(watch_chan);
     }
     else
     {
-        char* watch_name = get_answer_sdp_idx("a=watch=", 0);
+        char* watch_name = PEER_ANSWER_SDP_GET(peer, "a=watch=", 0);
         if(watch_name && strlen(watch_name) > 0)
         {
             for(si = 0; si < MAX_PEERS; si++) if(strcmp(peers[si].name, watch_name) == 0) peer->subscriptionID = si;
         }
     }
 
-    char* recv_only = get_answer_sdp_idx("a=recvonly", 0);
+    char* recv_only = strstr(peer->sdp.answer, "a=recvonly") == NULL ? 0 : 1;
 
-    char* my_name = get_answer_sdp_idx("a=myname=", 0);
-    if(my_name)
+    char* my_name = PEER_ANSWER_SDP_GET(peer, "a=myname=", 0);
+    if(strlen(my_name))
     {
         printf("%s:%d %s\n", __func__, __LINE__, my_name);
         strcpy(peer->name, my_name);
@@ -665,7 +645,6 @@ connection_worker(void* p)
         {
             chatlog_append(" ...wants to watch ");
             chatlog_append(peers[peer->subscriptionID].name);
-            chatlog_append(" (restart may be necessary)");
         }
         else
         {
@@ -957,11 +936,10 @@ connection_worker(void* p)
                 }
                 else
                 {
-                    printf("unknown RTP SSID: %u\n", in_ssrc);
+                    //printf("unknown RTP SSID: %u\n", in_ssrc);
                     counts[10]++;
                     goto peer_again;
                 }
-
 
                 int rtp_idx_write = PEER_RTP_CTX_WRITE + rtp_idx;
 
@@ -1487,7 +1465,7 @@ int main( int argc, char* argv[] ) {
             peers[sidx].cleartext.len = 0;
 
             peers[sidx].alive = 1;
-            if(!peers[sidx].thread)
+            if(!peers[sidx].thread_inited)
             {
                 pthread_mutex_init(&peers[sidx].mutex, NULL);
                 PEER_LOCK(sidx);
@@ -1502,6 +1480,7 @@ int main( int argc, char* argv[] ) {
                     args->rtp_idx = rtp_idx;
                     //pthread_create(&peers[sidx].thread_rtp_send, NULL, peer_rtp_send_worker, (void*) args);
                 }
+                peers[sidx].thread_inited = 1;
             }
 
             counts[6]++;
@@ -1518,12 +1497,12 @@ int main( int argc, char* argv[] ) {
         }
 
         /* drop packets until peer thread starts */
-        //if(!peers[sidx].running) goto select_timeout_unlock;
+        //if(!peers[sidx].running) goto select_timeout;
 
-        if(length < 1 || length >= PEER_BUFFER_NODE_BUFLEN) goto select_timeout_unlock;
+        if(length < 1 || length >= PEER_BUFFER_NODE_BUFLEN) goto select_timeout;
 
         peer_buffer_node_t* node = buffer_node_alloc(), *tail_prev;
-        if(!node) goto select_timeout_unlock;
+        if(!node) goto select_timeout;
 
         memcpy(node->buf, buffer, length);
         node->len = length;
@@ -1539,12 +1518,6 @@ int main( int argc, char* argv[] ) {
 
         continue;
 
-        select_timeout_unlock:
-
-        /* signal peer thread to run */
-        //PEER_UNLOCK(sidx);
-        //PEER_LOCK(sidx);
-
         select_timeout:
         i = 0;
         while(i < MAX_PEERS)
@@ -1553,9 +1526,15 @@ int main( int argc, char* argv[] ) {
 
             if(peers[i].alive)
             {
-                /* signal peer thread to run */
-                PEER_UNLOCK(i);
-                PEER_LOCK(i);
+                int repeat = 5;
+                while(repeat > 0)
+                {
+                    /* signal peer thread to run */
+                    PEER_UNLOCK(i);
+                    PEER_LOCK(i);
+
+                    repeat--;
+                }
             }
             else
             {
@@ -1621,12 +1600,14 @@ int main( int argc, char* argv[] ) {
             }
 
             if(peers[i].restart_needed ||
-               (peers[i].time_pkt_last != 0 &&
+               (
+                peers[i].alive &&
                 time(NULL) - peers[i].time_pkt_last > peers[i].timeout_sec)
               )
+             
             {
                 printf("%s:%d timeout/reclaim peer\n", __func__, __LINE__);
-
+               
                 /* HACK: lock out all reader-threads */
                 peers[i].cleanup_in_progress = 1;
                 sleep_msec(peer_rtp_send_worker_delay_max * 2);
@@ -1648,11 +1629,17 @@ int main( int argc, char* argv[] ) {
                 //peers[i].subscriptionID = 0;
 
                 PEER_UNLOCK(i);
-                pthread_join(peers[i].thread_rtp_send, NULL);
+                while(peers[i].running) usleep(1000);
+                PEER_LOCK(i);
+                if(peers[i].thread_inited)
+                {
+                //pthread_join(peers[i].thread_rtp_send, NULL);
                 pthread_join(peers[i].thread, NULL);
                 pthread_mutex_destroy(&peers[i].mutex);
                 peers[i].thread_rtp_send = 0;
                 peers[i].thread = 0;
+                peers[i].thread_inited = 0;
+                }
 
                 DTLS_peer_uninit(&peers[i]);
                 memset(&peers[i].dtls, 0, sizeof(peers[i].dtls));
