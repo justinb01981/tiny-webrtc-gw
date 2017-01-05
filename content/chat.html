@@ -36,9 +36,9 @@ function loseFocus(e) {
     if(focused == e) focused = null;
 }
 function sendmsg() {
-    var myUserName = document.msgform.userName.value;
+    var myUserName = parent.document.getElementById('userName').value;
     var d = new Date();
-    var msg = '<'+myUserName+'@'+d.toLocaleString()+'>:' + msgfield1.value;
+    var msg = myUserName+':' + msgfield1.value;
     var find = ' ';
     var re = new RegExp(find, 'g');
     msg = msg.replace(re, '&nbsp;');
@@ -48,25 +48,39 @@ function sendmsg() {
 }
 </script>
 <body onload='onload();'>
+<table style='width:100%;'>
+<tr><td>
 <select name='inputAddUser' id='inputAddUser'>
 %$PEERLISTHTMLOPTIONS$%
 </select>
-<br>
+</td><td>
 <button onclick="parent.document.getElementById('inputAddUser').value = document.getElementById('inputAddUser').value; window.close();">Watch</button>
-<br>
-chatlog:
-<textarea id="chatlog" cols=40 rows=10>%$CHATLOGTEXTAREAVALUE$%</textarea>
-<br>
+</td>
+<td>
+</td>
+</tr>
+
+<tr><td colspan=3>
+<textarea id="chatlog" rows=20 style='width:100%;'>%$CHATLOGTEXTAREAVALUE$%</textarea>
+</td></tr>
+
+<tr><td>
 <form method=POST name="msgform" action="/chatmsg">
-Username:<input type="text" name="userName"></input>
-<br>
-chatsay:
 <textarea name="msg" id="chatmsg" cols=40 rows=2></textarea>
 </form>
+</td><td>
 <button onclick="sendmsg();">send msg</button>
+</td><td></td>
+</tr>
+
+<tr>
+<td colspan=3>
 <div id="div1">
 refreshing...<br>
 </div>
 <input type='checkbox' onchange='setRefresh(!bChatrefresh);' checked>autorefresh</input>
+</td>
+</tr>
+</table>
 </body>
 </html>

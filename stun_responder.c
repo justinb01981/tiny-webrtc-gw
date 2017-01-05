@@ -47,8 +47,10 @@
 
 #define CONNECTION_DELAY_MS 2000
 
-#define RTP_PICT_LOSS_INDICATOR_INTERVAL 0
+#define RTP_PICT_LOSS_INDICATOR_INTERVAL 10
 #define RTP_PSFB 1 
+
+#define RECEIVER_REPORT_MIN_INTERVAL_MS 100
 
 int dtls_handoff = 0;
 struct sockaddr_in bindsocket_addr_last;
@@ -1039,7 +1041,7 @@ connection_worker(void* p)
                         else  /* is_receiver_report */
                         {
                             u32 tscur = timestamp_get();
-                            if(peer->report.receiver_tslast - tscur < 5) { break; }
+                            if(peer->report.receiver_tslast - tscur < RECEIVER_REPORT_MIN_INTERVAL_MS) { break; }
                             peer->report.receiver_tslast = tscur;
 
                             char reportclone[4096];
@@ -1174,28 +1176,23 @@ connection_worker(void* p)
                 if(time(NULL) - peer->srtp[rtp_idx].pli_last >= RTP_PICT_LOSS_INDICATOR_INTERVAL &&
                    RTP_PICT_LOSS_INDICATOR_INTERVAL > 0)
                 {
-                    int first=0, mblocks=450, picid = 0;
-                    rtp_report_pli_vp8_t report_pli_vp8;
-                    int report_len = sizeof(report_pli_vp8);
+                    rtp_report_pli_t report_pli;
+                    int report_len = sizeof(report_pli);
                     peer->srtp[rtp_idx].pli_last = time(NULL);
 
                     /* see RFC 4585 */
-                    memset(&report_pli_vp8, 0, sizeof(rtp_report_pli_vp8_t));
+                    memset(&report_pli, 0, sizeof(report_pli));
                     
-                    rtp_report_pli_t *report_pli = (rtp_report_pli_t*) &report_pli_vp8;
-                   
-                    report_pli->ver = (2 << 6) | 1;
-                    report_pli->payload_type = 206;
-                    report_pli->length = htons((report_len/4)-1);
-                    report_pli->seq_src_id = htonl(offer_ssrc[rtp_idx]);
-                    report_pli->seq_src_id_ref = htonl(answer_ssrc[rtp_idx]);
-                    report_pli_vp8.fci = htonl((first << 18) + (mblocks<<6) + picid);
+                    report_pli.ver = (2 << 6) | 1;
+                    report_pli.payload_type = 206;
+                    report_pli.length = htons((report_len/4)-1);
+                    report_pli.seq_src_id = htonl(offer_ssrc[rtp_idx]);
+                    report_pli.seq_src_id_ref = htonl(answer_ssrc[rtp_idx]);
 
                     /* send picture-loss-indicator to request full-frame refresh */
-                    if(srtp_protect_rtcp(peer->srtp[rtp_idx].session, report_pli, &report_len) == err_status_ok)
+                    if(srtp_protect_rtcp(peer->srtp[rtp_idx_write].session, &report_pli, &report_len) == err_status_ok)
                     {
-                        printf("sent peer pli\n");
-	                    peer_send_block(peer, (char*) report_pli, report_len);
+	                    peer_send_block(peer, (char*) &report_pli, report_len);
                     }
                 }
             }   

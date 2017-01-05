@@ -217,7 +217,7 @@ function joinPopupClose(connection, userName, recvOnlyChecked) {
         var d = document.getElementById('streamLinkDiv');
         var shareLink = proto+'\/\/'+hostName+':'+hostPort+document.location.pathname+'?args='+userName;
         d.innerHTML = '<a href="'+shareLink+'">' + 'Your shareable URL: ' + userName + '</a>' +
-            '<br><p>'+shareLink+'<br>';
+            '<p>'+shareLink;
     }
 }
 

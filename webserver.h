@@ -77,6 +77,7 @@ webserver_worker(void* p)
     char *page_buf_uploaded = "<html><button><body onload='window.location=\"content/uploadDone.html\";'>redirecting...</body></html>";
     char *page_buf_redirect_chat = "<html><body onload='window.location=\"content/peersPopup.html\";'>redirecting...</body></html>";
     char *page_buf_redirect_back = "<html><body onload='location=\"/content/chat.html\";'>redirecting...</body></html>";
+    char *page_buf_redirect_subscribe = "<html><body onload='location=\"/content/iframe_channel.html\";'>redirecting...</body></html>";
     char *ok_hdr = "HTTP/1.0 200 OK\r\n";
     char *content_type = "";
     char *fail_hdr = "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n";
@@ -422,7 +423,7 @@ webserver_worker(void* p)
                         sdp = sdp_decode(sdp);
 
                         // anonymous peers don't reserve a slot
-                        if(strlen(str_read_unsafe(sdp, "a=recvonly", 0)) > 0) peer_found_via_cookie = NULL;
+                        if(strstr(sdp, "a=recvonly") != NULL) peer_found_via_cookie = NULL;
 
                         int sidx_offset = 0;
                         if(str_read_unsafe(sdp, "a=channeloffset=", 0)) {
@@ -507,6 +508,10 @@ webserver_worker(void* p)
                         peers[sidx].restart_needed = 0;
 
                         free(sdp);
+
+                        response = strdup(page_buf_uploaded);
+                        content_type = content_type_html;
+                        goto response_override;
                     }
                     else if(strcmp(purl, "/chatmsg") == 0)
                     {
@@ -517,7 +522,7 @@ webserver_worker(void* p)
                       
                         chatlog_append(pchatmsg);
                        
-                        response = strdup(page_buf_redirect_chat);
+                        response = strdup(page_buf_redirect_back);
                         content_type = content_type_html;
                         goto response_override;
                     }
@@ -538,7 +543,7 @@ webserver_worker(void* p)
                     }
 
                     free(response);
-                    response = strdup(page_buf_uploaded);
+                    response = strdup(page_buf_redirect_subscribe);
                     content_type = content_type_html;
                 }
 
