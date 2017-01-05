@@ -111,7 +111,7 @@ char* get_sdp_idx_file(const char* fileprefix, const char* filepath, const char*
 
 char sdp_file_prefix[64] = {0};
 char sdp_file_prefix_offer[64] = {0};
-void sdp_prefix_set(const char* prefix) { strcpy(sdp_file_prefix, prefix); }
+int sdp_prefix_set(const char* prefix) { strcpy(sdp_file_prefix, prefix); return 1; }
 char* get_offer_sdp(char* val) { return get_sdp_idx_file(sdp_file_prefix_offer, "sdp_offer.txt", val, 0, NULL); }
 char* get_offer_sdp_idx(char* val, unsigned int idx) { return get_sdp_idx_file(sdp_file_prefix_offer, "sdp_offer.txt", val, idx, NULL); }
 char* get_offer_sdp_idx2(char* val, unsigned int idx, char* begin_key) { return get_sdp_idx_file(sdp_file_prefix_offer, "sdp_offer.txt", val, idx, begin_key); }

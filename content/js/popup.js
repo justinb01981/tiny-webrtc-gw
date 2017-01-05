@@ -13,16 +13,20 @@ var closeHandler = null;
 var stunHost = document.location.host;
 //var stunPort = "3478";
 var stunPort = "%$RTPPORT$%";
-var handlerOpenStage2 = null;
+var onLoadDoneAnswerUpload;
+
 function onPeerClick(peername, elem) {
     document.theform.peerstream_recv.value = peername;
     document.theform.appendsdp.value = 'a=watch=' + peername + '\n';
     document.theform.appendsdp.value += 'a=myname=' + document.theform.my_name.value + '\n';
 }
+
 function onIceCandidateOK(c) {
 }
+
 function onIceCandidateFail(c) {
 }
+
 function onIceCandidate(event) {
     if (event.candidate && iceCandidate == null) {
         var c = event.candidate;
@@ -40,11 +44,13 @@ function onIceCandidate(event) {
         );
     }
 }
+
 function onConnect() {
     //var servers = {"iceServers": [{"url": "stun:"+stunHost+":"+stunPort}]};
     var servers = null;
     //remoteConnection = new RTCPeerConnection(servers);
 
+    // TODO: reorder this so that form can submit SDP prior to STUN/ICE starting
     remoteConnection.onicecandidate = onIceCandidate;
 
     /* optionally set local description (send) */
@@ -64,15 +70,10 @@ function onConnect() {
                 function (e){
                     //alert('createAnswerOK' + e.sdp);
                     remoteConnectionAnswer = e; document.theform.answersdp.value = e.sdp;
-                    remoteConnection.setLocalDescription(
-                        remoteConnectionAnswer,
-                        function (){
-                            //alert('setlocalDescription success');
-                            doSubmit();
-                        },
-                        function(){
-                        }
-                    );
+                    doSubmit();
+
+                    // moved remoteConnection.setLocalDescription() to broadcastStart()
+
                 },
                 (function fail() {alert('fail');}),
                 {'mandatory': {'OfferToReceiveAudio': true, 'OfferToReceiveVideo': true}}
@@ -87,27 +88,56 @@ function onConnect() {
     //localConnection = new RTCPeerConnection(servers);
     attachMediaStream(remoteVideo, remoteConnection.getRemoteStreams()[0]);
 }
+
+function broadcastStart(onSuccess, onFailure) {
+    remoteConnection.setLocalDescription(
+        remoteConnectionAnswer,
+        function (){
+             //doSubmit();
+             onSuccess();
+        },
+        function(){
+             onFailure();
+        }
+    );
+}
+
 function doSubmit() {
     document.finalform.answersdp.value = document.theform.answersdp.value + '\n' + document.theform.appendsdp.value;
+    document.finalform.target = 'iframe_submit';
     document.finalform.submit();
-    closeHandler(remoteConnection, document.theform.my_name.value, document.theform.recvonly.checked);
 }
-function handlerOpen1() {
-    handlerOpenStage2();
+
+function iframeOnLoad() {
+    broadcastStart(
+        function() {
+            closeHandler(remoteConnection, document.theform.my_name.value, document.theform.recvonly.checked);
+            window.close();
+        },
+        function() {
+            alert('broadcastStart failed');
+        }
+    );
 }
+
 function rtcPopupCreate(handlerOpen, handlerClose, recvOnly, watchUser) {
     var randomNum = Math.ceil(Math.random() % 10 * 1000);
-    var w = window.open('answer_upload2.html?args='+watchUser, 'sdp_answer_upload' + randomNum, 'width=250,height=300');
+    var w = window.open('answer_upload2.html?args='+watchUser, 'sdp_answer_upload' + randomNum, 'width=400; height=400;');
     popupRecvOnly = recvOnly;
-    w.document.body.onload = handlerOpen1;
-    handlerOpenStage2 = handlerOpen;
+    //w.document.body.onload = handlerOpen1;
+    onLoadDoneAnswerUpload = handlerOpen;
     closeHandler = handlerClose;
     return w;
 }
+
 function roomlistPopupCreate(roomName) {
     var w = window.open('room.html?args='+roomName, 'room' + roomName, 'width=250,height=300');
 }
+
 function resizeObjectWithID(idName, x, y, w, h) {
     var d = document.getElementById(idName);
-    d.style.cssText = 'position:fixed; top:'+y.toString()+'px; left:'+x.toString()+'px; width:'+w.toString()+'px; height:'+h.toString()+'px;';
+    if(d) { 
+        d.style.cssText = 'position:fixed; top:'+y.toString()+'px; left:'+x.toString()+'px; width:'+w.toString()+'px; height:'+h.toString()+'px;';
+    }
 }
+

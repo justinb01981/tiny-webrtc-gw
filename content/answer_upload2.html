@@ -5,43 +5,111 @@
 <script src="js/popup.js"></script>
 <script src="js/peers.js"></script>
 <script language='javascript'>
+
+var urlArgUser = '%$URLARGUMENTS$%';
 var popupRecvOnly = false;
+
+function nameChanged() {
+    var l = 'https://' + window.location.hostname + ':' + window.location.port + '/content/index_broadcast.html?args=' + document.theform.my_name.value;
+    document.theform.my_link.value = l;
+}
+
+function setupForm() {
+    var d = document.getElementById('watchableUsersDiv');
+    var i;
+    for(i = 0; i < peerList.length && urlArgUser.length == 0; i++) {
+        var attrs = '';
+        var watchDesc = '';
+        if(peerList[i].recvonly) {
+            attrs += ' disabled';
+            watchDesc = '(just watching)';
+        }
+        d.innerHTML += '<input type="checkbox" onClick="onPeerClick(\''+peerList[i].name+'\', this);" '+attrs+'>'+peerList[i].name+' '+watchDesc+'</input><br>';
+    }
+
+    if(peerList.length == 0) {
+        d.innerHTML += '<p>nobody here<br>'
+    }
+
+    if(urlArgUser.length > 0)
+    {
+        //document.theform.my_name = 'watcher' + Math.random();
+        document.theform.peerstream_recv.hidden = false;
+        document.theform.peerstream_recv.value = urlArgUser;
+        document.theform.appendsdp.value += 'a=watch=' + urlArgUser + '\n';
+        d.innerHTML += '<p>click OK to start watching '+ urlArgUser + '<br>'
+    }
+}
+
+function onLoad() {
+    setupForm();
+    showDebug();
+    nameChanged();
+    opener.onLoadDoneAnswerUpload();
+}
+
+function showDebug(show) {
+    if (show) {
+        document.getElementById('debugDiv').style = '';
+    }
+    else {
+        document.getElementById('debugDiv').style = 'display: none;';
+    }
+}
+
+function getForm() {
+    return document.theform;
+}
+
+function connect(sender) {
+    getForm().appendsdp.value += 'a=myname='+getForm().my_name.value + '\n';
+    sender.hidden = true;
+    onConnect();
+}
+
 </script>
 </head>
 
-<body>
-<div id='debugDiv' hidden=true>
-<br>
-SDP Answer:
-<br>
+<body onLoad='onLoad();'>
+
+<div id='debugDiv'>
+
+<table>
+<tr>
+  <td colspan=2>
+    SDP Answer:
+  </td>
+</tr>
+<tr><td colspan=2>
 <form method=POST name="finalform" action="/sdp_answer.txt">
 <textarea name="answersdp" hidden=true></textarea>
 </form>
+</td></tr><tr><td colspan=2>
 <form method=POST name="theform" action="/sdp_answer.txt">
 <textarea name="answersdp" rows=10 cols=40></textarea>
-<br>
+</td></tr><tr><td colspan=2>
 <textarea name="appendsdp" rows=2 cols=40></textarea>
-<br>
+</td></tr><tr><td colspan=2>
 <textarea name="offersdp" rows=2 cols=40></textarea>
-<br>
+</td></tr>
+</table>
 </div>
-<br>
-<div id="myUsernameDiv">
 <table>
+<div id="myUsernameDiv">
 <tr>
     <td>
         My username:
     </td>
     <td>
-        <input type="text" id="my_name" name="my_name" value="user1"></input>
+        <input type="text" id="my_name" name="my_name" onKeyup="nameChanged()"></input>
     </td>
 </tr>
 <tr>
     <td>
-        Join room name:
+        My broadcast link (share before starting):
     </td>
     <td>
-        <input type="text" id="room" name="room" value="conference1"></input>
+        <input type="text" id="my_link" name="my_link" value=""></input>
     </td>
 </tr>
 </table>
@@ -49,10 +117,11 @@ SDP Answer:
 <br>
 <table>
 <tr><td>receive only:</td><td><input type='checkbox' disabled name='recvonly' id='recvonly' value=true></input></td></tr>
-<tr><td>advanced debug:</td><td><input type='checkbox' name='debugEnable' id='debugEnable' onclick="document.getElementById('debugDiv').hidden=(!this.checked);"></input></td></tr>
+<tr><td>send only (no mirror):</td><td><input type='checkbox' name='sendonly' id='sendonly' onclick="getForm().offersdp.value=getForm().offersdp.value.replace(/sendrecv/g, 'recvonly');" value=false></input></td></tr>
+<tr><td>show sdp debug:</td><td><input type='checkbox' name='debugEnable' id='debugEnable' onclick="showDebug(this.checked);"></input></td></tr>
 </table>
 
-<input type="hidden" id="peerstream_recv" name="peerstream_recv" value="%$URLARGUMENTS$%"></input>
+<input type="hidden" id="peerstream_recv" name="peerstream_recv"></input>
 
 <div id="watchableUsersDiv" style="height:100px; overflow:auto; background-color:grey;">
 <p>User streams:
@@ -63,9 +132,10 @@ SDP Answer:
 -->
 </div>
 <script language='javascript'>
+/*
     var d = document.getElementById('watchableUsersDiv');
     var i;
-    for(i = 0; i < peerList.length; i++) {
+    for(i = 0; i < peerList.length && '%$URLARGUMENTS$%'.length == 0; i++) {
         var attrs = '';
         var watchDesc = '';
         if(peerList[i].recvonly) {
@@ -81,28 +151,26 @@ SDP Answer:
 
     if('%$URLARGUMENTS$%'.length > 0)
     {
+        document.theform.my_name.value = 'watcher' + Math.random();
         document.theform.peerstream_recv.hidden = false;
         document.theform.peerstream_recv.value = '%$URLARGUMENTS$%';
         document.theform.appendsdp.value += 'a=watch=' + '%$URLARGUMENTS$%\n';
-        document.getElementById('watchableUsersDiv').hidden = true;
+        d.innerHTML += '<p>click OK to start watching %$URLARGUMENTS$%<br>'
     }
+*/
 </script>
 <br>
 
 <br>
 </form>
-<button name='button_connect' id='button_connect' onclick="document.theform.appendsdp.value += 'a=myname='+document.theform.my_name.value + '\n' + 'a=room='+document.theform.room.value; this.hidden=true; onConnect(); document.getElementById('msgDiv').hidden=false;">Ok</button>
-<div id='msgDiv' hidden=true>
-<p>Connecting...wait...
-<!--
-<button name='button_close' id='button_close' onclick='doSubmit()'>close</button>
--->
-</div>
+<button name='button_connect' id='button_connect' onclick="connect(self);">Ok</button>
 </body>
 <script language='javascript'>
 document.getElementById("recvonly").checked = opener.popupRecvOnly;
 document.getElementById('watchableUsersDiv').hidden = !opener.popupRecvOnly;
 document.getElementById('myUsernameDiv').hidden = opener.popupRecvOnly;
 </script>
+<iframe name='iframe_submit' width="100%" height="%25%">
+</iframe>
 </html>
 

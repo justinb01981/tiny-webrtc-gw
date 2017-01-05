@@ -43,9 +43,10 @@
                     <br>
                     <P>Streaming...
                     <br>
-                    <button onclick="document.getElementById('remoteVideoMirror').pause();">stop</button>
+                    <button onclick="stopSending()">pause/resume</button>
                     <br>
                     <button onclick="alert('switch tabs back/forth (on andrid/chrome)\nmake sure correct video device selected'); rebootLocalVideo(document.getElementById('remoteVideoMirror'));">problem?</button>
+                    <button onclick="alert('starting...'); attachMediaStreamToOutlet(winPopupVideoTarget, winPopupRemoteConnection.getRemoteStreams()[0]);">begin broadcast</button>
                     <div id="streamLinkDiv">
                     </div>
                 </div>
@@ -162,6 +163,7 @@ var vidPresenter = null;
 var joinPopupLast = {connection:null, userName:null, recvOnlyChecked:null, stream:null};
 var joinPopupClose2Steps = 0;
 
+var stoppedStreamLast = null;
 var userCounter = 1;
 var roomTable = '' + addUserHTML;
 var roomTableCols = 1;
@@ -273,6 +275,7 @@ function onLoad() {
         userTotal++;
     }
     */
+    
     resizeObjectWithID("roomAddButtonDiv", mainDivX, vidChildY+vidChildH/2, 50, 50);
 
     document.getElementById('userName').value = 'user' + Math.ceil(Math.random() % 10 * 1000);
@@ -320,6 +323,10 @@ function joinPopupCloseAgain() {
     }
 }
 
+function attachMediaStreamToOutlet(videoTarget, stream) {
+    attachMediaStream(target, stream);
+}
+
 function joinPopupClose(connection, userName, recvOnlyChecked) {
     joinPopupLast.connection = connection;
     joinPopupLast.userName = userName;
@@ -331,7 +338,8 @@ function joinPopupClose(connection, userName, recvOnlyChecked) {
     winPopupRemoteConnection = connection;
     var w = winPopupVideoTarget.width;
     var h = winPopupVideoTarget.height;
-    attachMediaStream(winPopupVideoTarget, winPopupRemoteConnection.getRemoteStreams()[0]);
+    //attachMediaStream(winPopupVideoTarget, winPopupRemoteConnection.getRemoteStreams()[0]);
+    //attachMediaStreamToOutlet(winPopupVideoTarget, winPopupRemoteConnection.getRemoteStreams()[0]);
     winPopupVideoTarget.width=w;
     winPopupVideoTarget.height=h;
     //var hostPort = '%$HOSTPORT$%';
@@ -384,7 +392,7 @@ function onBtnAddUser(userName) {
     roomTableCols++;
     var divRoomCurs = document.getElementById("roomDivCursor");
     divRoomCurs.innerHTML = divRoomCurs.innerHTML + val;
-    userCounter ++;
+    userCounter++;
 }
 function onBtnUsersExpand() {
     var d = document.getElementById('roomAddButtonDiv');
@@ -435,6 +443,16 @@ function onBtnMakePresent(btn, userName) {
     //resizeObjectWithID("videoMain", mainDivX, mainDivY, (mainDivW/100)*60, (mainDivH/100)*50);
 }
 function mainVideoEmbiggen(pct) { 
+}
+function stopSending() {
+    s = joinPopupLast.connection.getLocalStreams()[0]
+    if (s) {
+        stoppedStreamLast = s
+        joinPopupLast.connection.removeStream(s)
+    }
+    else {
+        joinPopupLast.connection.addStream(stoppedStreamLast)
+    }
 }
 </script>
 </html>

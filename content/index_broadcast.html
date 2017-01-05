@@ -1,0 +1,106 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="conference.css">
+</head>
+
+<body onLoad="broadcastOnLoad()">
+<div id="mainDiv">
+    <table border=1 id="mainDivTable">
+        <tr style='height:5%;'>
+            <th colspan=2>gitHub:<a href='https://github.com/justinb01981/tiny-webrtc-gw'>https://github.com/justinb01981/tiny-webrtc-gw</a></th>
+        </tr>
+        <tr style='height:5%;'>
+            <th colspan=1>Presenter</th><th colspan=1>Local</th>
+        </tr>
+        <tr style='height:50%'>
+            <td colspan=1 id="thPresenter" align="center" >
+                    <video class="videoMain" id='videoMain' autoplay controls style='width:100%;'></video>
+               <div id='addUserLinkDiv'>
+                   <h3>Click to start watching "%$URLARGUMENTS$%"</h3>
+                   <button onClick="connectVideo(document.getElementById('videoMain'), joinSDP(), true, '%$URLARGUMENTS$%');" style="">Click to start watching</button>
+                </div>
+            </td>
+            <td colspan=1 align="center">
+                <div id="localPreviewDiv">
+                    <video class="videoLocal" id="localVideo" controls autoplay muted style='width:100%;'></video>
+                    <h3>Join to begin streaming...</h3>
+                </div>
+                <div id="remoteVideoMirrorDiv" hidden=true>
+                    <video class="videoLocal" id="remoteVideoMirror" controls autoplay muted style='width:100%;'></video>
+                    <P>Streaming...
+                    <!--
+                    <button onclick="stopSending()">pause/resume</button>
+                    <br>
+                    <button onclick="alert('switch tabs back/forth (on andrid/chrome)\nmake sure correct video device selected'); rebootLocalVideo(document.getElementById('remoteVideoMirror'));">problem?</button>
+                    -->
+                    <div id="streamLinkDiv">
+                    </div>
+                </div>
+                <button onclick="document.getElementById('remoteVideoMirrorDiv').hidden = false; document.getElementById('localPreviewDiv').hidden = true; connectVideo(document.getElementById('remoteVideoMirror'), joinSDP(), false, '');">Join/Restart</button>
+                <br>
+            </td>
+        </tr>
+
+        <tr id='rowChat' style='height:10%'>
+            <td colspan=2 align='center'>
+                Chat username:<textarea rows=1 cols=16 id='userName'>user123</textarea>
+                <button onclick='logout();'>logout</button>
+                <br>
+
+                <iframe name='channelFrame' width='100%' height='33%' src='iframe_channel.html'>
+                <form name='channelForm' action='subscribe' method='POST' target='_parent'>
+                <input type='text' name='subscriptionID'></input>
+                <button onclick='channelPost();'>channel</button>
+                </form>
+                </iframe>
+           </td>
+        </tr>
+        <tr style='height:30%'>
+           <td colspan=2 align='center'>
+        
+                <iframe name='chatFrame' src='chat.html' width='100%' height='100%'>
+                </iframe>
+            </td>
+        </tr>
+
+        <!--
+        <tr>
+            <td>
+                <table border=1 style="display:inline-block;">
+                    <tr>
+                        <td>
+                            <img src='newUser.jpg'>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <button onClick='onBtnAddUser("");'>Add User</button>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+	-->
+
+    </table>
+</div> <!-- mainDiv -->
+</body>
+
+<script src="src/js/adapter.js"></script>
+<script src="js/sdp.js"></script>
+
+<script src="src/js/lib/ga.js"></script>
+<script src="js/popup.js"></script>
+<script src="js/peers.js"></script>
+<script src="js/broadcast.js"></script>
+<script language="javascript">
+function onLoadDone() {
+    var urlUserArg = '%$URLARGUMENTS$%';
+    if(urlUserArg.length > 0) {
+        
+        connectVideo(document.getElementById('videoMain'), joinSDP(), true, urlUserArg);
+    }
+}
+</script>
+
+</html>

@@ -1,0 +1,19 @@
+<html>
+
+<head>
+<script language='javascript'>
+function onLoad() {
+    var userCookie = '%$AUTHCOOKIE$%';
+    alert('logged in ' + userCookie);
+    document.cookie = 'authCookieJS12242016=' + userCookie + '; path=/';
+    location = 'index_broadcast.html';
+}
+</script>
+</head>
+
+<body onLoad='onLoad();'>
+
+<p>logging in...
+</body>
+
+</html>

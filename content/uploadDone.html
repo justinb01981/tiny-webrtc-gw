@@ -1,8 +1,16 @@
 <html>
     <head>
+<script language='javascript'>
+function onLoad() {
+    parent.iframeOnLoad();
+    //parent.close();
+}
+</script>
     </head>
     <body>
         <p>upload complete!
+        <br>
+        <button onClick='onLoad();'>click to start broadcast</button>
         <br>
         <p>closing...
         <br>
