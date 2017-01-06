@@ -112,7 +112,6 @@ function iframeOnLoad() {
     broadcastStart(
         function() {
             closeHandler(remoteConnection, document.theform.my_name.value, document.theform.recvonly.checked);
-            window.close();
         },
         function() {
             alert('broadcastStart failed');
@@ -122,7 +121,7 @@ function iframeOnLoad() {
 
 function rtcPopupCreate(handlerOpen, handlerClose, recvOnly, watchUser) {
     var randomNum = Math.ceil(Math.random() % 10 * 1000);
-    var w = window.open('answer_upload2.html?args='+watchUser, 'sdp_answer_upload' + randomNum, 'width=400; height=400;');
+    var w = window.open('answer_upload2.html?args='+watchUser, 'sdp_answer_upload' + randomNum, 'width=400,height=600');
     popupRecvOnly = recvOnly;
     //w.document.body.onload = handlerOpen1;
     onLoadDoneAnswerUpload = handlerOpen;

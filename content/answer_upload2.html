@@ -9,11 +9,6 @@
 var urlArgUser = '%$URLARGUMENTS$%';
 var popupRecvOnly = false;
 
-function nameChanged() {
-    var l = 'https://' + window.location.hostname + ':' + window.location.port + '/content/index_broadcast.html?args=' + document.theform.my_name.value;
-    document.theform.my_link.value = l;
-}
-
 function setupForm() {
     var d = document.getElementById('watchableUsersDiv');
     var i;
@@ -44,7 +39,6 @@ function setupForm() {
 function onLoad() {
     setupForm();
     showDebug();
-    nameChanged();
     opener.onLoadDoneAnswerUpload();
 }
 
@@ -101,15 +95,7 @@ function connect(sender) {
         My username:
     </td>
     <td>
-        <input type="text" id="my_name" name="my_name" onKeyup="nameChanged()"></input>
-    </td>
-</tr>
-<tr>
-    <td>
-        My broadcast link (share before starting):
-    </td>
-    <td>
-        <input type="text" id="my_link" name="my_link" value=""></input>
+        <input type="text" id="my_name" name="my_name" disabled></input>
     </td>
 </tr>
 </table>

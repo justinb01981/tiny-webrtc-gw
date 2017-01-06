@@ -640,17 +640,18 @@ connection_worker(void* p)
     {
         printf("%s:%d %s\n", __func__, __LINE__, my_name);
         strcpy(peer->name, my_name);
-        chatlog_append("join: ");
         chatlog_append(peer->name);
 
         if(recv_only)
         {
-            chatlog_append(" ...wants to watch ");
+            chatlog_append(" watching ");
             chatlog_append(peers[peer->subscriptionID].name);
         }
         else
         {
-            chatlog_append(" broadcast started...");
+            chatlog_append(" broadcasting ($SUBSCRIBELINK");
+            chatlog_append(peer->name);
+            chatlog_append(")");
         }
 
         chatlog_append("\n");
@@ -674,6 +675,8 @@ connection_worker(void* p)
     printf("%s:%d peer running\n", __func__, __LINE__);
 
     peers[peer->subscriptionID].subscribed = 1;
+    peers[peer->subscriptionID].srtp[0].pli_last = (time(NULL) - RTP_PICT_LOSS_INDICATOR_INTERVAL)+5;
+    peers[peer->subscriptionID].srtp[1].pli_last = peers[peer->subscriptionID].srtp[0].pli_last;
 
     peer->running = 1;
 

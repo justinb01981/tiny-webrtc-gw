@@ -1,12 +1,19 @@
 <html>
 
 <head>
+<script language='javascript' src='js/peerdynamic.js'></script>
 <script language='javascript'>
 function onLoad() {
+    if(location.search.length > 0) {
+        location = 'index_broadcast.html';
+    }
+}
+
+function onSubmit() {
     var userCookie = '%$AUTHCOOKIE$%';
-    alert('logged in ' + userCookie);
+    var username = document.getElementById('username')
     document.cookie = 'authCookieJS12242016=' + userCookie + '; path=/';
-    location = 'index_broadcast.html';
+    location = 'login.html?args=' + username.value;
 }
 </script>
 </head>
@@ -14,6 +21,11 @@ function onLoad() {
 <body onLoad='onLoad();'>
 
 <p>logging in...
+<br>
+
+<h3>username:</h3>
+<input id='username' type=text value='anonymous'></input>
+<button onClick='onSubmit()'>Login</button>
 </body>
 
 </html>
