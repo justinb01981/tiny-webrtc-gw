@@ -105,6 +105,7 @@ typedef struct
     struct {
         char cookie[256];
         //char ice_ufrag_answer[256];
+        char dynamic_js[4096];
     } http;
 
     int subscription_reset[PEER_RTP_CTX_COUNT];
@@ -208,6 +209,9 @@ void peer_init(peer_session_t* peer, int id)
     peer->time_start = time(NULL);
 
     peer_cookie_init(peer, "");
+
+    sprintf(peer->http.dynamic_js, "/* dynamic js */\n"
+        "function doPeerDynamicOnLoad() { return; }\n");
 }
 
 static unsigned long

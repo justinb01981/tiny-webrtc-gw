@@ -1,18 +1,34 @@
 <html>
-    <head>
+<head>
 <script language='javascript'>
+
+var shouldClose = true;
+
 function onLoad() {
     parent.iframeOnLoad();
-    //parent.close();
+    
+    doPeerDynamicOnLoad();
+
+    closeInXSeconds(5);
+}
+
+function done() {
+    parent.close();
+}
+
+function closeInXSeconds(sec) {
+    parent.setTimeout(function() { if(shouldClose) done();}, sec * 1000);
 }
 </script>
     </head>
-    <body>
+    <body onLoad='onLoad();'>
         <p>upload complete!
         <br>
-        <button onClick='onLoad();'>click to start broadcast</button>
+        <p>closing in a few seconds...
         <br>
-        <p>closing...
+        <button onClick='done();'>close</button>
+        <br>
+        <button onClick='shouldClose = false;'>wait</button>
         <br>
         <p>some browsers (Android/chrome) require switching back to parent window/tab to close
     </body>
@@ -28,4 +44,5 @@ function onLoad() {
             window.close();
         }
     </script>
+<script language='javascript' src='js/peerdynamic.js'></script>
 </html>

@@ -73,8 +73,7 @@ webserver_worker(void* p)
     int r;
     char *page_buf_welcome = "<html><p>Welcome</p></html>";
     char *page_buf_400 = "<html>Huh?<br><a href='/index.html'>index.html</a></html>";
-    //char *page_buf_uploaded = "<html><p>OK...closing<br><button onclick=\"window.focus(window.parent);\">close</button></p><script language='javascript'>window.setTimeout(function() {window.close();}, 3000);</script></html>";
-    char *page_buf_uploaded = "<html><button><body onload='window.location=\"content/uploadDone.html\";'>redirecting...</body></html>";
+    char *page_buf_sdp_uploaded = "<html><button><body onload='window.location=\"content/uploadDone.html\";'>redirecting...</body></html>";
     char *page_buf_redirect_chat = "<html><body onload='window.location=\"content/peersPopup.html\";'>redirecting...</body></html>";
     char *page_buf_redirect_back = "<html><body onload='location=\"/content/chat.html\";'>redirecting...</body></html>";
     char *page_buf_redirect_subscribe = "<html><body onload='location=\"/content/iframe_channel.html\";'>redirecting...</body></html>";
@@ -84,6 +83,7 @@ webserver_worker(void* p)
     char *content_type_html = "Content-Type: text/html\r\n\r\n";
     char* content_length_hdr = "Content-Length: ";
     char *tag_hostname = "%$HOSTNAME$%";
+    char *tag_peerdynamicjs = "%$PEERDYNAMICJS$%";
     char *tag_urlargs = "%$URLARGUMENTS$%";
     char *tag_webport = "%$WEBPORT$%";
     char *tag_rtpport = "%$RTPPORT$%";
@@ -95,6 +95,7 @@ webserver_worker(void* p)
     char *tag_chatlogvalue = "%$CHATLOGTEXTAREAVALUE$%";
     char *tag_watchuser = "watch?user=";
     char *tag_login = "login.html";
+    char *tag_logout = "logout.html";
     char *tag_authcookie = "%$AUTHCOOKIE$%";
     const size_t buf_size = 4096;
     int use_user_fragment_prefix = 1;
@@ -277,8 +278,9 @@ webserver_worker(void* p)
                         else content_type = content_type = "Content-Type: application/octet-stream\r\n\r\n";
                     }
 
-                    if(strstr(purl, tag_login))
+                    if(strstr(purl, tag_login) && strlen(url_args) > 0)
                     {
+
                         printf("cookie=%s\n", cookie);
                         
                         for(sidx = 0; sidx < MAX_PEERS && !peer_found_via_cookie; sidx++) {
@@ -291,12 +293,36 @@ webserver_worker(void* p)
                                 peers[sidx].alive = 1;
 
                                 peer_cookie_init(&peers[sidx], cookie);
+                                strcpy((char*)&peers[sidx].name, url_args);
+                                chatlog_append("login:"); chatlog_append(peers[sidx].name); chatlog_append("\n");
+                                strcat(peers[sidx].http.dynamic_js, "myUsername = '");
+                                strcat(peers[sidx].http.dynamic_js, peers[sidx].name);
+                                strcat(peers[sidx].http.dynamic_js, "';\n");
                                 break;
                             }
                         }
                     }
 
+                    if(strstr(purl, tag_logout))
+                    {
+                        if(peer_found_via_cookie)
+                        {
+                            chatlog_append("logged out:"); chatlog_append(peer_found_via_cookie->name); chatlog_append("\n");
+                            peer_init(peer_found_via_cookie, PEER_INDEX(peer_found_via_cookie));
+                            peer_cookie_init(peer_found_via_cookie, "");
+                            peer_found_via_cookie = NULL;
+                        }
+                    }
+
                     /* macros */
+                    if(peer_found_via_cookie)
+                    {
+                        response = macro_str_expand(response, tag_peerdynamicjs, peer_found_via_cookie->http.dynamic_js);
+                    }
+                    else
+                    {
+                        response = macro_str_expand(response, tag_peerdynamicjs, "/* no cookie found */");
+                    }
                     response = macro_str_expand(response, tag_hostname, get_config("udpserver_addr="));
                     response = macro_str_expand(response, tag_urlargs, url_args);
                     response = macro_str_expand(response, tag_webport, get_config("webserver_port="));
@@ -509,7 +535,7 @@ webserver_worker(void* p)
 
                         free(sdp);
 
-                        response = strdup(page_buf_uploaded);
+                        response = strdup(page_buf_sdp_uploaded);
                         content_type = content_type_html;
                         goto response_override;
                     }
@@ -584,6 +610,8 @@ webserver_accept_worker(void* p)
     pthread_t thread;
 
     thread_init();
+
+    webserver.peer_index_sdp_last = -1;
 
     int sock_web = bindsocket(webserver.inip, strToInt(get_config("webserver_port=")), 1);
 

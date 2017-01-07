@@ -37,6 +37,7 @@ var videoSourceLabel = null;
 var audioSourceLabel = null;
 
 var localVideo = document.getElementById("localVideo");
+var vidElemPrevConnection = null;
 var vidPresenter = null;
 
 var joinPopupLast = {connection:null, userName:null, recvOnlyChecked:null, stream:null};
@@ -54,8 +55,6 @@ var mainDivY = 10;
 
 var vidChildX;
 var vidChildY;
-
-var cookieUserName; 
 
 var addUserLoad = function(name) {
     var check = document.getElementById("check_"+name);
@@ -126,7 +125,6 @@ function broadcastOnLoad() {
     if(document.cookie == '') {
         location = 'login.html';
     }
-    cookieUserName = 'user%$AUTHCOOKIE$%';
     divRoom = document.getElementById("roomDivCursor");
 
     mainDivW = (document.body.clientWidth / 100) * 80;
@@ -164,14 +162,29 @@ function broadcastOnLoad() {
     
     resizeObjectWithID("roomAddButtonDiv", mainDivX, vidChildY+vidChildH/2, 50, 50);
 
-    document.getElementById('userName').value = cookieUserName;
+    document.getElementById('userName').value = myUsername;
+
+    setLoggedIn();
 
     onLoadDone();
 }
 
+function setLoggedIn() {
+    var h = document.getElementById('login');
+    if(myUsername == 'nobody') {
+        h = document.getElementById('logout');
+        document.getElementById('userName').style = 'display:none';
+    }
+    h.style = 'display:none;';
+}
+
 function logout() {
+    location = 'logout.html';
+}
+
+function removeCookie() {
     document.cookie = "authCookieJS12242016=%$AUTHCOOKIE$%; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/";
-    alert(cookieUserName + ' logged out...');
+    alert(myUsername + ' logged out...');
 }
 
 function macroHelper(a, b, c) {
@@ -211,14 +224,6 @@ function joinPopupClose(connection, userName, recvOnlyChecked) {
     var proto = document.location.protocol;
     var hostName = document.location.hostname;
     var hostPort = document.location.port;
-
-    if(!recvOnlyChecked)
-    {
-        var d = document.getElementById('streamLinkDiv');
-        var shareLink = proto+'\/\/'+hostName+':'+hostPort+document.location.pathname+'?args='+userName;
-        d.innerHTML = '<a href="'+shareLink+'">' + 'Your shareable URL: ' + userName + '</a>' +
-            '<p>'+shareLink;
-    }
 }
 
 function joinPopupOnLoadBroadcast() {
@@ -246,8 +251,25 @@ function joinPopupOnLoad2() {
     winPopup.remoteConnection = new RTCPeerConnection(remoteConnectionStunConfig);
 }
 
+function disconnectVideo(vidElem) {
+  if(vidElem == vidElemPrevConnection &&
+     winPopupRemoteConnection.signalingState != 'closed') {
+    winPopupRemoteConnection.close();
+  }
+  vidElemPrevConnection = vidElem;
+
+  /*
+  var tracks = vidElem.srcObject.getTracks()
+  for (var t = 0; t < tracks.length; t++) {
+    vidElem.srcObject.removeTrack(tracks[t]);
+  }
+  */
+}
+
 function connectVideo(videoElem, videoSDPOffer, recvOnly, watchUser) {
   var popupOnLoad = joinPopupOnLoadBroadcast;
+
+  disconnectVideo(videoElem);
 
   if (recvOnly) popupOnLoad = joinPopupOnLoadRecvOnly;
 

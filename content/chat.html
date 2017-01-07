@@ -3,7 +3,6 @@
 <script language="javascript">
 var textfield1;
 var msgfield1;
-var div1;
 var focused = null;
 var bChatrefresh = true;
 function onload() {
@@ -13,7 +12,6 @@ function onload() {
 
     textfield1 = document.getElementById("chatlog");
     msgfield1 = document.getElementById("chatmsg");
-    div1 = document.getElementById("div1");
 
     msgfield1.onfocus = function() { setFocus(msgfield1);};
     msgfield1.onblur = function() { loseFocus(msgfield1);};
@@ -21,11 +19,17 @@ function onload() {
     setInterval(function () {if(focused == null && bChatrefresh) window.location.reload();}, refresh_interval);
 
     textfield1.scrollTop = textfield1.scrollHeight;
+
+    var text = textfield1.value;
+    var loc = '' + document.location
+    loc = loc.replace('chat.html', 'index_broadcast.html?args=');
+    while(text.indexOf('$SUBSCRIBELINK') >= 0) {
+        text = text.replace('$SUBSCRIBELINK', loc);
+    }
+    textfield1.value = text;
 }
 function setRefresh(b) {
     bChatrefresh = b;
-    if(bChatrefresh) div1.innerHTML = "refreshing...";
-    else div1.innerHTML = "refreshing PAUSED";
 }
 function setFocus(e) {
     setRefresh(false);
@@ -49,7 +53,8 @@ function sendmsg() {
 </script>
 <body onload='onload();'>
 <table style='width:100%;'>
-<tr><td>
+<!--
+<tr style='height:100%;'><td>
 <select name='inputAddUser' id='inputAddUser'>
 %$PEERLISTHTMLOPTIONS$%
 </select>
@@ -59,26 +64,23 @@ function sendmsg() {
 <td>
 </td>
 </tr>
-
-<tr><td colspan=3>
-<textarea id="chatlog" rows=20 style='width:100%;'>%$CHATLOGTEXTAREAVALUE$%</textarea>
+-->
+<tr><td colspan=2>
+<textarea id="chatlog" style='width:100%;' rows=6>%$CHATLOGTEXTAREAVALUE$%</textarea>
+</td>
+<td>
+<input type='checkbox' onchange='setRefresh(!bChatrefresh);' checked>autorefresh</input>
 </td></tr>
-
-<tr><td>
+<tr><td colspan=2>
 <form method=POST name="msgform" action="/chatmsg">
-<textarea name="msg" id="chatmsg" cols=40 rows=2></textarea>
+<!--
+  TODO:
+http://www.w3schools.com/code/tryit.asp?filename=FBHHTXY5KU17
+-->
+<textarea name="msg" id="chatmsg" style='width:100%;'></textarea>
 </form>
 </td><td>
 <button onclick="sendmsg();">send msg</button>
-</td><td></td>
-</tr>
-
-<tr>
-<td colspan=3>
-<div id="div1">
-refreshing...<br>
-</div>
-<input type='checkbox' onchange='setRefresh(!bChatrefresh);' checked>autorefresh</input>
 </td>
 </tr>
 </table>

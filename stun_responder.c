@@ -47,7 +47,7 @@
 
 #define CONNECTION_DELAY_MS 2000
 
-#define RTP_PICT_LOSS_INDICATOR_INTERVAL 10
+#define RTP_PICT_LOSS_INDICATOR_INTERVAL 30
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 100
@@ -633,24 +633,25 @@ connection_worker(void* p)
         }
     }
 
-    char* recv_only = strstr(peer->sdp.answer, "a=recvonly") == NULL ? 0 : 1;
+    int recv_only = strstr(peer->sdp.answer, "a=recvonly") == NULL ? 0 : 1;
 
     char* my_name = PEER_ANSWER_SDP_GET(peer, "a=myname=", 0);
     if(strlen(my_name))
     {
         printf("%s:%d %s\n", __func__, __LINE__, my_name);
         strcpy(peer->name, my_name);
-        chatlog_append("join: ");
         chatlog_append(peer->name);
 
         if(recv_only)
         {
-            chatlog_append(" ...wants to watch ");
+            chatlog_append(" watching ");
             chatlog_append(peers[peer->subscriptionID].name);
         }
         else
         {
-            chatlog_append(" broadcast started...");
+            chatlog_append(" broadcasting ($SUBSCRIBELINK");
+            chatlog_append(peer->name);
+            chatlog_append(")");
         }
 
         chatlog_append("\n");
@@ -674,6 +675,8 @@ connection_worker(void* p)
     printf("%s:%d peer running\n", __func__, __LINE__);
 
     peers[peer->subscriptionID].subscribed = 1;
+    peers[peer->subscriptionID].srtp[0].pli_last = (time(NULL) - RTP_PICT_LOSS_INDICATOR_INTERVAL)+5;
+    peers[peer->subscriptionID].srtp[1].pli_last = peers[peer->subscriptionID].srtp[0].pli_last;
 
     peer->running = 1;
 
@@ -1088,6 +1091,7 @@ connection_worker(void* p)
                 if(!peer->srtp[rtp_idx].inited) goto peer_again;
 
                 int srtp_len = length;
+                
                 if(srtp_unprotect(peer->srtp[rtp_idx].session, rtpFrame, &srtp_len) != err_status_ok)
                 {
                     printf("%s:%d srtp_unprotect failed\n", __func__, __LINE__);
@@ -1211,7 +1215,7 @@ connection_worker(void* p)
 
             char dtls_buf[16384];
             int ret_dtls_read = DTLS_read(peer, dtls_buf, sizeof(dtls_buf));
-            printf("ret_dtls_read: %d\n", ret_dtls_read);
+            printf("ret_dtls_read: %d (SSL_error=%d)\n", ret_dtls_read, SSL_get_error(peer->dtls.ssl, ret_dtls_read));
 
             if(ret_dtls_read > 0)
             {
@@ -1519,11 +1523,9 @@ int main( int argc, char* argv[] ) {
         i = 0;
         while(i < MAX_PEERS)
         {
-            unsigned int peer_timeout_sec = 10;
-
             if(peers[i].alive)
             {
-                int repeat = 5;
+                int repeat = 2;
                 while(repeat > 0)
                 {
                     /* signal peer thread to run */
@@ -1546,7 +1548,7 @@ int main( int argc, char* argv[] ) {
                 peers[i].bufs.out_len = 0;
             }
 
-            if(time(NULL) - peers[i].time_cleanup_last > 1)
+            if(time(NULL) - peers[i].time_cleanup_last >= 1)
             {
                 /* HACK: lock out all reader-threads */
                 peers[i].cleanup_in_progress = 1;
