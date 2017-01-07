@@ -28,9 +28,9 @@ str_read(const char* src, char* dest, char *endChars, unsigned int maxlen)
 }
 
 static int
-str_read_from_key(const char* key, const char* buf, char* dest, char* endchars, unsigned int maxlen, int index)
+str_read_from_key(char* key, char* buf, char* dest, char* endchars, unsigned int maxlen, int index)
 {
-    const char *p = buf;
+    char *p = buf;
 
     while(index >= 0)
     {
@@ -45,14 +45,14 @@ str_read_from_key(const char* key, const char* buf, char* dest, char* endchars, 
 
 extern char str_read_key_buf[2048];
 
-static const char* str_read_unsafe(const char* buf, const char* key, int index)
+static char* str_read_unsafe(char* buf, char* key, int index)
 {
     const char* delimSSRC = ":+\r\n";
     char* delim = ":\r\n";
     if(strstr(key, "ssrc=")) delim = (char*) delimSSRC;
     memset(str_read_key_buf, 0, sizeof(str_read_key_buf));
     /* hack: */
-    str_read_from_key(key, buf, str_read_key_buf, (const char*) delim, sizeof(str_read_key_buf), index);
+    str_read_from_key(key, buf, str_read_key_buf, delim, sizeof(str_read_key_buf), index);
     return str_read_key_buf;
 }
 

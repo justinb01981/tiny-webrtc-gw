@@ -432,6 +432,7 @@ DTLS_accept_read(peer_session_t* peer, DTLS_read_cb cb_read)
                     reading = 0;
                     break;
                 case SSL_ERROR_ZERO_RETURN:
+                    printf("SSL_ERROR_ZERO_RETURN\n");
                     reading = 0;
                     break;
                 case SSL_ERROR_SYSCALL:
@@ -472,6 +473,12 @@ DTLS_read(peer_session_t* peer, u8 *buf, unsigned int len)
 
     int ret = /*SSL_read(peer->dtls.ssl, buf, len);*/ BIO_read(SSL_get_wbio(peer->dtls.ssl), buf, len);
     printf("BIO_read:%d\n", ret);
+
+    if(ret < 0 && SSL_get_error(peer->dtls.ssl, ret) == SSL_ERROR_SYSCALL)
+    {
+        // graceful close
+        peer->alive = 0;
+    }
     return ret;
 }
 

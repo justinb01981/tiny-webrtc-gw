@@ -37,6 +37,7 @@ var videoSourceLabel = null;
 var audioSourceLabel = null;
 
 var localVideo = document.getElementById("localVideo");
+var vidElemPrevConnection = null;
 var vidPresenter = null;
 
 var joinPopupLast = {connection:null, userName:null, recvOnlyChecked:null, stream:null};
@@ -251,14 +252,24 @@ function joinPopupOnLoad2() {
 }
 
 function disconnectVideo(vidElem) {
+  if(vidElem == vidElemPrevConnection &&
+     winPopupRemoteConnection.signalingState != 'closed') {
+    winPopupRemoteConnection.close();
+  }
+  vidElemPrevConnection = vidElem;
+
+  /*
   var tracks = vidElem.srcObject.getTracks()
   for (var t = 0; t < tracks.length; t++) {
     vidElem.srcObject.removeTrack(tracks[t]);
   }
+  */
 }
 
 function connectVideo(videoElem, videoSDPOffer, recvOnly, watchUser) {
   var popupOnLoad = joinPopupOnLoadBroadcast;
+
+  disconnectVideo(videoElem);
 
   if (recvOnly) popupOnLoad = joinPopupOnLoadRecvOnly;
 

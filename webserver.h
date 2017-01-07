@@ -293,7 +293,7 @@ webserver_worker(void* p)
                                 peers[sidx].alive = 1;
 
                                 peer_cookie_init(&peers[sidx], cookie);
-                                strcpy(&peers[sidx].name, url_args);
+                                strcpy((char*)&peers[sidx].name, url_args);
                                 chatlog_append("login:"); chatlog_append(peers[sidx].name); chatlog_append("\n");
                                 strcat(peers[sidx].http.dynamic_js, "myUsername = '");
                                 strcat(peers[sidx].http.dynamic_js, peers[sidx].name);
@@ -610,6 +610,8 @@ webserver_accept_worker(void* p)
     pthread_t thread;
 
     thread_init();
+
+    webserver.peer_index_sdp_last = -1;
 
     int sock_web = bindsocket(webserver.inip, strToInt(get_config("webserver_port=")), 1);
 
