@@ -164,6 +164,7 @@ typedef struct
     } stats;
 
     char name[64];
+    char watch_name[64];
 
     int timeout_sec;
 

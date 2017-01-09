@@ -62,9 +62,22 @@ chatlog_append(const char* pchatmsg)
 { 
     char *pto = g_chatlog, *pfrom = g_chatlog;
     while(*pfrom && strlen(pfrom) + strlen(pchatmsg) >= sizeof(g_chatlog)-1) pfrom++;
-        memmove(pto, pfrom, strlen(pfrom));
-        strcat(pto, pchatmsg);
+    memmove(pto, pfrom, strlen(pfrom));
+    strcat(pto, pchatmsg);
+
+    file_write2(g_chatlog, strlen(g_chatlog), "chatlog.txt");
 }
+
+
+void
+chatlog_reload()
+{
+    int file_buf_len = 0;
+    memset(g_chatlog, 0, sizeof(g_chatlog));
+    char* file_buf = file_read("chatlog.txt", &file_buf_len);
+    if(file_buf) strcpy(g_chatlog, file_buf);
+}
+
 
 
 static void*
@@ -486,7 +499,6 @@ webserver_worker(void* p)
                         strncpy(peers[sidx].sdp.answer, sdp, sizeof(peers[sidx].sdp.answer));
 
                         strcpy(peers[sidx].stun_ice.ufrag_answer, sdp_read(sdp, "a=ice-ufrag:"));
-                        //sprintf(peers[sidx].stun_ice.uname, "%s:%s", "aaaaaaaa", peers[sidx].http.ice_ufrag_answer);
                         sprintf(peers[sidx].stun_ice.ufrag_offer, "%s", "aaaaaaaa");
 
                         webserver.peer_index_sdp_last = sidx;
@@ -535,6 +547,7 @@ webserver_worker(void* p)
 
                         free(sdp);
 
+                        free(response);
                         response = strdup(page_buf_sdp_uploaded);
                         content_type = content_type_html;
                         goto response_override;
@@ -548,6 +561,7 @@ webserver_worker(void* p)
                       
                         chatlog_append(pchatmsg);
                        
+                        free(response);
                         response = strdup(page_buf_redirect_back);
                         content_type = content_type_html;
                         goto response_override;
@@ -603,15 +617,19 @@ webserver_worker(void* p)
     return NULL;
 }
 
+void webserver_init()
+{
+    webserver.peer_index_sdp_last = -1;
+    webserver.running = 1;
+}
+
 void*
 webserver_accept_worker(void* p)
 {    
-    int backlog = 10;
+    int backlog = 2;
     pthread_t thread;
 
     thread_init();
-
-    webserver.peer_index_sdp_last = -1;
 
     int sock_web = bindsocket(webserver.inip, strToInt(get_config("webserver_port=")), 1);
 
