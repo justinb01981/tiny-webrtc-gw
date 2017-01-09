@@ -28,6 +28,7 @@ var roomPopup = null;
 var winPopupSdp = null;
 var winPopupVideoTarget = null;
 var winPopupRemoteConnection = null;
+var videoConnectionTable = {}
 var localStream = null;
 var audioSourceN = 0;
 var videoSourceN = 0;
@@ -75,7 +76,8 @@ function vidChildInit() {
 }
 
 function getMedia() {
-    MediaStreamTrack.getSources(
+    //MediaStreamTrack.getSources(
+    navigator.mediaDevices.enumerateDevices().then(
         function(sourceInfos) {
             var ai = 0;
             var vi = 0;
@@ -221,6 +223,8 @@ function joinPopupClose(connection, userName, recvOnlyChecked) {
     winPopupVideoTarget.width=w;
     winPopupVideoTarget.height=h;
 
+    videoConnectionTable[winPopupVideoTarget.id] = winPopupRemoteConnection;
+
     var proto = document.location.protocol;
     var hostName = document.location.hostname;
     var hostPort = document.location.port;
@@ -235,7 +239,7 @@ function joinPopupOnLoadBroadcast() {
 }
 
 function joinPopupOnLoadRecvOnly() {
-    var user = 'watch' + Math.random();
+    var user = 'watch' + Math.floor((Math.random() * 1000));
     winPopup.document.theform.my_name.value = user;
     winPopup.document.theform.peerstream_recv.value = user;
     joinPopupOnLoad2();
@@ -251,19 +255,15 @@ function joinPopupOnLoad2() {
     winPopup.remoteConnection = new RTCPeerConnection(remoteConnectionStunConfig);
 }
 
-function disconnectVideo(vidElem) {
-  if(vidElem == vidElemPrevConnection &&
-     winPopupRemoteConnection.signalingState != 'closed') {
-    winPopupRemoteConnection.close();
-  }
-  vidElemPrevConnection = vidElem;
 
-  /*
-  var tracks = vidElem.srcObject.getTracks()
-  for (var t = 0; t < tracks.length; t++) {
-    vidElem.srcObject.removeTrack(tracks[t]);
+
+function disconnectVideo(vidElem) {
+  if(videoConnectionTable[vidElem.id] != null)
+  {
+     var conn = videoConnectionTable[vidElem.id];
+     if(conn.signalingState != 'closed') conn.close();
+     videoConnectionTable[vidElem.id] = null;
   }
-  */
 }
 
 function connectVideo(videoElem, videoSDPOffer, recvOnly, watchUser) {

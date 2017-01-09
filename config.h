@@ -52,6 +52,16 @@ void file_write(char* buf, unsigned int len, char* pathname)
     */
 }
 
+void file_write2(char* buf, unsigned int len, char* pathname)
+{
+    FILE* fp = fopen(pathname, "w");
+    if(fp)
+    {
+        fwrite(buf, 1, len, fp);
+        fclose(fp);
+    }
+}
+
 void file_remove(char* path)
 {
     filecache_list_remove(&filecache_head, path);

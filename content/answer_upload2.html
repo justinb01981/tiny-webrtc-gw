@@ -61,6 +61,16 @@ function connect(sender) {
     onConnect();
 }
 
+function disableCodecs() {
+    var offer = getForm().offersdp.value;
+    offer = offer.replace('m=video 9 RTP/SAVPF 120 126 97', 'm=video 9 RTP/SAVPF 126 97');
+    offer = offer.replace('a=fmtp:120 max-fs=450;max-fr=60\n', '');
+    offer = offer.replace('a=rtcp-fb:120 ccm fir pli nack\n', '');
+    offer = offer.replace('a=rtpmap:120 VP8/90000\n', '');
+
+    getForm().offersdp.value = offer;
+}
+
 </script>
 </head>
 
@@ -104,6 +114,7 @@ function connect(sender) {
 <table>
 <tr><td>receive only:</td><td><input type='checkbox' disabled name='recvonly' id='recvonly' value=true></input></td></tr>
 <tr><td>send only (no mirror):</td><td><input type='checkbox' name='sendonly' id='sendonly' onclick="getForm().offersdp.value=getForm().offersdp.value.replace(/sendrecv/g, 'recvonly');" value=false></input></td></tr>
+<tr><td>compatibility SDP mode:</td><td><input type='checkbox' onclick="disableCodecs(); this.disabled=true;"></input></td></tr>
 <tr><td>show sdp debug:</td><td><input type='checkbox' name='debugEnable' id='debugEnable' onclick="showDebug(this.checked);"></input></td></tr>
 </table>
 

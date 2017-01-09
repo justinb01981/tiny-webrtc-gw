@@ -627,22 +627,32 @@ connection_worker(void* p)
     else
     {
         char* watch_name = PEER_ANSWER_SDP_GET(peer, "a=watch=", 0);
+        strncpy(peer->watch_name, watch_name, sizeof(peer->watch_name));
+
         if(watch_name && strlen(watch_name) > 0)
         {
-            for(si = 0; si < MAX_PEERS; si++) if(strcmp(peers[si].name, watch_name) == 0) peer->subscriptionID = si;
-        }
-    }
+               for(si = 0; si < MAX_PEERS; si++)
+                {
+                    if(peers[si].alive && strcmp(watch_name, peers[si].name) == 0 &&
+                       si != peer->id)
+                    {
+                        peer->subscriptionID = peers[si].id;
+                    }
 
-    int recv_only = strstr(peer->sdp.answer, "a=recvonly") == NULL ? 0 : 1;
+                }
+          }
+    }
 
     char* my_name = PEER_ANSWER_SDP_GET(peer, "a=myname=", 0);
     if(strlen(my_name))
     {
         printf("%s:%d %s\n", __func__, __LINE__, my_name);
-        strcpy(peer->name, my_name);
+
+        sprintf(peer->name, "%s%s", my_name, peer->recv_only ? "(watch)": "");
+
         chatlog_append(peer->name);
 
-        if(recv_only)
+        if(peer->recv_only)
         {
             chatlog_append(" watching ");
             chatlog_append(peers[peer->subscriptionID].name);
@@ -655,17 +665,6 @@ connection_worker(void* p)
         }
 
         chatlog_append("\n");
-
-        /*
-        for(si = 0; si < MAX_PEERS; si++)
-        {
-            if(strcmp(peers[si].subscription_name, peer->name) == 0)
-            {
-                counts[16]++;
-                peers[si].subscriptionID = peer->id;
-            }
-        }
-        */
     }
     else
     {
@@ -736,8 +735,6 @@ connection_worker(void* p)
 
         if(buffer_next->consumed) goto peer_again;
 
-        buffer_next->consumed = 1;
-
         char buffer[4096];
         char buffer_last[4096];
         char buffer_report[4096];
@@ -746,6 +743,8 @@ connection_worker(void* p)
         memcpy(buffer, buffer_next->buf, length);
 
         unsigned long buffer_next_recv_time = buffer_next->recv_time;
+
+        buffer_next->consumed = 1;
 
         memcpy(buffer_last, buffer, length);
 
@@ -993,25 +992,6 @@ connection_worker(void* p)
 
                             if(blockssrc == ssrc_before[0]) repblocks[i].ssrc_block1 = ssrc_after[0];
                             else if(blockssrc == ssrc_before[1]) repblocks[i].ssrc_block1 = ssrc_after[1];
-
-                                /*
-                                u32 blockssrc = ntohl(repblocks[i].ssrc_block1);
-                                if(blockssrc == offer_ssrc[0]) { 
-                                repblocks[i].ssrc_block1 = htonl(peers[peer->subscriptionID].srtp[0].ssrc);
-                                }
-                                else if(blockssrc == offer_ssrc[1]) {
-                                repblocks[i].ssrc_block1 = htonl(peers[peer->subscriptionID].srtp[1].ssrc);
-                                }
-                                            else if(blockssrc == answer_ssrc[0]) {
-                                                repblocks[i].ssrc_block1 = htonl(offer_ssrc[0]);
-                                            }
-                                            else if(blockssrc == answer_ssrc[1]) {
-                                                repblocks[i].ssrc_block1 = htonl(offer_ssrc[1]);
-                                            }
-                                            else if(is_sender_report) {
-                                                repblocks[i].ssrc_block1 = htonl(offer_ssrc[rtp_idx]);
-                                            }
-                                */
                             else
                             {
                                 counts[10]++;
@@ -1148,6 +1128,10 @@ connection_worker(void* p)
                             free(rtp_buffer);
                         }
                     }
+                    else
+                    {
+                        if(rtp_buffer) free(rtp_buffer);
+                    }
 
                     if(!cur)
                     {
@@ -1282,6 +1266,10 @@ void bogus_srtp_event_handler(struct srtp_event_data_t* data)
 {
 }
 
+void bogus_sigpipe_handler(int sig)
+{
+}
+
 int main( int argc, char* argv[] ) {
     int i, listen, output;
     struct sockaddr_in src;
@@ -1294,8 +1282,10 @@ int main( int argc, char* argv[] ) {
     pthread_t thread_webserver;
 
     memset(g_chatlog, 0, sizeof(g_chatlog));
+    chatlog_reload();
+    chatlog_append("restarted...\n");
 
-    memset(&peers, 0, sizeof(peers));
+    memset(peers, 0, sizeof(peers));
 
     FILECACHE_INIT();
 
@@ -1319,11 +1309,9 @@ int main( int argc, char* argv[] ) {
     int timeout_counter = timeout_freq;
     int udp_recv_timeout_usec = strToInt(get_config("udp_read_timeout_usec="));
 
-    webserver.running = 0;
     DTLS_init(udpserver.inport);
 
-    webserver.running = 1;
-    webserver.peer_index_sdp_last = -1;
+    webserver_init();
     pthread_create(&thread_webserver, NULL, webserver_accept_worker, NULL);
 
     while( 1 )
@@ -1372,7 +1360,7 @@ int main( int argc, char* argv[] ) {
             {
                 if(peers[c].alive)
                 {
-                    printf("peer[%d] stats:", c);
+                    printf("peer[%d] %s/%s:%s stats:", c, peers[c].name, peers[c].stun_ice.ufrag_offer, peers[c].stun_ice.ufrag_answer);
 
                     peers[c].stats.stat[0] = peers[c].stun_ice.bind_req_rtt;
                     peers[c].stats.stat[1] = time(NULL) - peers[c].time_start;
@@ -1401,7 +1389,8 @@ int main( int argc, char* argv[] ) {
         {
             if((src.sin_addr.s_addr == peers[i].addr.sin_addr.s_addr &&
                 src.sin_port == peers[i].addr.sin_port) /*||
-               peers[i].stunID32 == stunID(buffer, length)*/)
+               peers[i].stunID32 == stunID(buffer, length)*/
+              )
             {
                 //printf("found stunID: %d\n", stunID(buffer, length));
                 sidx = i;
@@ -1422,7 +1411,7 @@ int main( int argc, char* argv[] ) {
             for(p = 0; p < MAX_PEERS; p++)
             {
                 sprintf(stun_uname_expected, "%s:%s", peers[p].stun_ice.ufrag_offer, peers[p].stun_ice.ufrag_answer);
-                if(strncmp(stun_uname_expected, stun_uname, strlen(stun_uname)) == 0)
+                if(strlen(stun_uname_expected) > 1 && strncmp(stun_uname_expected, stun_uname, strlen(stun_uname)) == 0)
                 {
                     sidx = p;
                     printf("stun_locate: found peer %s (%s)\n", stun_uname, peers[sidx].name);
@@ -1441,7 +1430,8 @@ int main( int argc, char* argv[] ) {
                 else
                 {
                     printf("stun_locate: not found: %s\n", stun_uname);
-                    break;
+                    //break;
+                    goto select_timeout;
                 }
             }
 
@@ -1606,6 +1596,9 @@ int main( int argc, char* argv[] ) {
              
             {
                 printf("%s:%d timeout/reclaim peer\n", __func__, __LINE__);
+
+                sprintf(buffer, "%s ", peers[i].name);
+                chatlog_append(buffer);
                
                 /* HACK: lock out all reader-threads */
                 peers[i].cleanup_in_progress = 1;
@@ -1680,7 +1673,7 @@ int main( int argc, char* argv[] ) {
 
                 printf("%s:%d reclaim peer DONE (alive=%d)\n", __func__, __LINE__, peers[i].alive);
                 
-                sprintf(buffer, "reclaim peer[%d] done\n", i);
+                sprintf(buffer, "(peer[%d]) has left\n(timed out)\n", i);
                 chatlog_append(buffer);
             }
 

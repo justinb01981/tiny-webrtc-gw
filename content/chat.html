@@ -18,7 +18,6 @@ function onload() {
 
     setInterval(function () {if(focused == null && bChatrefresh) window.location.reload();}, refresh_interval);
 
-    textfield1.scrollTop = textfield1.scrollHeight;
 
     var text = textfield1.value;
     var loc = '' + document.location
@@ -27,6 +26,8 @@ function onload() {
         text = text.replace('$SUBSCRIBELINK', loc);
     }
     textfield1.value = text;
+
+    textfield1.scrollTop = textfield1.scrollHeight;
 }
 function setRefresh(b) {
     bChatrefresh = b;
