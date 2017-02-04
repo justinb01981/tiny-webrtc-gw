@@ -4,23 +4,50 @@
 #include "peer.h"
 #include "thread.h"
 
+/* include websockets */
+#define sha1 sha1_
+#define assert assert_
+#include "websocket.h"
+#define sha1_ sha1
+#define assert_ assert
+
 extern int listen_port;
 extern peer_session_t peers[];
+extern int stun_binding_response_count;
 
 static char g_chatlog[2048016];
 
 extern int sdp_prefix_set(const char*);
 
-static struct {
+struct webserver_state {
     char inip[64];
     int running;
     int peer_index_sdp_last;
-} webserver;
+};
+extern struct webserver_state webserver;
+
+enum websocket_state {
+    WS_STATE_INITIAL = 1,
+    WS_STATE_INITPEER = 2,
+    WS_STATE_WRITESDP = 3,
+    WS_STATE_JOINROOM = 4,
+    WS_STATE_ROOMPOST = 5,
+    WS_STATE_READING = 6,
+    WS_STATE_EXIT = 7
+};
 
 typedef struct {
     int sock;
+    pthread_t ws_thread;
+    int ws_peeridx;
+    int state;
+    char websocket_accept_response[512];
+    char* pbody;
 } webserver_worker_args;
 
+static char *tag_icecandidate = "%$RTCICECANDIDATE$%";
+static char* tag_joinroom_ws = "POST /join/";
+static char* tag_msgroom_ws = "POST /message/domain17/";
 
 
 char*
@@ -78,6 +105,270 @@ chatlog_reload()
     if(file_buf) strcpy(g_chatlog, file_buf);
 }
 
+static void*
+websocket_worker(void* p)
+{
+    webserver_worker_args* args = (webserver_worker_args*) p;
+    struct {
+        char* out;
+        char* in;
+        size_t out_len;
+        size_t in_len;
+    } ws_buffer;
+    const size_t buf_size = 4096;
+    int state;
+    char* sdp = NULL;
+    unsigned int icecandidates[16];
+    int icecandidates_n = 0;
+
+    peer_session_t* peer = NULL;
+
+    thread_init();
+
+    memset(&ws_buffer, 0, sizeof(ws_buffer));
+
+    do
+    {
+        int sock;
+        struct sockaddr_in sa;
+        socklen_t sa_len;
+        int flags = 0;
+
+        memset(&sa, 0, sizeof(sa));
+        sa_len = sizeof(sa);
+
+        sock = args->sock;
+        state = args->state;
+
+        if(args->pbody)
+        {
+            printf("WS POST with body:\n%s\n", args->pbody);
+        }
+
+        if(sock >= 0)
+        {
+            char recvbuf[buf_size];
+            char wsdecoded[buf_size];
+            char sendbuf[buf_size];
+            size_t send_len = 0;
+
+            char value[buf_size];
+            int value_len;
+            int timeout_ms = 1000;
+            int timeout_counter = 10;
+
+            printf("%s:%d websocket connection (%s:%d)\n", __func__, __LINE__, inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
+
+            memset(recvbuf, 0, sizeof(recvbuf));
+            memset(wsdecoded, 0, sizeof(wsdecoded));
+
+            char *roff = recvbuf;
+            unsigned int recv_left = sizeof(recvbuf)-1;
+
+            while(state != WS_STATE_EXIT && (!peer || (time(NULL) - peer->time_pkt_last < 10)))
+            {
+                int r = 0;
+
+                if(state == WS_STATE_READING) {
+
+                    if(waitsocket(sock, timeout_ms / 1000, 0) == 0)
+                    {
+                        printf("%s:%d timed out\n", __func__, __LINE__);
+                        timeout_counter--;
+                    }
+                    else
+                    {
+                        timeout_counter = 30;
+                        r = recv(sock, roff, recv_left > 0? 1: 0, flags);
+                        if(r <= 0 || r > recv_left)
+                        {
+                            state = WS_STATE_EXIT; 
+                            break;
+                        }
+
+                        roff += r;
+                        recv_left -= r;
+                    }
+                }
+
+                if(state == WS_STATE_READING && r > 0)
+                {
+                    uint8_t* decodedbuf = wsdecoded;
+                    size_t decodedbuf_len = sizeof(wsdecoded)-1;
+
+                    int frame_type =
+                        wsParseInputFrame(recvbuf, roff-recvbuf,
+                                          &decodedbuf, &decodedbuf_len);
+                    switch(frame_type)
+                    {
+                    case WS_INCOMPLETE_FRAME:
+                        // keep reading
+                        continue;
+
+                    case WS_TEXT_FRAME:
+                        printf("websocket msg<-:\n%s\n", decodedbuf);
+                        {
+                             value_len = str_read_from_key("\\\"candidate\\\" : \\\"", decodedbuf, value, "\\", buf_size-1, 0);
+                             while(value_len > 0 && icecandidates_n < 16) {
+                                 char raddr_buf[64], rport_buf[64], cand_buf[64];
+                                 if(str_read_from_key("raddr ", value, raddr_buf, " ", sizeof(raddr_buf)-1, 0) <= 0) break;
+                                 if(str_read_from_key("rport ", value, rport_buf, " ", sizeof(rport_buf)-1, 0) <= 0) break;
+                                 if(str_read_from_key("candidate:", value, cand_buf, " ", sizeof(cand_buf)-1, 0) <= 0) break;
+
+                                 icecandidates[icecandidates_n++] = atoi(cand_buf);
+                                 break;
+                            }
+
+                            value_len = str_read_from_key("\\\"sdp\\\":\\\"", decodedbuf, value, "\\\"", buf_size-1, 0);
+                            if(value_len > 0)
+                            {
+                                sdp = strdup(decodedbuf);
+                                if(sdp) sdp = str_replace_nested_escapes(sdp);
+ 
+                                state = WS_STATE_INITPEER;
+                            }
+
+                            value_len = str_read_from_key("\"cmd\" : \"register\"", decodedbuf, value, "}", buf_size-1, 0);
+                            if(value_len > 0)
+                            {
+                            }
+                        }
+
+                    default:
+                        roff = recvbuf;
+                        recv_left = sizeof(recvbuf)-1;
+                        memset(recvbuf, 0, sizeof(recvbuf));
+                    }
+                }
+
+                if(state == WS_STATE_INITPEER)
+                {
+                    state = WS_STATE_READING;
+
+                    int p;
+                    for(p = 0; p < MAX_PEERS; p++)
+                    {
+                        if(!peers[p].alive)
+                        {
+                            peer = &peers[p];
+                            break;
+                        }
+                    }
+                 
+                    if(peer)
+                    {
+                        peer_init(peer, PEER_INDEX(peer));
+
+                        int file_buf_len = 0;
+                        char* file_buf = file_read("content/apprtc/init.txt", &file_buf_len);
+
+                        if(file_buf_len > 0)
+                        {
+                            char* offersdp = strdup(file_buf);
+                            if(offersdp) offersdp = str_replace_nested_escapes(offersdp);
+                            strncpy(peer->sdp.offer, offersdp, sizeof(peer->sdp.offer)-1);
+ 
+                            strcpy(peer->stun_ice.ufrag_offer, sdp_read(offersdp, "a=ice-ufrag:"));
+
+                            free(offersdp);
+                        }
+
+                        if(sdp)
+                        {
+                            sprintf(peer->sdp.answer, "%s\r\n%s\r\n%s\r\n", "a=watch=anonymous", "a=myname=apprtc", sdp);
+                            peer->stun_ice.controller = 0;
+                            if(icecandidates_n > 0) peer->stun_ice.candidate_id = icecandidates[icecandidates_n-1];
+
+                            free(sdp);
+                            sdp = NULL;
+                        }
+
+                        // mark -- wait for peer to be initialized
+                        peer->alive = 1;
+                        peer->restart_needed = 1;
+
+                        while(!peer->restart_done) usleep(1000);
+                        peer->alive = 1;
+                        peer->time_pkt_last = time(NULL);
+
+                        peer->restart_needed = 0;
+                    }
+                }
+
+                if(state == WS_STATE_INITIAL || state == WS_STATE_JOINROOM || state == WS_STATE_WRITESDP | state == WS_STATE_ROOMPOST)
+                {
+                    if(state == WS_STATE_INITIAL) {
+                        
+                        sprintf(sendbuf, "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: %s\r\n\r\n", args->websocket_accept_response);
+                        send_len = strlen(sendbuf);
+                        state = WS_STATE_READING;
+                    }
+                    else if(state == WS_STATE_JOINROOM) {
+                        chatlog_append("appRTC joining\n");
+                       
+                        int file_buf_len = 0;
+                        char* file_buf = file_read("content/apprtc/init.txt", &file_buf_len);
+
+                        if(file_buf_len > 0)
+                        {
+                            char stuncandidate_js[256];
+                            char* response = strdup(file_buf);
+                            sprintf(stuncandidate_js, "candidate:1 1 UDP 1234 %s "
+                                "%d typ host",
+                                get_config("udpserver_addr="), listen_port);
+                            response = macro_str_expand(response,
+                                    tag_icecandidate, stuncandidate_js);
+                            sprintf(sendbuf, "HTTP/1.0 200 OK\r\nContent-Length: %lu\r\nContent-Type: text/plain\r\n\r\n%s",
+                                    strlen(response), response);
+                            send_len = strlen(sendbuf);
+                            free(response);
+                            free(file_buf);
+                        }
+                        state = WS_STATE_EXIT;
+                    }
+                    else if(state == WS_STATE_ROOMPOST) {
+                        sdp = strdup(args->pbody);
+                        if(sdp) sdp = str_replace_nested_escapes(sdp);
+
+                        state = WS_STATE_INITPEER;
+                    }
+                    else if(state == WS_STATE_WRITESDP) {
+                        int file_buf_len = 0;
+                        char* file_buf = file_read("content/apprtc/offer.txt", &file_buf_len);
+                        if(file_buf_len > 0) {
+                            strcpy(sendbuf, file_buf);
+                            send_len = file_buf_len;
+                            free(file_buf);
+                        }
+
+                        state = WS_STATE_READING;
+                    }
+                }
+
+                if(send_len > 0) {
+                    printf("websocket msg->:\n%s\n", sendbuf);
+                    send(sock, sendbuf, send_len, 0);
+                }
+                send_len = 0;
+            }
+
+            printf("websocket_worker shutting down\n");
+            shutdown(sock, SHUT_WR);
+            close(sock);
+            sock = -1;
+        }
+    }
+    while(0);
+
+    if(sdp) free(sdp);
+
+    if(args) {
+        if(args->pbody) free(args->pbody);
+        free(args);
+    }
+
+    return NULL;
+}
 
 
 static void*
@@ -104,10 +395,10 @@ webserver_worker(void* p)
     char *tag_peerlisthtml_options = "%$PEERLISTHTMLOPTIONS$%";
     char *tag_peerlist_jsarray = "%$PEERLISTJSARRAY$%";
     char *tag_stunconfig_js = "%$STUNCONFIGJS$%";
-    char *tag_icecandidate = "%$RTCICECANDIDATE$%";
     char *tag_chatlogvalue = "%$CHATLOGTEXTAREAVALUE$%";
     char *tag_watchuser = "watch?user=";
     char *tag_login = "login.html";
+    char *tag_login_apprtc = "/login/";
     char *tag_logout = "logout.html";
     char *tag_authcookie = "%$AUTHCOOKIE$%";
     const size_t buf_size = 4096;
@@ -119,6 +410,7 @@ webserver_worker(void* p)
     peer_session_t* peer_found_via_cookie = NULL;
 
     memset(cookie, 0, sizeof(cookie));
+
     sprintf(cookieset, "%02x%02x%02x%02x", rand() % 0xff, rand() % 0xff, rand() % 0xff, rand() % 0xff);
 
     thread_init();
@@ -153,7 +445,8 @@ webserver_worker(void* p)
             {
                 /* new request */
                 /* TODO: always indicate connection-close by shutting-down immediately */
-                if(waitsocket(sock, timeout_ms / 1000, 0) == 0) {
+                if(waitsocket(sock, timeout_ms / 1000, 0) == 0)
+                {
                     printf("%s:%d timed out\n", __func__, __LINE__);
 
                     do_shutdown = 1;
@@ -163,8 +456,12 @@ webserver_worker(void* p)
                 r = recv(sock, roff, recv_left, flags);
                 if(r <= 0) break;
 
-                const char *cookietoken = "authCookieJS12242016=";
-                char* pcookie = strstr(recvbuf, cookietoken);
+                const char *cookietoken;
+                char* pcookie;
+
+                cookietoken = "authCookieJS12242016=";
+                pcookie = strstr(recvbuf, cookietoken);
+
                 memset(cookie, 0, sizeof(cookie));
                 if(pcookie)
                 {
@@ -197,6 +494,7 @@ webserver_worker(void* p)
                 char url_args[256];
                 char *purl = NULL;
                 char *pbody = NULL;
+                char *phttpheaders = NULL;
                 char *pend = NULL;
                 char *response = NULL;
                 int response_binary = 0;
@@ -205,14 +503,24 @@ webserver_worker(void* p)
                 int cmd_post = 0;
                 char cookie_hdr[256];
                 int sidx;
+                int become_ws = 0;
 
-                response = strdup(page_buf_400);
                 memset(url_args, 0, sizeof(url_args));
                 cookie_hdr[0] = '\0';
 
                 purl = recvbuf;
                 if(strncmp(recvbuf, "GET ", 4) == 0) {
                     purl = recvbuf+4;
+                }
+                else if(strncmp(recvbuf, tag_joinroom_ws, strlen(tag_joinroom_ws)) == 0) {
+                    purl = recvbuf+5;
+                    args->state = WS_STATE_JOINROOM;
+                    become_ws = 1;
+                }
+                else if(strncmp(recvbuf, tag_msgroom_ws, strlen(tag_msgroom_ws)) == 0) {
+                    purl = recvbuf+5;
+                    args->state = WS_STATE_ROOMPOST;
+                    become_ws = 1;
                 }
                 else if(strncmp(recvbuf, "POST ", 5) == 0) {
                     purl = recvbuf+5;
@@ -221,6 +529,8 @@ webserver_worker(void* p)
                 else {
                     continue;
                 }
+
+                response = strdup(page_buf_400);
 
                 char *e = purl;
                 char *pargs = NULL;
@@ -231,6 +541,7 @@ webserver_worker(void* p)
                 *e = '\0';
 
                 pbody = e+1;
+                phttpheaders = pbody;
                 if(*pbody != '\0')
                 {
                     pbody = strstr(pbody, "\r\n\r\n");
@@ -241,11 +552,9 @@ webserver_worker(void* p)
                 pend = pbody;
                 while(*pend) pend++;
 
-                /*
                 printf("%s:%d webserver received:\n----------------\n"
                        "%s\n---------------\n", __func__, __LINE__,
                        recvbuf);
-                */
 
                 if(pargs)
                 {
@@ -270,7 +579,30 @@ webserver_worker(void* p)
                     file_buf = file_read(path, &file_buf_len);
 
                     printf("%s:%d webserver GET for file (%s):\n\t%s\n", __func__, __LINE__, file_buf? "": "failed", path);
-                    if(!file_buf || strcmp(purl, "/") == 0)
+
+                    if(strncmp(purl, "/ws", 3) == 0) { become_ws = 1; args->state = WS_STATE_INITIAL; }
+
+                    if(!file_buf && become_ws)
+                    {
+                        args->pbody = strdup(pbody);
+                        strcpy(args->websocket_accept_response,
+                               websocket_accept_header(phttpheaders));
+
+                        if(args->state == WS_STATE_INITIAL)
+                        {
+                             printf("peer[%d] logging in via websocket\n", sidx);
+
+                                //int stun_wait = stun_binding_response_count;
+                                //while(stun_binding_response_count - stun_wait < 1) {
+                                //    usleep(100);
+                                //}
+                        }
+
+                        if(!args->ws_thread) pthread_create(&args->ws_thread, NULL, websocket_worker, args);
+                        free(response);
+                        return NULL;
+                    }
+                    else if(!file_buf || strcmp(purl, "/") == 0)
                     {
                         send(sock, ok_hdr, strlen(ok_hdr), flags);
                         send(sock, content_type_html, strlen(content_type_html), flags);
@@ -293,7 +625,6 @@ webserver_worker(void* p)
 
                     if(strstr(purl, tag_login) && strlen(url_args) > 0)
                     {
-
                         printf("cookie=%s\n", cookie);
                         
                         for(sidx = 0; sidx < MAX_PEERS && !peer_found_via_cookie; sidx++) {
@@ -478,7 +809,7 @@ webserver_worker(void* p)
                         {
                            sidx = sidx_offset;
                            while(peers[sidx].alive && sidx < MAX_PEERS) sidx++;
-                           if(sidx >= MAX_PEERS) { free(sdp); break; }
+                           if(sidx >= MAX_PEERS) { free(sdp); goto response_override; }
 
                            peer_init(&peers[sidx], sidx);
                         }
@@ -520,7 +851,7 @@ webserver_worker(void* p)
                             else
                             {
                                 free(sdp);
-                                return;
+                                goto response_override;
                             }
 
                             char* offer_ufrag = get_offer_sdp_idx((char*) user_fragment_tag, 0);
@@ -591,9 +922,12 @@ webserver_worker(void* p)
                 if(response && !timed_out)
                 {
                     char *hdr = ok_hdr;
+                    char clen_hdr[256];
 
                     r = send(sock, hdr, strlen(hdr), flags);
                     r = send(sock, cookie_hdr, strlen(cookie_hdr), flags);
+                    sprintf(clen_hdr, "Content-Length: %lu\r\n", response_binary? file_buf_len: strlen(response));
+                    r = send(sock, clen_hdr, strlen(clen_hdr), flags);
                     r = send(sock, content_type, strlen(content_type), flags);
                     r = send(sock, response, response_binary? file_buf_len: strlen(response), flags);
                 }
@@ -606,6 +940,8 @@ webserver_worker(void* p)
     
                 if(response) free(response);
             }
+
+            if(!do_shutdown) continue;
 
             close(sock);
         }
@@ -626,7 +962,7 @@ void webserver_init()
 void*
 webserver_accept_worker(void* p)
 {    
-    int backlog = 2;
+    int backlog = 5;
     pthread_t thread;
 
     thread_init();
@@ -656,6 +992,7 @@ webserver_accept_worker(void* p)
             webserver_worker_args* args = (webserver_worker_args*) malloc(sizeof(webserver_worker_args));
             if(args)
             {
+                args->ws_thread = 0;
                 args->sock = sock;
 
                 pthread_create(&thread, NULL, webserver_worker, args);

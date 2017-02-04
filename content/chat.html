@@ -41,6 +41,8 @@ function loseFocus(e) {
     if(focused == e) focused = null;
 }
 function sendmsg() {
+    setRefresh(false);
+
     var myUserName = parent.document.getElementById('userName').value;
     var d = new Date();
     var msg = myUserName+':' + msgfield1.value;

@@ -57,12 +57,15 @@ struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS];
 FILECACHE_INSTANTIATE();
 
+struct webserver_state webserver;
+
 void chatlog_append(const char* msg);
 
 int listen_port = 0;
 
 char* counts_names[] = {"in_STUN", "in_SRTP", "in_UNK", "DROP", "BYTES_FWD", "", "USER_ID", "master", "rtp_underrun", "rtp_ok", "unknown_report_ssrc", "srtp_unprotect_fail", "buf_reclaimed_pkt", "buf_reclaimed_rtp", "snd_rpt_fix", "rcv_rpt_fix", "subscription_resume"};
 int counts[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+int stun_binding_response_count = 0;
 
 int bindsocket( char* ip, int port , int tcp);
 int main( int argc, char* argv[] );
@@ -586,6 +589,8 @@ connection_worker(void* p)
 
     thread_init();
 
+    while(!peer->thread_inited) usleep(1000);
+    
     printf("%s:%d sdp answer:\n %s\nsdp offer:\n%s\n", __func__, __LINE__, peer->sdp.answer, peer->sdp.offer);
 
     if(strstr(peer->sdp.answer, "a=recvonly")) { peer->recv_only = 1; }
@@ -612,6 +617,7 @@ connection_worker(void* p)
     strcpy(peer->stun_ice.ufrag_answer, PEER_ANSWER_SDP_GET(peer, "a=ice-ufrag:", 0));
     strcpy(peer->stun_ice.answer_pwd, PEER_ANSWER_SDP_GET(peer, "a=ice-pwd:", 0));
     strcpy(peer->stun_ice.offer_pwd, PEER_OFFER_SDP_GET(peer, "a=ice-pwd:", 0));
+    strcpy(peer->stun_ice.ufrag_offer, PEER_OFFER_SDP_GET(peer, "a=ice-ufrag:", 0));
 
     printf("%s:%d (ufrag-offer:%s ufrag-answer:%s pwd-answer:%s pwd-offer:%s)\n", __func__, __LINE__, peer->stun_ice.ufrag_offer, peer->stun_ice.ufrag_answer, peer->stun_ice.answer_pwd, peer->stun_ice.offer_pwd);
 
@@ -740,6 +746,7 @@ connection_worker(void* p)
         char buffer_report[4096];
         int length = buffer_next->len;
 
+        memset(buffer, 0, sizeof(buffer));
         memcpy(buffer, buffer_next->buf, length);
 
         unsigned long buffer_next_recv_time = buffer_next->recv_time;
@@ -756,6 +763,7 @@ connection_worker(void* p)
             if(ntohs(bind_check->hdr.type) == 0x01)
             {
                 stun_binding_msg_t *bind_resp = (stun_binding_msg_t*) buffer;
+                stun_binding_msg_t *bind_req = (stun_binding_msg_t*) buffer;
 
                 memset(&bind_resp->attrs.stun_binding_response1, 0, sizeof(bind_resp->attrs.stun_binding_response1));
 
@@ -770,52 +778,62 @@ connection_worker(void* p)
                     resp_addr = peer->addr.sin_addr.s_addr;
                 }
 
-                //u16 p = resp_port ^ (ntohl(bind_resp->hdr.cookie)>>16);
-                u16 p = ntohs(resp_port) ^ (ntohl(bind_resp->hdr.cookie)>>16);
-                ATTR_XOR_MAPPED_ADDRESS_SET((bind_resp->attrs.stun_binding_response1.xor_mapped_address), (resp_addr ^ bind_resp->hdr.cookie), htons(p));
+                u16 mapped_port = ntohs(resp_port) ^ (ntohl(bind_resp->hdr.cookie)>>16);
+                ATTR_XOR_MAPPED_ADDRESS_SET((bind_resp->attrs.stun_binding_response1.xor_mapped_address), (resp_addr ^ bind_resp->hdr.cookie), htons(mapped_port));
 
                 u32 crc = 0;
                 int has_hmac = 1;
                 unsigned int send_len;
-                if(ntohs(bind_resp->hdr.len) == 8) {
-                    has_hmac = 0;
-                    bind_resp->hdr.len = htons(sizeof(bind_resp->attrs.stun_binding_response2)-sizeof(attr_fingerprint));
-                    send_len = sizeof(bind_resp->hdr) + sizeof(bind_resp->attrs.stun_binding_response2);
+                unsigned int attr_len = 0;
+                /*
+                if(ntohs(bind_req->hdr.len) == 0)
+                {
+                    has_hmac = 1;
+                    attr_len = sizeof(bind_resp->attrs.stun_binding_response3);
+                    ATTR_MAPPED_ADDRESS_SET((bind_resp->attrs.stun_binding_response3.mapped_address), (resp_addr), htons(p));
+                    ATTR_SRC_ADDRESS_SET((bind_resp->attrs.stun_binding_response3.src_address), (resp_addr), htons(p));
+                    ATTR_CHG_ADDRESS_SET((bind_resp->attrs.stun_binding_response3.chg_address), (resp_addr), htons(p));
                 }
-                else {
-                    peer->stun_ice.reverse_bind = 1;
-                    bind_resp->hdr.len = htons(sizeof(bind_resp->attrs.stun_binding_response1)-sizeof(attr_fingerprint));
-                    send_len = sizeof(bind_resp->hdr) + sizeof(bind_resp->attrs.stun_binding_response1);
+                else
+                */
+                if(ntohs(bind_resp->hdr.len) == 8)
+                {
+                    has_hmac = 0;
+                    attr_len = sizeof(bind_resp->attrs.stun_binding_response2);
+                }
+                else
+                {
+                    attr_len = sizeof(bind_resp->attrs.stun_binding_response1);
                 }
 
-                if(has_hmac)
+                bind_resp->hdr.len = htons(attr_len - sizeof(attr_fingerprint)); // dont include fingerprint in calc
+                if(has_hmac == 1)
                 {
                     bind_resp->attrs.stun_binding_response1.hmac_sha1.type = htons(0x08);
                     bind_resp->attrs.stun_binding_response1.hmac_sha1.len = htons(20);
                     char hmac[20];
                     calc_hmac_sha1((unsigned char*) bind_resp,
-                                   sizeof(stun_hdr_t)+sizeof(bind_resp->attrs.stun_binding_response1)-sizeof(attr_hmac_sha1)-sizeof(attr_fingerprint),
+                                   sizeof(stun_hdr_t)+attr_len-sizeof(attr_hmac_sha1)-sizeof(attr_fingerprint),
                                    hmac, /*get_offer_sdp("a=ice-pwd:")*/ peer->stun_ice.offer_pwd, peer);
                     memcpy(bind_resp->attrs.stun_binding_response1.hmac_sha1.hmac_sha1, hmac, 20);
 
-                    bind_resp->hdr.len = htons(sizeof(bind_resp->attrs.stun_binding_response1));
-
                     ATTR_FINGERPRINT_SET(bind_resp->attrs.stun_binding_response1.fingerprint, 0);
-                    crc = crc32(0, bind_resp, sizeof(stun_hdr_t)+sizeof(bind_resp->attrs.stun_binding_response1)-sizeof(attr_fingerprint));
-                    crc = htonl(crc ^ 0x5354554e);
-                    ATTR_FINGERPRINT_SET(bind_resp->attrs.stun_binding_response1.fingerprint, (crc));
                 }
-                else
+                else if(has_hmac == 0)
                 {
-                    bind_resp->hdr.len = htons(sizeof(bind_resp->attrs.stun_binding_response2));
                     ATTR_FINGERPRINT_SET(bind_resp->attrs.stun_binding_response2.fingerprint, 0);
-                    crc = crc32(0, bind_resp, send_len - sizeof(attr_fingerprint));
-                    crc = htonl(crc ^ 0x5354554e);
-                    ATTR_FINGERPRINT_SET(bind_resp->attrs.stun_binding_response2.fingerprint, (crc));
                 }
+                bind_resp->hdr.len = htons(attr_len);
 
-                /* require peer respond to our bind first */
-                if(peer->stun_ice.bound > 0)
+                crc = crc32(0, bind_resp, sizeof(stun_hdr_t)+attr_len-sizeof(attr_fingerprint));
+                crc = htonl(crc ^ 0x5354554e);
+
+                attr_fingerprint* fp_ptr = (attr_fingerprint*) ((u_int8_t*) &bind_resp->attrs.stun_binding_response1 + (attr_len-sizeof(attr_fingerprint)));
+                ATTR_FINGERPRINT_SET((*fp_ptr), crc);
+                send_len = sizeof(bind_resp->hdr) + attr_len;
+
+                /* require peer respond to our bind first in some cases */
+                if(/*peer->stun_ice.bound > 0*/ 1)
                 {
                     peer_send_block(peer, (char*) bind_resp, send_len);
                 }
@@ -823,6 +841,8 @@ connection_worker(void* p)
             }
             else if(ntohs(bind_check->hdr.type) == 0x0101)
             {
+                printf("stun-ice: got bind response\n");
+
                 peer->stun_ice.bound++;
                 if(!peer->stun_ice.bind_req_calc) {
                     peer->stun_ice.bind_req_rtt = buffer_next_recv_time - peer->stun_ice.bind_req_rtt;
@@ -834,13 +854,14 @@ connection_worker(void* p)
                 printf("%s:%d TURN not implemented\n", __func__, __LINE__);
             }
 
-            if(peer->stun_ice.reverse_bind && peer->stun_ice.bound < 4)
+            /* send a bind request */
+            if(!peer->stun_ice.bound)
             {
-                //peer->stun_ice.bound++;
                 if(!peer->stun_ice.bind_req_calc) {
                     peer->stun_ice.bind_req_rtt = buffer_next_recv_time;
                 }
 
+                unsigned short type = 0x0001;
                 stun_binding_msg_t bind_req;
                 stun_build_msg_t build_msg;
                 unsigned int bind_req_len = length;
@@ -848,17 +869,18 @@ connection_worker(void* p)
                 memset(&bind_req, 0, sizeof(bind_req));
 
                 char stun_user[256];
-                // mark - ufrag_offer unset when watching
                 sprintf(stun_user, "%s:%s", peer->stun_ice.ufrag_answer, peer->stun_ice.ufrag_offer);
 
-                printf("expected peer[%d].stun_user: %s\n", PEER_INDEX(peer), stun_user);
+                printf("STUN binding request @ peer[%d] with stun_user: %s\n", PEER_INDEX(peer), stun_user);
 
                 stun_build_msg_init(&build_msg, &bind_req, stun_user);
 
                 *build_msg.hdr = ((stun_binding_msg_t*)buffer_last)->hdr;
+
+                build_msg.hdr->type = htons(type);
                 build_msg.hdr->txid[0] = 0x23;
 
-                STUN_ATTR_USERNAME_SET((build_msg), stun_user);
+                STUN_ATTR_USERNAME_SET(build_msg, stun_user);
 
                 build_msg.usecandidate->type = htons(ATTR_USECANDIDATE_TYPE);
                 build_msg.usecandidate->len = htons(0);
@@ -1009,7 +1031,7 @@ connection_worker(void* p)
                             rtp_report_sender_t *reportPeer = (rtp_report_sender_t*) buffer_report;
                             int lengthPeer;
                            
-                            if(peers[p].alive &&
+                            if(peers[p].alive && peers[p].running &&
                                peers[p].subscriptionID == peer->id &&
                                //peer->id != peers[p].subscriptionID &&
                                peers[p].srtp[rtp_idx].inited)
@@ -1387,9 +1409,10 @@ int main( int argc, char* argv[] ) {
         int sidx = -1;
         for(i = 0; i < MAX_PEERS; i++)
         {
-            if((src.sin_addr.s_addr == peers[i].addr.sin_addr.s_addr &&
-                src.sin_port == peers[i].addr.sin_port) /*||
-               peers[i].stunID32 == stunID(buffer, length)*/
+            if(peers[i].alive &&
+               (src.sin_addr.s_addr == peers[i].addr.sin_addr.s_addr &&
+                src.sin_port == peers[i].addr.sin_port) 
+             /* || peers[i].stunID32 == stunID(buffer, length)*/
               )
             {
                 //printf("found stunID: %d\n", stunID(buffer, length));
@@ -1408,19 +1431,52 @@ int main( int argc, char* argv[] ) {
             stun_username(buffer, length, stun_uname);
 
             /* webserver has created a "pending" peer with stun fields set based on SDP */
-            for(p = 0; p < MAX_PEERS; p++)
+            for(p = 0; strlen(stun_uname) > 1 && p < MAX_PEERS; p++)
             {
                 sprintf(stun_uname_expected, "%s:%s", peers[p].stun_ice.ufrag_offer, peers[p].stun_ice.ufrag_answer);
-                if(strlen(stun_uname_expected) > 1 && strncmp(stun_uname_expected, stun_uname, strlen(stun_uname)) == 0)
+
+                if(strncmp(stun_uname_expected, stun_uname, strlen(stun_uname_expected)) == 0)
                 {
                     sidx = p;
                     printf("stun_locate: found peer %s (%s)\n", stun_uname, peers[sidx].name);
                     break;
                 }
+
+                /*
+                if(strcmp(peers[0].websock_icecandidate.raddr, inet_ntoa(src.sin_addr)) == 0 &&
+                   peers[0].websock_icecandidate.rport == ntohs(src.sin_port))
+                {
+                    sidx = p;
+                    printf("found peer via websocket icecandidate\n");
+                    break;
+                }
+                */
             }
 
             if(sidx == -1)
             {
+                // send back stun binding response
+                {
+                    stun_binding_response_count++;
+
+                    stun_binding_msg_t* stunmsg = (stun_binding_msg_t*) buffer;
+                    printf("stun_locate: not found: %s\n", stun_uname);
+
+                    {
+                        printf("spoofing STUN response\n");
+                        u16 resp_port = htons(strToInt(get_stun_local_port()));
+                        u32 resp_addr = inet_addr(get_stun_local_addr());
+
+                        stunmsg->hdr.type = htons(0x0101);
+                        stunmsg->hdr.len = htons(sizeof(stunmsg->attrs.stun_binding_response3)-sizeof(attr_fingerprint));
+                        ATTR_MAPPED_ADDRESS_SET((stunmsg->attrs.stun_binding_response3.mapped_address), resp_addr, resp_port);
+                        ATTR_SRC_ADDRESS_SET((stunmsg->attrs.stun_binding_response3.src_address), resp_addr, resp_port);
+                        ATTR_CHG_ADDRESS_SET((stunmsg->attrs.stun_binding_response3.chg_address), resp_addr, resp_port);
+
+                        sendto(listen, stunmsg, sizeof(stunmsg)+sizeof(stunmsg->attrs.stun_binding_response3), 0, (struct sockaddr*) &src, sizeof(src));
+                    }
+                }
+
                 if(webserver.peer_index_sdp_last >= 0)
                 {
                     printf("stun_locate: anonymous peer found: %s\n", stun_uname);
@@ -1429,14 +1485,13 @@ int main( int argc, char* argv[] ) {
                 }
                 else
                 {
-                    printf("stun_locate: not found: %s\n", stun_uname);
-                    //break;
                     goto select_timeout;
                 }
             }
 
             // mark -- init new peer
-            printf("%s:%d adding new peer\n", __func__, __LINE__);
+            printf("%s:%d adding new peer (%s:%u)\n", __func__, __LINE__,
+                   inet_ntoa(src.sin_addr), ntohs(src.sin_port));
 
             //sidx = 0;
             //while(peers[sidx].alive) sidx++;
@@ -1623,14 +1678,15 @@ int main( int argc, char* argv[] ) {
                 PEER_UNLOCK(i);
                 while(peers[i].running) usleep(1000);
                 PEER_LOCK(i);
+
                 if(peers[i].thread_inited)
                 {
-                //pthread_join(peers[i].thread_rtp_send, NULL);
-                pthread_join(peers[i].thread, NULL);
-                pthread_mutex_destroy(&peers[i].mutex);
-                peers[i].thread_rtp_send = 0;
-                peers[i].thread = 0;
-                peers[i].thread_inited = 0;
+                    //pthread_join(peers[i].thread_rtp_send, NULL);
+                    pthread_join(peers[i].thread, NULL);
+                    pthread_mutex_destroy(&peers[i].mutex);
+                    peers[i].thread_rtp_send = 0;
+                    peers[i].thread = 0;
+                    peers[i].thread_inited = 0;
                 }
 
                 DTLS_peer_uninit(&peers[i]);
@@ -1657,8 +1713,6 @@ int main( int argc, char* argv[] ) {
                 peers[i].srtp_inited = 0;
 
                 peer_stun_init(&peers[i]);
-
-                //memset(&peers[i], 0, sizeof(peers[i]));
 
                 memset(&peers[i].addr, 0, sizeof(peers[i].addr));
                 memset(&peers[i].addr_listen, 0, sizeof(peers[i].addr_listen));

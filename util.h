@@ -106,4 +106,46 @@ static int PEER_INDEX(peer_session_t* ptr)
     return (ptr - (&peers[0]));
 }
 
+static char websocket_accept_header_result[256];
+
+char* websocket_accept_header(const char* headers_buf) {
+    char buf[512], result[512];
+    const char* header_token = "Sec-WebSocket-Key: ";
+    const char* ws_const = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+
+    char* key = strstr(headers_buf, header_token);
+
+    memset(websocket_accept_header_result, 0, sizeof(websocket_accept_header_result));
+
+    if(!key) {
+        return websocket_accept_header_result;
+    }
+
+    key += strlen(header_token);
+    int l = 0;
+    while(key[l] != '\r' && key[l] != '\n' && key[l] != '\0') l++;
+    strncpy(buf, key, l);
+    buf[l] = '\0';
+    strcat(buf, ws_const);
+
+    sha1(buf, strlen(buf), result);
+
+    EVP_ENCODE_CTX ctx;
+    int b64_len = 0;
+
+    EVP_EncodeInit(&ctx);
+    EVP_EncodeUpdate(&ctx, websocket_accept_header_result, &b64_len, result, strlen(result));
+    EVP_EncodeFinal(&ctx, websocket_accept_header_result, &b64_len);
+    return websocket_accept_header_result;
+}
+
+static void print_bytes(char* str, size_t len) {
+    while(len > 0) {
+        if(*str >= '/' && *str <= 'z') printf("%c", *str);
+        else printf("*");
+        str++;
+        len--;
+    }
+}
+
 #endif /* __util_h__ */

@@ -51,8 +51,8 @@ typedef struct
 
     struct {
         int bound;
-        int reverse_bind;
         int bound_client;
+        int controller;
         char ufrag_offer[64];
         char ufrag_answer[64];
         char offer_pwd[128];
@@ -60,6 +60,7 @@ typedef struct
         unsigned long bind_req_rtt;
         int bind_req_calc;
         //char uname[64];
+        unsigned int candidate_id;
     } stun_ice;
 
     struct {
@@ -171,9 +172,14 @@ typedef struct
     int recv_only;
 
     struct {
-        char offer[2048];
-        char answer[2048];
+        char offer[4096];
+        char answer[4096];
     } sdp;
+
+    struct {
+        char raddr[64];
+        uint32_t rport;
+    } websock_icecandidate;
 
     int restart_needed;
     int restart_done;
@@ -251,7 +257,7 @@ int peer_rtp_buffer_reclaimable(peer_session_t* peer, int rtp_idx) {
 
 int peer_stun_init(peer_session_t* peer)
 {
-    peer->stun_ice.reverse_bind = peer->stun_ice.bound = 0;
+    peer->stun_ice.controller = peer->stun_ice.bound = 0;
 }
 
 

@@ -76,12 +76,12 @@ function vidChildInit() {
 }
 
 function getMedia() {
-    //MediaStreamTrack.getSources(
     navigator.mediaDevices.enumerateDevices().then(
         function(sourceInfos) {
             var ai = 0;
             var vi = 0;
             for(var i = 0; i < sourceInfos.length; i++) {
+                console.log('mediaDevices('+sourceInfos[i].kind+')['+i+']: ' + sourceInfos[i].label);
                 if(sourceInfos[i].kind == 'audio') {
                     if(audioSourceN == ai) {
                         audioSource = sourceInfos[i].id;
