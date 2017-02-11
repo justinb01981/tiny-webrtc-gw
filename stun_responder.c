@@ -47,7 +47,7 @@
 
 #define CONNECTION_DELAY_MS 2000
 
-#define RTP_PICT_LOSS_INDICATOR_INTERVAL 30
+#define RTP_PICT_LOSS_INDICATOR_INTERVAL 10
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 100
@@ -637,16 +637,20 @@ connection_worker(void* p)
 
         if(watch_name && strlen(watch_name) > 0)
         {
-               for(si = 0; si < MAX_PEERS; si++)
+            if(strcmp(watch_name, "wait") == 0)
+            {
+                peer->subscribeWait = 1;
+            }
+            else
+            for(si = 0; si < MAX_PEERS; si++)
+            {
+                if(peers[si].alive && strcmp(watch_name, peers[si].name) == 0 &&
+                   si != peer->id)
                 {
-                    if(peers[si].alive && strcmp(watch_name, peers[si].name) == 0 &&
-                       si != peer->id)
-                    {
-                        peer->subscriptionID = peers[si].id;
-                    }
-
+                    peer->subscriptionID = peers[si].id;
                 }
-          }
+            }
+        }
     }
 
     char* my_name = PEER_ANSWER_SDP_GET(peer, "a=myname=", 0);
@@ -671,6 +675,16 @@ connection_worker(void* p)
         }
 
         chatlog_append("\n");
+
+        for(si = 0; si < MAX_PEERS; si++)
+        {
+            if(peers[si].alive && peers[si].subscribeWait &&
+               PEER_INDEX(peer) != si)
+            {
+                peers[si].subscriptionID = PEER_INDEX(peer);
+                peers[si].subscribeWait = 0;
+            }
+        }
     }
     else
     {

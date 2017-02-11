@@ -43,9 +43,11 @@ typedef struct {
     int state;
     char websocket_accept_response[512];
     char* pbody;
+    char roomname[256];
 } webserver_worker_args;
 
 static char *tag_icecandidate = "%$RTCICECANDIDATE$%";
+static char *tag_room_ws = "%$ROOMNAME$%";
 static char* tag_joinroom_ws = "POST /join/";
 static char* tag_msgroom_ws = "POST /message/domain17/";
 
@@ -119,6 +121,7 @@ websocket_worker(void* p)
     int state;
     char* sdp = NULL;
     unsigned int icecandidates[16];
+    char room_id_msg[256] = {0};
     int icecandidates_n = 0;
 
     peer_session_t* peer = NULL;
@@ -231,6 +234,7 @@ websocket_worker(void* p)
                             value_len = str_read_from_key("\"cmd\" : \"register\"", decodedbuf, value, "}", buf_size-1, 0);
                             if(value_len > 0)
                             {
+                                value_len = str_read_from_key("\"roomid\" : \"", value, room_id_msg, "\"", sizeof(room_id_msg)-1, 0);
                             }
                         }
 
@@ -275,7 +279,9 @@ websocket_worker(void* p)
 
                         if(sdp)
                         {
-                            sprintf(peer->sdp.answer, "%s\r\n%s\r\n%s\r\n", "a=watch=anonymous", "a=myname=apprtc", sdp);
+                            char *psep = strchr(room_id_msg, '@');
+                            *psep = '\0'; psep++;
+                            sprintf(peer->sdp.answer, "a=myname=%s\r\na=watch=%s\r\n%s", room_id_msg, psep, sdp);
                             peer->stun_ice.controller = 0;
                             if(icecandidates_n > 0) peer->stun_ice.candidate_id = icecandidates[icecandidates_n-1];
 
@@ -318,6 +324,9 @@ websocket_worker(void* p)
                                 get_config("udpserver_addr="), listen_port);
                             response = macro_str_expand(response,
                                     tag_icecandidate, stuncandidate_js);
+
+                            response = macro_str_expand(response, tag_room_ws, args->roomname);
+
                             sprintf(sendbuf, "HTTP/1.0 200 OK\r\nContent-Length: %lu\r\nContent-Type: text/plain\r\n\r\n%s",
                                     strlen(response), response);
                             send_len = strlen(sendbuf);
@@ -513,7 +522,10 @@ webserver_worker(void* p)
                     purl = recvbuf+4;
                 }
                 else if(strncmp(recvbuf, tag_joinroom_ws, strlen(tag_joinroom_ws)) == 0) {
+                    char *proomname = purl + strlen(tag_joinroom_ws);
+                    str_read(proomname, args->roomname, "\r\n ", sizeof(args->roomname));
                     purl = recvbuf+5;
+                    // parse room name
                     args->state = WS_STATE_JOINROOM;
                     become_ws = 1;
                 }

@@ -112,6 +112,7 @@ typedef struct
     int subscription_reset[PEER_RTP_CTX_COUNT];
 
     int subscriptionID;
+    int subscribeWait;
     int subscribed;
     peer_buffer_node_t *subscription_ptr[PEER_RTP_CTX_COUNT];
 
