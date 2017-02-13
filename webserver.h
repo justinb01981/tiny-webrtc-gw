@@ -176,7 +176,6 @@ websocket_worker(void* p)
 
                     if(waitsocket(sock, timeout_ms / 1000, 0) == 0)
                     {
-                        printf("%s:%d timed out\n", __func__, __LINE__);
                         timeout_counter--;
                     }
                     else

@@ -103,6 +103,11 @@ function broadcastStart(onSuccess, onFailure) {
 }
 
 function doSubmit() {
+    var appsdp = document.theform.appendsdp;
+    var myname = document.theform.my_name;
+    if(appsdp.value.indexOf('a=watch=') < 0) {
+        appsdp.value += 'a=watch=' + myname.value;
+    }
     document.finalform.answersdp.value = document.theform.answersdp.value + '\n' + document.theform.appendsdp.value;
     document.finalform.target = 'iframe_submit';
     document.finalform.submit();

@@ -106,11 +106,12 @@ static int PEER_INDEX(peer_session_t* ptr)
     return (ptr - (&peers[0]));
 }
 
+static const char* websocket_header_upgrade_token = "Sec-WebSocket-Key: ";
 static char websocket_accept_header_result[256];
 
 char* websocket_accept_header(const char* headers_buf) {
     char buf[512], result[512];
-    const char* header_token = "Sec-WebSocket-Key: ";
+    const char* header_token = websocket_header_upgrade_token;
     const char* ws_const = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
     char* key = strstr(headers_buf, header_token);

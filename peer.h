@@ -1,7 +1,8 @@
 #ifndef __PEER_H__
 #define __PEER_H__
 
-#define MAX_PEERS 64
+#define MAX_PEERS 63
+#define PEER_IDX_INVALID 63
 
 #define PEER_RTP_CTX_COUNT 8
 #define PEER_RTP_CTX_WRITE 4
@@ -112,7 +113,6 @@ typedef struct
     int subscription_reset[PEER_RTP_CTX_COUNT];
 
     int subscriptionID;
-    int subscribeWait;
     int subscribed;
     peer_buffer_node_t *subscription_ptr[PEER_RTP_CTX_COUNT];
 
@@ -260,6 +260,5 @@ int peer_stun_init(peer_session_t* peer)
 {
     peer->stun_ice.controller = peer->stun_ice.bound = 0;
 }
-
 
 #endif

@@ -54,7 +54,7 @@
 
 int dtls_handoff = 0;
 struct sockaddr_in bindsocket_addr_last;
-peer_session_t peers[MAX_PEERS];
+peer_session_t peers[MAX_PEERS+1];
 FILECACHE_INSTANTIATE();
 
 struct webserver_state webserver;
@@ -65,6 +65,7 @@ int listen_port = 0;
 
 char* counts_names[] = {"in_STUN", "in_SRTP", "in_UNK", "DROP", "BYTES_FWD", "", "USER_ID", "master", "rtp_underrun", "rtp_ok", "unknown_report_ssrc", "srtp_unprotect_fail", "buf_reclaimed_pkt", "buf_reclaimed_rtp", "snd_rpt_fix", "rcv_rpt_fix", "subscription_resume"};
 int counts[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+char counts_log[255] = {0};
 int stun_binding_response_count = 0;
 
 int bindsocket( char* ip, int port , int tcp);
@@ -79,6 +80,8 @@ int main( int argc, char* argv[] );
         };                    \
     }                         \
 }
+
+#define stats_printf sprintf
 
 #include "thread.h"
 
@@ -623,7 +626,7 @@ connection_worker(void* p)
 
     peer->time_last_run = time(NULL);
 
-    peer->subscriptionID = peer->id;
+    peer->subscriptionID = /*peer->id*/ PEER_IDX_INVALID;
 
     char* watch_chan = PEER_ANSWER_SDP_GET(peer, "a=channel=", 0);
     if(watch_chan && strlen(watch_chan) > 0)
@@ -637,15 +640,10 @@ connection_worker(void* p)
 
         if(watch_name && strlen(watch_name) > 0)
         {
-            if(strcmp(watch_name, "wait") == 0)
-            {
-                peer->subscribeWait = 1;
-            }
-            else
             for(si = 0; si < MAX_PEERS; si++)
             {
-                if(peers[si].alive && strcmp(watch_name, peers[si].name) == 0 &&
-                   si != peer->id)
+                if(peers[si].alive && strcmp(watch_name, peers[si].name) == 0 
+                   /*&& si != peer->id*/)
                 {
                     peer->subscriptionID = peers[si].id;
                 }
@@ -678,11 +676,10 @@ connection_worker(void* p)
 
         for(si = 0; si < MAX_PEERS; si++)
         {
-            if(peers[si].alive && peers[si].subscribeWait &&
+            if(peers[si].alive && peers[si].subscriptionID == PEER_IDX_INVALID &&
                PEER_INDEX(peer) != si)
             {
                 peers[si].subscriptionID = PEER_INDEX(peer);
-                peers[si].subscribeWait = 0;
             }
         }
     }
@@ -885,7 +882,7 @@ connection_worker(void* p)
                 char stun_user[256];
                 sprintf(stun_user, "%s:%s", peer->stun_ice.ufrag_answer, peer->stun_ice.ufrag_offer);
 
-                printf("STUN binding request @ peer[%d] with stun_user: %s\n", PEER_INDEX(peer), stun_user);
+                stats_printf(counts_log, "STUN binding request @ peer[%d] with stun_user: %s\n", PEER_INDEX(peer), stun_user);
 
                 stun_build_msg_init(&build_msg, &bind_req, stun_user);
 
@@ -1409,6 +1406,9 @@ int main( int argc, char* argv[] ) {
                     printf("\n");
                 }
             }
+
+            printf("last log:\n%s\n", counts_log);
+            counts_log[0] = '\0';
         }
 
         int inkey = 0;
@@ -1447,6 +1447,9 @@ int main( int argc, char* argv[] ) {
             /* webserver has created a "pending" peer with stun fields set based on SDP */
             for(p = 0; strlen(stun_uname) > 1 && p < MAX_PEERS; p++)
             {
+                /* only bind the first ICE attempt */
+                if(peers[p].addr.sin_port != 0) { continue; }
+
                 sprintf(stun_uname_expected, "%s:%s", peers[p].stun_ice.ufrag_offer, peers[p].stun_ice.ufrag_answer);
 
                 if(strncmp(stun_uname_expected, stun_uname, strlen(stun_uname_expected)) == 0)
@@ -1477,7 +1480,7 @@ int main( int argc, char* argv[] ) {
                     printf("stun_locate: not found: %s\n", stun_uname);
 
                     {
-                        printf("spoofing STUN response\n");
+                        stats_printf(counts_log, "spoofing STUN response\n");
                         u16 resp_port = htons(strToInt(get_stun_local_port()));
                         u32 resp_addr = inet_addr(get_stun_local_addr());
 
@@ -1675,6 +1678,7 @@ int main( int argc, char* argv[] ) {
 
                 peers[i].alive = 0;
 
+                /* reset all this peer's subscribers */
                 int p;
                 for(p = 0; p < MAX_PEERS; p++)
                 {
@@ -1683,6 +1687,9 @@ int main( int argc, char* argv[] ) {
                         memset(&peers[p].subscription_ptr, 0, sizeof(peers[p].subscription_ptr));
                         int rtp_idx;
                         for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_COUNT; rtp_idx++) { peers[p].subscription_reset[rtp_idx] = 1; }
+
+                        /* TODO: attempt to re-subscribe this peer (or at least mark as alive=0) */
+                        peers[p].subscriptionID = PEER_IDX_INVALID;
                     }
                 }
 
