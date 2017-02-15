@@ -602,11 +602,6 @@ webserver_worker(void* p)
                         if(args->state == WS_STATE_INITIAL)
                         {
                              printf("peer[%d] logging in via websocket\n", sidx);
-
-                                //int stun_wait = stun_binding_response_count;
-                                //while(stun_binding_response_count - stun_wait < 1) {
-                                //    usleep(100);
-                                //}
                         }
 
                         if(!args->ws_thread) pthread_create(&args->ws_thread, NULL, websocket_worker, args);

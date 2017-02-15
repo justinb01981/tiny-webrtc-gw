@@ -35,6 +35,10 @@
 
 #include "webserver.h"
 
+#ifdef assert
+#undef assert
+#endif 
+
 #ifndef SO_REUSEPORT
 #define SO_REUSEPORT 15
 #endif
@@ -45,12 +49,26 @@
 
 #include "dtls.h"
 
+#include "thread.h"
+
+#define assert(x, msg)        \
+{                             \
+    if(!x)                    \
+    {                         \
+        while(1){             \
+            printf("%s", msg);\
+        };                    \
+    }                         \
+}
+
+#define stats_printf sprintf
+
 #define CONNECTION_DELAY_MS 2000
 
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 10
 #define RTP_PSFB 1 
 
-#define RECEIVER_REPORT_MIN_INTERVAL_MS 100
+#define RECEIVER_REPORT_MIN_INTERVAL_MS 20
 
 int dtls_handoff = 0;
 struct sockaddr_in bindsocket_addr_last;
@@ -70,20 +88,6 @@ int stun_binding_response_count = 0;
 
 int bindsocket( char* ip, int port , int tcp);
 int main( int argc, char* argv[] );
-
-#define assert(x, msg)        \
-{                             \
-    if(!x)                    \
-    {                         \
-        while(1){             \
-            printf("%s", msg);\
-        };                    \
-    }                         \
-}
-
-#define stats_printf sprintf
-
-#include "thread.h"
 
 u_int32_t get_rtp_timestamp32()
 {
@@ -628,6 +632,37 @@ connection_worker(void* p)
 
     peer->subscriptionID = /*peer->id*/ PEER_IDX_INVALID;
 
+    char* my_name = PEER_ANSWER_SDP_GET(peer, "a=myname=", 0);
+    sprintf(peer->name, "%s%s", my_name, peer->recv_only ? "(watch)": "");
+    
+    if(!strlen(peer->name)) strcpy(peer->name, peer->stun_ice.ufrag_answer);
+
+    chatlog_append(peer->name);
+
+    if(peer->recv_only)
+    {
+        chatlog_append(" watching ");
+        chatlog_append(peers[peer->subscriptionID].name);
+    }
+    else
+    {
+        chatlog_append(" broadcasting ($SUBSCRIBELINK");
+        chatlog_append(peer->name);
+        chatlog_append(")");
+    }
+
+    chatlog_append("\n");
+
+    for(si = 0; si < MAX_PEERS; si++)
+    {
+        if(peers[si].alive &&
+           peers[si].subscriptionID == PEER_IDX_INVALID &&
+           strcmp(peers[si].watch_name, peer->name) == 0)
+        {
+            peers[si].subscriptionID = peer->id;
+        }
+    }
+
     char* watch_chan = PEER_ANSWER_SDP_GET(peer, "a=channel=", 0);
     if(watch_chan && strlen(watch_chan) > 0)
     {
@@ -636,56 +671,20 @@ connection_worker(void* p)
     else
     {
         char* watch_name = PEER_ANSWER_SDP_GET(peer, "a=watch=", 0);
-        strncpy(peer->watch_name, watch_name, sizeof(peer->watch_name));
+        strcpy(peer->watch_name, watch_name);
 
         if(watch_name && strlen(watch_name) > 0)
         {
             for(si = 0; si < MAX_PEERS; si++)
             {
-                if(peers[si].alive && strcmp(watch_name, peers[si].name) == 0 
+                if(peers[si].alive &&
+                   strcmp(watch_name, peers[si].name) == 0 
                    /*&& si != peer->id*/)
                 {
                     peer->subscriptionID = peers[si].id;
                 }
             }
         }
-    }
-
-    char* my_name = PEER_ANSWER_SDP_GET(peer, "a=myname=", 0);
-    if(strlen(my_name))
-    {
-        printf("%s:%d %s\n", __func__, __LINE__, my_name);
-
-        sprintf(peer->name, "%s%s", my_name, peer->recv_only ? "(watch)": "");
-
-        chatlog_append(peer->name);
-
-        if(peer->recv_only)
-        {
-            chatlog_append(" watching ");
-            chatlog_append(peers[peer->subscriptionID].name);
-        }
-        else
-        {
-            chatlog_append(" broadcasting ($SUBSCRIBELINK");
-            chatlog_append(peer->name);
-            chatlog_append(")");
-        }
-
-        chatlog_append("\n");
-
-        for(si = 0; si < MAX_PEERS; si++)
-        {
-            if(peers[si].alive && peers[si].subscriptionID == PEER_IDX_INVALID &&
-               PEER_INDEX(peer) != si)
-            {
-                peers[si].subscriptionID = PEER_INDEX(peer);
-            }
-        }
-    }
-    else
-    {
-        strcpy(peer->name, peer->stun_ice.ufrag_answer);
     }
 
     printf("%s:%d peer running\n", __func__, __LINE__);
@@ -1477,8 +1476,7 @@ int main( int argc, char* argv[] ) {
                     stun_binding_response_count++;
 
                     stun_binding_msg_t* stunmsg = (stun_binding_msg_t*) buffer;
-                    printf("stun_locate: not found: %s\n", stun_uname);
-
+                    if(strlen(stun_uname) == 0)
                     {
                         stats_printf(counts_log, "spoofing STUN response\n");
                         u16 resp_port = htons(strToInt(get_stun_local_port()));
@@ -1491,6 +1489,10 @@ int main( int argc, char* argv[] ) {
                         ATTR_CHG_ADDRESS_SET((stunmsg->attrs.stun_binding_response3.chg_address), resp_addr, resp_port);
 
                         sendto(listen, stunmsg, sizeof(stunmsg)+sizeof(stunmsg->attrs.stun_binding_response3), 0, (struct sockaddr*) &src, sizeof(src));
+                    }
+                    else
+                    {
+                        stats_printf(counts_log, "ICE binding request: failed to find user-fragment (%s)\n", stun_uname);
                     }
                 }
 
@@ -1682,7 +1684,7 @@ int main( int argc, char* argv[] ) {
                 int p;
                 for(p = 0; p < MAX_PEERS; p++)
                 {
-                    if(peers[p].alive && peers[p].subscriptionID == i)
+                    if(peers[p].alive && peers[p].subscriptionID == i && p != i)
                     {
                         memset(&peers[p].subscription_ptr, 0, sizeof(peers[p].subscription_ptr));
                         int rtp_idx;
@@ -1690,11 +1692,11 @@ int main( int argc, char* argv[] ) {
 
                         /* TODO: attempt to re-subscribe this peer (or at least mark as alive=0) */
                         peers[p].subscriptionID = PEER_IDX_INVALID;
+                        //peers[p].restart_needed = 1;
                     }
                 }
 
                 peers[i].cleanup_in_progress = 0;
-                //peers[i].subscriptionID = 0;
 
                 PEER_UNLOCK(i);
                 while(peers[i].running) usleep(1000);
