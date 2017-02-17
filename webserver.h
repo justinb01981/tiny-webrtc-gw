@@ -415,6 +415,7 @@ webserver_worker(void* p)
     unsigned int content_len = 0;
     char listen_port_str[64];
     char cookie[256], cookieset[256];
+    char ws_header_buf[256];
     peer_session_t* peer_found_via_cookie = NULL;
 
     memset(cookie, 0, sizeof(cookie));
@@ -552,6 +553,7 @@ webserver_worker(void* p)
                 *e = '\0';
 
                 pbody = e+1;
+                while(*pbody == '\r' || *pbody == '\n') pbody++;
                 phttpheaders = pbody;
                 if(*pbody != '\0')
                 {
@@ -564,8 +566,9 @@ webserver_worker(void* p)
                 while(*pend) pend++;
 
                 printf("%s:%d webserver received:\n----------------\n"
-                       "%s\n---------------\n", __func__, __LINE__,
-                       recvbuf);
+                       "%s\n---------------%s\n"
+                       "---------------\n", __func__, __LINE__,
+                       recvbuf, phttpheaders);
 
                 if(pargs)
                 {
@@ -597,7 +600,7 @@ webserver_worker(void* p)
                     {
                         args->pbody = strdup(pbody);
                         strcpy(args->websocket_accept_response,
-                               websocket_accept_header(phttpheaders));
+                               websocket_accept_header(phttpheaders, ws_header_buf));
 
                         if(args->state == WS_STATE_INITIAL)
                         {

@@ -123,7 +123,13 @@ function getMedia() {
 }
 
 function broadcastOnLoad() {
-    //document.cookie = "authCookieJS12242016=%$AUTHCOOKIE$%; path=/";
+
+    if(navigator.userAgent.indexOf('iPhone') >= 0 || navigator.userAgent.indexOf('iPad') >= 0) {
+        if (confirm('browser not supported, visit the github project for help (iOS?))')) {
+            window.location = 'https://github.com/justinb01981/tiny-webrtc-gw/wiki';
+        }
+    }
+
     if(document.cookie == '') {
         location = 'login.html';
     }

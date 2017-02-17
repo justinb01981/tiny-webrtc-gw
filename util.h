@@ -1,6 +1,7 @@
 #ifndef __util_h__
 #define __util_h__
 
+#include <assert.h>
 #include "peer.h"
 
 #define PEER_ANSWER_SDP_GET(peer, val, index) \
@@ -107,19 +108,18 @@ static int PEER_INDEX(peer_session_t* ptr)
 }
 
 static const char* websocket_header_upgrade_token = "Sec-WebSocket-Key: ";
-static char websocket_accept_header_result[256];
 
-char* websocket_accept_header(const char* headers_buf) {
+char* websocket_accept_header(const char* headers_buf, char storage[256]) {
     char buf[512], result[512];
     const char* header_token = websocket_header_upgrade_token;
     const char* ws_const = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
     char* key = strstr(headers_buf, header_token);
 
-    memset(websocket_accept_header_result, 0, sizeof(websocket_accept_header_result));
+    memset(storage, 0, 256);
 
     if(!key) {
-        return websocket_accept_header_result;
+        return storage;
     }
 
     key += strlen(header_token);
@@ -135,9 +135,9 @@ char* websocket_accept_header(const char* headers_buf) {
     int b64_len = 0;
 
     EVP_EncodeInit(&ctx);
-    EVP_EncodeUpdate(&ctx, websocket_accept_header_result, &b64_len, result, strlen(result));
-    EVP_EncodeFinal(&ctx, websocket_accept_header_result, &b64_len);
-    return websocket_accept_header_result;
+    EVP_EncodeUpdate(&ctx, storage, &b64_len, result, strlen(result));
+    EVP_EncodeFinal(&ctx, storage, &b64_len);
+    return storage;
 }
 
 static void print_bytes(char* str, size_t len) {
