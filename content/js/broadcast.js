@@ -76,12 +76,12 @@ function vidChildInit() {
 }
 
 function getMedia() {
-    //MediaStreamTrack.getSources(
     navigator.mediaDevices.enumerateDevices().then(
         function(sourceInfos) {
             var ai = 0;
             var vi = 0;
             for(var i = 0; i < sourceInfos.length; i++) {
+                console.log('mediaDevices('+sourceInfos[i].kind+')['+i+']: ' + sourceInfos[i].label);
                 if(sourceInfos[i].kind == 'audio') {
                     if(audioSourceN == ai) {
                         audioSource = sourceInfos[i].id;
@@ -123,7 +123,13 @@ function getMedia() {
 }
 
 function broadcastOnLoad() {
-    //document.cookie = "authCookieJS12242016=%$AUTHCOOKIE$%; path=/";
+
+    if(navigator.userAgent.indexOf('iPhone') >= 0 || navigator.userAgent.indexOf('iPad') >= 0) {
+        if (confirm('browser not supported, visit the github project for help (iOS?))')) {
+            window.location = 'https://github.com/justinb01981/tiny-webrtc-gw/wiki';
+        }
+    }
+
     if(document.cookie == '') {
         location = 'login.html';
     }

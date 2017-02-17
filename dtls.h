@@ -455,6 +455,12 @@ DTLS_accept_read(peer_session_t* peer, DTLS_read_cb cb_read)
 }
 
 inline static int
+DTLS_connect(peer_session_t* peer, DTLS_read_cb cb_read)
+{
+    return 0;
+}
+
+inline static int
 DTLS_write(peer_session_t* peer, u8 *buf, unsigned int len)
 {
     int ret = /*SSL_write(peer->dtls.ssl, buf, len);*/ BIO_write(SSL_get_rbio(peer->dtls.ssl), buf, len);

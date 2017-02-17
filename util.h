@@ -1,6 +1,7 @@
 #ifndef __util_h__
 #define __util_h__
 
+#include <assert.h>
 #include "peer.h"
 
 #define PEER_ANSWER_SDP_GET(peer, val, index) \
@@ -104,6 +105,48 @@ sdp_read(const char* sdp, const char* key)
 static int PEER_INDEX(peer_session_t* ptr)
 {
     return (ptr - (&peers[0]));
+}
+
+static const char* websocket_header_upgrade_token = "Sec-WebSocket-Key: ";
+
+char* websocket_accept_header(const char* headers_buf, char storage[256]) {
+    char buf[512], result[512];
+    const char* header_token = websocket_header_upgrade_token;
+    const char* ws_const = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+
+    char* key = strstr(headers_buf, header_token);
+
+    memset(storage, 0, 256);
+
+    if(!key) {
+        return storage;
+    }
+
+    key += strlen(header_token);
+    int l = 0;
+    while(key[l] != '\r' && key[l] != '\n' && key[l] != '\0') l++;
+    strncpy(buf, key, l);
+    buf[l] = '\0';
+    strcat(buf, ws_const);
+
+    sha1(buf, strlen(buf), result);
+
+    EVP_ENCODE_CTX ctx;
+    int b64_len = 0;
+
+    EVP_EncodeInit(&ctx);
+    EVP_EncodeUpdate(&ctx, storage, &b64_len, result, strlen(result));
+    EVP_EncodeFinal(&ctx, storage, &b64_len);
+    return storage;
+}
+
+static void print_bytes(char* str, size_t len) {
+    while(len > 0) {
+        if(*str >= '/' && *str <= 'z') printf("%c", *str);
+        else printf("*");
+        str++;
+        len--;
+    }
 }
 
 #endif /* __util_h__ */

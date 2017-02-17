@@ -26,15 +26,16 @@ char *file_read(char* path, unsigned int* len_out)
         fseek(fp, 0, SEEK_END);
         len = ftell(fp);
 
-        if(len >= 0 && len < max_len)
+        if(len > 0 && len < max_len)
         {
             buf = malloc(len+1);
             buf[len] = '\0';
             fseek(fp, 0, SEEK_SET);
-            fread(buf, 1, len, fp);
+            len = fread(buf, 1, len, fp);
         }
         fclose(fp);
     }
+    if(len == 0) { free(buf); return NULL; }
     if(len_out) *len_out = len;
     return buf;
 }

@@ -26,6 +26,8 @@ typedef struct {
 #define ATTR_XOR_MAPPED_ADDRESS_SET(x, addr, _port) {x.type = htons(0x20); x.len = htons(0x8); x.proto = htons(0x1); x.port = _port; x.ip = addr;}
 #define ATTR_MAPPED_ADDRESS_SET(x, addr, _port) {x.type = htons(0x1); x.len = htons(0x8); x.proto = htons(0x1); x.port = _port; x.ip = addr;}
 #define ATTR_RELAY_ADDRESS_SET(x, addr, _port) {x.type = htons(0x16); x.len = htons(0x8); x.proto = htons(0x1); x.port = _port; x.ip = addr;}
+#define ATTR_SRC_ADDRESS_SET(x, addr, _port) {x.type = htons(0x04); x.len = htons(0x8); x.proto = htons(0x1); x.port = _port; x.ip = addr;}
+#define ATTR_CHG_ADDRESS_SET(x, addr, _port) {x.type = htons(0x05); x.len = htons(0x8); x.proto = htons(0x1); x.port = _port; x.ip = addr;}
 typedef struct {
     u16 type; // 0x0020
     u16 len;  // 0x0008;
@@ -125,6 +127,10 @@ typedef struct
         } ATTR_PACKED stun_binding_request2;
 
         struct {
+            attr_fingerprint fingerprint;
+        } ATTR_PACKED stun_binding_request3;
+
+        struct {
             attr_xor_mapped_address xor_mapped_address;
             attr_hmac_sha1 hmac_sha1;
             attr_fingerprint fingerprint;
@@ -134,6 +140,13 @@ typedef struct
             attr_xor_mapped_address xor_mapped_address;
             attr_fingerprint fingerprint;
         } ATTR_PACKED stun_binding_response2;
+
+        struct {
+            attr_xor_mapped_address mapped_address;
+            attr_xor_mapped_address src_address;
+            attr_xor_mapped_address chg_address;
+            attr_fingerprint fingerprint;
+        } ATTR_PACKED stun_binding_response3;
 
         struct {
             attr_request_transport req_trans;
@@ -148,7 +161,7 @@ typedef struct
             attr_fingerprint fingerprint;
         } ATTR_PACKED stun_allocate_response1;
 
-        char udp_buffer[256];
+        char udp_buffer[1024];
     } ATTR_PACKED attrs;
 } ATTR_PACKED stun_binding_msg_t;
 
