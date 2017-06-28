@@ -1,2 +1,2 @@
-char str_read_key_buf[2048];
+char str_read_key_buf[4096];
 

@@ -1,23 +1,41 @@
 <html>
 <meta http-equiv="Cache-Control" content="no-store" />
+<script src="js/chatlog.js"></script>
 <script language="javascript">
-var textfield1;
 var msgfield1;
 var focused = null;
-var bChatrefresh = true;
+var iframeRefresh = null;
+var CHATURL = '/content/chat.html';
+var chatRefreshTimestamp = %$CHATLOGTSVALUE$%;
 function onload() {
     var refresh_interval = 5000;
 
     focused = null;
 
-    textfield1 = document.getElementById("chatlog");
     msgfield1 = document.getElementById("chatmsg");
 
     msgfield1.onfocus = function() { setFocus(msgfield1);};
     msgfield1.onblur = function() { loseFocus(msgfield1);};
 
-    setInterval(function () {if(focused == null && bChatrefresh) window.location.reload();}, refresh_interval);
+    textRefresh();
 
+    if(window.parent.location.pathname != CHATURL) {
+        // top-level chat iframe
+        iframeRefresh = document.getElementById('chatIFrame');
+
+        setInterval(function () {
+            iframeRefresh.src = 'chat_iframe.html';
+        }, refresh_interval);
+    }
+
+    var ul = document.getElementById('chatloglist');
+    appendMessagesToUnorderedList(ul, jsChatlogLines);
+
+    msgfield1.scrollIntoView(false);
+}
+function textRefresh() {
+
+    var textfield1 = document.getElementById("chatlog");
 
     var text = textfield1.value;
     var loc = '' + document.location
@@ -28,9 +46,11 @@ function onload() {
     textfield1.value = text;
 
     textfield1.scrollTop = textfield1.scrollHeight;
+
 }
 function setRefresh(b) {
-    bChatrefresh = b;
+    var e = document.getElementById('autorefresh_check');
+    e.checked = b;
 }
 function setFocus(e) {
     setRefresh(false);
@@ -48,14 +68,14 @@ function sendmsg() {
     var msg = myUserName+':' + msgfield1.value;
     var find = ' ';
     var re = new RegExp(find, 'g');
-    msg = msg.replace(re, '&nbsp;');
+    //msg = msg.replace(re, '&nbsp;');
     msg += '\n';
     msgfield1.value = msg;
     document.msgform.submit();
 }
 </script>
 <body onload='onload();'>
-<table style='width:100%;'>
+<table style='width:100%;' border=2>
 <!--
 <tr style='height:100%;'><td>
 <select name='inputAddUser' id='inputAddUser'>
@@ -68,11 +88,13 @@ function sendmsg() {
 </td>
 </tr>
 -->
-<tr><td colspan=2>
-<textarea id="chatlog" style='width:100%;' rows=6>%$CHATLOGTEXTAREAVALUE$%</textarea>
+<tr><td colspan=2 style='width:50px; height:50px; size:fixed;'>
+    <textarea id="chatlog" style='width:100%; display:none;' rows=6>%$CHATLOGTEXTAREAVALUE$%</textarea>
+    <ul id='chatloglist'>
+    </ul>
 </td>
-<td>
-<input type='checkbox' onchange='setRefresh(!bChatrefresh);' checked>autorefresh</input>
+<td valign=bottom>
+<input type='checkbox' id='autorefresh_check' checked>autorefresh</input>
 </td></tr>
 <tr><td colspan=2>
 <form method=POST name="msgform" action="/chatmsg">
@@ -80,12 +102,19 @@ function sendmsg() {
   TODO:
 http://www.w3schools.com/code/tryit.asp?filename=FBHHTXY5KU17
 -->
-<textarea name="msg" id="chatmsg" style='width:100%;'></textarea>
+<textarea name="msg" id="chatmsg" style='width:100%; height:100%;'></textarea>
 </form>
 </td><td>
-<button onclick="sendmsg();">send msg</button>
+<button style='width:100%; height:100%;' onclick='sendmsg();'>send msg</button>
 </td>
 </tr>
 </table>
+
+<!-- refreshing iframe embed -->
+<input type='text' id='chattimestamp' value='%$CHATLOGTSVALUE$%' style='display: none;'></input>
+<iframe src='content/chat_iframe.html' id='chatIFrame' style='width:50%; height:20%; display:none;'>
+</iframe>
+<!-- end refreshing iframe -->
+
 </body>
 </html>

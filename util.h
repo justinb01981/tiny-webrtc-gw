@@ -44,7 +44,7 @@ str_read_from_key(char* key, char* buf, char* dest, char* endchars, unsigned int
     return str_read(p, dest, endchars, maxlen);
 }
 
-extern char str_read_key_buf[2048];
+extern char str_read_key_buf[4096];
 
 static char* str_read_unsafe(char* buf, char* key, int index)
 {

@@ -1,0 +1,20 @@
+<html>
+<head>
+<script language='javascript'>
+function onLoad() {
+  var chatlog1 = document.getElementById('chattimestamp');
+  var chatlogParent = window.parent.document.getElementById('chattimestamp');
+  var refreshCheckbox = window.parent.document.getElementById('autorefresh_check');
+  if(chatlog1.value != chatlogParent.value && refreshCheckbox.checked) {
+      window.parent.location = window.parent.location;
+  }
+}
+</script>
+</head>
+<body onLoad='onLoad()'>
+<p>chat-iframe
+<textarea id='chatlog'>
+</textarea>
+<input type='text' id='chattimestamp' value='%$CHATLOGTSVALUE$%'></input>
+</body>
+</html>

@@ -20,7 +20,7 @@ a=rtpmap:9 G722/8000/1
 a=rtpmap:0 PCMU/8000
 a=rtpmap:8 PCMA/8000
 a=setup:actpass
-a=ssrc:744719343 cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}
+a=ssrc:%$SDP_SSRC1$% cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}
 m=video 9 RTP/SAVPF 120 126 97
 c=IN IP4 0.0.0.0
 a=sendrecv
@@ -45,5 +45,5 @@ a=rtpmap:120 VP8/90000
 a=rtpmap:126 H264/90000
 a=rtpmap:97 H264/90000
 a=setup:actpass
-a=ssrc:790737109 cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}
+a=ssrc:%$SDP_SSRC2$% cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}
 

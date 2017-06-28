@@ -1,6 +1,10 @@
 function joinSDP()
 {
-var sdpStatic = "v=0\n" + 
+    var sdpStatic =
+        %$SDP_OFFER$%
+    ;
+    
+    var sdpDeprecated = "v=0\n" +
 "o=mozilla...THIS_IS_SDPARTA-38.0.1_cookie%$AUTHCOOKIE$% 1702670192771025677 0 IN IP4 0.0.0.0\n" + 
 "s=-\n" + 
 "t=0 0\n" + 
@@ -21,8 +25,9 @@ var sdpStatic = "v=0\n" +
 "a=rtpmap:9 G722/8000/1\n" + 
 "a=rtpmap:0 PCMU/8000\n" + 
 "a=rtpmap:8 PCMA/8000\n" + 
-"a=setup:actpass\n" + 
-"a=ssrc:744719343 cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\n" + 
+"a=setup:actpass\n" +
+/*"744719343"*/
+"a=ssrc:%$SDP_SSRC1$%"+" cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\n" +
 "m=video 9 RTP/SAVPF 120 126 97\n" + 
 "c=IN IP4 0.0.0.0\n" + 
 "a=sendrecv\n" + 
@@ -60,7 +65,8 @@ var sdpStatic = "v=0\n" +
 "a=rtpmap:126 H264/90000\n" +
 "a=rtpmap:97 H264/90000\n" +
 "a=setup:actpass\n" +
-"a=ssrc:790737109 cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\n"
+/*"790737109"*/
+"a=ssrc:%$SDP_SSRC2$%"+" cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\n"
 ;
   return sdpStatic;
 }

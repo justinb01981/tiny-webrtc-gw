@@ -11,6 +11,7 @@
 #include <arpa/inet.h>
 #include <time.h>
 #include <math.h>
+#include <fcntl.h>
 
 #include <openssl/ssl.h>
 #include <openssl/bio.h>
@@ -70,7 +71,6 @@
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
 
-int dtls_handoff = 0;
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS+1];
 FILECACHE_INSTANTIATE();
@@ -81,10 +81,17 @@ void chatlog_append(const char* msg);
 
 int listen_port = 0;
 
-char* counts_names[] = {"in_STUN", "in_SRTP", "in_UNK", "DROP", "BYTES_FWD", "", "USER_ID", "master", "rtp_underrun", "rtp_ok", "unknown_report_ssrc", "srtp_unprotect_fail", "buf_reclaimed_pkt", "buf_reclaimed_rtp", "snd_rpt_fix", "rcv_rpt_fix", "subscription_resume"};
-int counts[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+char* counts_names[] = {"in_STUN", "in_SRTP", "in_UNK", "DROP", "BYTES_FWD", "", "USER_ID", "master", "rtp_underrun", "rtp_ok", "unknown_report_ssrc", "srtp_unprotect_fail", "buf_reclaimed_pkt", "buf_reclaimed_rtp", "snd_rpt_fix", "rcv_rpt_fix", "subscription_resume", "recv_timeout"};
+int counts[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 char counts_log[255] = {0};
 int stun_binding_response_count = 0;
+
+sdp_offer_table_t sdp_offer_table;
+
+unsigned long connection_worker_backlog_highwater = 0;
+
+const static udp_recv_timeout_usec_min = 10;
+const static udp_recv_timeout_usec_max = 1000000;
 
 int bindsocket( char* ip, int port , int tcp);
 int main( int argc, char* argv[] );
@@ -113,8 +120,7 @@ u_int32_t get_rtp_timestamp32()
 
 unsigned long get_time_ms()
 {
-
-    struct timeval te; 
+    struct timeval te;
     gettimeofday(&te, NULL); // get current time
     long long milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // caculate milliseconds
     return milliseconds;
@@ -159,10 +165,15 @@ int bindsocket( char* ip, int port, int tcp) {
     return fd;
 }
 
+int blockingsocket(int fd, int blocking)
+{
+    return fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
+}
+
 int waitsocket(int fd, int sec, int usec)
 {
     struct timeval tv;
-
+    
     memset(&tv, 0, sizeof(tv));
     tv.tv_sec = sec;
     tv.tv_usec = usec;
@@ -405,7 +416,7 @@ peer_rtp_send_worker(void* p)
             if(peer->srtp[rtp_idx].inited)
             {
                 peer_buffer_node_t* cur;
-                char buf_send[4096];
+                char buf_send[PEER_BUFFER_NODE_BUFLEN];
                 u32 ts_initial = peer_subscription_ts_initial(peers, peer->subscriptionID, rtp_idx);
                 cur = peer_subscription(peers, peer->subscriptionID, rtp_idx, &(peer->subscription_ptr[rtp_idx]));
 
@@ -590,15 +601,21 @@ connection_worker(void* p)
 
     int rtp_idx;
     int buffer_count_max = 1000;
+    
+    char rtpFrameBuffer[PEER_BUFFER_NODE_BUFLEN];
+    rtp_frame_t *rtpFrame = (rtp_frame_t*) rtpFrameBuffer;
 
     u32 answer_ssrc[PEER_RTP_CTX_WRITE] = {1, 2};
     u32 offer_ssrc[PEER_RTP_CTX_WRITE];
 
     thread_init();
-
-    while(!peer->thread_inited) usleep(1000);
     
     printf("%s:%d sdp answer:\n %s\nsdp offer:\n%s\n", __func__, __LINE__, peer->sdp.answer, peer->sdp.offer);
+    
+    while(peer->alive && (strlen(peer->sdp.offer) == 0 || strlen(peer->sdp.answer) == 0))
+    {
+        sleep_msec(1);
+    }
 
     if(strstr(peer->sdp.answer, "a=recvonly")) { peer->recv_only = 1; }
 
@@ -613,20 +630,19 @@ connection_worker(void* p)
     }
 
     offer_ssrc[0] = strToInt(PEER_OFFER_SDP_GET(peer, "a=ssrc:", 0));
-    offer_ssrc[1] = offer_ssrc[0];
-    ssrc_idx = 0;
-    while(offer_ssrc[1] == offer_ssrc[0])
-    {
-        offer_ssrc[1] = strToInt(PEER_OFFER_SDP_GET(peer, "a=ssrc:", ssrc_idx));
-        ssrc_idx++;
-    }
+    offer_ssrc[1] = strToInt(PEER_OFFER_SDP_GET(peer, "a=ssrc:", 1));
 
     strcpy(peer->stun_ice.ufrag_answer, PEER_ANSWER_SDP_GET(peer, "a=ice-ufrag:", 0));
     strcpy(peer->stun_ice.answer_pwd, PEER_ANSWER_SDP_GET(peer, "a=ice-pwd:", 0));
     strcpy(peer->stun_ice.offer_pwd, PEER_OFFER_SDP_GET(peer, "a=ice-pwd:", 0));
     strcpy(peer->stun_ice.ufrag_offer, PEER_OFFER_SDP_GET(peer, "a=ice-ufrag:", 0));
 
-    printf("%s:%d (ufrag-offer:%s ufrag-answer:%s pwd-answer:%s pwd-offer:%s)\n", __func__, __LINE__, peer->stun_ice.ufrag_offer, peer->stun_ice.ufrag_answer, peer->stun_ice.answer_pwd, peer->stun_ice.offer_pwd);
+    stats_printf(counts_log, "%s:%d (ufrag-offer:%s ufrag-answer:%s pwd-answer:%s pwd-offer:%s, "
+                 "offer_ssrc:%u/%u answer_ssrc:%u/%u)\n", __func__, __LINE__,
+                 peer->stun_ice.ufrag_offer, peer->stun_ice.ufrag_answer,
+                 peer->stun_ice.answer_pwd, peer->stun_ice.offer_pwd,
+                 offer_ssrc[0], offer_ssrc[1], answer_ssrc[0], answer_ssrc[1]);
+    printf("%s", counts_log);
 
     peer->time_last_run = time(NULL);
 
@@ -646,9 +662,8 @@ connection_worker(void* p)
     }
     else
     {
-        chatlog_append(" broadcasting ($SUBSCRIBELINK");
+        chatlog_append(" broadcasting $SUBSCRIBELINK");
         chatlog_append(peer->name);
-        chatlog_append(")");
     }
 
     chatlog_append("\n");
@@ -695,22 +710,25 @@ connection_worker(void* p)
 
     peer->running = 1;
 
-    char rtpFrameBuffer[4096];
-    rtp_frame_t *rtpFrame = (rtp_frame_t*) rtpFrameBuffer;
-
+    unsigned long backlog_counter = 0;
+    
     while(peer->alive)
     {
         unsigned int buffer_count;
         unsigned long time_ms;
+        
         time_t time_sec;
 
-        while(peer->alive && peer->cleanup_in_progress)
+        if(peer->cleanup_in_progress) peer->cleanup_in_progress = 2;
+        
+        while(peer->alive && peer->cleanup_in_progress != 0)
         {
-            sleep_msec(10);
+            //sleep_msec(1);
         }
+        
         if(!peer->alive) break;
 
-        PEER_THREAD_LOCK(peer);
+        PEER_THREAD_WAITSIGNAL(peer);
 
         buffer_next = NULL;
 
@@ -736,31 +754,29 @@ connection_worker(void* p)
 
         peer->time_last_run = time(NULL);
 
-        if(dtls_handoff)
-        {
-            goto dtls_again;
-        }
-
         if(!peer->in_buffers_head.next)
         {
+            backlog_counter = 0;
             goto peer_again;
         }
 
         buffer_next = peer->in_buffers_head.next;
         while(buffer_next->next && buffer_next->consumed) buffer_next = buffer_next->next;
 
-        if(buffer_next->consumed) goto peer_again;
+        if(buffer_next->consumed) { backlog_counter = 0; goto peer_again; }
 
-        char buffer[4096];
-        char buffer_last[4096];
-        char buffer_report[4096];
+        char buffer[PEER_BUFFER_NODE_BUFLEN];
+        char buffer_last[PEER_BUFFER_NODE_BUFLEN];
+        char buffer_report[PEER_BUFFER_NODE_BUFLEN];
         int length = buffer_next->len;
 
-        memset(buffer, 0, sizeof(buffer));
         memcpy(buffer, buffer_next->buf, length);
 
         unsigned long buffer_next_recv_time = buffer_next->recv_time;
 
+        backlog_counter++;
+        if(backlog_counter > connection_worker_backlog_highwater) connection_worker_backlog_highwater = backlog_counter;
+        
         buffer_next->consumed = 1;
 
         memcpy(buffer_last, buffer, length);
@@ -795,18 +811,12 @@ connection_worker(void* p)
                 int has_hmac = 1;
                 unsigned int send_len;
                 unsigned int attr_len = 0;
-                /*
+                
                 if(ntohs(bind_req->hdr.len) == 0)
                 {
-                    has_hmac = 1;
-                    attr_len = sizeof(bind_resp->attrs.stun_binding_response3);
-                    ATTR_MAPPED_ADDRESS_SET((bind_resp->attrs.stun_binding_response3.mapped_address), (resp_addr), htons(p));
-                    ATTR_SRC_ADDRESS_SET((bind_resp->attrs.stun_binding_response3.src_address), (resp_addr), htons(p));
-                    ATTR_CHG_ADDRESS_SET((bind_resp->attrs.stun_binding_response3.chg_address), (resp_addr), htons(p));
+                    printf("unknown STUN binding request with HDR len 0\n");
                 }
-                else
-                */
-                if(ntohs(bind_resp->hdr.len) == 8)
+                else if(ntohs(bind_resp->hdr.len) == 8)
                 {
                     has_hmac = 0;
                     attr_len = sizeof(bind_resp->attrs.stun_binding_response2);
@@ -814,6 +824,21 @@ connection_worker(void* p)
                 else
                 {
                     attr_len = sizeof(bind_resp->attrs.stun_binding_response1);
+                    
+                    /*
+                     stun_binding_msg_t* stunmsg = (stun_binding_msg_t*) buffer;
+                     stats_printf(counts_log, "spoofing STUN response\n");
+                     u16 resp_port = htons(strToInt(get_stun_local_port()));
+                     u32 resp_addr = inet_addr(get_stun_local_addr());
+                     
+                     stunmsg->hdr.type = htons(0x0101);
+                     stunmsg->hdr.len = htons(sizeof(stunmsg->attrs.stun_binding_response3)-sizeof(attr_fingerprint));
+                     ATTR_MAPPED_ADDRESS_SET((stunmsg->attrs.stun_binding_response3.mapped_address), resp_addr, resp_port);
+                     ATTR_SRC_ADDRESS_SET((stunmsg->attrs.stun_binding_response3.src_address), resp_addr, resp_port);
+                     ATTR_CHG_ADDRESS_SET((stunmsg->attrs.stun_binding_response3.chg_address), resp_addr, resp_port);
+                     
+                     peer_send_block(peer, (char*) stunmsg, sizeof(stunmsg)+sizeof(stunmsg->attrs.stun_binding_response3));
+                     */
                 }
 
                 bind_resp->hdr.len = htons(attr_len - sizeof(attr_fingerprint)); // dont include fingerprint in calc
@@ -1056,10 +1081,10 @@ connection_worker(void* p)
                         else  /* is_receiver_report */
                         {
                             u32 tscur = timestamp_get();
-                            if(peer->report.receiver_tslast - tscur < RECEIVER_REPORT_MIN_INTERVAL_MS) { break; }
+                            if(tscur - peer->report.receiver_tslast < RECEIVER_REPORT_MIN_INTERVAL_MS) { break; }
                             peer->report.receiver_tslast = tscur;
 
-                            char reportclone[4096];
+                            char reportclone[PEER_BUFFER_NODE_BUFLEN];
 
                             memcpy(reportclone, report, length);
 
@@ -1176,13 +1201,13 @@ connection_worker(void* p)
                                peers[p].srtp[rtp_idx].inited)
                             {
                                 int rtp_idx_write = rtp_idx + PEER_RTP_CTX_WRITE;
-                                char buf[4096];
+                                char buf[PEER_BUFFER_NODE_BUFLEN];
                                 rtp_frame_t *rtp_frame_out = (rtp_frame_t*) buf;
 
                                 lengthPeer = srtp_len;
                                 memcpy(rtp_frame_out, rtpFrame, lengthPeer);
 
-                                rtp_frame_out->hdr.seq_src_id = htonl(offer_ssrc[rtp_idx]);
+                                rtp_frame_out->hdr.seq_src_id = htonl(peers[p].srtp[rtp_idx_write].ssrc);
 
                                 if(srtp_protect(peers[p].srtp[rtp_idx_write].session, rtp_frame_out, &lengthPeer) == err_status_ok)
                                 {
@@ -1259,11 +1284,6 @@ connection_worker(void* p)
                 }
             }
         }
-        else
-        {
-            dtls_handoff = 1;
-            DTLS_accept_read(peer, cb_print);
-        }
 
         if(peer->dtls.connected && !peer->srtp_inited)
         {
@@ -1323,6 +1343,8 @@ int main( int argc, char* argv[] ) {
 
     srtp_init();
     srtp_install_event_handler(bogus_srtp_event_handler);
+    
+    sdp_offer_table.next = 1;
 
     //strcpy(udpserver.inip, get_config("udpserver_addr="));
     strcpy(udpserver.inip, "0.0.0.0"); // for now bind to all interfaces
@@ -1332,71 +1354,53 @@ int main( int argc, char* argv[] ) {
      
     listen = bindsocket( udpserver.inip, udpserver.inport, 0 );
     output = listen;
+    
+    // make socket non-blocking
+    blockingsocket(listen, 0);
 
     listen_port = udpserver.inport;
  
     ret.sin_addr.s_addr = 0;
-
-    int timeout_freq = /* MAX_PEERS */ strToInt(get_config("udp_peer_write_interval="));
-    int timeout_counter = timeout_freq;
-    int udp_recv_timeout_usec = strToInt(get_config("udp_read_timeout_usec="));
+    
+    //int udp_recv_timeout_usec = strToInt(get_config("udp_read_timeout_usec="));
+    unsigned udp_recv_timeout_usec = 1000;
 
     DTLS_init(udpserver.inport);
 
     webserver_init();
     pthread_create(&thread_webserver, NULL, webserver_accept_worker, NULL);
 
-    while( 1 )
+    while(1)
     {
-        char buffer[PEER_BUFFER_NODE_BUFLEN], buffer_last[PEER_BUFFER_NODE_BUFLEN];
-        unsigned int size = sizeof( src );
+        char buffer[PEER_BUFFER_NODE_BUFLEN];
+        unsigned int size;
         int recv_flags = 0;
-
-        timeout_counter--;
-        if(timeout_counter == 0)
-        {
-            timeout_counter = timeout_freq;
-
-            if(waitsocket(listen, 0, udp_recv_timeout_usec) <= 0)
-            {
-                goto select_timeout;
-            }
-        }
-        else goto select_timeout;
-       
-        if(dtls_handoff)
-        {
-            goto select_timeout;
-        }
-    
-        int length = recvfrom( listen, buffer, sizeof( buffer ), recv_flags, (struct sockaddr*)&src, &size );
-        if( length <= 0 )
-            continue;
-
-        int length_last = length;
-        memcpy(buffer_last, buffer, length_last);
-
+        struct timeval te;
+        
+        gettimeofday(&te, NULL); // get current time
+        
         static time_t time_last_stats = 0;
-
+        
         if(time(NULL) - time_last_stats > 2)
         {
             /* print counters */
             int c;
-            printf("\n");            
+            
+            printf("\n");
             for(c = 0; c < sizeof(counts)/sizeof(int); c++) printf("%s:%d ", counts_names[c], counts[c]);
             printf("time=%lu", get_time_ms());
             printf("\n");
             time_last_stats = time(NULL);
-
+            
             for(c = 0; c < MAX_PEERS; c++)
             {
                 if(peers[c].alive)
                 {
                     printf("peer[%d] %s/%s:%s stats:", c, peers[c].name, peers[c].stun_ice.ufrag_offer, peers[c].stun_ice.ufrag_answer);
-
+                    
                     peers[c].stats.stat[0] = peers[c].stun_ice.bind_req_rtt;
                     peers[c].stats.stat[1] = time(NULL) - peers[c].time_start;
-
+                    
                     int si;
                     for(si = 0; si < sizeof(peers[c].stats)/sizeof(peers[c].stats.stat[0]); si++)
                     {
@@ -1405,10 +1409,33 @@ int main( int argc, char* argv[] ) {
                     printf("\n");
                 }
             }
-
+            
             printf("last log:\n%s\n", counts_log);
             counts_log[0] = '\0';
+            
+            // compare high-water mark of packet backlog and adjust timeout interval
+            static unsigned long _connection_worker_backlog_highwater = 0;
+            if(connection_worker_backlog_highwater == 0 || connection_worker_backlog_highwater <= _connection_worker_backlog_highwater)
+            {
+                if(udp_recv_timeout_usec < udp_recv_timeout_usec_max) udp_recv_timeout_usec += udp_recv_timeout_usec_min * 2;
+            }
+            else
+            {
+                udp_recv_timeout_usec -= udp_recv_timeout_usec_min;
+                if(udp_recv_timeout_usec < udp_recv_timeout_usec_min) udp_recv_timeout_usec = udp_recv_timeout_usec_min;
+            }
+            
+            _connection_worker_backlog_highwater = connection_worker_backlog_highwater;
+            connection_worker_backlog_highwater = 0;
+            counts[17] = udp_recv_timeout_usec;
         }
+        
+        usleep(udp_recv_timeout_usec);
+    
+        size = sizeof(src);
+        int length = recvfrom(listen, buffer, sizeof(buffer), recv_flags, (struct sockaddr*)&src, &size);
+        if(length <= 0)
+            goto select_timeout;
 
         int inkey = 0;
 
@@ -1424,11 +1451,8 @@ int main( int argc, char* argv[] ) {
         {
             if(peers[i].alive &&
                (src.sin_addr.s_addr == peers[i].addr.sin_addr.s_addr &&
-                src.sin_port == peers[i].addr.sin_port) 
-             /* || peers[i].stunID32 == stunID(buffer, length)*/
-              )
+                src.sin_port == peers[i].addr.sin_port))
             {
-                //printf("found stunID: %d\n", stunID(buffer, length));
                 sidx = i;
                 peers[sidx].time_pkt_last = time(NULL);
                 break;
@@ -1440,6 +1464,7 @@ int main( int argc, char* argv[] ) {
             int p;
             char stun_uname[64];
             char stun_uname_expected[64];
+            int send_stun_response = 0;
 
             stun_username(buffer, length, stun_uname);
 
@@ -1455,6 +1480,7 @@ int main( int argc, char* argv[] ) {
                 {
                     sidx = p;
                     printf("stun_locate: found peer %s (%s)\n", stun_uname, peers[sidx].name);
+                    send_stun_response = 1;
                     break;
                 }
 
@@ -1471,43 +1497,42 @@ int main( int argc, char* argv[] ) {
 
             if(sidx == -1)
             {
-                // send back stun binding response
-                {
-                    stun_binding_response_count++;
-
-                    stun_binding_msg_t* stunmsg = (stun_binding_msg_t*) buffer;
-                    if(strlen(stun_uname) == 0)
-                    {
-                        stats_printf(counts_log, "spoofing STUN response\n");
-                        u16 resp_port = htons(strToInt(get_stun_local_port()));
-                        u32 resp_addr = inet_addr(get_stun_local_addr());
-
-                        stunmsg->hdr.type = htons(0x0101);
-                        stunmsg->hdr.len = htons(sizeof(stunmsg->attrs.stun_binding_response3)-sizeof(attr_fingerprint));
-                        ATTR_MAPPED_ADDRESS_SET((stunmsg->attrs.stun_binding_response3.mapped_address), resp_addr, resp_port);
-                        ATTR_SRC_ADDRESS_SET((stunmsg->attrs.stun_binding_response3.src_address), resp_addr, resp_port);
-                        ATTR_CHG_ADDRESS_SET((stunmsg->attrs.stun_binding_response3.chg_address), resp_addr, resp_port);
-
-                        sendto(listen, stunmsg, sizeof(stunmsg)+sizeof(stunmsg->attrs.stun_binding_response3), 0, (struct sockaddr*) &src, sizeof(src));
-                    }
-                    else
-                    {
-                        stats_printf(counts_log, "ICE binding request: failed to find user-fragment (%s)\n", stun_uname);
-                    }
-                }
-
                 if(webserver.peer_index_sdp_last >= 0)
                 {
                     printf("stun_locate: anonymous peer found: %s\n", stun_uname);
                     sidx = webserver.peer_index_sdp_last;
+                    
                     webserver.peer_index_sdp_last = -1;
                 }
                 else
                 {
+                    stats_printf(counts_log, "ICE binding request: failed to find user-fragment (%s)\n", stun_uname);
+                    printf("ICE binding request: failed to find user-fragment (%s)\n", stun_uname);
                     goto select_timeout;
                 }
             }
+            
+            /*
+            if(send_stun_response)
+            {
+                // send back stun binding response
+                stun_binding_response_count++;
 
+                stun_binding_msg_t* stunmsg = (stun_binding_msg_t*) buffer;
+                stats_printf(counts_log, "spoofing STUN response\n");
+                u16 resp_port = htons(strToInt(get_stun_local_port()));
+                u32 resp_addr = inet_addr(get_stun_local_addr());
+
+                stunmsg->hdr.type = htons(0x0101);
+                stunmsg->hdr.len = htons(sizeof(stunmsg->attrs.stun_binding_response3)-sizeof(attr_fingerprint));
+                ATTR_MAPPED_ADDRESS_SET((stunmsg->attrs.stun_binding_response3.mapped_address), resp_addr, resp_port);
+                ATTR_SRC_ADDRESS_SET((stunmsg->attrs.stun_binding_response3.src_address), resp_addr, resp_port);
+                ATTR_CHG_ADDRESS_SET((stunmsg->attrs.stun_binding_response3.chg_address), resp_addr, resp_port);
+
+                sendto(listen, stunmsg, sizeof(stunmsg)+sizeof(stunmsg->attrs.stun_binding_response3), 0, (struct sockaddr*) &src, sizeof(src));
+            }
+            */
+            
             // mark -- init new peer
             printf("%s:%d adding new peer (%s:%u)\n", __func__, __LINE__,
                    inet_ntoa(src.sin_addr), ntohs(src.sin_port));
@@ -1530,23 +1555,6 @@ int main( int argc, char* argv[] ) {
             peers[sidx].cleartext.len = 0;
 
             peers[sidx].alive = 1;
-            if(!peers[sidx].thread_inited)
-            {
-                pthread_mutex_init(&peers[sidx].mutex, NULL);
-                PEER_LOCK(sidx);
-
-                pthread_create(&peers[sidx].thread, NULL, connection_worker, (void*) &peers[sidx]);
-
-                int rtp_idx;
-                for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_WRITE; rtp_idx++)
-                {
-                    peer_rtp_send_worker_args_t *args = (peer_rtp_send_worker_args_t*) malloc(sizeof(peer_rtp_send_worker_args_t));
-                    args->peer = &peers[sidx];
-                    args->rtp_idx = rtp_idx;
-                    //pthread_create(&peers[sidx].thread_rtp_send, NULL, peer_rtp_send_worker, (void*) args);
-                }
-                peers[sidx].thread_inited = 1;
-            }
 
             counts[6]++;
         }
@@ -1560,9 +1568,6 @@ int main( int argc, char* argv[] ) {
             printf("%s:%d peer address updated (duplicate STUN cookie)\n", __func__, __LINE__);
             memcpy(&peers[sidx].addr, &src, sizeof(src));
         }
-
-        /* drop packets until peer thread starts */
-        //if(!peers[sidx].running) goto select_timeout;
 
         if(length < 1 || length >= PEER_BUFFER_NODE_BUFLEN) goto select_timeout;
 
@@ -1580,29 +1585,48 @@ int main( int argc, char* argv[] ) {
 
         if(node->recv_time - tail_prev->recv_time < peers[sidx].in_rate_ms) peers[sidx].in_rate_ms--;
         else peers[sidx].in_rate_ms++;
+        
+        assert(!peers[sidx].restart_needed, "received packet will be lost due to peer state reset\n");
 
-        continue;
-
+        // -- run every loop, not just when packets received
         select_timeout:
         i = 0;
         while(i < MAX_PEERS)
         {
             if(peers[i].alive)
             {
-                int repeat = 2;
-                while(repeat > 0)
+                if(!peers[i].thread_inited)
+                {
+                    printf("initializing thread\n");
+                    pthread_mutex_init(&peers[i].mutex, NULL);
+                    pthread_cond_init(&peers[i].mcond, NULL);
+                    PEER_LOCK(i);
+                    
+                    pthread_create(&peers[i].thread, NULL, connection_worker, (void*) &peers[i]);
+                    
+                    int rtp_idx;
+                    for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_WRITE; rtp_idx++)
+                    {
+                        peer_rtp_send_worker_args_t *args = (peer_rtp_send_worker_args_t*) malloc(sizeof(peer_rtp_send_worker_args_t));
+                        args->peer = &peers[i];
+                        args->rtp_idx = rtp_idx;
+                        //pthread_create(&peers[sidx].thread_rtp_send, NULL, peer_rtp_send_worker, (void*) args);
+                    }
+                    peers[i].thread_inited = 1;
+                    
+                    udp_recv_timeout_usec = udp_recv_timeout_usec_min;
+                }
+                
+                int repeat = 1;
+                while( repeat > 0 && peers[i].thread_inited)
                 {
                     /* signal peer thread to run */
                     PEER_UNLOCK(i);
+                    PEER_SIGNAL(i);
                     PEER_LOCK(i);
 
                     repeat--;
                 }
-            }
-            else
-            {
-                i++;
-                continue;
             }
 
             if(peers[i].bufs.out_len > 0)
@@ -1612,13 +1636,20 @@ int main( int argc, char* argv[] ) {
                 peers[i].bufs.out_len = 0;
             }
 
-            if(time(NULL) - peers[i].time_cleanup_last >= 1)
+            time_t curtime = time(NULL);
+            
+            if(curtime - peers[i].time_cleanup_last > 1 && peers[i].alive)
             {
                 /* HACK: lock out all reader-threads */
                 peers[i].cleanup_in_progress = 1;
-                sleep_msec(peer_rtp_send_worker_delay_max * 2);
+                while(peers[i].running && peers[i].cleanup_in_progress != 1)
+                {
+                    PEER_UNLOCK(i);
+                    PEER_SIGNAL(i);
+                    PEER_LOCK(i);
+                }
 
-                peers[i].time_cleanup_last = time(NULL);
+                peers[i].time_cleanup_last = curtime;
 
                 while(1)
                 {
@@ -1663,13 +1694,10 @@ int main( int argc, char* argv[] ) {
             }
 
             if(peers[i].restart_needed ||
-               (
-                peers[i].alive &&
-                time(NULL) - peers[i].time_pkt_last > peers[i].timeout_sec)
-              )
-             
+               (peers[i].alive &&
+                time(NULL) - peers[i].time_pkt_last > peers[i].timeout_sec))
             {
-                printf("%s:%d timeout/reclaim peer\n", __func__, __LINE__);
+                printf("%s:%d timeout/reclaim peer %d/n", __func__, __LINE__, i);
 
                 sprintf(buffer, "%s ", peers[i].name);
                 chatlog_append(buffer);
@@ -1698,15 +1726,23 @@ int main( int argc, char* argv[] ) {
 
                 peers[i].cleanup_in_progress = 0;
 
-                PEER_UNLOCK(i);
-                while(peers[i].running) usleep(1000);
-                PEER_LOCK(i);
-
-                if(peers[i].thread_inited)
+                if(peers[i].running)
                 {
+                    PEER_UNLOCK(i);
+                    PEER_SIGNAL(i);
+                    while(peers[i].running) sleep_msec(1);
+                    PEER_LOCK(i);
+                }
+
+                if(peers[i].thread_inited &&
+                   time(NULL) - peers[i].time_pkt_last > peers[i].timeout_sec)
+                {
+                    printf("%s:%d terminating peer %d threads\n", __func__, __LINE__, i);
+                    
                     //pthread_join(peers[i].thread_rtp_send, NULL);
                     pthread_join(peers[i].thread, NULL);
                     pthread_mutex_destroy(&peers[i].mutex);
+                    pthread_cond_destroy(&peers[i].mcond);
                     peers[i].thread_rtp_send = 0;
                     peers[i].thread = 0;
                     peers[i].thread_inited = 0;
@@ -1745,7 +1781,7 @@ int main( int argc, char* argv[] ) {
                 peers[i].cleanup_in_progress = 0;
                 peers[i].subscribed = 0;
 
-                while(peers[i].restart_needed) usleep(1000);
+                while(peers[i].restart_needed) sleep_msec(1);
                 peers[i].restart_done = 0;
 
                 printf("%s:%d reclaim peer DONE (alive=%d)\n", __func__, __LINE__, peers[i].alive);

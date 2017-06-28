@@ -11,11 +11,15 @@
 #define sha1_ sha1
 #define assert_ assert
 
+#define CHATLOG_SIZE 16384
+
 extern int listen_port;
 extern peer_session_t peers[];
 extern int stun_binding_response_count;
 
-static char g_chatlog[2048016];
+static char g_chatlog[CHATLOG_SIZE];
+
+static time_t g_chatlog_ts;
 
 extern int sdp_prefix_set(const char*);
 
@@ -48,12 +52,13 @@ typedef struct {
 
 static char *tag_icecandidate = "%$RTCICECANDIDATE$%";
 static char *tag_room_ws = "%$ROOMNAME$%";
+static char *tag_sdp_offer1 = "%$SDP_OFFER$%";
 static char* tag_joinroom_ws = "POST /join/";
 static char* tag_msgroom_ws = "POST /message/domain17/";
 
 
 char*
-macro_str_expand(char* buf, char* tag, char* replace)
+macro_str_expand(char* buf, const char* tag, const char* replace)
 {
     char* ret = buf;
     while(1)
@@ -86,25 +91,46 @@ macro_str_expand(char* buf, char* tag, char* replace)
     return ret;
 }
 
-void
-chatlog_append(const char* pchatmsg)
-{ 
-    char *pto = g_chatlog, *pfrom = g_chatlog;
-    while(*pfrom && strlen(pfrom) + strlen(pchatmsg) >= sizeof(g_chatlog)-1) pfrom++;
-    memmove(pto, pfrom, strlen(pfrom));
-    strcat(pto, pchatmsg);
-
-    file_write2(g_chatlog, strlen(g_chatlog), "chatlog.txt");
+const char*
+chatlog_read()
+{
+    return (const char*) g_chatlog;
 }
 
+void
+chatlog_append(const char* pchatmsg)
+{
+    if(strlen(pchatmsg) > CHATLOG_SIZE-1) return;
+    
+    while(strlen(g_chatlog)+strlen(pchatmsg) >= CHATLOG_SIZE-1)
+    {
+        int i = 0;
+        for(i = 0; i < CHATLOG_SIZE; i++)
+        {
+            g_chatlog[i] = g_chatlog[i+1];
+        }
+    }
+    char *pto = g_chatlog+strlen(g_chatlog), *pfrom = (char*) pchatmsg;
+    
+    strcat(g_chatlog, pchatmsg);
+
+    file_write2(g_chatlog, strlen(g_chatlog), "chatlog.txt");
+    g_chatlog_ts = time(NULL);
+}
 
 void
 chatlog_reload()
 {
     int file_buf_len = 0;
-    memset(g_chatlog, 0, sizeof(g_chatlog));
+    
+    memset(g_chatlog, 0, CHATLOG_SIZE);
+    
     char* file_buf = file_read("chatlog.txt", &file_buf_len);
-    if(file_buf) strcpy(g_chatlog, file_buf);
+    if(file_buf)
+    {
+        chatlog_append(file_buf);
+        free(file_buf);
+    }
 }
 
 static void*
@@ -262,19 +288,17 @@ websocket_worker(void* p)
                     {
                         peer_init(peer, PEER_INDEX(peer));
 
-                        int file_buf_len = 0;
-                        char* file_buf = file_read("content/apprtc/init.txt", &file_buf_len);
+                        const char* sdp_offer_pending = sdp_offer_create_apprtc();
+                    
+                        char* offersdp = strdup(sdp_offer_pending);
+                        
+                        if(offersdp) offersdp = str_replace_nested_escapes(offersdp);
+                        
+                        strcpy(peer->sdp.offer, offersdp);
 
-                        if(file_buf_len > 0)
-                        {
-                            char* offersdp = strdup(file_buf);
-                            if(offersdp) offersdp = str_replace_nested_escapes(offersdp);
-                            strncpy(peer->sdp.offer, offersdp, sizeof(peer->sdp.offer)-1);
- 
-                            strcpy(peer->stun_ice.ufrag_offer, sdp_read(offersdp, "a=ice-ufrag:"));
+                        strcpy(peer->stun_ice.ufrag_offer, sdp_read(offersdp, "a=ice-ufrag:"));
 
-                            free(offersdp);
-                        }
+                        free(offersdp);
 
                         if(sdp)
                         {
@@ -343,6 +367,7 @@ websocket_worker(void* p)
                     else if(state == WS_STATE_WRITESDP) {
                         int file_buf_len = 0;
                         char* file_buf = file_read("content/apprtc/offer.txt", &file_buf_len);
+                        
                         if(file_buf_len > 0) {
                             strcpy(sendbuf, file_buf);
                             send_len = file_buf_len;
@@ -404,10 +429,13 @@ webserver_worker(void* p)
     char *tag_peerlist_jsarray = "%$PEERLISTJSARRAY$%";
     char *tag_stunconfig_js = "%$STUNCONFIGJS$%";
     char *tag_chatlogvalue = "%$CHATLOGTEXTAREAVALUE$%";
+    char *tag_chatlogjs = "%$CHATLOGJSARRAY$%";
+    char *tag_chatlogtsvalue = "%$CHATLOGTSVALUE$%";
     char *tag_watchuser = "watch?user=";
     char *tag_login = "login.html";
     char *tag_login_apprtc = "/login/";
     char *tag_logout = "logout.html";
+    char *tag_sdp = "%$SDP_OFFER$%";
     char *tag_authcookie = "%$AUTHCOOKIE$%";
     const size_t buf_size = 4096;
     int use_user_fragment_prefix = 1;
@@ -441,7 +469,7 @@ webserver_worker(void* p)
         {
             char recvbuf[buf_size];
 
-            printf("%s:%d connection (%s:%d)\n", __func__, __LINE__, inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
+            //printf("%s:%d connection (%s:%d)\n", __func__, __LINE__, inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
 
             memset(recvbuf, 0, sizeof(recvbuf));
 
@@ -513,6 +541,8 @@ webserver_worker(void* p)
                 char cookie_hdr[256];
                 int sidx;
                 int become_ws = 0;
+                int i;
+                char tmp[256];
 
                 memset(url_args, 0, sizeof(url_args));
                 cookie_hdr[0] = '\0';
@@ -565,10 +595,10 @@ webserver_worker(void* p)
                 pend = pbody;
                 while(*pend) pend++;
 
-                printf("%s:%d webserver received:\n----------------\n"
-                       "%s\n---------------%s\n"
-                       "---------------\n", __func__, __LINE__,
-                       recvbuf, phttpheaders);
+                //printf("%s:%d webserver received:\n----------------\n"
+                //       "%s\n---------------%s\n"
+                //       "---------------\n", __func__, __LINE__,
+                //       recvbuf, phttpheaders);
 
                 if(pargs)
                 {
@@ -584,7 +614,7 @@ webserver_worker(void* p)
                 }
 
                 peer_found_via_cookie = peer_find_by_cookie(cookie);
-                printf("peer_found_via_cookie=%s\n", peer_found_via_cookie!=0? "yes" : "no");
+                //printf("peer_found_via_cookie=%s\n", peer_found_via_cookie!=0? "yes" : "no");
 
                 if(!cmd_post)
                 {
@@ -592,7 +622,7 @@ webserver_worker(void* p)
                      
                     file_buf = file_read(path, &file_buf_len);
 
-                    printf("%s:%d webserver GET for file (%s):\n\t%s\n", __func__, __LINE__, file_buf? "": "failed", path);
+                    //printf("%s:%d webserver GET for file (%s):\n\t%s\n", __func__, __LINE__, file_buf? "": "failed", path);
 
                     if(strncmp(purl, "/ws", 3) == 0) { become_ws = 1; args->state = WS_STATE_INITIAL; }
 
@@ -674,14 +704,13 @@ webserver_worker(void* p)
                     }
                     else
                     {
-                        response = macro_str_expand(response, tag_peerdynamicjs, "/* no cookie found */");
+                        response = macro_str_expand(response, tag_peerdynamicjs, PEER_DYNAMIC_JS_EMPTY);
                     }
                     response = macro_str_expand(response, tag_hostname, get_config("udpserver_addr="));
                     response = macro_str_expand(response, tag_urlargs, url_args);
                     response = macro_str_expand(response, tag_webport, get_config("webserver_port="));
                     response = macro_str_expand(response, tag_rtpport, listen_port_str);
                     
-                    if(1)
                     {
                         const char *onClickMethod = "onPeerClick";
                         char peer_list_html[buf_size];
@@ -712,12 +741,11 @@ webserver_worker(void* p)
                         response = macro_str_expand(response, tag_peerlisthtml, peer_list_html);
                     }
 
-                    if(1)
+                    if(strstr(response, tag_peerlisthtml_options))
                     {
                         char peer_list_html[buf_size];
                         memset(peer_list_html, 0, sizeof(peer_list_html));
                         char line[buf_size];
-                        int i;
                         int num_peers = 0; 
                         for(i = 0; i < MAX_PEERS; i++)
                         {
@@ -734,12 +762,11 @@ webserver_worker(void* p)
                         response = macro_str_expand(response, tag_peerlisthtml_options, peer_list_html);
                     }
 
-                    if(1)
+                    if(strstr(response, tag_peerlist_jsarray))
                     {
                         char peer_list_html[buf_size];
                         memset(peer_list_html, 0, sizeof(peer_list_html));
                         char line[buf_size];
-                        int i;
                         int num_peers = 0;
                         int first_entry = 1;
                         strcat(peer_list_html, "var peerList = [");
@@ -762,35 +789,64 @@ webserver_worker(void* p)
                         response = macro_str_expand(response, tag_peerlist_jsarray, peer_list_html);
                     }
 
-                    if(1)
+                    sprintf(tmp, "{ \"iceServers\": [{ \"url\": \"stun:%s:%s\" }] }", get_config("udpserver_addr="), listen_port_str);
+                    response = macro_str_expand(response, tag_stunconfig_js, /*tmp*/ "null");
+
+                    sprintf(tmp, "candidate:1 1 UDP 1234 %s %s typ host", get_config("udpserver_addr="), listen_port_str);
+                    response = macro_str_expand(response, tag_icecandidate, tmp);
+                
+                    response = macro_str_expand(response, tag_chatlogvalue, chatlog_read());
+
+                    if(strstr(response, tag_sdp))
                     {
-                        char stun_config_js[256];
-                        sprintf(stun_config_js, "{ \"iceServers\": [{ \"url\": \"stun:%s:%s\" }] }", get_config("udpserver_addr="), listen_port_str);
-                        response = macro_str_expand(response, tag_stunconfig_js, /*stun_config_js*/ "null");
+                        response = macro_str_expand(response, tag_sdp, sdp_offer_create());
                     }
 
-                    if(1)
+                    if(strstr(response, tag_chatlogjs))
                     {
-                        char stuncandidate_js[256];
-                        sprintf(stuncandidate_js, "candidate:1 1 UDP 1234 %s %s typ host", get_config("udpserver_addr="), listen_port_str);
-                        response = macro_str_expand(response, tag_icecandidate, stuncandidate_js);
+                        size_t jslen = sizeof(g_chatlog);
+                        char* js = malloc(jslen);
+                        if(!js) return;
+                        char* ptr = g_chatlog;
+                        char* wptr = js;
+                        const char* eoltag = "\n";
+                        const char* septag = "',\n'";
+
+                        strcpy(wptr, "'"); wptr++;
+                        while(*ptr && wptr-js < (jslen-16))
+                        {
+                            if(strncmp(ptr, eoltag, strlen(eoltag)) == 0) {
+                                strcpy(wptr, septag);
+                                if(*ptr == eoltag[0]) ptr += strlen(eoltag);
+                                else ptr++;
+                                wptr += strlen(septag);
+                                continue;
+                            }
+                            else if(*ptr == '\r') { ptr++; continue; }
+                            else if(*ptr == '\'') { strcpy(wptr, "\\'"); ptr++; wptr+=2; continue; }
+                            else {
+                                *wptr = *ptr;
+                            }
+                            ptr ++;
+                            wptr ++;
+                        }
+                        *wptr = '\''; wptr++; *wptr = '\0';
+                        
+                        response = macro_str_expand(response, tag_chatlogjs, js);
+                        free(js);
                     }
 
-                    if(1)
-                    {
-                        response = macro_str_expand(response, tag_chatlogvalue, g_chatlog);
-                    }
+                    
+                    sprintf(tmp, "%lu", g_chatlog_ts);
+                    response = macro_str_expand(response, tag_chatlogtsvalue, tmp);
 
-                    if(1)
-                    {
-                        response = macro_str_expand(response, tag_authcookie, cookieset);
-                    }
+                    response = macro_str_expand(response, tag_authcookie, cookieset);
                 }
                 else
                 {
                     sprintf(path, "./%s", purl);
 
-                    printf("%s:%d webserver POST for file (content_len:%d):\n\t%s\n", __func__, __LINE__, content_len, purl);
+                    //printf("%s:%d webserver POST for file (content_len:%d):\n\t%s\n", __func__, __LINE__, content_len, purl);
 
                     if(strcmp(purl, "/"FILENAME_SDP_ANSWER) == 0)
                     {
@@ -799,15 +855,13 @@ webserver_worker(void* p)
                         char tmp_filename[128];
                         char tmp[256];
                         char* sdp = strdup(pbody);
+                        
                         sdp = sdp_decode(sdp);
 
+                        printf("sdp:%s\n", sdp);
+                        
                         // anonymous peers don't reserve a slot
                         if(strstr(sdp, "a=recvonly") != NULL) peer_found_via_cookie = NULL;
-
-                        int sidx_offset = 0;
-                        if(str_read_unsafe(sdp, "a=channeloffset=", 0)) {
-                            sidx_offset = atoi(str_read_unsafe(sdp, "a=channeloffset=", 0));
-                        }
 
                         if(peer_found_via_cookie)
                         {
@@ -816,75 +870,54 @@ webserver_worker(void* p)
                         }
                         else
                         {
-                           sidx = sidx_offset;
-                           while(peers[sidx].alive && sidx < MAX_PEERS) sidx++;
-                           if(sidx >= MAX_PEERS) { free(sdp); goto response_override; }
-
-                           peer_init(&peers[sidx], sidx);
+                            sidx = 0;
+                            while(sidx < MAX_PEERS)
+                            {
+                                if(!peers[sidx].alive) break;
+                                sidx++;
+                            }
+                            
+                            if(sidx >= MAX_PEERS)
+                            {
+                                free(sdp);
+                                goto response_override;
+                            }
+                            
+                            peer_init(&peers[sidx], sidx);
                         }
 
                         sprintf(tmp, "webserver: new SDP for peer %d\n", sidx);
                         chatlog_append(tmp);
 
-                        // mark -- wait for peer to be initialized
-                        strcpy(tmp, str_read_unsafe(sdp, "a=myname=", 0));
+                        // mark -- signal/wait for peer to be initialized
                         peers[sidx].alive = 1;
                         peers[sidx].restart_needed = 1;
 
                         while(!peers[sidx].restart_done) usleep(10000);
                         peers[sidx].alive = 1;
                         peers[sidx].time_pkt_last = time(NULL);
-                        strcpy(peers[sidx].name, tmp);
+                        strcpy(peers[sidx].name, str_read_unsafe(sdp, "a=myname=", 0));
 
                         strncpy(peers[sidx].sdp.answer, sdp, sizeof(peers[sidx].sdp.answer));
-
+                        
+                        // HACK: just take last-offered SDP -- TODO: if found via cookie, find via user-fragment
+                        sprintf(peers[sidx].stun_ice.ufrag_offer, "%s", sdp_offer_table.t[(sdp_offer_table.next-1) % MAX_PEERS].iceufrag);
+                        
                         strcpy(peers[sidx].stun_ice.ufrag_answer, sdp_read(sdp, "a=ice-ufrag:"));
-                        sprintf(peers[sidx].stun_ice.ufrag_offer, "%s", "aaaaaaaa");
+                        
+                        strcpy(peers[sidx].sdp.offer, sdp_offer_find(peers[sidx].stun_ice.ufrag_offer, peers[sidx].stun_ice.ufrag_answer));
 
                         webserver.peer_index_sdp_last = sidx;
 
                         printf("peer restarted (stun_ice.uname:%s:%s)\n", peers[sidx].stun_ice.ufrag_answer, peers[sidx].stun_ice.ufrag_offer);
 
                         memset(user_fragment, 0, sizeof(user_fragment));
-
-                        if(use_user_fragment_prefix)
-                        {
-                            char answer_ufrag[64];
-                            const char* user_fragment_tag = "a=ice-ufrag:";
-                            char* panswer_ufrag = strstr(sdp, user_fragment_tag);
-                            if(panswer_ufrag)
-                            {
-                                panswer_ufrag += strlen(user_fragment_tag);
-                                str_read(panswer_ufrag, answer_ufrag, ";\r\n", sizeof(answer_ufrag));
-                            }
-                            else
-                            {
-                                free(sdp);
-                                goto response_override;
-                            }
-
-                            char* offer_ufrag = get_offer_sdp_idx((char*) user_fragment_tag, 0);
-                            offer_ufrag += strlen(user_fragment_tag);
-
-                            sprintf(user_fragment, "%s:%s", offer_ufrag, answer_ufrag);
-                            printf("user_fragment:%s\n", user_fragment);
-                        }
-
-                        //sdp_prefix_set(user_fragment);
-
-                        sprintf(tmp_filename, "%s%s", user_fragment, FILENAME_SDP_ANSWER);
-                        printf("tmp_filename for POST: %s\n", tmp_filename);
-                        file_write(sdp, strlen(sdp), tmp_filename);
-
-                        {
-                            file_buf = file_read("sdp_offer.txt", &file_buf_len);
-                            if(file_buf_len > 0) {
-                                strcpy(peers[sidx].sdp.offer, file_buf);
-                            }
-                        }
-
+                        
+                        sprintf(user_fragment, "%s:%s", peers[sidx].stun_ice.ufrag_offer, peers[sidx].stun_ice.ufrag_answer);
+                        printf("user_fragment:%s\n", user_fragment);
+                        
                         peers[sidx].restart_needed = 0;
-
+                        
                         free(sdp);
 
                         free(response);
@@ -947,7 +980,11 @@ webserver_worker(void* p)
                     shutdown(sock, SHUT_WR);
                 }
     
-                if(response) free(response);
+                if(response)
+                {
+                    free(response);
+                    response = NULL;
+                }
             }
 
             if(!do_shutdown) continue;
