@@ -2,6 +2,7 @@
 <head>
 <script src="src/js/adapter.js"></script>
 <script src="src/js/lib/ga.js"></script>
+<script src="js/sdp.js"></script>
 <script src="js/popup.js"></script>
 <script src="js/peers.js"></script>
 <script language='javascript'>
@@ -34,6 +35,8 @@ function setupForm() {
         document.theform.appendsdp.value += 'a=watch=' + urlArgUser + '\n';
         d.innerHTML += '<p>click OK to start watching '+ urlArgUser + '<br>'
     }
+    
+    document.theform.offersdp.value = joinSDP();
 }
 
 function onLoad() {

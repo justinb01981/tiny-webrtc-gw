@@ -288,7 +288,7 @@ websocket_worker(void* p)
                     {
                         peer_init(peer, PEER_INDEX(peer));
 
-                        const char* sdp_offer_pending = sdp_offer_create_apprtc();
+                        const char* sdp_offer_pending = sdp_offer_create_apprtc(peer);
                     
                         char* offersdp = strdup(sdp_offer_pending);
                         
@@ -799,7 +799,7 @@ webserver_worker(void* p)
 
                     if(strstr(response, tag_sdp))
                     {
-                        response = macro_str_expand(response, tag_sdp, sdp_offer_create());
+                        response = macro_str_expand(response, tag_sdp, sdp_offer_create(peer_found_via_cookie));
                     }
 
                     if(strstr(response, tag_chatlogjs))
@@ -848,25 +848,34 @@ webserver_worker(void* p)
 
                     //printf("%s:%d webserver POST for file (content_len:%d):\n\t%s\n", __func__, __LINE__, content_len, purl);
 
+                    // handle SDP-answer upload
                     if(strcmp(purl, "/"FILENAME_SDP_ANSWER) == 0)
                     {
                         /* create temp file, decode, rename for worker thread to pick up/read and remove */
-                        char user_fragment[64];
-                        char tmp_filename[128];
-                        char tmp[256];
+                        char tmp[256], ufrag_offer_tmp[256];
                         char* sdp = strdup(pbody);
                         
                         sdp = sdp_decode(sdp);
-
-                        printf("sdp:%s\n", sdp);
                         
-                        // anonymous peers don't reserve a slot
+                        const char* ufrag_answer = sdp_read(sdp, "a=ice-ufrag:");
+                        
+                        // anonymous+watching-only peers use new slot
                         if(strstr(sdp, "a=recvonly") != NULL) peer_found_via_cookie = NULL;
 
+                        // find original SDP offer and decode SDP answer and init stun_ice attributes
                         if(peer_found_via_cookie)
                         {
+                            if(strlen(peer_found_via_cookie->stun_ice.ufrag_offer) <= 0)
+                            {
+                                printf("peer found, but no offer found for ice_ufrag\n");
+                                
+                                free(sdp);
+                                goto response_override;
+                            }
+                            
+                            strcpy(ufrag_offer_tmp, peer_found_via_cookie->stun_ice.ufrag_offer);
+                            
                             sidx = PEER_INDEX(peer_found_via_cookie);
-                            printf("cookie idx for peer: %d\n", sidx);
                         }
                         else
                         {
@@ -884,9 +893,12 @@ webserver_worker(void* p)
                             }
                             
                             peer_init(&peers[sidx], sidx);
+                            
+                            // HACK: just take most-recent offer
+                            strcpy(ufrag_offer_tmp, sdp_offer_table.t[(sdp_offer_table.next-1) % MAX_PEERS].iceufrag);
                         }
 
-                        sprintf(tmp, "webserver: new SDP for peer %d\n", sidx);
+                        sprintf(tmp, "webserver: new SDP answer for peer %d\n", sidx);
                         chatlog_append(tmp);
 
                         // mark -- signal/wait for peer to be initialized
@@ -896,25 +908,18 @@ webserver_worker(void* p)
                         while(!peers[sidx].restart_done) usleep(10000);
                         peers[sidx].alive = 1;
                         peers[sidx].time_pkt_last = time(NULL);
+                        
+                        // init stun-ice attributes
+                        strcpy(peers[sidx].stun_ice.ufrag_answer, ufrag_answer);
+                        strcpy(peers[sidx].stun_ice.ufrag_offer, ufrag_offer_tmp);
+                        strcpy(peers[sidx].sdp.offer, sdp_offer_find(peers[sidx].stun_ice.ufrag_offer, ufrag_answer));
+                        strcpy(peers[sidx].sdp.answer, sdp);
+                        
                         strcpy(peers[sidx].name, str_read_unsafe(sdp, "a=myname=", 0));
-
-                        strncpy(peers[sidx].sdp.answer, sdp, sizeof(peers[sidx].sdp.answer));
-                        
-                        // HACK: just take last-offered SDP -- TODO: if found via cookie, find via user-fragment
-                        sprintf(peers[sidx].stun_ice.ufrag_offer, "%s", sdp_offer_table.t[(sdp_offer_table.next-1) % MAX_PEERS].iceufrag);
-                        
-                        strcpy(peers[sidx].stun_ice.ufrag_answer, sdp_read(sdp, "a=ice-ufrag:"));
-                        
-                        strcpy(peers[sidx].sdp.offer, sdp_offer_find(peers[sidx].stun_ice.ufrag_offer, peers[sidx].stun_ice.ufrag_answer));
 
                         webserver.peer_index_sdp_last = sidx;
 
-                        printf("peer restarted (stun_ice.uname:%s:%s)\n", peers[sidx].stun_ice.ufrag_answer, peers[sidx].stun_ice.ufrag_offer);
-
-                        memset(user_fragment, 0, sizeof(user_fragment));
-                        
-                        sprintf(user_fragment, "%s:%s", peers[sidx].stun_ice.ufrag_offer, peers[sidx].stun_ice.ufrag_answer);
-                        printf("user_fragment:%s\n", user_fragment);
+                        printf("peer restarted (stun_ice.user-name answer/offer: %s:%s)\n", peers[sidx].stun_ice.ufrag_answer, peers[sidx].stun_ice.ufrag_offer);
                         
                         peers[sidx].restart_needed = 0;
                         

@@ -36,7 +36,7 @@
                     <video class="videoMain" id='videoMain' autoplay controls style='width:100%;'></video>
                <div id='addUserLinkDiv'>
                    <h3>Click to start watching "%$URLARGUMENTS$%"</h3>
-                   <button onClick='connectVideo(document.getElementById("videoMain"), joinSDP(), true, "%$URLARGUMENTS$%");' style=''>Click to start watching</button>
+                   <button onClick='connectVideo(document.getElementById("videoMain"), true, "%$URLARGUMENTS$%");' style=''>Click to start watching</button>
                 </div>
             </td>
             <td colspan=1 align="center">
@@ -53,7 +53,7 @@
                     <button onclick="alert('switch tabs back/forth (on andrid/chrome)\nmake sure correct video device selected'); rebootLocalVideo(document.getElementById('remoteVideoMirror'));">problem?</button>
                     -->
                 </div>
-                <button onclick="document.getElementById('remoteVideoMirrorDiv').hidden = false; document.getElementById('localPreviewDiv').hidden = true; connectVideo(document.getElementById('remoteVideoMirror'), joinSDP(), false, '');">Join/Restart</button>
+                <button onclick="document.getElementById('remoteVideoMirrorDiv').hidden = false; document.getElementById('localPreviewDiv').hidden = true; connectVideo(document.getElementById('remoteVideoMirror'), false, '');">Join/Restart</button>
                 <br>
             </td>
         </tr>
@@ -89,7 +89,6 @@
 </body>
 
 <script src="src/js/adapter.js"></script>
-<script src="js/sdp.js"></script>
 
 <script src="src/js/lib/ga.js"></script>
 <script src="js/popup.js"></script>
@@ -97,11 +96,16 @@
 <script src="js/broadcast.js"></script>
 <script src="js/peerdynamic.js"></script>
 <script language="javascript">
+
+function joinSDP() {
+    return "empty";
+}
+
 function onLoadDone() {
     var urlUserArg = '%$URLARGUMENTS$%';
     if(urlUserArg.length > 0) {
         disconnectVideo(document.getElementById('videoMain'));
-        connectVideo(document.getElementById('videoMain'), joinSDP(), true, urlUserArg);
+        connectVideo(document.getElementById('videoMain'), true, urlUserArg);
     }
 }
 </script>

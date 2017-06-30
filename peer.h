@@ -286,7 +286,7 @@ int peer_stun_init(peer_session_t* peer)
     peer->stun_ice.controller = peer->stun_ice.bound = 0;
 }
 
-const char* sdp_offer_create()
+const char* sdp_offer_create(peer_session_t* peer)
 {
     const char* offer_template =
     "\"v=0\\n\" + \n"
@@ -395,12 +395,14 @@ const char* sdp_offer_create()
             sdp_offer_table.t[sdp_offer_table.next % MAX_PEERS].iceufrag,
             ssrc2);
     
+    if(peer) strcpy(peer->stun_ice.ufrag_offer, sdp_offer_table.t[sdp_offer_table.next % MAX_PEERS].iceufrag);
+    
     sdp_offer_table.next++;
     
     return sdp_offer_table.t[(sdp_offer_table.next-1) % MAX_PEERS].offer_js;
 }
 
-const char* sdp_offer_create_apprtc()
+const char* sdp_offer_create_apprtc(peer_session_t* peer)
 {
     const char *offer_template = "\n";
     char roomname[256];
@@ -416,21 +418,24 @@ const char* sdp_offer_create_apprtc()
             sdp_offer_table.t[sdp_offer_table.next % MAX_PEERS].iceufrag,
             rand());
     
+    if(peer) strcpy(peer->stun_ice.ufrag_offer, sdp_offer_table.t[sdp_offer_table.next % MAX_PEERS].iceufrag);
+    
     sdp_offer_table.next++;
     
     return sdp_offer_table.t[(sdp_offer_table.next-1) % MAX_PEERS].offer;
 }
 
-static char sdp_offer_find_buf[256];
-
 const char* sdp_offer_find(const char* ufrag, const char* ufrag_answer)
 {
+    static char sdp_offer_find_buf[256];
     int i;
+    
     for(i = 0; i < MAX_PEERS; i++)
     {
         if(strcmp(sdp_offer_table.t[i].iceufrag, ufrag) == 0)
         {
             strcpy(sdp_offer_table.t[i].iceufrag_answer, ufrag_answer);
+            sdp_offer_table.t[i].iceufrag[0] = '\0';
             return sdp_offer_table.t[i].offer;
         }
     }

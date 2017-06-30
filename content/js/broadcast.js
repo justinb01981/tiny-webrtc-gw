@@ -252,7 +252,6 @@ function joinPopupOnLoadRecvOnly() {
 }
 
 function joinPopupOnLoad2() {
-    winPopup.document.theform.offersdp.value = winPopupSdp;
     winPopup.document.theform.answersdp.value = '';
     winPopup.localStream = localStream;
     winPopup.remoteVideo = winPopupVideoTarget;
@@ -272,14 +271,14 @@ function disconnectVideo(vidElem) {
   }
 }
 
-function connectVideo(videoElem, videoSDPOffer, recvOnly, watchUser) {
+function connectVideo(videoElem, recvOnly, watchUser) {
   var popupOnLoad = joinPopupOnLoadBroadcast;
 
   disconnectVideo(videoElem);
 
   if (recvOnly) popupOnLoad = joinPopupOnLoadRecvOnly;
 
-  winPopupSdp = videoSDPOffer;
+  //winPopupSdp = videoSDPOffer;
   winPopupVideoTarget = videoElem;
   winPopup = rtcPopupCreate(popupOnLoad, joinPopupClose, recvOnly, watchUser);
 

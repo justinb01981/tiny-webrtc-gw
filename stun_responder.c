@@ -90,8 +90,8 @@ sdp_offer_table_t sdp_offer_table;
 
 unsigned long connection_worker_backlog_highwater = 0;
 
-const static udp_recv_timeout_usec_min = 10;
-const static udp_recv_timeout_usec_max = 1000000;
+const static udp_recv_timeout_usec_min = 20;
+const static udp_recv_timeout_usec_max = /*1000000*/20;
 
 int bindsocket( char* ip, int port , int tcp);
 int main( int argc, char* argv[] );
@@ -610,12 +610,18 @@ connection_worker(void* p)
 
     thread_init();
     
-    printf("%s:%d sdp answer:\n %s\nsdp offer:\n%s\n", __func__, __LINE__, peer->sdp.answer, peer->sdp.offer);
-    
-    while(peer->alive && (strlen(peer->sdp.offer) == 0 || strlen(peer->sdp.answer) == 0))
+    while(peer->alive)
     {
-        sleep_msec(1);
+        PEER_THREAD_WAITSIGNAL(peer);
+        if((strlen(peer->sdp.offer) > 0 && strlen(peer->sdp.answer) > 0) || !peer->alive)
+        {
+            PEER_THREAD_UNLOCK(peer);
+            break;
+        }
+        PEER_THREAD_UNLOCK(peer);
     }
+    
+    printf("%s:%d sdp answer:\n %s\nsdp offer:\n%s\n", __func__, __LINE__, peer->sdp.answer, peer->sdp.offer);
 
     if(strstr(peer->sdp.answer, "a=recvonly")) { peer->recv_only = 1; }
 
@@ -726,9 +732,9 @@ connection_worker(void* p)
             //sleep_msec(1);
         }
         
-        if(!peer->alive) break;
-
         PEER_THREAD_WAITSIGNAL(peer);
+        
+        if(!peer->alive) break;
 
         buffer_next = NULL;
 
@@ -1415,7 +1421,7 @@ int main( int argc, char* argv[] ) {
             
             // compare high-water mark of packet backlog and adjust timeout interval
             static unsigned long _connection_worker_backlog_highwater = 0;
-            if(connection_worker_backlog_highwater == 0 || connection_worker_backlog_highwater <= _connection_worker_backlog_highwater)
+            if(connection_worker_backlog_highwater < _connection_worker_backlog_highwater)
             {
                 if(udp_recv_timeout_usec < udp_recv_timeout_usec_max) udp_recv_timeout_usec += udp_recv_timeout_usec_min * 2;
             }
@@ -1464,7 +1470,6 @@ int main( int argc, char* argv[] ) {
             int p;
             char stun_uname[64];
             char stun_uname_expected[64];
-            int send_stun_response = 0;
 
             stun_username(buffer, length, stun_uname);
 
@@ -1480,7 +1485,6 @@ int main( int argc, char* argv[] ) {
                 {
                     sidx = p;
                     printf("stun_locate: found peer %s (%s)\n", stun_uname, peers[sidx].name);
-                    send_stun_response = 1;
                     break;
                 }
 
@@ -1511,27 +1515,6 @@ int main( int argc, char* argv[] ) {
                     goto select_timeout;
                 }
             }
-            
-            /*
-            if(send_stun_response)
-            {
-                // send back stun binding response
-                stun_binding_response_count++;
-
-                stun_binding_msg_t* stunmsg = (stun_binding_msg_t*) buffer;
-                stats_printf(counts_log, "spoofing STUN response\n");
-                u16 resp_port = htons(strToInt(get_stun_local_port()));
-                u32 resp_addr = inet_addr(get_stun_local_addr());
-
-                stunmsg->hdr.type = htons(0x0101);
-                stunmsg->hdr.len = htons(sizeof(stunmsg->attrs.stun_binding_response3)-sizeof(attr_fingerprint));
-                ATTR_MAPPED_ADDRESS_SET((stunmsg->attrs.stun_binding_response3.mapped_address), resp_addr, resp_port);
-                ATTR_SRC_ADDRESS_SET((stunmsg->attrs.stun_binding_response3.src_address), resp_addr, resp_port);
-                ATTR_CHG_ADDRESS_SET((stunmsg->attrs.stun_binding_response3.chg_address), resp_addr, resp_port);
-
-                sendto(listen, stunmsg, sizeof(stunmsg)+sizeof(stunmsg->attrs.stun_binding_response3), 0, (struct sockaddr*) &src, sizeof(src));
-            }
-            */
             
             // mark -- init new peer
             printf("%s:%d adding new peer (%s:%u)\n", __func__, __LINE__,
@@ -1618,7 +1601,7 @@ int main( int argc, char* argv[] ) {
                 }
                 
                 int repeat = 1;
-                while( repeat > 0 && peers[i].thread_inited)
+                while(repeat > 0 && peers[i].thread_inited)
                 {
                     /* signal peer thread to run */
                     PEER_UNLOCK(i);
@@ -1638,7 +1621,7 @@ int main( int argc, char* argv[] ) {
 
             time_t curtime = time(NULL);
             
-            if(curtime - peers[i].time_cleanup_last > 1 && peers[i].alive)
+            if(curtime - peers[i].time_cleanup_last > 0 && peers[i].alive)
             {
                 /* HACK: lock out all reader-threads */
                 peers[i].cleanup_in_progress = 1;
@@ -1726,23 +1709,17 @@ int main( int argc, char* argv[] ) {
 
                 peers[i].cleanup_in_progress = 0;
 
-                if(peers[i].running)
-                {
-                    PEER_UNLOCK(i);
-                    PEER_SIGNAL(i);
-                    while(peers[i].running) sleep_msec(1);
-                    PEER_LOCK(i);
-                }
-
-                if(peers[i].thread_inited &&
-                   time(NULL) - peers[i].time_pkt_last > peers[i].timeout_sec)
+                if(peers[i].thread_inited)
                 {
                     printf("%s:%d terminating peer %d threads\n", __func__, __LINE__, i);
                     
+                    PEER_UNLOCK(i);
+                    PEER_SIGNAL(i);
+                    
                     //pthread_join(peers[i].thread_rtp_send, NULL);
                     pthread_join(peers[i].thread, NULL);
-                    pthread_mutex_destroy(&peers[i].mutex);
                     pthread_cond_destroy(&peers[i].mcond);
+                    pthread_mutex_destroy(&peers[i].mutex);
                     peers[i].thread_rtp_send = 0;
                     peers[i].thread = 0;
                     peers[i].thread_inited = 0;
