@@ -100,30 +100,26 @@ chatlog_read()
 void
 chatlog_append(const char* pchatmsg)
 {
-    size_t appendlen = strlen(pchatmsg)+2;
-    if(strlen(pchatmsg)+2 >= CHATLOG_SIZE-1) appendlen = (CHATLOG_SIZE-3);
+    size_t appendlen = strlen(pchatmsg);
+    if(strlen(pchatmsg) >= CHATLOG_SIZE-1) appendlen = (CHATLOG_SIZE-1);
     
-    while(strlen(g_chatlog)+appendlen >= CHATLOG_SIZE-1)
+    char *pto = g_chatlog, *pfrom = (char*) g_chatlog + ((CHATLOG_SIZE-1) >= strlen(g_chatlog)+appendlen ? 0 : appendlen);
+    while(*pfrom)
     {
-        int i = 0;
-        for(i = 0; i <= CHATLOG_SIZE-1; i++)
-        {
-            g_chatlog[i] = g_chatlog[i+1];
-        }
+        *pto = *pfrom;
+        pfrom++;
+        pto++;
     }
-    char *pto = g_chatlog+strlen(g_chatlog), *pfrom = (char*) pchatmsg;
-    
-    while(appendlen > 0)
+
+    pfrom = pchatmsg;
+    while(*pfrom)
     {
         *pto = *pfrom;
         pto++;
         pfrom++;
-        appendlen--;
     }
     *pto = '\0';
     
-    strcat(g_chatlog, "\r\n");
-
     file_write2(g_chatlog, strlen(g_chatlog), "chatlog.txt");
     g_chatlog_ts = time(NULL);
 }
@@ -814,7 +810,7 @@ webserver_worker(void* p)
 
                     if(strstr(response, tag_chatlogjs))
                     {
-                        size_t jslen = sizeof(g_chatlog);
+                        size_t jslen = sizeof(g_chatlog)*4;
                         char* js = malloc(jslen);
                         if(!js) return;
                         char* ptr = g_chatlog;
@@ -833,7 +829,7 @@ webserver_worker(void* p)
                                 continue;
                             }
                             else if(*ptr == '\r') { ptr++; continue; }
-                            else if(*ptr == '\'') { strcpy(wptr, "\\'"); ptr++; wptr+=2; continue; }
+                            else if(*ptr == '\'') { ptr++; continue; }
                             else {
                                 *wptr = *ptr;
                             }
@@ -846,7 +842,6 @@ webserver_worker(void* p)
                         free(js);
                     }
 
-                    
                     sprintf(tmp, "%lu", g_chatlog_ts);
                     response = macro_str_expand(response, tag_chatlogtsvalue, tmp);
 
