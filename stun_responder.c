@@ -621,6 +621,8 @@ connection_worker(void* p)
         PEER_THREAD_UNLOCK(peer);
     }
     
+    if(!peer->alive) return;
+    
     printf("%s:%d sdp answer:\n %s\nsdp offer:\n%s\n", __func__, __LINE__, peer->sdp.answer, peer->sdp.offer);
 
     if(strstr(peer->sdp.answer, "a=recvonly")) { peer->recv_only = 1; }

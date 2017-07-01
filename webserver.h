@@ -100,19 +100,29 @@ chatlog_read()
 void
 chatlog_append(const char* pchatmsg)
 {
-    if(strlen(pchatmsg) > CHATLOG_SIZE-1) return;
+    size_t appendlen = strlen(pchatmsg)+2;
+    if(strlen(pchatmsg)+2 >= CHATLOG_SIZE-1) appendlen = (CHATLOG_SIZE-3);
     
-    while(strlen(g_chatlog)+strlen(pchatmsg) >= CHATLOG_SIZE-1)
+    while(strlen(g_chatlog)+appendlen >= CHATLOG_SIZE-1)
     {
         int i = 0;
-        for(i = 0; i < CHATLOG_SIZE; i++)
+        for(i = 0; i <= CHATLOG_SIZE-1; i++)
         {
             g_chatlog[i] = g_chatlog[i+1];
         }
     }
     char *pto = g_chatlog+strlen(g_chatlog), *pfrom = (char*) pchatmsg;
     
-    strcat(g_chatlog, pchatmsg);
+    while(appendlen > 0)
+    {
+        *pto = *pfrom;
+        pto++;
+        pfrom++;
+        appendlen--;
+    }
+    *pto = '\0';
+    
+    strcat(g_chatlog, "\r\n");
 
     file_write2(g_chatlog, strlen(g_chatlog), "chatlog.txt");
     g_chatlog_ts = time(NULL);
@@ -128,7 +138,7 @@ chatlog_reload()
     char* file_buf = file_read("chatlog.txt", &file_buf_len);
     if(file_buf)
     {
-        chatlog_append(file_buf);
+        memcpy(g_chatlog, file_buf, file_buf_len);
         free(file_buf);
     }
 }
@@ -938,7 +948,7 @@ webserver_worker(void* p)
                         pchatmsg = sdp_decode(strdup(pchatmsg));
                       
                         chatlog_append(pchatmsg);
-                       
+                        
                         free(response);
                         response = strdup(page_buf_redirect_back);
                         content_type = content_type_html;
