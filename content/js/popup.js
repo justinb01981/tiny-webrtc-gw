@@ -21,27 +21,33 @@ function onPeerClick(peername, elem) {
     document.theform.appendsdp.value += 'a=myname=' + document.theform.my_name.value + '\n';
 }
 
-function onIceCandidateOK(c) {
-}
-
-function onIceCandidateFail(c) {
-}
-
 function onIceCandidate(event) {
+    console.debug("onIceCandidate");
+
     if (event.candidate && iceCandidate == null) {
-        var c = event.candidate;
-        iceCandidate = c;
+        //var c = event.candidate;
+        var c = {};
+        console.debug("onIceCandidate.event.candidate:"+JSON.stringify(event.candidate));
+
+        iceCandidate = event.candidate;
         if(remoteConnectionStunConfig == null) {
             //c.candidate = "candidate:" + iceCandidateID++ + " 1 UDP " + 1234+iceCandidateID + " " + stunHost + " " + stunPort + " typ host";
             c.candidate = "%$RTCICECANDIDATE$%";
+            c.sdpMid = event.candidate.sdpMid;
+            c.sdpMLineIndex = event.candidate.sdpMLineIndex;
+            c.usernameFragment = event.candidate.usernameFragment;
             //alert(c.candidate);
+            console.debug("onIceCandidate:"+JSON.stringify(c.candidate));
         }
         //alert('iceCandidate:' + c.candidate);
         remoteConnection.addIceCandidate(
-            new RTCIceCandidate(c),
-            onIceCandidateOK,
-            onIceCandidateFail
-        );
+            new RTCIceCandidate(c)).then(
+                _ => {
+                    console.debug("onIceCandidate.then");
+                }).catch(
+                e => {
+                    console.debug("error in addIceCandidate");
+                });
     }
 }
 
@@ -53,51 +59,57 @@ function onConnect() {
     // TODO: reorder this so that form can submit SDP prior to STUN/ICE starting
     remoteConnection.onicecandidate = onIceCandidate;
 
-    /* optionally set local description (send) */
-    if(!document.theform.recvonly.checked) {
-        remoteConnection.addStream(localStream);
-    }
-
     remoteConnection.onaddstream = function(e) {
         //alert('onAddStream' + e.stream);
+        console.debug('remoteConnection.onaddstream');
     };
 
+    /* optionally set local description (send) */
+    if(!document.theform.recvonly.checked) {
+        //remoteConnection.addStream(localStream);
+
+        localStream.getTracks().forEach(track => remoteConnection.addTrack(track, localStream));
+    }
+
     remoteConnectionOffer = new RTCSessionDescription({type: 'offer', sdp: document.theform.offersdp.value});
-    remoteConnection.setRemoteDescription(
-        remoteConnectionOffer,
-        (function f1() {
-            remoteConnection.createAnswer(
-                function (e){
-                    //alert('createAnswerOK' + e.sdp);
-                    remoteConnectionAnswer = e; document.theform.answersdp.value = e.sdp;
+
+    remoteConnection.setRemoteDescription(remoteConnectionOffer).then(
+        function () {
+            console.debug('setRemoteScription.then');
+
+            remoteConnection.createAnswer({'mandatory': {'OfferToReceiveAudio': true, 'OfferToReceiveVideo': true}}).then(
+                function (answer) {
+                    remoteConnectionAnswer = answer;
+                    document.theform.answersdp.value = answer.sdp;
                     doSubmit();
 
                     // moved remoteConnection.setLocalDescription() to broadcastStart()
 
-                },
-                (function fail() {alert('fail');}),
-                {'mandatory': {'OfferToReceiveAudio': true, 'OfferToReceiveVideo': true}}
-            );
-        }),
-        (function f2() {
-            alert('setRemoteDescriptionFail');
-        })
-    );
-    //alert('setRemoteDescription done');
+                }).catch( function (err) { alert('createAnswer fail:'+err); });
+        }).catch(
+            function (err) {
+                alert('setRemoteDescription fail: '+err);
+            }
+        );
 
     //localConnection = new RTCPeerConnection(servers);
-    attachMediaStream(remoteVideo, remoteConnection.getRemoteStreams()[0]);
+
 }
 
 function broadcastStart(onSuccess, onFailure) {
-    remoteConnection.setLocalDescription(
-        remoteConnectionAnswer,
-        function (){
-             //doSubmit();
-             onSuccess();
-        },
-        function(){
-             onFailure();
+    var remoteStream = remoteConnection.getRemoteStreams()[0];
+
+    remoteConnection.setLocalDescription(remoteConnectionAnswer).then(
+        function () {
+            console.debug('remoteConnection.setLocalDescription');
+
+            attachMediaStream(remoteVideo, remoteConnection.getRemoteStreams()[0]);
+            remoteStream.getTracks().forEach(track => remoteConnection.addTrack(track, remoteStream));
+            onSuccess();
+        }).catch(
+            function (err) {
+            console.debug('remoteConnection.setLocalDescription error:'+err);
+            onFailure();
         }
     );
 }
@@ -116,7 +128,7 @@ function doSubmit() {
 function iframeOnLoad() {
     broadcastStart(
         function() {
-            closeHandler(remoteConnection, document.theform.my_name.value, document.theform.recvonly.checked);
+            closeHandler(remoteConnection, document.theform.my_name.value, document.theform.recvonly.checked, document.theform.room_name.value);
         },
         function() {
             alert('broadcastStart failed');
@@ -126,16 +138,17 @@ function iframeOnLoad() {
 
 function rtcPopupCreate(handlerOpen, handlerClose, recvOnly, watchUser) {
     var randomNum = Math.ceil(Math.random() % 10 * 1000);
-    var w = window.open('answer_upload2.html?args='+watchUser, 'sdp_answer_upload' + randomNum, 'width=400,height=600');
+    var w = window.open('answer_upload.html?name='+watchUser, 'sdp_answer_upload' + randomNum, 'width=400,height=600');
     popupRecvOnly = recvOnly;
     //w.document.body.onload = handlerOpen1;
     onLoadDoneAnswerUpload = handlerOpen;
     closeHandler = handlerClose;
+
     return w;
 }
 
 function roomlistPopupCreate(roomName) {
-    var w = window.open('room.html?args='+roomName, 'room' + roomName, 'width=250,height=300');
+    var w = window.open('room.html?room='+roomName, 'room' + roomName, 'width=250,height=300');
 }
 
 function resizeObjectWithID(idName, x, y, w, h) {
@@ -144,4 +157,13 @@ function resizeObjectWithID(idName, x, y, w, h) {
         d.style.cssText = 'position:fixed; top:'+y.toString()+'px; left:'+x.toString()+'px; width:'+w.toString()+'px; height:'+h.toString()+'px;';
     }
 }
+
+function attachMediaStream(vidElem, vidStream)
+{
+    vidElem.srcObject = vidStream;
+    vidElem.onloadedmetadata = function(e) {
+        vidElem.play();
+    }
+}
+
 

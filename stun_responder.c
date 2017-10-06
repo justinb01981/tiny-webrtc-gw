@@ -91,7 +91,7 @@ sdp_offer_table_t sdp_offer_table;
 unsigned long connection_worker_backlog_highwater = 0;
 
 const static udp_recv_timeout_usec_min = 20;
-const static udp_recv_timeout_usec_max = /*1000000*/20;
+const static udp_recv_timeout_usec_max = /*1000000*/10000;
 
 int bindsocket( char* ip, int port , int tcp);
 int main( int argc, char* argv[] );
@@ -660,6 +660,14 @@ connection_worker(void* p)
     sprintf(peer->name, "%s%s", my_name, peer->recv_only ? "(watch)": "");
     
     if(!strlen(peer->name)) strcpy(peer->name, peer->stun_ice.ufrag_answer);
+    
+    char* room_name = PEER_ANSWER_SDP_GET(peer, "a=roomname=", 0);
+    sprintf(peer->roomname, "%s", room_name);
+
+    if(strcmp(peer->roomname, "mirror") == 0)
+    {
+        peer->subscriptionID = peer->id;
+    }
 
     chatlog_append(peer->name);
 
@@ -671,7 +679,7 @@ connection_worker(void* p)
     else
     {
         chatlog_append(" broadcasting $SUBSCRIBELINK");
-        chatlog_append(peer->name);
+        chatlog_append(peer->roomname);
     }
 
     chatlog_append("\n");
@@ -679,35 +687,31 @@ connection_worker(void* p)
     for(si = 0; si < MAX_PEERS; si++)
     {
         if(peers[si].alive &&
-           peers[si].subscriptionID == PEER_IDX_INVALID &&
-           strcmp(peers[si].watch_name, peer->name) == 0)
+           si != PEER_INDEX(peer) &&
+           strcmp(peers[si].roomname, peer->roomname) == 0)
         {
-            peers[si].subscriptionID = peer->id;
-        }
-    }
-
-    char* watch_chan = PEER_ANSWER_SDP_GET(peer, "a=channel=", 0);
-    if(watch_chan && strlen(watch_chan) > 0)
-    {
-        peer->subscriptionID = atoi(watch_chan);
-    }
-    else
-    {
-        char* watch_name = PEER_ANSWER_SDP_GET(peer, "a=watch=", 0);
-        strcpy(peer->watch_name, watch_name);
-
-        if(watch_name && strlen(watch_name) > 0)
-        {
-            for(si = 0; si < MAX_PEERS; si++)
+            // TODO: handle multiple users in a single room
+            peer->subscriptionID = peers[si].id;
+            
+            if(peers[si].subscriptionID == PEER_IDX_INVALID)
             {
-                if(peers[si].alive &&
-                   strcmp(watch_name, peers[si].name) == 0 
-                   /*&& si != peer->id*/)
-                {
-                    peer->subscriptionID = peers[si].id;
-                }
+                // also connect opposing/waiting peer
+                peers[si].subscriptionID = PEER_INDEX(peer);
             }
+            break;
         }
+    }
+    
+    // wait for another peer to enter the room
+    while(peer->alive && strlen(peer->roomname) > 0)
+    {
+        PEER_THREAD_WAITSIGNAL(peer);
+        if(peer->subscriptionID != PEER_IDX_INVALID)
+        {
+            PEER_THREAD_UNLOCK(peer);
+            break;
+        }
+        PEER_THREAD_UNLOCK(peer);
     }
 
     printf("%s:%d peer running\n", __func__, __LINE__);
@@ -1378,6 +1382,7 @@ int main( int argc, char* argv[] ) {
     webserver_init();
     pthread_create(&thread_webserver, NULL, webserver_accept_worker, NULL);
 
+    int timedout_last = 0;
     while(1)
     {
         char buffer[PEER_BUFFER_NODE_BUFLEN];
@@ -1423,15 +1428,18 @@ int main( int argc, char* argv[] ) {
             
             // compare high-water mark of packet backlog and adjust timeout interval
             static unsigned long _connection_worker_backlog_highwater = 0;
-            if(connection_worker_backlog_highwater < _connection_worker_backlog_highwater)
+            if(connection_worker_backlog_highwater != 0)
             {
-                if(udp_recv_timeout_usec < udp_recv_timeout_usec_max) udp_recv_timeout_usec += udp_recv_timeout_usec_min * 2;
-            }
-            else
-            {
-                udp_recv_timeout_usec -= udp_recv_timeout_usec_min;
-                if(udp_recv_timeout_usec < udp_recv_timeout_usec_min) udp_recv_timeout_usec = udp_recv_timeout_usec_min;
-            }
+                if(connection_worker_backlog_highwater < _connection_worker_backlog_highwater)
+                {
+                    if(udp_recv_timeout_usec < udp_recv_timeout_usec_max) udp_recv_timeout_usec += udp_recv_timeout_usec_min * 2;
+                }
+                else
+                {
+                    udp_recv_timeout_usec -= udp_recv_timeout_usec_min;
+                    if(udp_recv_timeout_usec < udp_recv_timeout_usec_min) udp_recv_timeout_usec = udp_recv_timeout_usec_min;
+                }
+                }
             
             _connection_worker_backlog_highwater = connection_worker_backlog_highwater;
             connection_worker_backlog_highwater = 0;
@@ -1443,7 +1451,11 @@ int main( int argc, char* argv[] ) {
         size = sizeof(src);
         int length = recvfrom(listen, buffer, sizeof(buffer), recv_flags, (struct sockaddr*)&src, &size);
         if(length <= 0)
+        {
+            timedout_last = 1;
             goto select_timeout;
+        }
+        timedout_last = 0;
 
         int inkey = 0;
 

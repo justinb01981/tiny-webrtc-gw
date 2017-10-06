@@ -427,7 +427,8 @@ webserver_worker(void* p)
     char* content_length_hdr = "Content-Length: ";
     char *tag_hostname = "%$HOSTNAME$%";
     char *tag_peerdynamicjs = "%$PEERDYNAMICJS$%";
-    char *tag_urlargs = "%$URLARGUMENTS$%";
+    char *tag_urlargsname = "%$URLARGUMENTSNAME$%";
+    char *tag_urlargsroom = "%$URLARGUMENTSROOM$%";
     char *tag_webport = "%$WEBPORT$%";
     char *tag_rtpport = "%$RTPPORT$%";
     char *tag_peerlisthtml = "%$PEERLISTHTML$%";
@@ -534,7 +535,7 @@ webserver_worker(void* p)
             if(strlen(recvbuf) > 0)
             {
                 char path[buf_size];
-                char url_args[256];
+                char url_args[1024];
                 char *purl = NULL;
                 char *pbody = NULL;
                 char *phttpheaders = NULL;
@@ -584,7 +585,15 @@ webserver_worker(void* p)
                 char *pargs = NULL;
                 while (e-purl < (sizeof(path)-1) && *e != '\0' && *e != '\r' && *e && *e != '\n' && *e != ' ' && *e != '?') e++;
                 if(*e == '?') {
+                    char* ptr = url_args;
                     pargs = e+1;
+                    while((*pargs >= 'a' && *pargs <= 'z') || (*pargs >= '0' && *pargs <= '9') || (*pargs == '&' || *pargs == '%' || *pargs == '='))
+                    {
+                        *ptr = *pargs;
+                        pargs++;
+                        ptr++;
+                    }
+                    *ptr = '\0';
                 }
                 *e = '\0';
 
@@ -605,19 +614,6 @@ webserver_worker(void* p)
                 //       "%s\n---------------%s\n"
                 //       "---------------\n", __func__, __LINE__,
                 //       recvbuf, phttpheaders);
-
-                if(pargs)
-                {
-                    if(strncmp(pargs, "args=", 5) == 0)
-                    {
-                        pargs += 5;
-
-                        char* pargs_end = pargs;
-                        while(*pargs_end && *pargs_end != ' ') pargs_end++;
-
-                        if(pargs_end-pargs < sizeof(url_args)-1) strncpy(url_args, pargs, pargs_end-pargs);
-                    }
-                }
 
                 peer_found_via_cookie = peer_find_by_cookie(cookie);
                 //printf("peer_found_via_cookie=%s\n", peer_found_via_cookie!=0? "yes" : "no");
@@ -682,7 +678,7 @@ webserver_worker(void* p)
                                 peers[sidx].alive = 1;
 
                                 peer_cookie_init(&peers[sidx], cookie);
-                                strcpy((char*)&peers[sidx].name, url_args);
+                                strcpy((char*) &peers[sidx].name, str_read_unsafe(url_args, "name=", 0));
                                 chatlog_append("login:"); chatlog_append(peers[sidx].name); chatlog_append("\n");
                                 strcat(peers[sidx].http.dynamic_js, "myUsername = '");
                                 strcat(peers[sidx].http.dynamic_js, peers[sidx].name);
@@ -712,8 +708,10 @@ webserver_worker(void* p)
                     {
                         response = macro_str_expand(response, tag_peerdynamicjs, PEER_DYNAMIC_JS_EMPTY);
                     }
+                    
                     response = macro_str_expand(response, tag_hostname, get_config("udpserver_addr="));
-                    response = macro_str_expand(response, tag_urlargs, url_args);
+                    response = macro_str_expand(response, tag_urlargsname, str_read_unsafe(url_args, "name=", 0));
+                    response = macro_str_expand(response, tag_urlargsroom, str_read_unsafe(url_args, "room=", 0));
                     response = macro_str_expand(response, tag_webport, get_config("webserver_port="));
                     response = macro_str_expand(response, tag_rtpport, listen_port_str);
                     
@@ -798,7 +796,7 @@ webserver_worker(void* p)
                     sprintf(tmp, "{ \"iceServers\": [{ \"url\": \"stun:%s:%s\" }] }", get_config("udpserver_addr="), listen_port_str);
                     response = macro_str_expand(response, tag_stunconfig_js, /*tmp*/ "null");
 
-                    sprintf(tmp, "candidate:1 1 UDP 1234 %s %s typ host", get_config("udpserver_addr="), listen_port_str);
+                    sprintf(tmp, "candidate:1 1 UDP 1234 %s %s typ host generation 0 network-cost 50", get_config("udpserver_addr="), listen_port_str);
                     response = macro_str_expand(response, tag_icecandidate, tmp);
                 
                     response = macro_str_expand(response, tag_chatlogvalue, chatlog_read());
@@ -921,6 +919,7 @@ webserver_worker(void* p)
                         strcpy(peers[sidx].sdp.answer, sdp);
                         
                         strcpy(peers[sidx].name, str_read_unsafe(sdp, "a=myname=", 0));
+                        strcpy(peers[sidx].roomname, str_read_unsafe(sdp, "a=roomname=", 0));
 
                         webserver.peer_index_sdp_last = sidx;
 

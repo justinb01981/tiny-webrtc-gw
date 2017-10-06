@@ -2,7 +2,7 @@
 #define __PEER_H__
 
 #define MAX_PEERS 63
-#define PEER_IDX_INVALID 63
+#define PEER_IDX_INVALID (MAX_PEERS+1)
 
 #define PEER_RTP_CTX_COUNT 8
 #define PEER_RTP_CTX_WRITE 4
@@ -173,7 +173,7 @@ typedef struct
     } stats;
 
     char name[64];
-    char watch_name[64];
+    char roomname[64];
 
     int timeout_sec;
 
@@ -237,6 +237,7 @@ void peer_init(peer_session_t* peer, int id)
     memset(peer, 0, sizeof(*peer));
 
     peer->id = id;
+    peer->subscriptionID = PEER_IDX_INVALID;
 
     peer->time_start = time(NULL);
     

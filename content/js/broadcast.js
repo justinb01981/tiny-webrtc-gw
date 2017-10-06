@@ -41,7 +41,7 @@ var localVideo = document.getElementById("localVideo");
 var vidElemPrevConnection = null;
 var vidPresenter = null;
 
-var joinPopupLast = {connection:null, userName:null, recvOnlyChecked:null, stream:null};
+var joinPopupLast = {connection:null, userName:null, roomName:null, recvOnlyChecked:null, stream:null};
 
 var stoppedStreamLast = null;
 var userCounter = 1;
@@ -82,16 +82,16 @@ function getMedia() {
             var vi = 0;
             for(var i = 0; i < sourceInfos.length; i++) {
                 console.log('mediaDevices('+sourceInfos[i].kind+')['+i+']: ' + sourceInfos[i].label);
-                if(sourceInfos[i].kind == 'audio') {
+                if(sourceInfos[i].kind == 'audio' || sourceInfos[i].kind == 'audioinput') {
                     if(audioSourceN == ai) {
-                        audioSource = sourceInfos[i].id;
+                        audioSource = sourceInfos[i].deviceId;
                         audioSourceLabel = sourceInfos[i].label;
                     }
                     ai++;
                 }
-                else if(sourceInfos[i].kind == 'video') {
+                else if(sourceInfos[i].kind == 'video' || sourceInfos[i].kind == 'videoinput') {
                     if(videoSourceN == vi) {
-                        videoSource = sourceInfos[i].id;
+                        videoSource = sourceInfos[i].deviceId;
                         videoSourceLabel = sourceInfos[i].label;
                     }
                     vi++;
@@ -107,13 +107,11 @@ function getMedia() {
                 }
             };
 
-            getUserMedia(
-                constraints,
+            navigator.mediaDevices.getUserMedia(constraints).then(
                 function (s) {
                     localStream = s;
                     attachMediaStream(localVideo, localStream);
-                }
-                ,
+                }).catch(
                 function(e) {
                     alert('get media failed\nmaybe try https?\ncamera/mic enabled?\n\n(You can still watch other users)');
                 }
@@ -147,7 +145,7 @@ function broadcastOnLoad() {
 
     getMedia();
 
-    if('%$URLARGUMENTS$%'.length > 0) {
+    if('%$URLARGUMENTSNAME$%'.length > 0) {
         document.getElementById('addUserLinkDiv').hidden = false;
     }
 
@@ -205,9 +203,6 @@ function macroHelper(a, b, c) {
     return v;
 }
 
-function openChat() {
-    roomPopup = window.open('chat.html', 'room', 'width=300,height=300');
-}
 function rebootLocalVideo(vidElem) {
     if(vidElem.style.cssText.indexOf('none') >= 0) {
         vidElem.style.cssText = '';
@@ -216,9 +211,10 @@ function rebootLocalVideo(vidElem) {
     }
 }
 
-function joinPopupClose(connection, userName, recvOnlyChecked) {
+function joinPopupClose(connection, userName, recvOnlyChecked, roomName) {
     joinPopupLast.connection = connection;
     joinPopupLast.userName = userName;
+    joinPopupLast.roomName = roomName;
     joinPopupLast.recvOnlyChecked = recvOnlyChecked;
     joinPopupLast.stream = connection.getRemoteStreams()[0];
 
@@ -234,11 +230,16 @@ function joinPopupClose(connection, userName, recvOnlyChecked) {
     var proto = document.location.protocol;
     var hostName = document.location.hostname;
     var hostPort = document.location.port;
+    
+    var roomTextView = document.getElementById('roomName')
+    roomTextView.value = roomName
 }
 
 function joinPopupOnLoadBroadcast() {
     var user = document.getElementById('userName').value;
+    var room = document.getElementById('roomName').value;
     winPopup.document.theform.my_name.value = user;
+    winPopup.document.theform.room_name.value = room;
     winPopup.document.theform.peerstream_recv.value = user;
 
     joinPopupOnLoad2();
@@ -260,8 +261,6 @@ function joinPopupOnLoad2() {
     winPopup.remoteConnection = new RTCPeerConnection(remoteConnectionStunConfig);
 }
 
-
-
 function disconnectVideo(vidElem) {
   if(videoConnectionTable[vidElem.id] != null)
   {
@@ -271,7 +270,7 @@ function disconnectVideo(vidElem) {
   }
 }
 
-function connectVideo(videoElem, recvOnly, watchUser) {
+function connectVideo(videoElem, recvOnly, watchUser, roomName) {
   var popupOnLoad = joinPopupOnLoadBroadcast;
 
   disconnectVideo(videoElem);
@@ -298,6 +297,7 @@ function onBtnAddUser(userName) {
     divRoomCurs.innerHTML = divRoomCurs.innerHTML + val;
     userCounter++;
 }
+
 function onBtnUsersExpand() {
     var d = document.getElementById('roomAddButtonDiv');
     if(d.style.cssText.indexOf('none') >= 0) {
@@ -308,6 +308,7 @@ function onBtnUsersExpand() {
     }
     resizeObjectWithID("roomAddButtonDiv", mainDivX+(userCounter*(vidChildW+100)), vidChildY+vidChildH/2, 50, 50);
 }
+
 function onBtnMute(btn, userName) {
     var vidSrc = document.getElementById('video_'+userName+'_remote');
     vidSrc.muted = !vidSrc.muted;
@@ -315,6 +316,7 @@ function onBtnMute(btn, userName) {
         document.getElementById('videoMain').muted = vidSrc.muted;
     }
 }
+
 function onBtnClose(btn, userName) {
     var vidSrc = document.getElementById('video_'+userName+'_remote');
     vidSrc.pause();
@@ -346,8 +348,10 @@ function onBtnMakePresent(btn, userName) {
 
     //resizeObjectWithID("videoMain", mainDivX, mainDivY, (mainDivW/100)*60, (mainDivH/100)*50);
 }
+
 function mainVideoEmbiggen(pct) { 
 }
+
 function stopSending() {
     s = joinPopupLast.connection.getLocalStreams()[0]
     if (s) {

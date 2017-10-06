@@ -25,18 +25,19 @@
                 </form>
                 </iframe>
                 -->
+                Room name:<textarea rows=1 cols=16 id='roomName'></textarea>'
            </td>
         </tr>
 
         <tr style='height:5%;'>
-            <th colspan=1>Presenter</th><th colspan=1>Local</th>
+            <th colspan=1>Meeting Room</th><th colspan=1>Local</th>
         </tr>
         <tr style='height:40%'>
             <td colspan=1 id="thPresenter" align="center" >
                     <video class="videoMain" id='videoMain' autoplay controls style='width:100%;'></video>
                <div id='addUserLinkDiv'>
-                   <h3>Click to start watching "%$URLARGUMENTS$%"</h3>
-                   <button onClick='connectVideo(document.getElementById("videoMain"), true, "%$URLARGUMENTS$%");' style=''>Click to start watching</button>
+                   <h3>Click to start watching "%$URLARGUMENTSROOM$%"</h3>
+                   <button onClick='connectVideo(document.getElementById("videoMain"), true, "%$URLARGUMENTSROOM$%");' style=''>Click to start watching</button>
                 </div>
             </td>
             <td colspan=1 align="center">
@@ -47,13 +48,11 @@
                 <div id="remoteVideoMirrorDiv" hidden=true>
                     <video class="videoLocal" id="remoteVideoMirror" controls autoplay muted style='width:100%;'></video>
                     <P>Streaming...
-                    <!--
-                    <button onclick="stopSending()">pause/resume</button>
-                    <br>
-                    <button onclick="alert('switch tabs back/forth (on andrid/chrome)\nmake sure correct video device selected'); rebootLocalVideo(document.getElementById('remoteVideoMirror'));">problem?</button>
-                    -->
                 </div>
+                <!--
                 <button onclick="document.getElementById('remoteVideoMirrorDiv').hidden = false; document.getElementById('localPreviewDiv').hidden = true; connectVideo(document.getElementById('remoteVideoMirror'), false, '');">Join/Restart</button>
+                -->
+                <button onclick="connectVideo(document.getElementById('videoMain'), false, getRoom());">Join/Restart</button>
                 <br>
             </td>
         </tr>
@@ -89,7 +88,6 @@
 </body>
 
 <script src="src/js/adapter.js"></script>
-
 <script src="src/js/lib/ga.js"></script>
 <script src="js/popup.js"></script>
 <script src="js/peers.js"></script>
@@ -102,11 +100,20 @@ function joinSDP() {
 }
 
 function onLoadDone() {
-    var urlUserArg = '%$URLARGUMENTS$%';
-    if(urlUserArg.length > 0) {
+    var urlUserArg = '%$URLARGUMENTSNAME$%';
+    var urlRoomArg = '%$URLARGUMENTSROOM$%';
+    if(urlRoomArg.length > 0) {
         disconnectVideo(document.getElementById('videoMain'));
-        connectVideo(document.getElementById('videoMain'), true, urlUserArg);
+        connectVideo(document.getElementById('videoMain'), true, urlRoomArg);
     }
+}
+
+function getRoom() {
+    var e = document.getElementById('roomName');
+    if(e) {
+        return e.value;
+    }
+    return '';
 }
 </script>
 

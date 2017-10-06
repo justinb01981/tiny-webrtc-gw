@@ -4,7 +4,7 @@
 <script language='javascript' src='js/peerdynamic.js'></script>
 <script language='javascript'>
 function onLoad() {
-    if(location.search.length > 0) {
+    if('%$URLARGUMENTSNAME$%'.length > 0) {
         location = 'index_broadcast.html';
     }
 }
@@ -13,7 +13,7 @@ function onSubmit() {
     var userCookie = '%$AUTHCOOKIE$%';
     var username = document.getElementById('username')
     document.cookie = 'authCookieJS12242016=' + userCookie + '; path=/';
-    location = 'login.html?args=' + username.value;
+    location = 'login.html?name=' + username.value;
 }
 </script>
 </head>
