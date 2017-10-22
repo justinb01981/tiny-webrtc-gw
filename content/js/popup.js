@@ -138,13 +138,23 @@ function iframeOnLoad() {
 
 function rtcPopupCreate(handlerOpen, handlerClose, recvOnly, watchUser) {
     var randomNum = Math.ceil(Math.random() % 10 * 1000);
-    var w = window.open('answer_upload.html?name='+watchUser, 'sdp_answer_upload' + randomNum, 'width=400,height=600');
+    var w = window.open('answer_upload.html?name='+watchUser, 'sdp_answer_upload' + randomNum, '');
     popupRecvOnly = recvOnly;
     //w.document.body.onload = handlerOpen1;
     onLoadDoneAnswerUpload = handlerOpen;
     closeHandler = handlerClose;
 
     return w;
+}
+
+function rtcPopupCreateIframe(handlerOpen, handlerClose, recvOnly, watchUser) {
+    var randomNum = Math.ceil(Math.random() % 10 * 1000);
+    //open('answer_upload.html?name='+watchUser, 'sdp_answer_upload' + randomNum, '');
+    document.location = 'answer_upload.html?name='+watchUser;
+    popupRecvOnly = recvOnly;
+    //w.document.body.onload = handlerOpen1;
+    parent.onLoadDoneAnswerUpload = handlerOpen;
+    closeHandler = handlerClose;
 }
 
 function roomlistPopupCreate(roomName) {
@@ -166,4 +176,8 @@ function attachMediaStream(vidElem, vidStream)
     }
 }
 
-
+function connectIFrameOnLoad(htmlBodyElem)
+{
+    console.debug('connectIFrameOnLoad');
+    window.parent.connectIframe = window;
+}

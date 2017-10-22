@@ -9,6 +9,7 @@
 
 var urlArgUser = '%$URLARGUMENTSNAME$%';
 var popupRecvOnly = false;
+var timeoutCancelled = false;
 
 function setupForm() {
     var d = document.getElementById('watchableUsersDiv');
@@ -39,10 +40,19 @@ function setupForm() {
     document.theform.offersdp.value = joinSDP();
 }
 
+function getParent() {
+    if(window.opener != null) return opener;
+    else return window.parent;
+}
+
 function onLoad() {
     setupForm();
     showDebug();
-    opener.onLoadDoneAnswerUpload();
+    getParent().onLoadDoneAnswerUpload();
+
+    setTimeout(function() {
+        if(!timeoutCancelled) connect(document.getElementById('button_connect'));
+        }, 3000);
 }
 
 function showDebug(show) {
@@ -75,35 +85,53 @@ function disableCodecs() {
     getForm().offersdp.value = offer;
 }
 
+function onCancel(button) {
+    button.style = 'display:none;';
+    timeoutCancelled = true;
+}
+
 </script>
 </head>
 
-<body onLoad='onLoad();'>
+<body onLoad='onLoad()'>
 
 <div id='debugDiv'>
 
 <table>
-<tr>
-  <td colspan=2>
-    SDP Answer:
+<tr style='height:10%;'>
+  <td>
+  </td>
+  <td>
+    <form method=POST name="finalform" action="/sdp_answer.txt">
+    <textarea name="answersdp" style='display:none;'></textarea>
+    </form>
   </td>
 </tr>
-<tr><td colspan=2>
-<form method=POST name="finalform" action="/sdp_answer.txt">
-<textarea name="answersdp" hidden=true></textarea>
-</form>
-</td></tr><tr><td colspan=2>
-<form method=POST name="theform" action="/sdp_answer.txt">
-<textarea name="answersdp" rows=10 cols=40></textarea>
-</td></tr><tr><td colspan=2>
-<textarea name="appendsdp" rows=2 cols=40></textarea>
-</td></tr><tr><td colspan=2>
-<textarea name="offersdp" rows=2 cols=40></textarea>
-</td></tr>
+
+<tr style='height:20%; overflow:scroll;'>
+  <td>
+    offer/answer SDP:
+  </td>
+  <td>
+    <form method=POST name="theform" action="/sdp_answer.txt">
+    <textarea name="answersdp"></textarea>
+    <textarea name="appendsdp" style='display:none;'></textarea>
+    <textarea name="offersdp" rows=2 cols=40></textarea>
+  </td>
+</tr>
 </table>
+
 </div>
 <table>
 <div id="myUsernameDiv">
+<tr>
+    <td>
+      <input type='button' value='Starting (3 seconds)' />
+      <input type='button' value='Cancel' onclick='onCancel(this)' />
+    </td>
+    <td>
+    </td>
+</tr>
 <tr>
     <td>
         My username:
@@ -144,9 +172,9 @@ function disableCodecs() {
 <button name='button_connect' id='button_connect' onclick="connect(self);">Ok</button>
 </body>
 <script language='javascript'>
-document.getElementById("recvonly").checked = opener.popupRecvOnly;
-document.getElementById('watchableUsersDiv').hidden = !opener.popupRecvOnly;
-document.getElementById('myUsernameDiv').hidden = opener.popupRecvOnly;
+document.getElementById("recvonly").checked = getParent().popupRecvOnly;
+document.getElementById('watchableUsersDiv').hidden = !getParent().popupRecvOnly;
+document.getElementById('myUsernameDiv').hidden = getParent().popupRecvOnly;
 </script>
 <iframe name='iframe_submit' width="100%" height="%25%">
 </iframe>

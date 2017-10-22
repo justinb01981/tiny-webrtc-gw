@@ -122,12 +122,6 @@ function getMedia() {
 
 function broadcastOnLoad() {
 
-    if(navigator.userAgent.indexOf('iPhone') >= 0 || navigator.userAgent.indexOf('iPad') >= 0) {
-        if (confirm('browser not supported, visit the github project for help (iOS?))')) {
-            window.location = 'https://github.com/justinb01981/tiny-webrtc-gw/wiki';
-        }
-    }
-
     if(document.cookie == '') {
         location = 'login.html';
     }
@@ -236,37 +230,61 @@ function joinPopupClose(connection, userName, recvOnlyChecked, roomName) {
 }
 
 function joinPopupOnLoadBroadcast() {
-    var user = document.getElementById('userName').value;
-    var room = document.getElementById('roomName').value;
+    var doc = document;
+
+    var user = doc.getElementById('userName').value;
+    var room = doc.getElementById('roomName').value;
     winPopup.document.theform.my_name.value = user;
     winPopup.document.theform.room_name.value = room;
     winPopup.document.theform.peerstream_recv.value = user;
 
-    joinPopupOnLoad2();
+    joinPopupOnLoad2(winPopup);
 }
 
 function joinPopupOnLoadRecvOnly() {
     var user = 'watch' + Math.floor((Math.random() * 1000));
     winPopup.document.theform.my_name.value = user;
     winPopup.document.theform.peerstream_recv.value = user;
-    joinPopupOnLoad2();
+    joinPopupOnLoad2(winPopup, window);
 }
 
-function joinPopupOnLoad2() {
-    winPopup.document.theform.answersdp.value = '';
-    winPopup.localStream = localStream;
-    winPopup.remoteVideo = winPopupVideoTarget;
+function joinIframeOnLoadBroadcast() {
+    var doc = window.parent.document;
 
-    winPopup.closeHandler = joinPopupClose;
-    winPopup.remoteConnection = new RTCPeerConnection(remoteConnectionStunConfig);
+    var user = doc.getElementById('userName').value;
+    var room = doc.getElementById('roomName').value;
+
+    window.document.theform.my_name.value = user;
+    window.document.theform.room_name.value = room;
+    window.document.theform.peerstream_recv.value = user;
+    joinPopupOnLoad2(window, window.parent);
+}
+
+function joinPopupOnLoad2(win, winSource) {
+    win.document.theform.answersdp.value = '';
+    win.localStream = winSource.localStream;
+    win.remoteVideo = winSource.winPopupVideoTarget;
+
+    win.closeHandler = winSource.joinPopupClose;
+    win.remoteConnection = new winSource.RTCPeerConnection(winSource.remoteConnectionStunConfig);
 }
 
 function disconnectVideo(vidElem) {
   if(videoConnectionTable[vidElem.id] != null)
   {
-     var conn = videoConnectionTable[vidElem.id];
-     if(conn.signalingState != 'closed') conn.close();
-     videoConnectionTable[vidElem.id] = null;
+    var conn = videoConnectionTable[vidElem.id];
+
+    if(conn.signalingState != 'closed')
+    {
+      // TODO: this isn't working
+      //conn.getLocalStreams().forEach(s => function(s){
+      //  s.getTracks().forEach(t => t.stop())
+      //});
+
+      //console.debug('closing...');
+    }
+    videoConnectionTable[vidElem.id].close();
+    videoConnectionTable[vidElem.id] = null;
   }
 }
 
@@ -283,6 +301,17 @@ function connectVideo(videoElem, recvOnly, watchUser, roomName) {
 
   if(!winPopup) alert('popup blocked?');
   //else window.onfocus = function(){ winPopup.close(); }
+}
+
+function connectVideoIframe(videoElem, recvOnly, watchUser, roomName, target) {
+  var popupOnLoad = joinIframeOnLoadBroadcast;
+
+  disconnectVideo(videoElem);
+
+  if (recvOnly) popupOnLoad = joinPopupOnLoadRecvOnly;
+
+  window.parent.winPopupVideoTarget = videoElem;
+  rtcPopupCreateIframe(popupOnLoad, joinPopupClose, recvOnly, watchUser);
 }
 
 function onBtnAddUser(userName) {
@@ -365,4 +394,41 @@ function stopSending() {
 
 function channelPost() {
     document.channelForm.submit();
+}
+
+function getRoomElem() {
+    return document.getElementById('roomName');
+}
+
+function getRoom() {
+    var e = getRoomElem();
+    if(e) {
+        return e.value;
+    }
+    return '';
+}
+
+var connectIframe;
+
+function roomEdited(elemTextArea) {
+    var iframeDoc = connectIframe.document;
+    var e = iframeDoc.getElementById('joinButton');
+    e.disabled = true;
+    if(elemTextArea.value.length > 0) {
+        e.disabled = false;
+    }
+}
+
+function startLiveBcast(elemButton) {
+    e = getRoomElem();
+    connectVideo(document.getElementById('videoMain'), false, e.value);
+    
+    elemButton.onclick = function() {
+        console.debug('Leaving room ' + e.value);
+        e.disabled = false
+        elemButton.textContent = 'Join';
+        elemButton.onclick = function (){
+            startLiveBcast(elemButton);
+        };
+    }
 }

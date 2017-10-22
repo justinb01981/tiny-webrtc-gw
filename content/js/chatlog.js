@@ -19,7 +19,7 @@ function appendMessageListElem(destList, m) {
   var tScrollRowElem = document.createElement('td');
   tScroll.style.cssText = 'width:100%; height:100%; table-layout:fixed;';
   tScrollRow.style.cssText = 'height:1em;';
-  tScrollRowElem.style.cssText = 'overflow:scroll; white-space:nowrap;';
+  tScrollRowElem.style.cssText = 'overflow:auto;';
   l.cssText = 'padding-left: 0pt;';
   if(m.indexOf('http') >= 0) {
     var ref = m.substring(m.indexOf('http'), m.length)

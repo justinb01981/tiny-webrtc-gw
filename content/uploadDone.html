@@ -13,7 +13,7 @@ function onLoad() {
 }
 
 function done() {
-    parent.close();
+    parent.document.location = 'connect_iframe.html';
 }
 
 function closeInXSeconds(sec) {
@@ -32,17 +32,5 @@ function closeInXSeconds(sec) {
         <br>
         <p>some browsers (Android/chrome) require switching back to parent window/tab to close
     </body>
-    <script language='javascript'>
-        if(navigator.userAgent.indexOf('android') >= 0 ||
-           navigator.userAgent.indexOf('Android') >= 0) {
-           /* TODO: find a way to restore focus on Android that works?
-            * (hack around a problem with pop closing/connecting video
-            *  stream)
-            */
-        }
-        else {
-            window.close();
-        }
-    </script>
 <script language='javascript' src='js/peerdynamic.js'></script>
 </html>
