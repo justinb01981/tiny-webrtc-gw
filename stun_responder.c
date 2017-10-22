@@ -678,7 +678,10 @@ connection_worker(void* p)
     }
     else
     {
-        chatlog_append(" broadcasting $SUBSCRIBELINK");
+        chatlog_append(" broadcasting in room ");
+        chatlog_append(peer->roomname);
+
+        chatlog_append("\n$SUBSCRIBELINK");
         chatlog_append(peer->roomname);
     }
 
@@ -1718,6 +1721,7 @@ int main( int argc, char* argv[] ) {
                         /* TODO: attempt to re-subscribe this peer (or at least mark as alive=0) */
                         peers[p].subscriptionID = PEER_IDX_INVALID;
                         //peers[p].restart_needed = 1;
+                        DTLS_peer_shutdown(&peers[p]);
                     }
                 }
 

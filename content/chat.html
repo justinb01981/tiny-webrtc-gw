@@ -7,6 +7,7 @@ var focused = null;
 var iframeRefresh = null;
 var CHATURL = '/content/chat.html';
 var chatRefreshTimestamp = %$CHATLOGTSVALUE$%;
+var maxLines = 20;
 function onload() {
     var refresh_interval = 5000;
 
@@ -29,7 +30,9 @@ function onload() {
     }
 
     var ul = document.getElementById('chatloglist');
-    appendMessagesToUnorderedList(ul, jsChatlogLines);
+    var lines = jsChatlogLines;
+    while(lines.length > maxLines) lines.shift();
+    appendMessagesToUnorderedList(ul, lines);
 
     bottomTableRow = document.getElementById("bottomrow");
     

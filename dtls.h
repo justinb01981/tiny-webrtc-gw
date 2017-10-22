@@ -324,6 +324,12 @@ DTLS_peer_init(peer_session_t* peer)
     }
 }
 
+inline static int
+DTLS_peer_shutdown(peer_session_t* peer)
+{
+    return SSL_shutdown(peer->dtls.ssl);
+}
+
 inline static void
 DTLS_peer_uninit(peer_session_t* peer)
 {
