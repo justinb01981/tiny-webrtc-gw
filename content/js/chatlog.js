@@ -3,7 +3,7 @@ function macroExpand(msg) {
     var text = msg;
 
     var loc = '' + document.location;
-    loc = loc.replace('chat.html', 'index_broadcast.html?roomname=');
+    loc = loc.replace('chat.html', 'index_broadcast.html?room=');
     while(text.indexOf('$SUBSCRIBELINK') >= 0) {
         text = text.replace('$SUBSCRIBELINK', loc);
     }

@@ -122,9 +122,9 @@ function getMedia() {
 
 function broadcastOnLoad() {
 
-    if(document.cookie == '') {
-        location = 'login.html';
-    }
+    //if(document.cookie == '') {
+    //    location = 'login.html';
+    //}
     divRoom = document.getElementById("roomDivCursor");
 
     mainDivW = (document.body.clientWidth / 100) * 80;
@@ -138,10 +138,6 @@ function broadcastOnLoad() {
     //resizeObjectWithID("mainDivTable", mainDivX, mainDivY, mainDivW, mainDivH);
 
     getMedia();
-
-    if('%$URLARGUMENTSNAME$%'.length > 0) {
-        document.getElementById('addUserLinkDiv').hidden = false;
-    }
 
     var userTotal = 0;
     /*

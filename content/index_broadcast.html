@@ -120,23 +120,28 @@ function joinSDP() {
 }
 
 function onLoadDone() {
-    var urlUserArg = '%$URLARGUMENTSNAME$%';
-    var urlRoomArg = '%$URLARGUMENTSROOM$%';
-    if(urlRoomArg.length > 0) {
-        disconnectVideo(document.getElementById('videoMain'));
-        connectVideo(document.getElementById('videoMain'), true, urlRoomArg);
-    }
-
     onLeave = function() {
         disconnectVideo(document.getElementById('videoMain'));
     }
 
     onJoinPending = function() {
     }
+
+    if('%$URLARGUMENTSNAME$%'.length > 0) {
+        document.getElementById('addUserLinkDiv').hidden = false;
+    }
+
+    if('%$URLARGUMENTSROOM$%'.length > 0) {
+        document.getElementById('roomName').value = '%$URLARGUMENTSROOM$%';
+    }
+}
+
+function getConnectIframe() {
+    return document.getElementById('connect_iframe');
 }
 
 function onAdvanced(button) {
-    var iframe = document.getElementById('connect_iframe');
+    var iframe = getConnectIframe();
 
     if(button.value == '-')
     {

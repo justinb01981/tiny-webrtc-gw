@@ -16,13 +16,16 @@ Leave
 <script src="js/broadcast.js"></script>
 <script language="javascript">
 
-function onOK(okButton)
-{
+function onJoin() {
   var parentDoc = window.parent.document;
   var vidElem = parentDoc.getElementById('videoMain');
   var roomElem = parentDoc.getElementById('roomName');
 
   connectVideoIframe(vidElem, false, vidElem.value);
+}
+
+function onOK(okButton) {
+  onJoin();
 }
 
 function onLeave(leaveButton)

@@ -1586,8 +1586,6 @@ int main( int argc, char* argv[] ) {
         if(node->recv_time - tail_prev->recv_time < peers[sidx].in_rate_ms) peers[sidx].in_rate_ms--;
         else peers[sidx].in_rate_ms++;
         
-        assert(!peers[sidx].restart_needed, "received packet will be lost due to peer state reset\n");
-
         // -- run every loop, not just when packets received
         select_timeout:
         i = 0;

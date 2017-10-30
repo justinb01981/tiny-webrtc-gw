@@ -919,7 +919,7 @@ webserver_worker(void* p)
                         strcpy(peers[sidx].sdp.answer, sdp);
                         
                         strcpy(peers[sidx].name, str_read_unsafe(sdp, "a=myname=", 0));
-                        strcpy(peers[sidx].roomname, str_read_unsafe(sdp, "a=roomname=", 0));
+                        strcpy(peers[sidx].roomname, str_read_unsafe(sdp, "a=room=", 0));
 
                         webserver.peer_index_sdp_last = sidx;
 
