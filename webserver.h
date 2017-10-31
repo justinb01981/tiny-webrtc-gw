@@ -710,8 +710,8 @@ webserver_worker(void* p)
                     }
                     
                     response = macro_str_expand(response, tag_hostname, get_config("udpserver_addr="));
-                    response = macro_str_expand(response, tag_urlargsname, str_read_unsafe(url_args, "name=", 0));
-                    response = macro_str_expand(response, tag_urlargsroom, str_read_unsafe(url_args, "room=", 0));
+                    response = macro_str_expand(response, tag_urlargsname, str_read_unsafe_delim(url_args, "name=", 0, "&"));
+                    response = macro_str_expand(response, tag_urlargsroom, str_read_unsafe_delim(url_args, "room=", 0, "&"));
                     response = macro_str_expand(response, tag_webport, get_config("webserver_port="));
                     response = macro_str_expand(response, tag_rtpport, listen_port_str);
                     

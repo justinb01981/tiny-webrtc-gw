@@ -57,6 +57,14 @@ static char* str_read_unsafe(char* buf, char* key, int index)
     return str_read_key_buf;
 }
 
+static char* str_read_unsafe_delim(char* buf, char* key, int index, char* delim)
+{
+    memset(str_read_key_buf, 0, sizeof(str_read_key_buf));
+    /* hack: */
+    str_read_from_key(key, buf, str_read_key_buf, delim, sizeof(str_read_key_buf), index);
+    return str_read_key_buf;
+}
+
 static void
 hex_print(char* dest, u8 *buf, int buf_len)
 {

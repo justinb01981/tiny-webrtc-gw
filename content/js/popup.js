@@ -179,5 +179,13 @@ function attachMediaStream(vidElem, vidStream)
 function connectIFrameOnLoad(htmlBodyElem)
 {
     console.debug('connectIFrameOnLoad');
+
     window.parent.connectIframe = window;
+
+    if(window.parent.urlArgRoom && !window.parent.autoJoinDone) {
+        console.debug('connectIFrameOnLoad: auto start');
+        window.parent.connectIframe = window;
+        window.parent.autoJoinDone = true;
+        onJoin(null);
+    }
 }

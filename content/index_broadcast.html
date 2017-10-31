@@ -114,6 +114,9 @@
 <script language="javascript">
 
 var onLeave;
+var urlArgRoom;
+var urlArgName;
+var autoJoinDone = false;
 
 function joinSDP() {
     return "empty";
@@ -128,11 +131,13 @@ function onLoadDone() {
     }
 
     if('%$URLARGUMENTSNAME$%'.length > 0) {
-        document.getElementById('addUserLinkDiv').hidden = false;
+        urlArgName = '%$URLARGUMENTSNAME$%';
     }
 
     if('%$URLARGUMENTSROOM$%'.length > 0) {
         document.getElementById('roomName').value = '%$URLARGUMENTSROOM$%';
+        urlArgRoom = '%$URLARGUMENTSROOM$%';
+        connectIframe.location = connectIframe.location;
     }
 }
 
