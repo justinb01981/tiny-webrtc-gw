@@ -1388,10 +1388,18 @@ int main( int argc, char* argv[] ) {
     int timedout_last = 0;
     while(1)
     {
-        char buffer[PEER_BUFFER_NODE_BUFLEN];
+        //char buffer[PEER_BUFFER_NODE_BUFLEN];
         unsigned int size;
         int recv_flags = 0;
         struct timeval te;
+
+        peer_buffer_node_t* node_peer_buf = buffer_node_alloc();
+        if(!node_peer_buf)
+        {
+            usleep(100000);
+            continue;
+        }
+        char* buffer = node_peer_buf->buf;
         
         gettimeofday(&te, NULL); // get current time
         
@@ -1452,13 +1460,14 @@ int main( int argc, char* argv[] ) {
         usleep(udp_recv_timeout_usec);
     
         size = sizeof(src);
-        int length = recvfrom(listen, buffer, sizeof(buffer), recv_flags, (struct sockaddr*)&src, &size);
+        int length = recvfrom(listen, buffer, PEER_BUFFER_NODE_BUFLEN, recv_flags, (struct sockaddr*)&src, &size);
         if(length <= 0)
         {
             timedout_last = 1;
             goto select_timeout;
         }
         timedout_last = 0;
+        node_peer_buf->len = size;
 
         int inkey = 0;
 
@@ -1571,10 +1580,15 @@ int main( int argc, char* argv[] ) {
 
         if(length < 1 || length >= PEER_BUFFER_NODE_BUFLEN) goto select_timeout;
 
-        peer_buffer_node_t* node = buffer_node_alloc(), *tail_prev;
-        if(!node) goto select_timeout;
+        //peer_buffer_node_t* node = buffer_node_alloc(), *tail_prev;
+        //if(!node) goto select_timeout;
+        
+        //memcpy(node->buf, buffer, length);
 
-        memcpy(node->buf, buffer, length);
+        peer_buffer_node_t* tail_prev;
+        peer_buffer_node_t* node = node_peer_buf;
+        node_peer_buf = NULL;
+
         node->len = length;
         node->recv_time = get_time_ms();
 
@@ -1636,7 +1650,7 @@ int main( int argc, char* argv[] ) {
 
             time_t curtime = time(NULL);
             
-            if(curtime - peers[i].time_cleanup_last > 0 && peers[i].alive)
+            if(curtime - peers[i].time_cleanup_last > 2 && peers[i].alive)
             {
                 /* HACK: lock out all reader-threads */
                 peers[i].cleanup_in_progress = 1;
@@ -1688,7 +1702,14 @@ int main( int argc, char* argv[] ) {
                     }
                 }
 
+                // done cleaning up this peer
                 peers[i].cleanup_in_progress = 0;
+
+                // send a keepalive packet to keep UDP ports open
+                char keepalive[] = {0};
+                int r = sendto(peers[i].sock, keepalive, 1, 0, (struct sockaddr*)&peers[i].addr, sizeof(peers[i].addr));
+
+
             }
 
             if(peers[i].restart_needed ||
@@ -1785,6 +1806,8 @@ int main( int argc, char* argv[] ) {
 
             i++;
         }
+
+        if(node_peer_buf) free(node_peer_buf);
     }
 
     if(webserver.running)

@@ -113,7 +113,7 @@ function getMedia() {
                     attachMediaStream(localVideo, localStream);
                 }).catch(
                 function(e) {
-                    alert('get media failed\nmaybe try https?\ncamera/mic enabled?\n\n(You can still watch other users)');
+                    alert('get media failed\nmaybe try https?\ncamera/mic enabled?\n\n(reload the page after allowing)');
                 }
             );
         }
@@ -158,11 +158,14 @@ function broadcastOnLoad() {
     
     resizeObjectWithID("roomAddButtonDiv", mainDivX, vidChildY+vidChildH/2, 50, 50);
 
-    document.getElementById('userName').value = myUsername;
+    var userElem = document.getElementById('userName');
+    userElem.value = myUsername;
 
     setLoggedIn();
 
     onLoadDone();
+
+    userElem.scrollIntoView();
 }
 
 function setLoggedIn() {
@@ -412,6 +415,7 @@ function roomEdited(elemTextArea) {
     e.disabled = true;
     if(elemTextArea.value.length > 0) {
         e.disabled = false;
+        elemTextArea.value = elemTextArea.value.toLowerCase();
     }
 }
 

@@ -11,10 +11,10 @@ function onLoad() {
 
 function onSubmit() {
     var userCookie = '%$AUTHCOOKIE$%';
-    var username = document.getElementById('username')
+    var username = document.getElementById('username');
 
     document.cookie = 'authCookieJS12242016=' + userCookie + '; path=/';
-    document.location = '/content/login.html?name=' + username.value;
+    document.location = '/content/login.html?name=' + username.value.toLowerCase();
 }
 </script>
 </head>
