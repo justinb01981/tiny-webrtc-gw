@@ -23,7 +23,6 @@
 const char* PEER_DYNAMIC_JS_EMPTY = "/* dynamic js */\n"
 "function doPeerDynamicOnLoad() { return; }\n";
 
-
 typedef struct peer_buffer_node
 {
     struct peer_buffer_node* next, *tail;
@@ -178,6 +177,7 @@ typedef struct
     int timeout_sec;
 
     int recv_only;
+    int send_only;
 
     struct {
         char offer[OFFER_SDP_SIZE];

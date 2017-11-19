@@ -1,1 +1,0 @@
-/usr/bin/c++    -Wall -Werror -ggdb -std=c++0x -fvisibility=hidden -Wshadow    CMakeFiles/v3name_test.dir/v3name_test.c.o ../test/CMakeFiles/test_support.dir/file_test.cc.o ../test/CMakeFiles/test_support.dir/malloc.cc.o  -o v3name_test -rdynamic ../libcrypto.a -lpthread 

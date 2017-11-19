@@ -102,7 +102,11 @@ function broadcastStart(onSuccess, onFailure) {
     remoteConnection.setLocalDescription(remoteConnectionAnswer).then(
         function () {
             console.debug('remoteConnection.setLocalDescription');
-
+            if(remoteStream == null) {
+                console.debug('remoteConnection has no streams (sendonly?)');
+                onSuccess();
+                return;
+            }
             attachMediaStream(remoteVideo, remoteConnection.getRemoteStreams()[0]);
             remoteStream.getTracks().forEach(track => remoteConnection.addTrack(track, remoteStream));
             onSuccess();
@@ -147,11 +151,9 @@ function rtcPopupCreate(handlerOpen, handlerClose, recvOnly, watchUser) {
     return w;
 }
 
-function rtcPopupCreateIframe(handlerOpen, handlerClose, recvOnly, watchUser) {
-    var randomNum = Math.ceil(Math.random() % 10 * 1000);
-    //open('answer_upload.html?name='+watchUser, 'sdp_answer_upload' + randomNum, '');
-    document.location = 'answer_upload.html?name='+watchUser;
-    popupRecvOnly = recvOnly;
+function rtcPopupCreateIframe(handlerOpen, handlerClose) {
+    document.location = 'answer_upload.html';
+    popupRecvOnly = false;
     //w.document.body.onload = handlerOpen1;
     parent.onLoadDoneAnswerUpload = handlerOpen;
     closeHandler = handlerClose;

@@ -74,8 +74,8 @@ macro_str_expand(char* buf, const char* tag, const char* replace)
             char* tmp = malloc(realloc_len);
             if(tmp)
             {
+                memset(tmp, 0, realloc_len);
                 ret = tmp;
-                memset(ret, 0, realloc_len);
 
                 strncpy(ret, buf, pmac - buf);
                 pmac += strlen(tag);
@@ -692,9 +692,17 @@ webserver_worker(void* p)
                     {
                         if(peer_found_via_cookie)
                         {
+                            peer_session_t* peer_logout = peer_found_via_cookie;
+
                             chatlog_append("logged out:"); chatlog_append(peer_found_via_cookie->name); chatlog_append("\n");
-                            peer_init(peer_found_via_cookie, PEER_INDEX(peer_found_via_cookie));
-                            peer_cookie_init(peer_found_via_cookie, "");
+
+                            peer_logout->restart_needed = 1;
+                            while(!peer_logout->restart_done) usleep(1000);
+                            peer_logout->alive = 0;
+                            peer_logout->restart_needed = 0;
+                            peer_init(peer_logout, PEER_INDEX(peer_logout));
+                            peer_cookie_init(peer_logout, "");
+                            
                             peer_found_via_cookie = NULL;
                         }
                     }
@@ -748,9 +756,13 @@ webserver_worker(void* p)
                     if(strstr(response, tag_peerlisthtml_options))
                     {
                         char peer_list_html[buf_size];
-                        memset(peer_list_html, 0, sizeof(peer_list_html));
                         char line[buf_size];
-                        int num_peers = 0; 
+                        int peer_list_html_free = buf_size-1;
+                        int num_peers = 0;
+
+                        memset(peer_list_html, 0, sizeof(peer_list_html));
+                        memset(line, 0, sizeof(line));
+
                         for(i = 0; i < MAX_PEERS; i++)
                         {
                             if(peers[i].alive)
@@ -760,7 +772,11 @@ webserver_worker(void* p)
                                 char key_buf[1024];
                                 hex_print(key_buf, peers[i].dtls.master_key_salt, 8);
                                 sprintf(line, "<option value=\"%s\">%s (%s:%d)</option>\n", peers[i].name, peers[i].name, inet_ntoa(peers[i].addr.sin_addr), ntohs(peers[i].addr.sin_port));
-                                strncat(peer_list_html, line, sizeof(peer_list_html)-strlen(peer_list_html)-1);
+                                
+                                if(strlen(line) > peer_list_html) break;
+
+                                strcat(peer_list_html, line);
+                                peer_list_html_free -= strlen(line);
                             }
                         }                       
                         response = macro_str_expand(response, tag_peerlisthtml_options, peer_list_html);
@@ -769,11 +785,13 @@ webserver_worker(void* p)
                     if(strstr(response, tag_peerlist_jsarray))
                     {
                         char peer_list_html[buf_size];
-                        memset(peer_list_html, 0, sizeof(peer_list_html));
+                        int peer_list_html_free = buf_size-16;
                         char line[buf_size];
                         int num_peers = 0;
                         int first_entry = 1;
-                        strcat(peer_list_html, "var peerList = [");
+
+                        sprintf(peer_list_html, "var peerList = [");
+
                         for(i = 0; i < MAX_PEERS; i++)
                         {
                             if(peers[i].alive)
@@ -785,7 +803,9 @@ webserver_worker(void* p)
                                 sprintf(line, "%s{'name': '%s', 'id': '%d', 'addr': '%s:%u', 'key': '%s', 'recvonly': %s }",
                                         (first_entry? "": ","), peers[i].name, peers[i].id, inet_ntoa(peers[i].addr.sin_addr), ntohs(peers[i].addr.sin_port),
                                         key_buf, (peers[i].recv_only? "true": "false"));
-                                strncat(peer_list_html, line, sizeof(peer_list_html)-strlen(peer_list_html)-1);
+                                if(peer_list_html_free < strlen(line)) break;
+                                strcat(peer_list_html, line);
+                                peer_list_html_free -= strlen(line);
                                 first_entry = 0;
                             }
                         }
@@ -863,7 +883,10 @@ webserver_worker(void* p)
                         const char* ufrag_answer = sdp_read(sdp, "a=ice-ufrag:");
                         
                         // anonymous+watching-only peers use new slot
-                        if(strstr(sdp, "a=recvonly") != NULL) peer_found_via_cookie = NULL;
+                        if(peer_found_via_cookie && strstr(sdp, "a=recvonly") != NULL)
+                        {
+                            peer_found_via_cookie = NULL;
+                        }
 
                         // find original SDP offer and decode SDP answer and init stun_ice attributes
                         if(peer_found_via_cookie)

@@ -33,23 +33,15 @@
         </tr>
         <tr style='height:30%;'>
             <td colspan=1 id="thPresenter" align="center" >
-                    <video class="videoMain" id='videoMain' autoplay controls style='width:100%;'></video>
+                <video class="videoMain" id="videoMain" autoplay controls style='width:100%;'></video>
 
+                <button id="videoMainButton" style="display:none;">Stop Watching</button>
             </td>
             <td colspan=1 align="center">
                 <div id="localPreviewDiv">
                     <video class="videoLocal" id="localVideo" controls autoplay muted style='width:100%;'></video>
+                    <button id="localVideoButton" style="display:none;" onclick="">End Broadcast</button>
                 </div>
-                <div id="remoteVideoMirrorDiv" hidden=true>
-                    <video class="videoLocal" id="remoteVideoMirror" controls autoplay muted style='width:100%;'>
-                    </video>
-                    <h1>
-                        Recording: yes
-                    </h2>
-                </div>
-                <!--
-                <button onclick="document.getElementById('remoteVideoMirrorDiv').hidden = false; document.getElementById('localPreviewDiv').hidden = true; connectVideo(document.getElementById('remoteVideoMirror'), false, '');">Join/Restart</button>
-                -->
             </td>
         </tr>
 
@@ -117,6 +109,14 @@ var onLeave;
 var urlArgRoom;
 var urlArgName;
 var autoJoinDone = false;
+var joinPopupCloseDone = function(videoElem) {
+    videoElem.closeAction = function() {
+        disconnectVideo(videoElem);
+        videoElem.closeButton.style.cssText = 'display:none;'
+    };
+    videoElem.closeButton.style.cssText = 'display:true; position:relative; top:-20px;';
+    videoElem.closeButton.onclick = videoElem.closeAction;
+}
 
 function joinSDP() {
     return "empty";
@@ -139,6 +139,13 @@ function onLoadDone() {
         urlArgRoom = '%$URLARGUMENTSROOM$%';
         connectIframe.location = connectIframe.location;
     }
+
+    document.getElementById('localVideo').closeButton =
+        document.getElementById('localVideoButton');
+
+    document.getElementById('videoMain').closeButton =
+        document.getElementById('videoMainButton');
+
 }
 
 function getConnectIframe() {

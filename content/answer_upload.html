@@ -153,7 +153,7 @@ function onCancel(button) {
 </div>
 <br>
 <table>
-<tr><td>receive only:</td><td><input type='checkbox' disabled name='recvonly' id='recvonly' value=true></input></td></tr>
+<tr><td>receive only:</td><td><input type='checkbox' name='recvonly' id='recvonly' value=true></input></td></tr>
 <tr><td>send only (no mirror):</td><td><input type='checkbox' name='sendonly' id='sendonly' onclick="getForm().offersdp.value=getForm().offersdp.value.replace(/sendrecv/g, 'recvonly');" value=false></input></td></tr>
 <tr><td>compatibility SDP mode:</td><td><input type='checkbox' onclick="disableCodecs(); this.disabled=true;"></input></td></tr>
 <tr><td>show sdp debug:</td><td><input type='checkbox' name='debugEnable' id='debugEnable' onclick="showDebug(this.checked);"></input></td></tr>

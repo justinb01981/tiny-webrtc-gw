@@ -1,1 +1,0 @@
-/usr/bin/c++    -Wall -Werror -ggdb -std=c++0x -fvisibility=hidden -Wshadow    CMakeFiles/hmac_test.dir/hmac_test.cc.o ../test/CMakeFiles/test_support.dir/file_test.cc.o ../test/CMakeFiles/test_support.dir/malloc.cc.o  -o hmac_test -rdynamic ../libcrypto.a -lpthread 

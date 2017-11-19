@@ -57,6 +57,10 @@ var mainDivY = 10;
 var vidChildX;
 var vidChildY;
 
+var connectIframe;
+
+//var joinMode;
+
 var addUserLoad = function(name) {
     var check = document.getElementById("check_"+name);
     if(!check.checked) {
@@ -220,12 +224,7 @@ function joinPopupClose(connection, userName, recvOnlyChecked, roomName) {
 
     videoConnectionTable[winPopupVideoTarget.id] = winPopupRemoteConnection;
 
-    var proto = document.location.protocol;
-    var hostName = document.location.hostname;
-    var hostPort = document.location.port;
-    
-    var roomTextView = document.getElementById('roomName')
-    roomTextView.value = roomName
+    window.parent.joinPopupCloseDone(winPopupVideoTarget);
 }
 
 function joinPopupOnLoadBroadcast() {
@@ -247,15 +246,23 @@ function joinPopupOnLoadRecvOnly() {
     joinPopupOnLoad2(winPopup, window);
 }
 
-function joinIframeOnLoadBroadcast() {
-    var doc = window.parent.document;
+function joinIframeOnLoadBroadcast(joinMode) {
+    var winParent = window.parent;
+    var docP = winParent.document;
+    var docCForm = window.document.theform;
 
-    var user = doc.getElementById('userName').value;
-    var room = doc.getElementById('roomName').value;
+    var user = docP.getElementById('userName').value;
+    var room = docP.getElementById('roomName').value;
+    
+    docCForm.my_name.value = user;
+    docCForm.room_name.value = room;
+    docCForm.peerstream_recv.value = user;
 
-    window.document.theform.my_name.value = user;
-    window.document.theform.room_name.value = room;
-    window.document.theform.peerstream_recv.value = user;
+    docCForm.appendsdp.value = 
+        joinMode.value == 'broadcast' ? 'a=sendonly\n' : 'a=recvonly\n';
+
+    console.debug('joinIframeOnLoadNext: joinMode=' + joinMode.value);
+
     joinPopupOnLoad2(window, window.parent);
 }
 
@@ -302,15 +309,13 @@ function connectVideo(videoElem, recvOnly, watchUser, roomName) {
   //else window.onfocus = function(){ winPopup.close(); }
 }
 
-function connectVideoIframe(videoElem, recvOnly, watchUser, roomName, target) {
-  var popupOnLoad = joinIframeOnLoadBroadcast;
+function connectVideoIframe(videoElem, afterOnLoad, watchUser, roomName, target) {
+  //var popupOnLoad = joinIframeOnLoadBroadcast;
 
   disconnectVideo(videoElem);
 
-  if (recvOnly) popupOnLoad = joinPopupOnLoadRecvOnly;
-
   window.parent.winPopupVideoTarget = videoElem;
-  rtcPopupCreateIframe(popupOnLoad, joinPopupClose, recvOnly, watchUser);
+  rtcPopupCreateIframe(afterOnLoad, joinPopupClose);
 }
 
 function onBtnAddUser(userName) {
@@ -406,8 +411,6 @@ function getRoom() {
     }
     return '';
 }
-
-var connectIframe;
 
 function roomEdited(elemTextArea) {
     var iframeDoc = connectIframe.document;

@@ -56,7 +56,7 @@ srcdir = .
 top_srcdir = .
 top_builddir = 
 
-prefix = /home/justin/webRTC/udp_redirect/libsrtp/build
+prefix = /usr/local
 exec_prefix = ${prefix}
 includedir = ${prefix}/include
 libdir = ${exec_prefix}/lib

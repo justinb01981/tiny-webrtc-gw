@@ -1,1 +1,0 @@
-/usr/bin/c++    -Wall -Werror -ggdb -std=c++0x -fvisibility=hidden -Wshadow    CMakeFiles/pkcs12_test.dir/pkcs12_test.cc.o ../test/CMakeFiles/test_support.dir/file_test.cc.o ../test/CMakeFiles/test_support.dir/malloc.cc.o  -o pkcs12_test -rdynamic ../libcrypto.a -lpthread 

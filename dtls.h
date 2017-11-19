@@ -207,17 +207,26 @@ int generate_cookie(SSL *ssl, unsigned char *cookie, unsigned int *cookie_len)
 
 SSL_CTX* DTLS_ssl_ctx_global = NULL;
 unsigned short dtls_listen_port;
-void DTLS_init(unsigned short listen_port)
+void DTLS_init()
 {
-    dtls_listen_port = listen_port;
+    time_t tm = time(NULL);
+
+    RAND_seed(&tm, sizeof(tm));
+    SSL_library_init();
     OpenSSL_add_ssl_algorithms();
     SSL_load_error_strings();
+}
+
+void DTLS_sock_init(unsigned short listen_port)
+{
+    dtls_listen_port = listen_port;
+
     //SSL_CTX *ctx = SSL_CTX_new(DTLSv1_2_server_method());
     SSL_CTX *ctx = SSL_CTX_new(DTLSv1_server_method());
 
     //SSL_CTX_set_cipher_list(ctx, "ALL:NULL:eNULL:aNULL");
     //SSL_CTX_set_cipher_list(ctx, "TLSv1.2+FIPS:kRSA+FIPS:!eNULL:!aNULL");
-	SSL_CTX_set_session_cache_mode(ctx, SSL_SESS_CACHE_OFF);
+    SSL_CTX_set_session_cache_mode(ctx, SSL_SESS_CACHE_OFF);
     SSL_CTX_set_options(ctx, SSL_OP_NO_TICKET);
 
     SSL_CTX_set_tlsext_use_srtp(ctx, "SRTP_AES128_CM_SHA1_80");

@@ -1,5 +1,9 @@
 <html>
 <body onload='connectIFrameOnLoad(this)'>
+<select id='joinMode' name='joinMode'>
+  <option value='broadcast'>broadcast</option>
+  <option value='watch'>watch</option>
+</select>
 <button id='joinButton' onClick='onOK(this)'>
 Join
 </button>
@@ -8,20 +12,29 @@ Leave
 </button>
 </body>
 
-<script src="src/js/adapter.js"></script>
-<script src="src/js/lib/ga.js"></script>
-<script src="js/popup.js"></script>
-<script src="js/peers.js"></script>
-<script src="js/peerdynamic.js"></script>
-<script src="js/broadcast.js"></script>
-<script language="javascript">
+<script src='src/js/adapter.js'></script>
+<script src='src/js/lib/ga.js'></script>
+<script src='js/popup.js'></script>
+<script src='js/peers.js'></script>
+<script src='js/peerdynamic.js'></script>
+<script src='js/broadcast.js'></script>
+<script language='javascript'>
 
 function onJoin() {
   var parentDoc = window.parent.document;
-  var vidElem = parentDoc.getElementById('videoMain');
+  var joinMode = document.getElementById('joinMode');
   var roomElem = parentDoc.getElementById('roomName');
 
-  connectVideoIframe(vidElem, false, vidElem.value);
+  var vidElem = joinMode.value == 'broadcast' ?
+    parentDoc.getElementById('localVideo') :
+    parentDoc.getElementById('videoMain');
+  var vidElemButton = parentDoc.getElementById(vidElem.id == 'videoMain' ? 'videoMainButton' : 'localVideoButton')
+
+  var f = function() {
+    joinIframeOnLoadBroadcast(joinMode);
+  }
+
+  connectVideoIframe(vidElem, f, vidElem.value);
 }
 
 function onOK(okButton) {
