@@ -216,11 +216,8 @@ function joinPopupClose(connection, userName, recvOnlyChecked, roomName) {
     joinPopupLast.stream = connection.getRemoteStreams()[0];
 
     winPopupRemoteConnection = connection;
-    var w = winPopupVideoTarget.width;
-    var h = winPopupVideoTarget.height;
+    
     attachMediaStream(winPopupVideoTarget, winPopupRemoteConnection.getRemoteStreams()[0]);
-    winPopupVideoTarget.width=w;
-    winPopupVideoTarget.height=h;
 
     videoConnectionTable[winPopupVideoTarget.id] = winPopupRemoteConnection;
 
@@ -257,11 +254,14 @@ function joinIframeOnLoadBroadcast(joinMode) {
     docCForm.my_name.value = user;
     docCForm.room_name.value = room;
     docCForm.peerstream_recv.value = user;
+    if(window.parent.selectedUser)
+    {
+        docCForm.appendsdp.value += 'a=watch='+window.parent.selectedUser+'\n';
+        window.parent.selectedUser = null;
+    }
 
     docCForm.appendsdp.value = 
         joinMode.value == 'broadcast' ? 'a=sendonly\n' : 'a=recvonly\n';
-
-    console.debug('joinIframeOnLoadNext: joinMode=' + joinMode.value);
 
     joinPopupOnLoad2(window, window.parent);
 }

@@ -54,7 +54,7 @@
                 </input>
             </td>
             <td style='border-width:0px;' align='left'>
-                <iframe style='height:25%; width:50%; overflow:scroll; border-width:0px;' name='connectIframe' src='connect_iframe.html' id='connect_iframe'>
+                <iframe style='height:25%; width:100%; overflow:scroll; border-width:0px;' name='connectIframe' src='connect_iframe.html' id='connect_iframe'>
                 </iframe>
 
 
@@ -109,6 +109,7 @@ var onLeave;
 var urlArgRoom;
 var urlArgName;
 var autoJoinDone = false;
+var selectedUser;
 var joinPopupCloseDone = function(videoElem) {
     videoElem.closeAction = function() {
         disconnectVideo(videoElem);
@@ -116,6 +117,19 @@ var joinPopupCloseDone = function(videoElem) {
     };
     videoElem.closeButton.style.cssText = 'display:true; position:relative; top:-20px;';
     videoElem.closeButton.onclick = videoElem.closeAction;
+
+    if(videoElem.id == 'localVideo')
+    {
+        attachMediaStream(videoElem, winPopupRemoteConnection.getLocalStreams()[0]);
+    }
+}
+var chatLinkClicked = function(elem) {
+    var roomUserPath = elem.value;
+    var b = roomUserPath.indexOf('/');
+
+    document.getElementById('roomName').value = roomUserPath.substring(0, b);
+    roomWatchName = roomUserPath.substring(b+1, roomUserPath.length);
+    console.debug(getConnectIframe());
 }
 
 function joinSDP() {
@@ -124,7 +138,12 @@ function joinSDP() {
 
 function onLoadDone() {
     onLeave = function() {
-        disconnectVideo(document.getElementById('videoMain'));
+        var elemRemote = document.getElementById('videoMain');
+        var elemLocal = document.getElementById('localVideo');
+
+        if(elemRemote.closeAction) elemRemote.closeAction(elemRemote);
+        if(elemLocal.closeAction) elemLocal.closeAction(elemLocal);
+        getConnectIframe().contentWindow.location.reload();
     }
 
     onJoinPending = function() {

@@ -1,19 +1,10 @@
 /* chat-log as an array */
-function macroExpand(msg) {
-    var text = msg;
 
-    var loc = '' + document.location;
-    loc = loc.replace('chat.html', 'index_broadcast.html?room=');
-    while(text.indexOf('$SUBSCRIBELINK') >= 0) {
-        text = text.replace('$SUBSCRIBELINK', loc);
-    }
-    return text;
-}
 function appendMessageListElem(destList, m) {
   var e = destList;
   var l = document.createElement('li');
   var a = document.createElement('a');
-  var t = document.createTextNode(m);
+  var btn;
   var tScroll = document.createElement('table');
   var tScrollRow = document.createElement('tr');
   var tScrollRowElem = document.createElement('td');
@@ -21,10 +12,24 @@ function appendMessageListElem(destList, m) {
   tScrollRow.style.cssText = 'height:1em;';
   tScrollRowElem.style.cssText = 'overflow:auto;';
   l.cssText = 'padding-left: 0pt;';
-  if(m.indexOf('http') >= 0) {
-    var ref = m.substring(m.indexOf('http'), m.length)
-    a.href = ref
+
+  var key = '$SUBSCRIBEBUTTON_';
+  if(m.indexOf(key) >= 0) {
+    btn = document.createElement('button');
+    tScrollRowElem.appendChild(btn);
+    let b = m.indexOf(key) + key.length;
+    let s = m.length;
+
+    btn.value = m.substring(b, s);
+    m = '';
+   
+    btn.innerHTML = btn.value;
+    btn.onclick = function() {
+      window.parent.chatLinkClicked(btn);
+    }
   }
+
+  var t = document.createTextNode(m);
     
   a.appendChild(t);
   tScrollRowElem.appendChild(a);
@@ -46,7 +51,6 @@ function appendMessagesToUnorderedList(l, array) {
     let maxLen = 1000;
     var str = array[i];
 
-    str = macroExpand(str);
 
     str = str.replace(/\+/g, ' ');
     while(offset < str.length && str.length > 0) {

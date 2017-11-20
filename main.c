@@ -673,11 +673,10 @@ connection_worker(void* p)
     }
 
     snprintf(str256, sizeof(str256)-1,
-        "\"%s\" joined \"%s\" (broadcasting:%s/watching:%s)\n",
+        "\"%s\" joined \"%s\" %s\n",
         peer->name,
         peer->roomname,
-        peer->send_only ? "yes" : "no",
-        peer->recv_only ? "yes" : "no");
+        peer->send_only ? "(broadcasting)" : "(watching)");
     chatlog_append(str256);
 
     /*
@@ -685,6 +684,8 @@ connection_worker(void* p)
     chatlog_append(peer->roomname);
     chatlog_append("\n");
     */
+    sprintf(str256, "\n$SUBSCRIBEBUTTON_%s/%s\n", peer->roomname, peer->name);
+    chatlog_append(str256);
 
     for(si = 0; si < MAX_PEERS; si++)
     {

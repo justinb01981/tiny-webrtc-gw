@@ -1,14 +1,16 @@
 <html>
 <body onload='connectIFrameOnLoad(this)'>
-<select id='joinMode' name='joinMode'>
+<select id='joinMode' name='joinMode' onchange='onJoinModeChange(this)'>
   <option value='broadcast'>broadcast</option>
   <option value='watch'>watch</option>
+</select>
+<select id='selectUser' name='selectUser' style='display:none;' onchange='onSelectUserChange(this)'>
 </select>
 <button id='joinButton' onClick='onOK(this)'>
 Join
 </button>
 <button id='leaveButton' onClick='onLeave(this)'>
-Leave
+Leave ALL
 </button>
 </body>
 
@@ -24,6 +26,7 @@ function onJoin() {
   var parentDoc = window.parent.document;
   var joinMode = document.getElementById('joinMode');
   var roomElem = parentDoc.getElementById('roomName');
+  if(roomElem.value.length == 0) { alert('enter a room name'); return; }
 
   var vidElem = joinMode.value == 'broadcast' ?
     parentDoc.getElementById('localVideo') :
@@ -46,6 +49,22 @@ function onLeave(leaveButton)
   leaveButton.disabled = true;
   window.parent.onLeave();
 }
+
+function onSelectUserChange(elem)
+{
+  window.parent.selectedUser = elem.value;
+}
+
+function onJoinModeChange(elem)
+{
+  var selectUser = document.getElementById('selectUser');
+  selectUser.style.cssText = 'display:none;';
+  if(elem.value == 'watch')
+  {
+    selectUser.style.cssText = '';
+  }
+}
 </script>
 
 </html>
+
