@@ -131,9 +131,17 @@ var chatLinkClicked = function(elem) {
     roomWatchName = roomUserPath.substring(b+1, roomUserPath.length);
     console.debug(getConnectIframe());
 }
+var chatReloaded = function(elem) {
+    reloadConnectIframe();
+}
 
 function joinSDP() {
     return "empty";
+}
+
+function reloadConnectIframe()
+{
+    getConnectIframe().contentWindow.location = 'connect_iframe.html';
 }
 
 function onLoadDone() {

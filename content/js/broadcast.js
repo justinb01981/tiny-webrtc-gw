@@ -260,7 +260,7 @@ function joinIframeOnLoadBroadcast(joinMode) {
         window.parent.selectedUser = null;
     }
 
-    docCForm.appendsdp.value = 
+    docCForm.appendsdp.value += 
         joinMode.value == 'broadcast' ? 'a=sendonly\n' : 'a=recvonly\n';
 
     joinPopupOnLoad2(window, window.parent);

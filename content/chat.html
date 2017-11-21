@@ -37,6 +37,11 @@ function onload() {
     bottomTableRow = document.getElementById("bottomrow");
     
     bottomTableRow.scrollIntoView(false);
+
+    if(window.parent.chatReloaded)
+    {
+        window.parent.chatReloaded();
+    }
 }
 function textRefresh() {
 

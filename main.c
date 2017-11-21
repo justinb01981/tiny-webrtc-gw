@@ -659,8 +659,12 @@ connection_worker(void* p)
 
     peer->subscriptionID = /*peer->id*/ PEER_IDX_INVALID;
 
+
     char* my_name = PEER_ANSWER_SDP_GET(peer, "a=myname=", 0);
     sprintf(peer->name, "%s%s", my_name, peer->recv_only ? "(watch)": "");
+
+    char* watch_name = PEER_ANSWER_SDP_GET(peer, "a=watch=", 0);
+    if(watch_name) strcpy(peer->watchname, watch_name);
     
     if(!strlen(peer->name)) strcpy(peer->name, peer->stun_ice.ufrag_answer);
     
@@ -693,7 +697,7 @@ connection_worker(void* p)
            si != PEER_INDEX(peer) &&
            strcmp(peers[si].roomname, peer->roomname) == 0)
         {
-            if(!peer->send_only) peer->subscriptionID = peers[si].id;
+            if(strcmp(peers[si].name, peer->watchname) == 0) peer->subscriptionID = peers[si].id;
             
             if(!peer->recv_only && peers[si].subscriptionID == PEER_IDX_INVALID)
             {

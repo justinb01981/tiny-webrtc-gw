@@ -173,6 +173,7 @@ typedef struct
 
     char name[64];
     char roomname[64];
+    char watchname[64];
 
     int timeout_sec;
 
