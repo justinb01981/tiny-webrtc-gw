@@ -108,8 +108,9 @@
 var onLeave;
 var urlArgRoom;
 var urlArgName;
-var autoJoinDone = false;
-var selectedUser;
+var iframeConnectState = {selectedUser: null, selectedRoom: null}
+//var selectedUser;
+//var selectedRoom;
 var joinPopupCloseDone = function(videoElem) {
     videoElem.closeAction = function() {
         disconnectVideo(videoElem);
@@ -134,6 +135,7 @@ var chatLinkClicked = function(elem) {
 var chatReloaded = function(elem) {
     reloadConnectIframe();
 }
+
 
 function joinSDP() {
     return "empty";

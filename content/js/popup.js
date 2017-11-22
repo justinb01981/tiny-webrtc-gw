@@ -178,26 +178,4 @@ function attachMediaStream(vidElem, vidStream)
     }
 }
 
-function connectIFrameOnLoad(htmlBodyElem)
-{
-    console.debug('connectIFrameOnLoad');
 
-    window.parent.connectIframe = window;
-
-    if(window.parent.urlArgRoom && !window.parent.autoJoinDone)
-    {
-        console.debug('connectIFrameOnLoad: auto start');
-        window.parent.connectIframe = window;
-        window.parent.autoJoinDone = true;
-        onJoin(null);
-    }
-
-    let selectUser = window.document.getElementById('selectUser');
-    for(let p = 0; p < peerList.length; p++)  {
-        let option = document.createElement('option');
-        option.value = peerList[p]['name'];
-        option.text = peerList[p]['name'];
-        selectUser.options.add(option);
-    }
-    
-}

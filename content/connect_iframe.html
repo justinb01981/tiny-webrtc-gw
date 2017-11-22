@@ -1,6 +1,6 @@
 <html>
 <body onload='connectIFrameOnLoad(this)'>
-<select id='joinMode' name='joinMode' onchange='onJoinModeChange(this)'>
+<select id='joinMode' name='joinMode' style='display:none;' onchange='onJoinModeChange(this)'>
   <option value='broadcast'>broadcast</option>
   <option value='watch'>watch</option>
 </select>
@@ -10,7 +10,7 @@
 Join
 </button>
 <button id='leaveButton' onClick='onLeave(this)'>
-Leave ALL
+Leave Room
 </button>
 </body>
 
@@ -22,11 +22,52 @@ Leave ALL
 <script src='js/broadcast.js'></script>
 <script language='javascript'>
 
+function connectIFrameOnLoad(htmlBodyElem)
+{
+    console.debug('connectIFrameOnLoad');
+
+    window.parent.connectIframe = window;
+    
+    if(window.parent.iframeConnectState.selectedRoom)
+    {
+        leaveButton.disabled = false;
+        window.parent.document.getElementById('roomName').disabled = true;
+        document.getElementById('selectUser').style.cssText = '';
+        document.getElementById('joinButton').innerHTML = 'Watch';
+    }
+    else
+    {
+        window.parent.document.getElementById('roomName').disabled = false;
+        document.getElementById('selectUser').style.cssText = 'display:none';
+        document.getElementById('joinButton').innerHTML = 'Join Room';
+    }
+
+    let selectUser = window.document.getElementById('selectUser');
+    for(let p = 0; p < peerList.length; p++)  {
+        let option = document.createElement('option');
+        option.value = peerList[p]['name'];
+        option.text = peerList[p]['name'];
+        selectUser.options.add(option);
+    }
+    
+}
+
 function onJoin() {
   var parentDoc = window.parent.document;
   var joinMode = document.getElementById('joinMode');
   var roomElem = parentDoc.getElementById('roomName');
   if(roomElem.value.length == 0) { alert('enter a room name'); return; }
+
+  if(window.parent.iframeConnectState.selectedRoom)
+  {
+    joinMode.value = 'watch';
+  }
+  else
+  {
+    joinMode.value = 'broadcast';
+    window.parent.iframeConnectState.selectedRoom = roomElem.value;
+    window.location.reload();
+  }
 
   var vidElem = joinMode.value == 'broadcast' ?
     parentDoc.getElementById('localVideo') :
@@ -47,12 +88,15 @@ function onOK(okButton) {
 function onLeave(leaveButton)
 {
   leaveButton.disabled = true;
+  window.parent.iframeConnectState.selectedRoom = null;
+  window.parent.iframeConnectState.selectedUser = null;
   window.parent.onLeave();
+  window.location.reload();
 }
 
 function onSelectUserChange(elem)
 {
-  window.parent.selectedUser = elem.value;
+  window.parent.iframeConnectState.selectedUser = elem.value;
 }
 
 function onJoinModeChange(elem)

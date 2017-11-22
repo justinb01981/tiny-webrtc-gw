@@ -254,9 +254,9 @@ function joinIframeOnLoadBroadcast(joinMode) {
     docCForm.my_name.value = user;
     docCForm.room_name.value = room;
     docCForm.peerstream_recv.value = user;
-    if(window.parent.selectedUser)
+    if(window.parent.iframeConnectState.selectedUser)
     {
-        docCForm.appendsdp.value += 'a=watch='+window.parent.selectedUser+'\n';
+        docCForm.appendsdp.value += 'a=watch='+window.parent.iframeConnectState.selectedUser+'\n';
         window.parent.selectedUser = null;
     }
 
