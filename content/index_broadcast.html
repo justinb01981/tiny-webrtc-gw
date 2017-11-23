@@ -45,7 +45,7 @@
             </td>
         </tr>
 
-        <tr style='height:5%; width:100%; overflow:scroll;'>
+        <tr style='height:5%; width:100%; overflow:scroll; -webkit-overflow-scrolling:touch;'>
             <td style='border-width:0px;' align='right'>
                 Room:
                 <input type='text' id='roomName' onInput='roomEdited(this)'>
@@ -54,7 +54,7 @@
                 </input>
             </td>
             <td style='border-width:0px;' align='left'>
-                <iframe style='height:25%; width:100%; overflow:scroll; border-width:0px;' name='connectIframe' src='connect_iframe.html' id='connect_iframe'>
+                <iframe style='height:25%; width:100%; overflow:hidden; webkit-overflow-scrolling:auto; border-width:0px;' name='connectIframe' src='connect_iframe.html' id='connect_iframe'>
                 </iframe>
 
 
@@ -68,7 +68,7 @@
 
         <tr style='height:45%;'>
            <td colspan=2 align='center'>
-                <iframe name='chatFrame' src='chat.html' width='100%; height:100%; overflow:scroll;'>
+                <iframe name='chatFrame' src='chat.html' width='100%; height:100%; position:fixed; overflow:hidden;'>
                 </iframe>
             </td>
         </tr>
@@ -108,7 +108,7 @@
 var onLeave;
 var urlArgRoom;
 var urlArgName;
-var iframeConnectState = {selectedUser: null, selectedRoom: null}
+var iframeConnectState = {selectedUser: null, selectedRoom: null, advancedSettings: false}
 //var selectedUser;
 //var selectedRoom;
 var joinPopupCloseDone = function(videoElem) {
@@ -127,9 +127,12 @@ var joinPopupCloseDone = function(videoElem) {
 var chatLinkClicked = function(elem) {
     var roomUserPath = elem.value;
     var b = roomUserPath.indexOf('/');
+    var roomString = roomUserPath.substring(0, b);
 
-    document.getElementById('roomName').value = roomUserPath.substring(0, b);
-    roomWatchName = roomUserPath.substring(b+1, roomUserPath.length);
+    document.getElementById('roomName').value = roomString;
+    iframeConnectState.selectedUser = roomUserPath.substring(b+1, roomUserPath.length);
+    iframeConnectState.selectedRoom = roomString;
+
     console.debug(getConnectIframe());
 }
 var chatReloaded = function(elem) {
@@ -188,11 +191,13 @@ function onAdvanced(button) {
     {
         iframe.style.cssText = 'z-index:1; position:static; height:25%; overflow:scroll;';
         button.value = '+';
+        iframeConnectState.advancedSettings = false;
     }
     else
     {
         iframe.style.cssText = 'z-index:1; position:fixed; height:200%; overflow:scroll; background-color:white; ';
         button.value = '-';
+        iframeConnectState.advancedSettings = true;
     }
 }
 

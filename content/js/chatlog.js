@@ -27,6 +27,8 @@ function appendMessageListElem(destList, m) {
     btn.onclick = function() {
       window.parent.chatLinkClicked(btn);
     }
+    // hidden for now, I broke this
+    btn.style.cssText = 'display:none;'
   }
 
   var t = document.createTextNode(m);
@@ -50,7 +52,6 @@ function appendMessagesToUnorderedList(l, array) {
     var offset = 0;
     let maxLen = 1000;
     var str = array[i];
-
 
     str = str.replace(/\+/g, ' ');
     while(offset < str.length && str.length > 0) {

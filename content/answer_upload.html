@@ -50,9 +50,16 @@ function onLoad() {
     showDebug();
     getParent().onLoadDoneAnswerUpload();
 
-    setTimeout(function() {
-        if(!timeoutCancelled) connect(document.getElementById('button_connect'));
-        }, 3000);
+    if(!getParent().iframeConnectState.advancedSettings)
+    {
+        setTimeout(function() {
+            if(!timeoutCancelled) connect(document.getElementById('button_connect'));
+          }, 1000);
+    }
+    else
+    {
+        document.getElementById('tableRowStarting').style.cssText = 'display:none;';
+    }
 }
 
 function showDebug(show) {
@@ -124,9 +131,9 @@ function onCancel(button) {
 </div>
 <table>
 <div id="myUsernameDiv">
-<tr>
+<tr id='tableRowStarting'>
     <td>
-      <input type='button' value='Starting (3 seconds)' />
+      <input type='button' value='Starting...' />
       <input type='button' value='Cancel' onclick='onCancel(this)' />
     </td>
     <td>

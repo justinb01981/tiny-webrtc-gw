@@ -44,12 +44,16 @@ function connectIFrameOnLoad(htmlBodyElem)
 
     let selectUser = window.document.getElementById('selectUser');
     for(let p = 0; p < peerList.length; p++)  {
+        if(peerList[p]['recvonly']) continue;
+
+        var name = peerList[p]['name'];
+
         let option = document.createElement('option');
-        option.value = peerList[p]['name'];
-        option.text = peerList[p]['name'];
+        option.value = name;
+        option.text = name;
         selectUser.options.add(option);
+        window.parent.iframeConnectState.selectedUser = name;
     }
-    
 }
 
 function onJoin() {

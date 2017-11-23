@@ -174,7 +174,7 @@ function broadcastOnLoad() {
 
 function setLoggedIn() {
     var h = document.getElementById('login');
-    if(myUsername == 'nobody') {
+    if(myUsername.indexOf('nobody') == 0) {
         h = document.getElementById('logout');
         document.getElementById('userName').style = 'display:none';
     }

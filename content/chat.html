@@ -18,8 +18,6 @@ function onload() {
     msgfield1.onfocus = function() { setFocus(msgfield1);};
     msgfield1.onblur = function() { loseFocus(msgfield1);};
 
-    textRefresh();
-
     if(window.parent.location.pathname != CHATURL) {
         // top-level chat iframe
         iframeRefresh = document.getElementById('chatIFrame');
@@ -85,7 +83,7 @@ function sendmsg() {
 }
 </script>
 <body onload='onload();'>
-<table style='width:100%; height:100%;' border=2>
+<table style='width:100%; height:100%;' border=2 align='left'>
 <!--
 <tr style='height:100%;'><td>
 <select name='inputAddUser' id='inputAddUser'>
@@ -100,8 +98,7 @@ function sendmsg() {
 -->
 <tr style='height:50%;'>
 <td colspan=2>
-    <textarea id="chatlog" style='width:100%; display:none;' rows=6>%$CHATLOGTEXTAREAVALUE$%</textarea>
-    <ul id='chatloglist'>
+    <ul id='chatloglist' style='compact; font-family:monospace; font-size:6pt;'>
     </ul>
 </td>
 <td valign=bottom>
