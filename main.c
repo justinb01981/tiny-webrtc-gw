@@ -763,13 +763,19 @@ connection_worker(void* p)
         if(!peer->in_buffers_head.next)
         {
             backlog_counter = 0;
+            peer->in_buffers_underrun = 1;
             goto peer_again;
         }
 
         buffer_next = peer->in_buffers_head.next;
         while(buffer_next->next && buffer_next->consumed) buffer_next = buffer_next->next;
 
-        if(buffer_next->consumed) { backlog_counter = 0; goto peer_again; }
+        if(buffer_next->consumed)
+        { 
+            backlog_counter = 0;
+            peer->in_buffers_underrun = 1;
+            goto peer_again;
+        }
 
         // hack to avoid a potential race condition on the last buffer
         // when writing to it here (marking consumed=1)
@@ -1618,8 +1624,14 @@ int main( int argc, char* argv[] ) {
                     
                     udp_recv_timeout_usec = udp_recv_timeout_usec_min;
                 }
-                
+
                 int repeat = 1;
+                if(peers[i].in_buffers_underrun && peers[i].thread_inited)
+                {
+                    repeat = 0;
+                    peers[i].in_buffers_underrun = 0;
+                }
+                
                 while(repeat > 0 && peers[i].thread_inited)
                 {
                     /* signal peer thread to run */

@@ -192,6 +192,8 @@ typedef struct
 
     int restart_needed;
     int restart_done;
+
+    volatile int in_buffers_underrun;
 } peer_session_t;
 
 const static int PEER_TIMEOUT_DEFAULT = 60;
