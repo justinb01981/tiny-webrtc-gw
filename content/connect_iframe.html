@@ -34,6 +34,7 @@ function connectIFrameOnLoad(htmlBodyElem)
         window.parent.document.getElementById('roomName').disabled = true;
         document.getElementById('selectUser').style.cssText = '';
         document.getElementById('joinButton').innerHTML = 'Watch';
+        document.getElementById('joinButton').disabled = true;
     }
     else
     {
@@ -43,6 +44,12 @@ function connectIFrameOnLoad(htmlBodyElem)
     }
 
     let selectUser = window.document.getElementById('selectUser');
+
+    let option = document.createElement('option');
+    option.value = null;
+    option.text = '<select nickname>';
+    selectUser.options.add(option);
+
     for(let p = 0; p < peerList.length; p++)  {
         if(peerList[p]['recvonly']) continue;
 
@@ -52,7 +59,6 @@ function connectIFrameOnLoad(htmlBodyElem)
         option.value = name;
         option.text = name;
         selectUser.options.add(option);
-        window.parent.iframeConnectState.selectedUser = name;
     }
 }
 
@@ -101,6 +107,7 @@ function onLeave(leaveButton)
 function onSelectUserChange(elem)
 {
   window.parent.iframeConnectState.selectedUser = elem.value;
+  document.getElementById('joinButton').disabled = elem.selectedIndex == 0;
 }
 
 function onJoinModeChange(elem)
