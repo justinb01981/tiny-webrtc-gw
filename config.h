@@ -14,11 +14,13 @@ char *file_read(char* path, unsigned int* len_out)
     FILE* fp = NULL;
     long len = 0;
 
+    /*
     filecache_entry_t* file_cached = filecache_list_find(&filecache_head, path);
     if(file_cached)
     { 
         return strdup(file_cached->buf);
     }
+    */
 
     fp = fopen(path, "r");
     if(fp)
@@ -68,7 +70,8 @@ void file_remove(char* path)
     filecache_list_remove(&filecache_head, path);
 }
 
-char* get_sdp_idx_file_r = NULL;
+extern volatile char* get_sdp_idx_file_r;
+
 char* get_sdp_idx_file(const char* fileprefix, const char* filepath, const char* key, unsigned int idx, const char* key_begin)
 {
     char filename[256];
@@ -81,7 +84,10 @@ char* get_sdp_idx_file(const char* fileprefix, const char* filepath, const char*
     if(buf)
     {
         char *off = buf;
-        if(key_begin && (off = strstr(off, key_begin))) off += strlen(key_begin);
+        if(key_begin && (off = strstr(off, key_begin)))
+        {
+            off += strlen(key_begin);
+        }
 
         if(off)
         do {
@@ -113,6 +119,8 @@ char* get_sdp_idx_file(const char* fileprefix, const char* filepath, const char*
 
             if(idx == 0) break;
         } while(1);
+
+        free(buf);
     }
 
     if(!ret) printf("%s:%d config_read failed (key=%s)\n", __func__, __LINE__, key);
@@ -120,8 +128,9 @@ char* get_sdp_idx_file(const char* fileprefix, const char* filepath, const char*
     return ret;
 }
 
-char sdp_file_prefix[64] = {0};
-char sdp_file_prefix_offer[64] = {0};
+extern volatile char sdp_file_prefix[64];
+extern volatile char sdp_file_prefix_offer[64];
+
 int sdp_prefix_set(const char* prefix) { strcpy(sdp_file_prefix, prefix); return 1; }
 char* get_offer_sdp(char* val) { return get_sdp_idx_file(sdp_file_prefix_offer, "sdp_offer.txt", val, 0, NULL); }
 char* get_offer_sdp_idx(char* val, unsigned int idx) { return get_sdp_idx_file(sdp_file_prefix_offer, "sdp_offer.txt", val, idx, NULL); }

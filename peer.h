@@ -25,7 +25,7 @@ const char* PEER_DYNAMIC_JS_EMPTY = "/* dynamic js */\n"
 
 typedef struct peer_buffer_node
 {
-    struct peer_buffer_node* next, *tail;
+    volatile struct peer_buffer_node* next, *tail;
 
     char buf[PEER_BUFFER_NODE_BUFLEN];
     unsigned int len;
@@ -39,7 +39,7 @@ typedef struct peer_buffer_node
     u8 rtp_payload_type;
     int type;
     int rtp_idx;
-    int consumed;
+    volatile int consumed;
     int head_inited;
     int reclaimable;
 } peer_buffer_node_t;

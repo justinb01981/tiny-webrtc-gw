@@ -771,6 +771,10 @@ connection_worker(void* p)
 
         if(buffer_next->consumed) { backlog_counter = 0; goto peer_again; }
 
+        // hack to avoid a potential race condition on the last buffer
+        // when writing to it here (marking consumed=1)
+        if(!buffer_next->next) goto peer_again;
+
         char buffer[PEER_BUFFER_NODE_BUFLEN];
         char buffer_last[PEER_BUFFER_NODE_BUFLEN];
         char buffer_report[PEER_BUFFER_NODE_BUFLEN];

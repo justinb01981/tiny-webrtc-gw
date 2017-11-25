@@ -23,7 +23,10 @@ function onload() {
         iframeRefresh = document.getElementById('chatIFrame');
 
         setInterval(function () {
-            iframeRefresh.src = 'chat_iframe.html';
+            if(document.getElementById('autorefresh_check').checked)
+            {
+                iframeRefresh.src = 'chat_iframe.html';
+            }
         }, refresh_interval);
     }
 

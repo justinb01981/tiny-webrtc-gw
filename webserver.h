@@ -645,6 +645,12 @@ webserver_worker(void* p)
                     }
                     else if(!file_buf || strcmp(purl, "/") == 0)
                     {
+                        if(file_buf)
+                        {
+                            free(file_buf);
+                            file_buf = NULL;
+                        }
+
                         send(sock, ok_hdr, strlen(ok_hdr), flags);
                         send(sock, content_type_html, strlen(content_type_html), flags);
                         send(sock, page_buf_400, strlen(page_buf_400), flags);
@@ -654,6 +660,7 @@ webserver_worker(void* p)
                     {
                         free(response);
                         response = file_buf;
+                        file_buf = NULL;
 
                         if(strstr(purl, ".js")) content_type = "Content-Type: text/javascript\r\n\r\n";
                         else if(strstr(purl, ".html")) content_type = content_type_html;
@@ -1060,6 +1067,10 @@ webserver_accept_worker(void* p)
         socklen_t sa_len;
         int sock;
         int flags = 0;
+        pthread_attr_t thread_attrs;
+
+        memset(&thread_attrs, 0, sizeof(thread_attrs));
+        pthread_attr_setdetachstate(&thread_attrs, 1);
 
         memset(&sa, 0, sizeof(sa));
         sa_len = sizeof(sa);
@@ -1073,7 +1084,7 @@ webserver_accept_worker(void* p)
                 args->ws_thread = 0;
                 args->sock = sock;
 
-                pthread_create(&thread, NULL, webserver_worker, args);
+                pthread_create(&thread, &thread_attrs, webserver_worker, args);
             }
         }
     }
