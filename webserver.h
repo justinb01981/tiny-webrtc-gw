@@ -452,6 +452,7 @@ webserver_worker(void* p)
     char cookie[256], cookieset[256];
     char ws_header_buf[256];
     peer_session_t* peer_found_via_cookie = NULL;
+    int peer_broadcast_from_cookie = PEER_IDX_INVALID;
 
     memset(cookie, 0, sizeof(cookie));
 
@@ -892,6 +893,7 @@ webserver_worker(void* p)
                         // anonymous+watching-only peers use new slot
                         if(peer_found_via_cookie && strstr(sdp, "a=recvonly") != NULL)
                         {
+                            peer_broadcast_from_cookie = peer_found_via_cookie->id;
                             peer_found_via_cookie = NULL;
                         }
 
@@ -926,8 +928,8 @@ webserver_worker(void* p)
                             }
                             
                             peer_init(&peers[sidx], sidx);
+                            peers[sidx].broadcastingID = peer_broadcast_from_cookie;
                             
-                            // HACK: just take most-recent offer
                             strcpy(ufrag_offer_tmp, sdp_offer_table.t[(sdp_offer_table.next-1) % MAX_PEERS].iceufrag);
                         }
 

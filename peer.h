@@ -119,6 +119,7 @@ typedef struct
 
     int subscriptionID;
     int subscribed;
+    int broadcastingID;
     peer_buffer_node_t *subscription_ptr[PEER_RTP_CTX_COUNT];
 
     rtp_state_t rtp_states[PEER_RTP_CTX_COUNT];
@@ -241,6 +242,7 @@ void peer_init(peer_session_t* peer, int id)
 
     peer->id = id;
     peer->subscriptionID = PEER_IDX_INVALID;
+    peer->broadcastingID = PEER_IDX_INVALID;
 
     peer->time_start = time(NULL);
     
