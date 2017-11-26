@@ -694,7 +694,7 @@ connection_worker(void* p)
     for(si = 0; si < MAX_PEERS; si++)
     {
         if(peers[si].alive &&
-           si != PEER_INDEX(peer) &&
+           //si != PEER_INDEX(peer) &&
            strcmp(peers[si].roomname, peer->roomname) == 0)
         {
             if(strcmp(peers[si].name, peer->watchname) == 0) peer->subscriptionID = peers[si].id;
@@ -1748,7 +1748,7 @@ int main( int argc, char* argv[] ) {
                 int p;
                 for(p = 0; p < MAX_PEERS; p++)
                 {
-                    if(peers[p].alive && peers[p].subscriptionID == i && p != i)
+                    if(peers[p].alive && peers[p].subscriptionID == i)
                     {
                         memset(&peers[p].subscription_ptr, 0, sizeof(peers[p].subscription_ptr));
                         int rtp_idx;

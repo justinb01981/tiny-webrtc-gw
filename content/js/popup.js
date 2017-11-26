@@ -13,7 +13,7 @@ var closeHandler = null;
 var stunHost = document.location.host;
 //var stunPort = "3478";
 var stunPort = "%$RTPPORT$%";
-var onLoadDoneAnswerUpload;
+//var onLoadDoneAnswerUpload;
 
 function onPeerClick(peername, elem) {
     document.theform.peerstream_recv.value = peername;
@@ -155,6 +155,7 @@ function rtcPopupCreateIframe(handlerOpen, handlerClose) {
     document.location = 'answer_upload.html';
     popupRecvOnly = false;
     //w.document.body.onload = handlerOpen1;
+    console.debug('rtcPopupCreateIframe');
     parent.onLoadDoneAnswerUpload = handlerOpen;
     closeHandler = handlerClose;
 }

@@ -58,6 +58,7 @@ var vidChildX;
 var vidChildY;
 
 var connectIframe;
+var answerIframe;
 
 //var joinMode;
 
@@ -243,10 +244,12 @@ function joinPopupOnLoadRecvOnly() {
     joinPopupOnLoad2(winPopup, window);
 }
 
-function joinIframeOnLoadBroadcast(joinMode) {
+function joinIframeOnLoadBroadcast() {
+    var connIFrameState = window.iframeConnectState;
+
     var winParent = window.parent;
     var docP = winParent.document;
-    var docCForm = window.document.theform;
+    var docCForm = answerIframe.document.theform;
 
     var user = docP.getElementById('userName').value;
     var room = docP.getElementById('roomName').value;
@@ -261,9 +264,9 @@ function joinIframeOnLoadBroadcast(joinMode) {
     }
 
     docCForm.appendsdp.value += 
-        joinMode.value == 'broadcast' ? 'a=sendonly\n' : 'a=recvonly\n';
+        connIFrameState.joinMode == 'broadcast' ? 'a=sendonly\n' : 'a=recvonly\n';
 
-    joinPopupOnLoad2(window, window.parent);
+    joinPopupOnLoad2(answerIframe, window);
 }
 
 function joinPopupOnLoad2(win, winSource) {

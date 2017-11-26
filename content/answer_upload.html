@@ -46,6 +46,8 @@ function getParent() {
 }
 
 function onLoad() {
+    getParent().answerIframe = window;
+
     setupForm();
     showDebug();
     getParent().onLoadDoneAnswerUpload();

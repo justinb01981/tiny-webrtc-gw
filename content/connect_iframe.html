@@ -27,6 +27,9 @@ function connectIFrameOnLoad(htmlBodyElem)
     console.debug('connectIFrameOnLoad');
 
     window.parent.connectIframe = window;
+    window.parent.connectIframe.document = window.document;
+
+    if(window.parent.iframeConnectState == null) return;
     
     if(window.parent.iframeConnectState.selectedRoom)
     {
@@ -76,7 +79,7 @@ function onJoin() {
   {
     joinMode.value = 'broadcast';
     window.parent.iframeConnectState.selectedRoom = roomElem.value;
-    window.location.reload();
+    //window.location.reload();
   }
 
   var vidElem = joinMode.value == 'broadcast' ?
@@ -84,11 +87,12 @@ function onJoin() {
     parentDoc.getElementById('videoMain');
   var vidElemButton = parentDoc.getElementById(vidElem.id == 'videoMain' ? 'videoMainButton' : 'localVideoButton')
 
-  var f = function() {
-    joinIframeOnLoadBroadcast(joinMode);
-  }
+  window.parent.iframeConnectState.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
+  window.parent.iframeConnectState.joinMode = joinMode.value;
 
-  connectVideoIframe(vidElem, f, vidElem.value);
+  connectVideoIframe(vidElem, 
+    window.parent.iframeConnectState.onConnectVideo,
+    vidElem.value);
 }
 
 function onOK(okButton) {

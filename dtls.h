@@ -336,6 +336,8 @@ DTLS_peer_init(peer_session_t* peer)
 inline static int
 DTLS_peer_shutdown(peer_session_t* peer)
 {
+    if(peer->dtls.ssl == NULL) return -1;
+
     return SSL_shutdown(peer->dtls.ssl);
 }
 

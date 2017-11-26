@@ -108,7 +108,8 @@
 var onLeave;
 var urlArgRoom;
 var urlArgName;
-var iframeConnectState = {selectedUser: null, selectedRoom: null, advancedSettings: false}
+var iframeConnectState = {selectedUser: null, selectedRoom: null, advancedSettings: false, onConnectVideo: null, joinMode: null};
+var onLoadDoneAnswerUpload;
 //var selectedUser;
 //var selectedRoom;
 var joinPopupCloseDone = function(videoElem) {
