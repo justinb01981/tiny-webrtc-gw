@@ -1728,8 +1728,6 @@ int main( int argc, char* argv[] ) {
                 // send a keepalive packet to keep UDP ports open
                 char keepalive[] = {0};
                 int r = sendto(peers[i].sock, keepalive, 1, 0, (struct sockaddr*)&peers[i].addr, sizeof(peers[i].addr));
-
-
             }
 
             if(peers[i].restart_needed ||

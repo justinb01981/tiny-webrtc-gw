@@ -62,6 +62,11 @@ function onLoad() {
     {
         document.getElementById('tableRowStarting').style.cssText = 'display:none;';
     }
+
+    // disable some codecs to make browsers interoperate
+    var compatibleSdpCheck = document.getElementById('compatibleSdpCheck');
+    compatibleSdpCheck.checked = true;
+    compatibleSdpCheck.onclick();
 }
 
 function showDebug(show) {
@@ -164,7 +169,7 @@ function onCancel(button) {
 <table>
 <tr><td>receive only:</td><td><input type='checkbox' name='recvonly' id='recvonly' value=true></input></td></tr>
 <tr><td>send only (no mirror):</td><td><input type='checkbox' name='sendonly' id='sendonly' onclick="getForm().offersdp.value=getForm().offersdp.value.replace(/sendrecv/g, 'recvonly');" value=false></input></td></tr>
-<tr><td>compatibility SDP mode:</td><td><input type='checkbox' onclick="disableCodecs(); this.disabled=true;"></input></td></tr>
+<tr><td>compatibility SDP mode:</td><td><input id='compatibleSdpCheck' type='checkbox' onclick="disableCodecs();"></input></td></tr>
 <tr><td>show sdp debug:</td><td><input type='checkbox' name='debugEnable' id='debugEnable' onclick="showDebug(this.checked);"></input></td></tr>
 </table>
 
