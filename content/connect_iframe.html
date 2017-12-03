@@ -48,13 +48,18 @@ function connectIFrameOnLoad(htmlBodyElem)
 
     let selectUser = window.document.getElementById('selectUser');
 
-    let option = document.createElement('option');
-    option.value = null;
-    option.text = '<select nickname>';
-    selectUser.options.add(option);
+    let optionLabel = document.createElement('option');
+    optionLabel.value = 'NULL';
+    optionLabel.text = '<select nickname>';
+    selectUser.options.add(optionLabel);
 
-    for(let p = 0; p < peerList.length; p++)  {
-        if(peerList[p]['recvonly']) continue;
+    for(let p = 0; p < peerList.length; p++)
+    {
+        if(peerList[p]['recvonly'] ||
+           window.parent.document.getElementById('roomName').value != peerList[p]['room'])
+        {
+          continue;
+        }
 
         var name = peerList[p]['name'];
 
@@ -62,6 +67,14 @@ function connectIFrameOnLoad(htmlBodyElem)
         option.value = name;
         option.text = name;
         selectUser.options.add(option);
+    }
+
+    if(selectUser.options.length <= 2)
+    {
+        let optionWait = document.createElement('option');
+        optionWait.value = '$SINGLEUSERROOM';
+        optionWait.text = '<wait for next peer>';
+        selectUser.options.add(optionWait);
     }
 }
 
@@ -111,7 +124,7 @@ function onLeave(leaveButton)
 function onSelectUserChange(elem)
 {
   window.parent.iframeConnectState.selectedUser = elem.value;
-  document.getElementById('joinButton').disabled = elem.selectedIndex == 0;
+  document.getElementById('joinButton').disabled = elem.options[elem.selectedIndex].value == 'NULL';
 }
 
 function onJoinModeChange(elem)

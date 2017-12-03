@@ -808,9 +808,9 @@ webserver_worker(void* p)
 
                                 char key_buf[1024];
                                 hex_print(key_buf, peers[i].dtls.master_key_salt, 8);
-                                sprintf(line, "%s{'name': '%s', 'id': '%d', 'addr': '%s:%u', 'key': '%s', 'recvonly': %s }",
+                                sprintf(line, "%s{'name': '%s', 'id': '%d', 'addr': '%s:%u', 'key': '%s', 'recvonly': %s, 'room': '%s'}",
                                         (first_entry? "": ","), peers[i].name, peers[i].id, inet_ntoa(peers[i].addr.sin_addr), ntohs(peers[i].addr.sin_port),
-                                        key_buf, (peers[i].recv_only? "true": "false"));
+                                        key_buf, (peers[i].recv_only? "true": "false"), peers[i].roomname);
                                 if(peer_list_html_free < strlen(line)) break;
                                 strcat(peer_list_html, line);
                                 peer_list_html_free -= strlen(line);

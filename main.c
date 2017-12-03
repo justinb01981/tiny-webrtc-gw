@@ -598,7 +598,7 @@ connection_worker(void* p)
 {
     peer_session_t* peer = (peer_session_t*) p;
     peer_buffer_node_t *buffer_next = NULL;
-    int si;
+    int si, incoming;
 
     int rtp_idx;
     int buffer_count_max = 1000;
@@ -659,7 +659,6 @@ connection_worker(void* p)
 
     peer->subscriptionID = /*peer->id*/ PEER_IDX_INVALID;
 
-
     char* my_name = PEER_ANSWER_SDP_GET(peer, "a=myname=", 0);
     sprintf(peer->name, "%s%s", my_name, peer->recv_only ? "(watch)": "");
 
@@ -691,20 +690,39 @@ connection_worker(void* p)
     sprintf(str256, "\n$SUBSCRIBEBUTTON_%s/%s\n", peer->roomname, peer->name);
     chatlog_append(str256);
 
+    for(incoming = 1; incoming >= 0; incoming--)
     for(si = 0; si < MAX_PEERS; si++)
     {
-        if(peers[si].alive &&
-           //si != PEER_INDEX(peer) &&
-           strcmp(peers[si].roomname, peer->roomname) == 0)
+        if(peers[si].alive
+           //&& si != PEER_INDEX(peer)
+           //&& strcmp(peers[si].roomname, peer->roomname) == 0
+          )
         {
-            if(strcmp(peers[si].name, peer->watchname) == 0) peer->subscriptionID = peers[si].id;
-            
-            if(!peer->recv_only && peers[si].subscriptionID == PEER_IDX_INVALID)
+            if(incoming)
             {
-                // also connect opposing/waiting peer
-                peers[si].subscriptionID = PEER_INDEX(peer);
+                // connect this thread's peer
+                if(strcmp(peers[si].name, peer->watchname) == 0 &&
+                   peer->subscriptionID == PEER_IDX_INVALID)
+                {
+                    peer->subscriptionID = peers[si].id;
+                    break;
+                }
             }
-            break;
+            else
+            {
+                // connect any peers waiting for one matching this name
+                if(!peer->recv_only &&
+                   peers[si].subscriptionID == PEER_IDX_INVALID &&
+                   (
+                    strcmp(peers[si].watchname, peer->name) == 0 ||
+                    strcmp(peers[si].watchname, "$SINGLEUSERROOM") == 0
+                   )
+                  )
+                {
+                    // also connect opposing/waiting peer
+                    peers[si].subscriptionID = PEER_INDEX(peer);
+                }
+            }
         }
     }
 
@@ -1701,21 +1719,6 @@ int main( int argc, char* argv[] ) {
                             counts[13]++;
                         }
                         cur = next;
-                    }
-                }
-
-                // search for the desired steam
-                if(peers[i].subscriptionID == PEER_IDX_INVALID)
-                {
-                    int iSub;
-                    for(iSub = 0; iSub < MAX_PEERS; iSub++)
-                    {
-                        if(iSub != i && !peers[i].send_only && peers[iSub].alive &&
-                           strcmp(peers[i].roomname, peers[iSub].roomname) == 0)
-                        {
-                            peers[i].subscriptionID = iSub;
-                            peers[iSub].subscribed = 1;
-                        }
                     }
                 }
 
