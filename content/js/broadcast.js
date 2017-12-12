@@ -60,7 +60,9 @@ var vidChildY;
 var connectIframe;
 var answerIframe;
 
-//var joinMode;
+var onLoadMedia = function() {
+    return getMedia();
+}
 
 var addUserLoad = function(name) {
     var check = document.getElementById("check_"+name);
@@ -80,7 +82,16 @@ function vidChildInit() {
     vidChildY = mainDivY + mainDivH;
 }
 
+var getMediaPromise;
+
 function getMedia() {
+    getMediaPromise = new Promise(function(resolve, reject) {
+
+    if(localStream) {
+        resolve();
+        return;
+    }
+
     navigator.mediaDevices.enumerateDevices().then(
         function(sourceInfos) {
             var ai = 0;
@@ -116,13 +127,17 @@ function getMedia() {
                 function (s) {
                     localStream = s;
                     attachMediaStream(localVideo, localStream);
+                    resolve();
                 }).catch(
                 function(e) {
                     alert('get media failed\nmaybe try https?\ncamera/mic enabled?\n\n(reload the page after allowing)');
+                    reject();
                 }
             );
-        }
-    );
+        }).catch(function(e) {});
+    });
+
+    return getMediaPromise;
 }
 
 function broadcastOnLoad() {
@@ -141,8 +156,6 @@ function broadcastOnLoad() {
 
     //resizeObjectWithID("mainDiv", mainDivX, mainDivY, mainDivW, mainDivH);
     //resizeObjectWithID("mainDivTable", mainDivX, mainDivY, mainDivW, mainDivH);
-
-    getMedia();
 
     var userTotal = 0;
     /*

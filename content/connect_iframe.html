@@ -84,28 +84,28 @@ function onJoin() {
   var roomElem = parentDoc.getElementById('roomName');
   if(roomElem.value.length == 0) { alert('enter a room name'); return; }
 
-  if(window.parent.iframeConnectState.selectedRoom)
-  {
-    joinMode.value = 'watch';
-  }
-  else
-  {
-    joinMode.value = 'broadcast';
-    window.parent.iframeConnectState.selectedRoom = roomElem.value;
-    //window.location.reload();
-  }
+  window.parent.onLoadMedia().then(function() {
+    if(window.parent.iframeConnectState.selectedRoom)
+    {
+      joinMode.value = 'watch';
+    }
+    else
+    {
+      joinMode.value = 'broadcast';
+      window.parent.iframeConnectState.selectedRoom = roomElem.value;
+    }
 
-  var vidElem = joinMode.value == 'broadcast' ?
-    parentDoc.getElementById('localVideo') :
-    parentDoc.getElementById('videoMain');
-  var vidElemButton = parentDoc.getElementById(vidElem.id == 'videoMain' ? 'videoMainButton' : 'localVideoButton')
+    var vidElem = joinMode.value == 'broadcast' ?
+      parentDoc.getElementById('localVideo') :
+      parentDoc.getElementById('videoMain');
 
-  window.parent.iframeConnectState.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
-  window.parent.iframeConnectState.joinMode = joinMode.value;
+    window.parent.iframeConnectState.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
+    window.parent.iframeConnectState.joinMode = joinMode.value;
 
-  connectVideoIframe(vidElem, 
-    window.parent.iframeConnectState.onConnectVideo,
-    vidElem.value);
+    connectVideoIframe(vidElem, 
+      window.parent.iframeConnectState.onConnectVideo,
+      vidElem.value);
+  }).catch(function(e) {});
 }
 
 function onOK(okButton) {

@@ -61,7 +61,7 @@ function onConnect() {
 
     remoteConnection.onaddstream = function(e) {
         //alert('onAddStream' + e.stream);
-        console.debug('remoteConnection.onaddstream');
+        console.debug('remoteConnection.ontrack');
     };
 
     /* optionally set local description (send) */
@@ -174,8 +174,34 @@ function resizeObjectWithID(idName, x, y, w, h) {
 function attachMediaStream(vidElem, vidStream)
 {
     vidElem.srcObject = vidStream;
-    vidElem.onloadedmetadata = function(e) {
-        vidElem.play();
+    vidElem.onloadedmetadata = function() {
+        // won't work any more (video cannot auto-start)
+        //vidElem.play();
+
+        if(vidElem.startButton != null) { return; }
+        var startButton = document.createElement('button');
+        var text = document.createElement('text');
+        text.innerHTML = 'start';
+        startButton.appendChild(text);
+        startButton.onclick = function() {
+            if(!vidElem.paused) {
+                vidElem.pause();
+
+                //vidElem.getTracks().forEach( track => track.getSenders().forEach( sender => sender.close()));
+                vidElem.startButton.parentNode.removeChild(vidElem.startButton);
+                vidElem.startButton = null;
+            }
+            else {
+                vidElem.play();
+                vidElem.startButton.childNodes[0].innerHTML = 'stop';
+            }
+        }
+        vidElem.startButton = startButton;
+
+        startButton.style.cssText = 'position:relative; top:-50px;';
+        vidElem.parentNode.appendChild(startButton);
+
+        console.debug('attachMediaStream: onloadedmetadata');
     }
 }
 

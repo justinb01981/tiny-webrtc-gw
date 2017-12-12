@@ -33,14 +33,12 @@
         </tr>
         <tr style='height:30%;'>
             <td colspan=1 id="thPresenter" align="center" >
-                <video class="videoMain" id="videoMain" autoplay controls style='width:100%;'></video>
+                <video class="videoMain" id="videoMain" controls style='width:100%;'></video>
 
-                <button id="videoMainButton" style="display:none;">Stop Watching</button>
             </td>
             <td colspan=1 align="center">
                 <div id="localPreviewDiv">
-                    <video class="videoLocal" id="localVideo" controls autoplay muted style='width:100%;'></video>
-                    <button id="localVideoButton" style="display:none;" onclick="">End Broadcast</button>
+                    <video class="videoLocal" id="localVideo" controls muted style='width:100%;'></video>
                 </div>
             </td>
         </tr>
@@ -115,16 +113,14 @@ var onLoadDoneAnswerUpload;
 var joinPopupCloseDone = function(videoElem) {
     videoElem.closeAction = function() {
         disconnectVideo(videoElem);
-        videoElem.closeButton.style.cssText = 'display:none;'
-    };
-    videoElem.closeButton.style.cssText = 'display:true; position:relative; top:-20px;';
-    videoElem.closeButton.onclick = videoElem.closeAction;
+    }
 
     if(videoElem.id == 'localVideo')
     {
         attachMediaStream(videoElem, winPopupRemoteConnection.getLocalStreams()[0]);
     }
 }
+
 var chatLinkClicked = function(elem) {
     var roomUserPath = elem.value;
     var b = roomUserPath.indexOf('/');
@@ -172,13 +168,6 @@ function onLoadDone() {
         urlArgRoom = '%$URLARGUMENTSROOM$%';
         connectIframe.location = connectIframe.location;
     }
-
-    document.getElementById('localVideo').closeButton =
-        document.getElementById('localVideoButton');
-
-    document.getElementById('videoMain').closeButton =
-        document.getElementById('videoMainButton');
-
 }
 
 function getConnectIframe() {
