@@ -175,18 +175,19 @@ function attachMediaStream(vidElem, vidStream)
 {
     vidElem.srcObject = vidStream;
     vidElem.onloadedmetadata = function() {
-        // won't work any more (video cannot auto-start)
-        //vidElem.play();
 
         if(vidElem.startButton != null) { return; }
+
         var startButton = document.createElement('button');
         var text = document.createElement('text');
+
         text.innerHTML = 'start';
         startButton.appendChild(text);
         startButton.onclick = function() {
             if(!vidElem.paused) {
                 vidElem.pause();
 
+                vidElem.srcObject.getTracks().forEach(track=>track.stop());
                 //vidElem.getTracks().forEach( track => track.getSenders().forEach( sender => sender.close()));
                 vidElem.startButton.parentNode.removeChild(vidElem.startButton);
                 vidElem.startButton = null;

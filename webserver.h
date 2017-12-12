@@ -415,7 +415,7 @@ webserver_worker(void* p)
 {
     int r;
     char *page_buf_welcome = "<html><p>Welcome</p></html>";
-    char *page_buf_400 = "<html>Huh?<br><a href='/index.html'>index.html</a></html>";
+    char *page_buf_400 = "<html><button onclick='document.location=\"/index.html\"'>Join conference</button></html>";
     char *page_buf_sdp_uploaded = "<html><button><body onload='window.location=\"content/uploadDone.html\";'>redirecting...</body></html>";
     char *page_buf_redirect_chat = "<html><body onload='window.location=\"content/peersPopup.html\";'>redirecting...</body></html>";
     char *page_buf_redirect_back = "<html><body onload='location=\"/content/chat.html\";'>redirecting...</body></html>";

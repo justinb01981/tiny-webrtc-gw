@@ -1,17 +1,31 @@
 <html>
 <body onload='connectIFrameOnLoad(this)'>
+<table>
+<tr>
+
+<td>
 <select id='joinMode' name='joinMode' style='display:none;' onchange='onJoinModeChange(this)'>
   <option value='broadcast'>broadcast</option>
   <option value='watch'>watch</option>
 </select>
+</td>
+<td>
 <select id='selectUser' name='selectUser' style='display:none;' onchange='onSelectUserChange(this)'>
 </select>
+</td>
+<td>
 <button id='joinButton' onClick='onOK(this)'>
 Join
 </button>
+</td>
+<td>
 <button id='leaveButton' onClick='onLeave(this)'>
-Leave Room
+Exit
 </button>
+</td>
+
+</tr>
+</table>
 </body>
 
 <script src='src/js/adapter.js'></script>

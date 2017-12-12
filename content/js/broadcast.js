@@ -87,7 +87,7 @@ var getMediaPromise;
 function getMedia() {
     getMediaPromise = new Promise(function(resolve, reject) {
 
-    if(localStream) {
+    if(localStream && localStream.getTracks()[0].readyState == "live") {
         resolve();
         return;
     }
@@ -230,7 +230,7 @@ function joinPopupClose(connection, userName, recvOnlyChecked, roomName) {
     joinPopupLast.stream = connection.getRemoteStreams()[0];
 
     winPopupRemoteConnection = connection;
-    
+   
     attachMediaStream(winPopupVideoTarget, winPopupRemoteConnection.getRemoteStreams()[0]);
 
     videoConnectionTable[winPopupVideoTarget.id] = winPopupRemoteConnection;
