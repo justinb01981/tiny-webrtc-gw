@@ -687,8 +687,10 @@ connection_worker(void* p)
     chatlog_append(peer->roomname);
     chatlog_append("\n");
     */
+    /*
     sprintf(str256, "\n$SUBSCRIBEBUTTON_%s/%s\n", peer->roomname, peer->name);
     chatlog_append(str256);
+    */
 
     for(incoming = 1; incoming >= 0; incoming--)
     for(si = 0; si < MAX_PEERS; si++)
