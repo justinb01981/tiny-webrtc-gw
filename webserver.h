@@ -668,6 +668,7 @@ webserver_worker(void* p)
                         else if(strstr(purl, ".css")) content_type = "Content-Type: text/css\r\n\r\n";
                         else if(strstr(purl, ".jpg")) { response_binary = 1; content_type = "Content-Type: image/jpeg\r\n\r\n"; }
                         else if(strstr(purl, ".gif")) { response_binary = 1; content_type = "Content-Type: image/gif\r\n\r\n"; }
+                        else if(strstr(purl, ".png")) { response_binary = 1; content_type = "Content-Type: image/png\r\n\r\n"; }
                         else if(strstr(purl, tag_watchuser)) content_type = content_type_html;
                         else content_type = content_type = "Content-Type: application/octet-stream\r\n\r\n";
                     }

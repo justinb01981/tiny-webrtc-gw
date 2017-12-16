@@ -107,7 +107,7 @@ function broadcastStart(onSuccess, onFailure) {
                 onSuccess();
                 return;
             }
-            attachMediaStream(remoteVideo, remoteConnection.getRemoteStreams()[0]);
+            //attachMediaStream(remoteVideo, remoteConnection.getRemoteStreams()[0]);
             remoteStream.getTracks().forEach(track => remoteConnection.addTrack(track, remoteStream));
             onSuccess();
         }).catch(
@@ -173,33 +173,45 @@ function resizeObjectWithID(idName, x, y, w, h) {
 
 function attachMediaStream(vidElem, vidStream)
 {
+    var cssButton = 'width:32px; height:32px; position:relative; top:-50px; background-position:center; background-repeat:no-repeat;';
+    if(vidElem.srcObject != null) {
+        console.debug('attachMediaStream: video element srcObject != null, ignoring');
+        return;
+    }
+
     vidElem.srcObject = vidStream;
     vidElem.onloadedmetadata = function() {
 
         if(vidElem.startButton != null) { return; }
 
         var startButton = document.createElement('button');
-        var text = document.createElement('text');
 
-        text.innerHTML = 'start';
-        startButton.appendChild(text);
         startButton.onclick = function() {
             if(!vidElem.paused) {
                 vidElem.pause();
-
-                vidElem.srcObject.getTracks().forEach(track=>track.stop());
-                //vidElem.getTracks().forEach( track => track.getSenders().forEach( sender => sender.close()));
-                vidElem.startButton.parentNode.removeChild(vidElem.startButton);
-                vidElem.startButton = null;
+                vidElem.onended();
             }
             else {
                 vidElem.play();
-                vidElem.startButton.childNodes[0].innerHTML = 'stop';
+                vidElem.controls = true;
+                startButton.style.cssText = cssButton + ' background-image:url(/content/img/stop.png);';
             }
         }
         vidElem.startButton = startButton;
 
-        startButton.style.cssText = 'position:relative; top:-50px;';
+        vidElem.onended = function() {
+            vidElem.controls = false;
+            if(vidElem.srcObject) {
+                vidElem.srcObject.getTracks().forEach(track=>track.stop());
+                vidElem.srcObject = null;
+            }
+            if(!vidElem.startButton) return;
+
+            vidElem.startButton.parentNode.removeChild(vidElem.startButton);
+            vidElem.startButton = null;
+        }
+
+        startButton.style.cssText = cssButton + ' background-image:url(/content/img/play.png);';
         vidElem.parentNode.appendChild(startButton);
 
         console.debug('attachMediaStream: onloadedmetadata');

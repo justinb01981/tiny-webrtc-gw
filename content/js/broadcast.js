@@ -60,6 +60,8 @@ var vidChildY;
 var connectIframe;
 var answerIframe;
 
+var getMediaPromise;
+
 var onLoadMedia = function() {
     return getMedia();
 }
@@ -81,8 +83,6 @@ function vidChildInit() {
     vidChildX = mainDivX;
     vidChildY = mainDivY + mainDivH;
 }
-
-var getMediaPromise;
 
 function getMedia() {
     getMediaPromise = new Promise(function(resolve, reject) {
@@ -127,6 +127,11 @@ function getMedia() {
                 function (s) {
                     localStream = s;
                     attachMediaStream(localVideo, localStream);
+                    localVideo.controls = true;
+                    if(localVideo.startButton) {
+                        localVideo.startButton.parentNode.removeChild(localVideo.startButton);
+                        localVideo.startButton = null;
+                    }
                     resolve();
                 }).catch(
                 function(e) {
@@ -431,9 +436,9 @@ function getRoom() {
 function roomEdited(elemTextArea) {
     var iframeDoc = connectIframe.document;
     var e = iframeDoc.getElementById('joinButton');
-    e.disabled = true;
+    if(e != null) e.disabled = true;
     if(elemTextArea.value.length > 0) {
-        e.disabled = false;
+        if(e != null) e.disabled = false;
         elemTextArea.value = elemTextArea.value.toLowerCase();
     }
 }

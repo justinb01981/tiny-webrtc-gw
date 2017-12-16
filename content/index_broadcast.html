@@ -5,7 +5,7 @@
 
 <body onLoad="broadcastOnLoad()">
 <div id="mainDiv">
-    <table border=1 id="mainDivTable">
+    <table border=1 id="mainDivTable" style=''>
         <tr style='height:5%;'>
             <th colspan=2>gitHub:<a href='https://github.com/justinb01981/tiny-webrtc-gw/wiki'>https://github.com/justinb01981/tiny-webrtc-gw/wiki</a></th>
         </tr>
@@ -15,16 +15,6 @@
                 username:<textarea rows=1 cols=16 id='userName'>user123</textarea>
                 <button onclick='location="login.html"' id='login'>login</button>
                 <button onclick='logout();' id='logout'>logout</button>
-                <br>
-
-                <!--
-                <iframe name='channelFrame' width='100%' height='33%' src='iframe_channel.html'>
-                <form name='channelForm' action='subscribe' method='POST' target='_parent'>
-                <input type='text' name='subscriptionID'></input>
-                <button onclick='channelPost();'>channel</button>
-                </form>
-                </iframe>
-                -->
            </td>
         </tr>
 
@@ -33,17 +23,17 @@
         </tr>
         <tr style='height:30%;'>
             <td colspan=1 id="thPresenter" align="center" >
-                <video class="videoMain" id="videoMain" controls style='width:100%;'></video>
+                <video class="videoMain" id="videoMain" style='width:100%;'></video>
 
             </td>
             <td colspan=1 align="center">
                 <div id="localPreviewDiv">
-                    <video class="videoLocal" id="localVideo" controls muted style='width:100%;'></video>
+                    <video class="videoLocal" id="localVideo" muted style='width:100%;'></video>
                 </div>
             </td>
         </tr>
 
-        <tr style='height:10%;'>
+        <tr style='height:5%;'>
             <td style='border-width:0px;' align='right'>
                 Room:
                 <input type='text' id='roomName' onInput='roomEdited(this)'>
@@ -52,7 +42,7 @@
                 </input>
             </td>
             <td style='border-width:0px;' align='left'>
-                <iframe style='height:25%; width:100%; overflow:hidden; webkit-overflow-scrolling:auto; border-width:0px;' name='connectIframe' src='connect_iframe.html' id='connect_iframe'>
+                <iframe style='width:100%; height:50px; border-width:0px; -webkit-overflow-scrolling:touch; overflow:scroll; ' name='connectIframe' src='connect_iframe.html' id='connect_iframe'>
                 </iframe>
 
 
@@ -64,9 +54,9 @@
             </td>
         </tr>
 
-        <tr style='height:45%; overflow:scroll;'>
+        <tr style='height:10%;'>
            <td colspan=2 align='center'>
-                <iframe name='chatFrame' src='chat.html' width='100%; height:100%; position:fixed; overflow:hidden;'>
+                <iframe name='chatFrame' src='chat.html' width='100%; height:100px%; overflow:scroll; -webkit-overflow-scrolling:touch;'>
                 </iframe>
             </td>
         </tr>
@@ -153,6 +143,10 @@ function onLoadDone() {
 
         if(elemRemote.closeAction) elemRemote.closeAction(elemRemote);
         if(elemLocal.closeAction) elemLocal.closeAction(elemLocal);
+
+        if(elemLocal.onended) elemLocal.onended();
+        if(elemRemote.onended) elemRemote.onended();
+
         getConnectIframe().contentWindow.location.reload();
     }
 

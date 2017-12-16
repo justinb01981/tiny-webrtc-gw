@@ -14,14 +14,14 @@
 </select>
 </td>
 <td>
-<button id='joinButton' onClick='onOK(this)'>
-Join
-</button>
+<a href='javascript: onOK()'>
+<img src='/content/img/enter.png' alt='enter' style='width:24px; height:24px;'>
+</a>
 </td>
 <td>
-<button id='leaveButton' onClick='onLeave(this)'>
-Exit
-</button>
+<a href='javascript: onLeave()'>
+<img src='/content/img/exit.png' alt='exit' style='width:24px; height:24px;'>
+</a>
 </td>
 
 </tr>
@@ -47,17 +47,13 @@ function connectIFrameOnLoad(htmlBodyElem)
     
     if(window.parent.iframeConnectState.selectedRoom)
     {
-        leaveButton.disabled = false;
         window.parent.document.getElementById('roomName').disabled = true;
         document.getElementById('selectUser').style.cssText = '';
-        document.getElementById('joinButton').innerHTML = 'Watch';
-        document.getElementById('joinButton').disabled = true;
     }
     else
     {
         window.parent.document.getElementById('roomName').disabled = false;
         document.getElementById('selectUser').style.cssText = 'display:none';
-        document.getElementById('joinButton').innerHTML = 'Join Room';
     }
 
     let selectUser = window.document.getElementById('selectUser');
@@ -108,6 +104,7 @@ function onJoin() {
       joinMode.value = 'broadcast';
       window.parent.iframeConnectState.selectedRoom = roomElem.value;
     }
+    console.debug('joinMode:' + joinMode.value);
 
     var vidElem = joinMode.value == 'broadcast' ?
       parentDoc.getElementById('localVideo') :
@@ -122,13 +119,13 @@ function onJoin() {
   }).catch(function(e) {});
 }
 
-function onOK(okButton) {
+function onOK() {
   onJoin();
 }
 
-function onLeave(leaveButton)
+function onLeave()
 {
-  leaveButton.disabled = true;
+
   window.parent.iframeConnectState.selectedRoom = null;
   window.parent.iframeConnectState.selectedUser = null;
   window.parent.onLeave();
@@ -137,8 +134,14 @@ function onLeave(leaveButton)
 
 function onSelectUserChange(elem)
 {
+  var elemOption = elem.options[elem.selectedIndex];
+
   window.parent.iframeConnectState.selectedUser = elem.value;
-  document.getElementById('joinButton').disabled = elem.options[elem.selectedIndex].value == 'NULL';
+
+  if(elemOption.value != 'NULL')
+  {
+    onOK();
+  }
 }
 
 function onJoinModeChange(elem)

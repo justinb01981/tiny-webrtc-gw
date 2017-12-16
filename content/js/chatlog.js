@@ -3,20 +3,13 @@
 function appendMessageListElem(destList, m) {
   var e = destList;
   var l = document.createElement('li');
-  var a = document.createElement('a');
-  var btn;
-  var tScroll = document.createElement('table');
-  var tScrollRow = document.createElement('tr');
-  var tScrollRowElem = document.createElement('td');
-  tScroll.style.cssText = 'width:100%; height:100%; table-layout:fixed;';
-  tScrollRow.style.cssText = 'height:1em;';
-  tScrollRowElem.style.cssText = 'overflow:auto;';
-  l.cssText = 'padding-left: 0pt;';
+
+  var t = document.createTextNode(m);
 
   var key = '$SUBSCRIBEBUTTON_';
   if(m.indexOf(key) >= 0) {
     btn = document.createElement('button');
-    tScrollRowElem.appendChild(btn);
+    l.appendChild(btn);
     let b = m.indexOf(key) + key.length;
     let s = m.length;
 
@@ -30,22 +23,15 @@ function appendMessageListElem(destList, m) {
     // hidden for now, I broke this
     btn.style.cssText = 'display:none;'
   }
-
-  var t = document.createTextNode(m);
     
-  a.appendChild(t);
-  tScrollRowElem.appendChild(a);
-  tScrollRow.appendChild(tScrollRowElem);
-  tScroll.appendChild(tScrollRow);
-  l.appendChild(tScroll);
-  
+  l.appendChild(t);  
   e.appendChild(l);
   return l;
 }
 
 function appendMessagesToUnorderedList(l, array) {
   var i = 0;
-  var altcolor = 'lightgrey';
+  var altcolor = 'white';
   var bgColor = altcolor;
 
   while(i < array.length) {

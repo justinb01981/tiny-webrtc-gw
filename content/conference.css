@@ -51,3 +51,7 @@ video.videoMain {
     width:320;
     height:240;
 }
+
+button.playButton {
+    background-image:url('/img/play.png');
+}
