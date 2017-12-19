@@ -108,7 +108,7 @@ function broadcastStart(onSuccess, onFailure) {
                 return;
             }
             //attachMediaStream(remoteVideo, remoteConnection.getRemoteStreams()[0]);
-            remoteStream.getTracks().forEach(track => remoteConnection.addTrack(track, remoteStream));
+            //remoteStream.getTracks().forEach(track => remoteConnection.addTrack(track, remoteStream));
             onSuccess();
         }).catch(
             function (err) {

@@ -38,7 +38,7 @@
                 Room:
                 <input type='text' id='roomName' onInput='roomEdited(this)'>
                 </input>
-                <input type='button' value='+' onClick='onAdvanced(this)'>
+                <input type='button' value='+' onClick='onAdvanced(this)' style='display:none;'>
                 </input>
             </td>
             <td style='border-width:0px;' align='left'>
@@ -107,7 +107,7 @@ var joinPopupCloseDone = function(videoElem) {
 
     if(videoElem.id == 'localVideo')
     {
-        attachMediaStream(videoElem, winPopupRemoteConnection.getLocalStreams()[0]);
+        //attachMediaStream(videoElem, winPopupRemoteConnection.getLocalStreams()[0]);
     }
 }
 

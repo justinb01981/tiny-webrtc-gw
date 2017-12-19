@@ -55,3 +55,8 @@ video.videoMain {
 button.playButton {
     background-image:url('/img/play.png');
 }
+
+@keyframes loadingAnimation {
+    from {background-color: gray;}
+    to {background-color: white;}
+}

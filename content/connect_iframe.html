@@ -15,12 +15,12 @@
 </td>
 <td>
 <a href='javascript: onOK()'>
-<img src='/content/img/enter.png' alt='enter' style='width:24px; height:24px;'>
+<img id='joinButton' src='/content/img/enter.png' alt='enter' style='width:24px; height:24px;'>
 </a>
 </td>
 <td>
 <a href='javascript: onLeave()'>
-<img src='/content/img/exit.png' alt='exit' style='width:24px; height:24px;'>
+<img id='leaveButton' src='/content/img/exit.png' alt='exit' style='width:24px; height:24px;'>
 </a>
 </td>
 
@@ -45,22 +45,27 @@ function connectIFrameOnLoad(htmlBodyElem)
 
     if(window.parent.iframeConnectState == null) return;
     
+    let selectUser = window.document.getElementById('selectUser');
+    let joinButton = window.document.getElementById('joinButton');
+    let leaveButton = window.document.getElementById('leaveButton');
+
     if(window.parent.iframeConnectState.selectedRoom)
     {
         window.parent.document.getElementById('roomName').disabled = true;
-        document.getElementById('selectUser').style.cssText = '';
+        joinButton.style.cssText = 'display:none;';
+        selectUser.style.cssText = '';
     }
     else
     {
         window.parent.document.getElementById('roomName').disabled = false;
-        document.getElementById('selectUser').style.cssText = 'display:none';
+        joinButton.style.cssText = '';
+        selectUser.style.cssText = 'display:none';
     }
 
-    let selectUser = window.document.getElementById('selectUser');
 
     let optionLabel = document.createElement('option');
     optionLabel.value = 'NULL';
-    optionLabel.text = '<select nickname>';
+    optionLabel.text = '<select streamer to watch>';
     selectUser.options.add(optionLabel);
 
     for(let p = 0; p < peerList.length; p++)
