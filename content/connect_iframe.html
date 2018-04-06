@@ -38,66 +38,79 @@
 
 function connectIFrameOnLoad(htmlBodyElem)
 {
-    console.debug('connectIFrameOnLoad');
+  let roomPeer = null;
+  let roomTextfield = window.parent.document.getElementById('roomName');
+  var myName = window.parent.document.getElementById('userName').value;
 
-    window.parent.connectIframe = window;
-    window.parent.connectIframe.document = window.document;
+  console.debug('connectIFrameOnLoad');
 
-    if(window.parent.iframeConnectState == null) return;
+  window.parent.connectIframe = window;
+  window.parent.connectIframe.document = window.document;
+
+  if(window.parent.iframeConnectState == null) return;
     
-    let selectUser = window.document.getElementById('selectUser');
-    let joinButton = window.document.getElementById('joinButton');
-    let leaveButton = window.document.getElementById('leaveButton');
+  let selectUser = window.document.getElementById('selectUser');
+  let joinButton = window.document.getElementById('joinButton');
+  let leaveButton = window.document.getElementById('leaveButton');
 
-    if(window.parent.iframeConnectState.selectedRoom)
+  if(window.parent.iframeConnectState.selectedRoom)
+  {
+    roomTextfield.disabled = true;
+    joinButton.style.cssText = 'display:none;';
+    selectUser.style.cssText = '';
+  }
+  else
+  {
+    roomTextfield.disabled = false;
+    joinButton.style.cssText = '';
+    selectUser.style.cssText = 'display:none';
+  }
+
+  let optionLabel = document.createElement('option');
+  optionLabel.value = 'NULL';
+  optionLabel.text = '<select streamer to watch>';
+  selectUser.options.add(optionLabel);
+
+  if(roomTextfield.value && roomTextfield.value != '')
+  for(let p = 0; p < peerList.length; p++)
+  {
+    if(peerList[p]['recvonly'] ||
+       roomTextfield.value != peerList[p]['room'])
     {
-        window.parent.document.getElementById('roomName').disabled = true;
-        joinButton.style.cssText = 'display:none;';
-        selectUser.style.cssText = '';
-    }
-    else
-    {
-        window.parent.document.getElementById('roomName').disabled = false;
-        joinButton.style.cssText = '';
-        selectUser.style.cssText = 'display:none';
-    }
-
-
-    let optionLabel = document.createElement('option');
-    optionLabel.value = 'NULL';
-    optionLabel.text = '<select streamer to watch>';
-    selectUser.options.add(optionLabel);
-
-    for(let p = 0; p < peerList.length; p++)
-    {
-        if(peerList[p]['recvonly'] ||
-           window.parent.document.getElementById('roomName').value != peerList[p]['room'])
-        {
-          continue;
-        }
-
-        var name = peerList[p]['name'];
-
-        let option = document.createElement('option');
-        option.value = name;
-        option.text = name;
-        selectUser.options.add(option);
+      continue;
     }
 
-    if(selectUser.options.length <= 2)
-    {
-        let optionWait = document.createElement('option');
-        optionWait.value = '$SINGLEUSERROOM';
-        optionWait.text = '<wait for next peer>';
-        selectUser.options.add(optionWait);
+    var name = peerList[p]['name'];
+    if(name != myName) {
+      roomPeer = name;
     }
+
+    let option = document.createElement('option');
+    option.value = name;
+    option.text = name;
+    selectUser.options.add(option);
+  }
+
+  if(selectUser.options.length <= 2)
+  {
+    let optionWait = document.createElement('option');
+    optionWait.value = '$SINGLEUSERROOM';
+    optionWait.text = '<wait for next peer>';
+    selectUser.options.add(optionWait);
+  }
+
+  if(roomPeer && !window.parent.iframeConnectState.idle) {
+    console.log('watching peer ' + name);
+    window.parent.iframeConnectState.idle = true;
+    onJoin();
+  }
 }
 
 function onJoin() {
   var parentDoc = window.parent.document;
   var joinMode = document.getElementById('joinMode');
   var roomElem = parentDoc.getElementById('roomName');
-  if(roomElem.value.length == 0) { alert('enter a room name'); return; }
+  if(!roomElem.value) { alert('enter a room name'); return; }
 
   window.parent.onLoadMedia().then(function() {
     if(window.parent.iframeConnectState.selectedRoom)
@@ -130,9 +143,9 @@ function onOK() {
 
 function onLeave()
 {
-
   window.parent.iframeConnectState.selectedRoom = null;
   window.parent.iframeConnectState.selectedUser = null;
+  window.parent.iframeConnectState.idle = null;
   window.parent.onLeave();
   window.location.reload();
 }
