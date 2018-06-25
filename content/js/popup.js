@@ -194,7 +194,7 @@ function attachMediaStream(vidElem, vidStream)
             else {
                 vidElem.play();
                 vidElem.controls = true;
-                startButton.style.cssText = cssButton + ' background-image:url(/content/img/stop.png);';
+                startButton.style.cssText = cssButton + ' background-image:url(/content/img/stop.png); z-index:1;';
             }
         }
         vidElem.startButton = startButton;
@@ -211,7 +211,7 @@ function attachMediaStream(vidElem, vidStream)
             vidElem.startButton = null;
         }
 
-        startButton.style.cssText = cssButton + ' background-image:url(/content/img/play.png);';
+        startButton.style.cssText = cssButton + ' background-image:url(/content/img/play.png); z-index:1;';
         vidElem.parentNode.appendChild(startButton);
 
         console.debug('attachMediaStream: onloadedmetadata');

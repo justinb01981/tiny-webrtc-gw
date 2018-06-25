@@ -40,16 +40,16 @@ video.videoChild {
     height:96;
 }
 
-/*
 video.videoLocal {
     width:320;
     height:240;
+    z-index:-1;
 }
-*/
 
 video.videoMain {
     width:320;
     height:240;
+    z-index:-1;
 }
 
 button.playButton {
