@@ -99,11 +99,13 @@ function connectIFrameOnLoad(htmlBodyElem)
     selectUser.options.add(optionWait);
   }
 
+  /*
   if(roomPeer && !window.parent.iframeConnectState.idle) {
     console.log('watching peer ' + name);
     window.parent.iframeConnectState.idle = true;
     onJoin();
   }
+  */
 }
 
 function onJoin() {
