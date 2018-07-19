@@ -41,6 +41,7 @@ function connectIFrameOnLoad(htmlBodyElem)
   let roomPeer = null;
   let roomTextfield = window.parent.document.getElementById('roomName');
   var myName = window.parent.document.getElementById('userName').value;
+  let state = window.parent.iframeConnectState;
 
   console.debug('connectIFrameOnLoad');
 
@@ -71,41 +72,57 @@ function connectIFrameOnLoad(htmlBodyElem)
   optionLabel.text = '<select streamer to watch>';
   selectUser.options.add(optionLabel);
 
-  if(roomTextfield.value && roomTextfield.value != '')
-  for(let p = 0; p < peerList.length; p++)
+  if(/*roomTextfield.value && roomTextfield.value.length > 0*/ state.selectedRoom != null && state.selectedUser == null)
   {
-    if(peerList[p]['recvonly'] ||
-       roomTextfield.value != peerList[p]['room'])
+    for(let p = 0; p < peerList.length; p++)
     {
-      continue;
+      if(peerList[p]['recvonly'] ||
+         roomTextfield.value != peerList[p]['room'])
+      {
+        continue;
+      }
+
+      var name = peerList[p]['name'];
+      if(!roomPeer && name != myName) {
+        roomPeer = name;
+      }
+
+      let option = document.createElement('option');
+      option.value = name;
+      option.text = name;
+      selectUser.options.add(option);
     }
 
-    var name = peerList[p]['name'];
-    if(name != myName) {
-      roomPeer = name;
+    if(selectUser.options.length <= 2)
+    {
+      let optionWait = document.createElement('option');
+      optionWait.value = '$SINGLEUSERROOM';
+      optionWait.text = '<wait for next peer>';
+      selectUser.options.add(optionWait);
+
+      setTimeout(function(){
+        if (!state.awaiting && confirm('alone in room\nautomatically watch the next user when they join?')) {
+            state.awaiting = true;
+          }
+        }, 1);
     }
 
-    let option = document.createElement('option');
-    option.value = name;
-    option.text = name;
-    selectUser.options.add(option);
+    if(roomPeer)
+    {
+      if(state.awaiting == true)
+      {
+        console.log('done waiting ('+roomPeer+' joined this room)');
+        state.awaiting = false;
+        state.selectedUser = roomPeer;
+        onJoin();
+      }
+      else
+      {
+        state.selectedUser = roomPeer;
+        onJoin();
+      }
+    }
   }
-
-  if(selectUser.options.length <= 2)
-  {
-    let optionWait = document.createElement('option');
-    optionWait.value = '$SINGLEUSERROOM';
-    optionWait.text = '<wait for next peer>';
-    selectUser.options.add(optionWait);
-  }
-
-  /*
-  if(roomPeer && !window.parent.iframeConnectState.idle) {
-    console.log('watching peer ' + name);
-    window.parent.iframeConnectState.idle = true;
-    onJoin();
-  }
-  */
 }
 
 function onJoin() {
@@ -147,7 +164,7 @@ function onLeave()
 {
   window.parent.iframeConnectState.selectedRoom = null;
   window.parent.iframeConnectState.selectedUser = null;
-  window.parent.iframeConnectState.idle = null;
+  window.parent.iframeConnectState.awaiting = null;
   window.parent.onLeave();
   window.location.reload();
 }

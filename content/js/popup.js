@@ -187,13 +187,14 @@ function attachMediaStream(vidElem, vidStream)
         var startButton = document.createElement('button');
 
         startButton.onclick = function() {
-            if(!vidElem.paused) {
-                vidElem.pause();
+            if(!vidElem.muted) {
+                vidElem.muted = true;
                 vidElem.onended();
             }
             else {
-                vidElem.play();
-                vidElem.controls = true;
+                vidElem.muted = false;
+                //vidElem.play();
+                //vidElem.controls = true;
                 startButton.style.cssText = cssButton + ' background-image:url(/content/img/stop.png); z-index:1;';
             }
         }

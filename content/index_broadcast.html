@@ -23,12 +23,12 @@
         </tr>
         <tr style='height:30%;'>
             <td colspan=1 id="thPresenter" align="center" >
-                <video class="videoMain" id="videoMain" style='width:100%;'></video>
+                <video class="videoMain" id="videoMain" style='width:100%;' autoplay muted loop playsinline controls="true"></video>
 
             </td>
             <td colspan=1 align="center">
                 <div id="localPreviewDiv">
-                    <video class="videoLocal" id="localVideo" muted style='width:100%;'></video>
+                    <video class="videoLocal" id="localVideo" muted style='width:100%;' autoplay muted loop playsinline controls="true" ></video>
                 </div>
             </td>
         </tr>
@@ -96,8 +96,9 @@
 var onLeave;
 var urlArgRoom;
 var urlArgName;
-var iframeConnectState = {selectedUser: null, selectedRoom: null, advancedSettings: false, onConnectVideo: null, joinMode: null, idle: null};
+var iframeConnectState = {selectedUser: null, selectedRoom: null, advancedSettings: false, onConnectVideo: null, joinMode: null, awaiting: null};
 var onLoadDoneAnswerUpload;
+
 var joinPopupCloseDone = function(videoElem) {
     videoElem.closeAction = function() {
         disconnectVideo(videoElem);
@@ -120,10 +121,10 @@ var chatLinkClicked = function(elem) {
 
     console.debug(getConnectIframe());
 }
+
 var chatReloaded = function(elem) {
     reloadConnectIframe();
 }
-
 
 function joinSDP() {
     return "empty";
