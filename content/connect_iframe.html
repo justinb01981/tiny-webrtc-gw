@@ -72,7 +72,7 @@ function connectIFrameOnLoad(htmlBodyElem)
   optionLabel.text = '<select streamer to watch>';
   selectUser.options.add(optionLabel);
 
-  if(/*roomTextfield.value && roomTextfield.value.length > 0*/ state.selectedRoom != null && state.selectedUser == null)
+  if(/*roomTextfield.value && roomTextfield.value.length > 0*/ state.selectedRoom != null)
   {
     for(let p = 0; p < peerList.length; p++)
     {
@@ -83,7 +83,8 @@ function connectIFrameOnLoad(htmlBodyElem)
       }
 
       var name = peerList[p]['name'];
-      if(!roomPeer && name != myName) {
+      if(!state.selectedUser && !roomPeer && name != myName)
+      {
         roomPeer = name;
       }
 
@@ -118,8 +119,8 @@ function connectIFrameOnLoad(htmlBodyElem)
       }
       else
       {
-        state.selectedUser = roomPeer;
-        onJoin();
+        //state.selectedUser = roomPeer;
+        //onJoin();
       }
     }
   }

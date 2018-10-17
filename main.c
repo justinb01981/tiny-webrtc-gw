@@ -1646,10 +1646,17 @@ int main( int argc, char* argv[] ) {
                 }
 
                 int repeat = 1;
-                if(peers[i].in_buffers_underrun && peers[i].thread_inited)
+                if(peers[i].recv_only)
                 {
-                    repeat = 0;
-                    peers[i].in_buffers_underrun = 0;
+                    repeat = 1;
+                }
+                else
+                {
+                    if(peers[i].in_buffers_underrun && peers[i].thread_inited)
+                    {
+                        repeat = 0;
+                        peers[i].in_buffers_underrun = 0;
+                    }
                 }
                 
                 while(repeat > 0 && peers[i].thread_inited)
