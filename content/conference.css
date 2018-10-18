@@ -42,7 +42,7 @@ video.videoChild {
 
 video.videoLocal {
     width:320;
-    height:240;
+    height:240; 
     z-index:-1;
 }
 

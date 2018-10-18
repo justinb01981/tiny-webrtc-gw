@@ -187,8 +187,14 @@ function attachMediaStream(vidElem, vidStream)
         var startButton = document.createElement('button');
 
         startButton.onclick = function() {
-            vidElem.muted = true;
-            vidElem.onended();
+            if(vidElem.muted) {
+              vidElem.muted = false;
+              vidElem.startButton.style.cssText = cssButton + ' background-image:url(/content/img/stop.png); z-index:1;';
+            }
+            else {
+              vidElem.muted = true;
+              vidElem.onended();
+            }
         }
         vidElem.startButton = startButton;
 
@@ -204,7 +210,7 @@ function attachMediaStream(vidElem, vidStream)
             vidElem.startButton = null;
         }
 
-        startButton.style.cssText = cssButton + ' background-image:url(/content/img/stop.png); z-index:1;';
+        startButton.style.cssText = cssButton + ' background-image:url(/content/img/unmute.png); z-index:1;';
         vidElem.parentNode.appendChild(startButton);
 
         console.debug('attachMediaStream: onloadedmetadata');

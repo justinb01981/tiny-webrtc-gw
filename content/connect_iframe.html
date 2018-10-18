@@ -38,7 +38,7 @@
 
 function connectIFrameOnLoad(htmlBodyElem)
 {
-  let roomPeer = null;
+  let userSelected = null;
   let roomTextfield = window.parent.document.getElementById('roomName');
   var myName = window.parent.document.getElementById('userName').value;
   let state = window.parent.iframeConnectState;
@@ -72,6 +72,8 @@ function connectIFrameOnLoad(htmlBodyElem)
   optionLabel.text = '<select streamer to watch>';
   selectUser.options.add(optionLabel);
 
+  let usersNow = [];
+
   if(/*roomTextfield.value && roomTextfield.value.length > 0*/ state.selectedRoom != null)
   {
     for(let p = 0; p < peerList.length; p++)
@@ -83,9 +85,11 @@ function connectIFrameOnLoad(htmlBodyElem)
       }
 
       var name = peerList[p]['name'];
-      if(!state.selectedUser && !roomPeer && name != myName)
+
+      usersNow.push(name);
+      if(!state.selectedUser && !userSelected && name != myName)
       {
-        roomPeer = name;
+        userSelected = name;
       }
 
       let option = document.createElement('option');
@@ -102,27 +106,29 @@ function connectIFrameOnLoad(htmlBodyElem)
       selectUser.options.add(optionWait);
 
       setTimeout(function(){
-        if (!state.awaiting && confirm('alone in room\nautomatically watch the next user when they join?')) {
+        if (!state.awaiting && !state.selectedUser && confirm('alone in room\nautomatically watch the next user when they join?')) {
             state.awaiting = true;
           }
         }, 1);
     }
 
-    if(roomPeer)
+    if(userSelected)
     {
       if(state.awaiting == true)
       {
-        console.log('done waiting ('+roomPeer+' joined this room)');
+        console.log('done waiting ('+userSelected+' joined this room)');
         state.awaiting = false;
-        state.selectedUser = roomPeer;
+        state.selectedUser = userSelected;
         onJoin();
       }
       else
       {
-        //state.selectedUser = roomPeer;
+        //state.selectedUser = userSelected;
         //onJoin();
       }
     }
+
+    state.usersLast = usersNow;
   }
 }
 
