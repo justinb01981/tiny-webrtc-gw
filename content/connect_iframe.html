@@ -38,7 +38,7 @@
 
 function connectIFrameOnLoad(htmlBodyElem)
 {
-  let userSelected = null;
+  let selectedUserTry = null;
   let roomTextfield = window.parent.document.getElementById('roomName');
   var myName = window.parent.document.getElementById('userName').value;
   let state = window.parent.iframeConnectState;
@@ -74,7 +74,7 @@ function connectIFrameOnLoad(htmlBodyElem)
 
   let usersNow = [];
 
-  if(/*roomTextfield.value && roomTextfield.value.length > 0*/ state.selectedRoom != null)
+  if(state.selectedRoom != null)
   {
     for(let p = 0; p < peerList.length; p++)
     {
@@ -87,9 +87,9 @@ function connectIFrameOnLoad(htmlBodyElem)
       var name = peerList[p]['name'];
 
       usersNow.push(name);
-      if(!state.selectedUser && !userSelected && name != myName)
+      if(!selectedUserTry && name != myName)
       {
-        userSelected = name;
+        selectedUserTry = name;
       }
 
       let option = document.createElement('option');
@@ -98,37 +98,18 @@ function connectIFrameOnLoad(htmlBodyElem)
       selectUser.options.add(option);
     }
 
-    if(selectUser.options.length <= 2)
+    if(selectedUserTry && !state.selectedUser && state.usersLast != usersNow)
     {
-      let optionWait = document.createElement('option');
-      optionWait.value = '$SINGLEUSERROOM';
-      optionWait.text = '<wait for next peer>';
-      selectUser.options.add(optionWait);
-
-      setTimeout(function(){
-        if (!state.awaiting && !state.selectedUser && confirm('alone in room\nautomatically watch the next user when they join?')) {
-            state.awaiting = true;
-          }
-        }, 1);
-    }
-
-    if(userSelected)
-    {
-      if(state.awaiting == true)
-      {
-        console.log('done waiting ('+userSelected+' joined this room)');
-        state.awaiting = false;
-        state.selectedUser = userSelected;
-        onJoin();
-      }
-      else
-      {
-        //state.selectedUser = userSelected;
-        //onJoin();
-      }
+      state.selectedUser = selectedUserTry;
+      onJoin();
     }
 
     state.usersLast = usersNow;
+  }
+
+  state.iframeOnDisconnect = function() {
+    state.selectedUser = null;
+    console.debug('state.iframeOnDisconnect()');
   }
 }
 
@@ -154,13 +135,37 @@ function onJoin() {
       parentDoc.getElementById('localVideo') :
       parentDoc.getElementById('videoMain');
 
+    if(vidElem.closeAction) {
+      vidElem.closeAction();
+    }
+
     window.parent.iframeConnectState.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
     window.parent.iframeConnectState.joinMode = joinMode.value;
 
     connectVideoIframe(vidElem, 
       window.parent.iframeConnectState.onConnectVideo,
       vidElem.value);
-  }).catch(function(e) {});
+  }).catch(function(e) {
+
+    var roomElem = parentDoc.getElementById('roomName');
+    var vidElem = parentDoc.getElementById('videoMain');
+
+    console.debug('failed to get local video-source');
+    window.parent.iframeConnectState.selectedRoom = roomElem.value;
+
+    if(vidElem.closeAction) {
+      vidElem.closeAction();
+    }
+
+    window.parent.iframeConnectState.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
+    window.parent.iframeConnectState.joinMode = 'watch';
+    if(window.parent.iframeConnectState.selectedUser) {
+      connectVideoIframe(vidElem, window.parent.iframeConnectState.onConnectVideo,vidElem.value);
+    }
+    else {
+      window.location = window.location;
+    }
+  });
 }
 
 function onOK() {

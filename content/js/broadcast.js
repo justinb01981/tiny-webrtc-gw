@@ -135,8 +135,8 @@ function getMedia() {
                     resolve();
                 }).catch(
                 function(e) {
-                    alert('get media failed\nmaybe try https?\ncamera/mic enabled?\n\n(reload the page after allowing)');
                     reject();
+                    //alert('get media failed\nmaybe try https?\ncamera/mic enabled?\n\n(reload the page after allowing)');
                 }
             );
         }).catch(function(e) {});
@@ -281,8 +281,13 @@ function joinIframeOnLoadBroadcast() {
         window.parent.selectedUser = null;
     }
 
-    docCForm.appendsdp.value += 
-        connIFrameState.joinMode == 'broadcast' ? 'a=sendonly\n' : 'a=recvonly\n';
+    if(connIFrameState.joinMode == 'watch') {
+        docCForm.appendsdp.value += 'a=recvonly\n';
+        docCForm.recvonly.checked = true;
+    }
+    else {
+        docCForm.appendsdp.value += 'a=sendonly\n';
+    }
 
     joinPopupOnLoad2(answerIframe, window);
 }
