@@ -70,7 +70,7 @@ hex_print(char* dest, u8 *buf, int buf_len)
 {
     dest[0] = '\0';
     int k = 0;
-    while(k < buf_len) {
+    while(k < buf_len && buf) {
         char tmp[64];
         sprintf(tmp, "%02x", (unsigned char) buf[k]);
         strcat(dest, tmp);
