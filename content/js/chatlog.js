@@ -6,6 +6,7 @@ function appendMessageListElem(destList, m) {
 
   var t = document.createTextNode(m);
 
+  /*
   var key = '$SUBSCRIBEBUTTON_';
   if(m.indexOf(key) >= 0) {
     btn = document.createElement('button');
@@ -23,6 +24,7 @@ function appendMessageListElem(destList, m) {
     // hidden for now, I broke this
     btn.style.cssText = 'display:none;'
   }
+  */
     
   l.appendChild(t);  
   e.appendChild(l);
