@@ -248,7 +248,7 @@ void peer_send_block(peer_session_t* peer, char* buf, int len)
     }
     else
     {
-        peer->time_pkt_last = time(NULL);
+        //peer->time_pkt_last = time(NULL);
 
         int r = sendto(peer->sock, buf, len, 0, (struct sockaddr*)&(peer->addr), sizeof(peer->addr));
     }
@@ -1475,7 +1475,7 @@ int main( int argc, char* argv[] ) {
                     udp_recv_timeout_usec -= udp_recv_timeout_usec_min;
                     if(udp_recv_timeout_usec < udp_recv_timeout_usec_min) udp_recv_timeout_usec = udp_recv_timeout_usec_min;
                 }
-                }
+            }
             
             _connection_worker_backlog_highwater = connection_worker_backlog_highwater;
             connection_worker_backlog_highwater = 0;

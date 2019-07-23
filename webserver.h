@@ -940,12 +940,12 @@ webserver_worker(void* p)
                         chatlog_append(tmp);
 
                         // mark -- signal/wait for peer to be initialized
+                        peers[sidx].time_pkt_last = time(NULL);
                         peers[sidx].alive = 1;
                         peers[sidx].restart_needed = 1;
 
                         while(!peers[sidx].restart_done) usleep(10000);
                         peers[sidx].alive = 1;
-                        peers[sidx].time_pkt_last = time(NULL);
                         
                         // init stun-ice attributes
                         strcpy(peers[sidx].stun_ice.ufrag_answer, ufrag_answer);
