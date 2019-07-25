@@ -263,6 +263,8 @@ function joinPopupOnLoadRecvOnly() {
 }
 
 function joinIframeOnLoadBroadcast() {
+    console.debug('joinIframeOnLoadBroadcast');
+
     var connIFrameState = window.iframeConnectState;
 
     var winParent = window.parent;
@@ -277,8 +279,10 @@ function joinIframeOnLoadBroadcast() {
     docCForm.peerstream_recv.value = user;
     if(window.parent.iframeConnectState.selectedUser)
     {
+        console.debug('a=watch='+window.parent.iframeConnectState.selectedUser);
         docCForm.appendsdp.value += 'a=watch='+window.parent.iframeConnectState.selectedUser+'\n';
         window.parent.selectedUser = null;
+        window.parent.iframeConnectState.selectedUser = null;
     }
 
     if(connIFrameState.joinMode == 'watch') {

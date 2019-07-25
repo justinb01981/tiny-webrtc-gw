@@ -714,7 +714,7 @@ connection_worker(void* p)
             {
                 // connect any peers waiting for one matching this name
                 if(!peer->recv_only &&
-                   peers[si].subscriptionID == PEER_IDX_INVALID &&
+                   /*peers[si].subscriptionID == PEER_IDX_INVALID && */
                    (
                     strcmp(peers[si].watchname, peer->name) == 0 ||
                     strcmp(peers[si].watchname, "$SINGLEUSERROOM") == 0

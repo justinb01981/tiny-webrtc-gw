@@ -198,7 +198,7 @@ typedef struct
     volatile int in_buffers_underrun;
 } peer_session_t;
 
-const static int PEER_TIMEOUT_DEFAULT = 10;
+const static int PEER_TIMEOUT_DEFAULT = 30;
 
 typedef struct {
     struct {

@@ -122,6 +122,7 @@ function doSubmit() {
     var appsdp = document.theform.appendsdp;
     var myname = document.theform.my_name;
     if(appsdp.value.indexOf('a=watch=') < 0) {
+        console.debug('no a=watch found, adding one');
         appsdp.value += 'a=watch=' + myname.value;
     }
     document.finalform.answersdp.value = document.theform.answersdp.value + '\n' + document.theform.appendsdp.value;
