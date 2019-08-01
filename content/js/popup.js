@@ -203,10 +203,13 @@ function attachMediaStream(vidElem, vidStream)
         vidElem.startButton = startButton;
 
         vidElem.onended = function() {
+            vidElem.onended = null;
+            console.debug('vidElem.onended');
+
             vidElem.controls = false;
             if(vidElem.srcObject) {
                 // commented this out since it kills local streams and are unrecoverable
-                //vidElem.srcObject.getTracks().forEach(track=>track.stop());
+                vidElem.srcObject.getTracks().forEach(track=>track.stop());
                 vidElem.srcObject = null;
             }
             if(!vidElem.startButton) return;

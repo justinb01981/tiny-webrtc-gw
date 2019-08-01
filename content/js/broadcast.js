@@ -290,7 +290,10 @@ function joinIframeOnLoadBroadcast() {
         docCForm.recvonly.checked = true;
     }
     else {
-        docCForm.appendsdp.value += 'a=sendonly\n';
+        //docCForm.appendsdp.value += 'a=sendonly\n';
+
+        var recvSDP = docCForm.offersdp.value.replace(/a=sendrecv/g, 'a=recvonly');
+        docCForm.offersdp.value = recvSDP;
     }
 
     joinPopupOnLoad2(answerIframe, window);

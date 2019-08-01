@@ -150,9 +150,6 @@ function onLoadDone() {
         if(elemRemote.closeAction) elemRemote.closeAction(elemRemote);
         if(elemLocal.closeAction) elemLocal.closeAction(elemLocal);
 
-        if(elemLocal.onended) elemLocal.onended();
-        if(elemRemote.onended) elemRemote.onended();
-
         getConnectIframe().contentWindow.location.reload();
     }
 
