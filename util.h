@@ -137,7 +137,11 @@ char* websocket_accept_header(const char* headers_buf, char storage[256]) {
     buf[l] = '\0';
     strcat(buf, ws_const);
 
+    #if !DTLS_BUILD_WITH_BORINGSSL
     sha1(buf, strlen(buf), result);
+    #else
+    #warning "websocket_accept_header not implemented with boringssl"
+    #endif
 
     EVP_ENCODE_CTX ctx;
     int b64_len = 0;

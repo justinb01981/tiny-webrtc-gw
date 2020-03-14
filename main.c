@@ -22,13 +22,14 @@
 #include <openssl/hmac.h>
 #include <openssl/md5.h>
 
-#include "config.h"
+#include "tiny_config.h"
 #include "stun_responder.h"
 #include "rtp.h"
 #include "crc32.h"
 
-#include "srtp/crypto_kernel.h"
-#include "srtp/srtp.h"
+//#include "srtp/crypto_kernel.h"
+#include "srtp_priv.h"
+#include "srtp.h"
 
 #include "peer.h"
 #include "util.h"
@@ -203,6 +204,7 @@ void calc_hmac_sha1(unsigned char* buf, int len, char* dest, char* key_in, peer_
 {
     char cmd[256];
     char key[64];
+    char md_buf[EVP_MAX_MD_SIZE];
     char *realm = NULL;
 
     sprintf(key,"%s", key_in);
@@ -211,8 +213,8 @@ void calc_hmac_sha1(unsigned char* buf, int len, char* dest, char* key_in, peer_
 
     //unsigned int tmpbuf_len = 0;
     //char* tmpbuf = file_read("tmp_sha1.txt", &tmpbuf_len);
-    unsigned int digest_len = 20;
-    unsigned char* digest = HMAC(EVP_sha1(), key, strlen(key), buf, len, NULL, NULL); 
+    unsigned int digest_len = sizeof(md_buf);
+    unsigned char* digest = HMAC(EVP_sha1(), key, strlen(key), buf, len, md_buf, &digest_len); 
     memcpy(dest, digest, 20);
 
     /*
@@ -459,7 +461,7 @@ peer_rtp_send_worker(void* p)
                     if(peer_send_rewrite_ts)
                         rtpframe_send->hdr.timestamp = htonl(ts_initial + ts_counter);
 
-                    if(srtp_protect(peer->srtp[rtp_idx_write].session, rtpframe_send, &srtp_len) == err_status_ok)
+                    if(srtp_protect(peer->srtp[rtp_idx_write].session, rtpframe_send, &srtp_len) == srtp_err_status_ok)
                     {
                         peer_send_block(peer, (char*) rtpframe_send, srtp_len);
                     }
@@ -516,12 +518,12 @@ connection_srtp_init(peer_session_t* peer, int rtp_idx, u32 ssid, u32 write_ssrc
     switch(srtp_profile->id)
     {
     case SRTP_AES128_CM_SHA1_80:
-        crypto_policy_set_aes_cm_128_hmac_sha1_80(&(srtp_policy->rtp));
-        crypto_policy_set_aes_cm_128_hmac_sha1_80(&(srtp_policy->rtcp));
+        srtp_crypto_policy_set_aes_cm_128_hmac_sha1_80(&(srtp_policy->rtp));
+        srtp_crypto_policy_set_aes_cm_128_hmac_sha1_80(&(srtp_policy->rtcp));
         break;
     case SRTP_AES128_CM_SHA1_32:
-        crypto_policy_set_aes_cm_128_hmac_sha1_32(&(srtp_policy->rtp));   // rtp is 32,
-        crypto_policy_set_aes_cm_128_hmac_sha1_80(&(srtp_policy->rtcp));  // rtcp still 80
+        srtp_crypto_policy_set_aes_cm_128_hmac_sha1_32(&(srtp_policy->rtp));   // rtp is 32,
+        srtp_crypto_policy_set_aes_cm_128_hmac_sha1_80(&(srtp_policy->rtcp));  // rtcp still 80
         break;
     }
 
@@ -538,7 +540,7 @@ connection_srtp_init(peer_session_t* peer, int rtp_idx, u32 ssid, u32 write_ssrc
     srtp_policy->key = peer->srtp[rtp_idx].keybuf;
     srtp_policy->next = NULL;
 
-    if(srtp_create(&peer->srtp[rtp_idx].session, srtp_policy) != err_status_ok)
+    if(srtp_create(&peer->srtp[rtp_idx].session, srtp_policy) != srtp_err_status_ok)
     {
         printf("%s:%d srtp_create failed\n", __func__, __LINE__);
     }
@@ -558,12 +560,12 @@ connection_srtp_init(peer_session_t* peer, int rtp_idx, u32 ssid, u32 write_ssrc
         switch(srtp_profile->id)
         {
         case SRTP_AES128_CM_SHA1_80:
-            crypto_policy_set_aes_cm_128_hmac_sha1_80(&(srtp_policy->rtp));
-            crypto_policy_set_aes_cm_128_hmac_sha1_80(&(srtp_policy->rtcp));
+            srtp_crypto_policy_set_aes_cm_128_hmac_sha1_80(&(srtp_policy->rtp));
+            srtp_crypto_policy_set_aes_cm_128_hmac_sha1_80(&(srtp_policy->rtcp));
             break;
         case SRTP_AES128_CM_SHA1_32:
-            crypto_policy_set_aes_cm_128_hmac_sha1_32(&(srtp_policy->rtp));   // rtp is 32,
-            crypto_policy_set_aes_cm_128_hmac_sha1_80(&(srtp_policy->rtcp));  // rtcp still 80
+            srtp_crypto_policy_set_aes_cm_128_hmac_sha1_32(&(srtp_policy->rtp));   // rtp is 32,
+            srtp_crypto_policy_set_aes_cm_128_hmac_sha1_80(&(srtp_policy->rtcp));  // rtcp still 80
             break;
         }
 
@@ -584,7 +586,7 @@ connection_srtp_init(peer_session_t* peer, int rtp_idx, u32 ssid, u32 write_ssrc
         srtp_policy->key = peer->srtp[rtp_idx_write].keybuf;
         srtp_policy->next = NULL;
 
-        if(srtp_create(&(peer->srtp[rtp_idx_write].session), srtp_policy) != err_status_ok)
+        if(srtp_create(&(peer->srtp[rtp_idx_write].session), srtp_policy) != srtp_err_status_ok)
         {
             printf("%s:%d srtp_create failed\n", __func__, __LINE__);
         }
@@ -1043,7 +1045,7 @@ connection_worker(void* p)
                 int rtp_idx_write = PEER_RTP_CTX_WRITE + rtp_idx;
 
                 if((is_receiver_report || is_sender_report) &&
-                   srtp_unprotect_rtcp(peer->srtp[rtp_idx].session, report, &length) == err_status_ok)
+                   srtp_unprotect_rtcp(peer->srtp[rtp_idx].session, report, &length) == srtp_err_status_ok)
                 {
                     if(is_sender_report ||
                         (peers[peer->subscriptionID].alive))
@@ -1111,7 +1113,7 @@ connection_worker(void* p)
                             {
                                 lengthPeer = length;
                                 memcpy(reportPeer, report, lengthPeer);
-                                if(srtp_protect_rtcp(peers[p].srtp[rtp_idx_write].session, reportPeer, &lengthPeer) == err_status_ok) {
+                                if(srtp_protect_rtcp(peers[p].srtp[rtp_idx_write].session, reportPeer, &lengthPeer) == srtp_err_status_ok) {
                                     peer_send_block(&peers[p], buffer_report, lengthPeer);
                                 }
                             }
@@ -1146,7 +1148,7 @@ connection_worker(void* p)
                                 }
 
                                 if(peers[p].srtp[rtp_idx_write].inited &&
-                                   srtp_protect_rtcp(peers[p].srtp[rtp_idx_write].session, reportclone, &length) == err_status_ok)
+                                   srtp_protect_rtcp(peers[p].srtp[rtp_idx_write].session, reportclone, &length) == srtp_err_status_ok)
                                 {
                                     peer_send_block(&peers[p], (char*) reportclone, length);
                                 }
@@ -1167,7 +1169,7 @@ connection_worker(void* p)
 
                 int srtp_len = length;
                 
-                if(srtp_unprotect(peer->srtp[rtp_idx].session, rtpFrame, &srtp_len) != err_status_ok)
+                if(srtp_unprotect(peer->srtp[rtp_idx].session, rtpFrame, &srtp_len) != srtp_err_status_ok)
                 {
                     printf("%s:%d srtp_unprotect failed\n", __func__, __LINE__);
                     counts[11]++;
@@ -1247,7 +1249,7 @@ connection_worker(void* p)
 
                                 rtp_frame_out->hdr.seq_src_id = htonl(peers[p].srtp[rtp_idx_write].ssrc);
 
-                                if(srtp_protect(peers[p].srtp[rtp_idx_write].session, rtp_frame_out, &lengthPeer) == err_status_ok)
+                                if(srtp_protect(peers[p].srtp[rtp_idx_write].session, rtp_frame_out, &lengthPeer) == srtp_err_status_ok)
                                 {
                                     peer_send_block(&peers[p], (char*) rtp_frame_out, lengthPeer);
                                 }
@@ -1273,7 +1275,7 @@ connection_worker(void* p)
                     report_pli.seq_src_id_ref = htonl(answer_ssrc[rtp_idx]);
 
                     /* send picture-loss-indicator to request full-frame refresh */
-                    if(srtp_protect_rtcp(peer->srtp[rtp_idx_write].session, &report_pli, &report_len) == err_status_ok)
+                    if(srtp_protect_rtcp(peer->srtp[rtp_idx_write].session, &report_pli, &report_len) == srtp_err_status_ok)
                     {
 	                    peer_send_block(peer, (char*) &report_pli, report_len);
                     }

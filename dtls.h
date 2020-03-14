@@ -2,6 +2,8 @@
 #define __DTLS_H__
 
 #include <pthread.h>
+#include <openssl/base.h>
+#include <openssl/ssl.h>
 
 #include "peer.h"
 
@@ -226,7 +228,9 @@ void DTLS_sock_init(unsigned short listen_port)
 
     //SSL_CTX_set_cipher_list(ctx, "ALL:NULL:eNULL:aNULL");
     //SSL_CTX_set_cipher_list(ctx, "TLSv1.2+FIPS:kRSA+FIPS:!eNULL:!aNULL");
+
     SSL_CTX_set_session_cache_mode(ctx, SSL_SESS_CACHE_OFF);
+
     SSL_CTX_set_options(ctx, SSL_OP_NO_TICKET);
 
     SSL_CTX_set_tlsext_use_srtp(ctx, "SRTP_AES128_CM_SHA1_80");
@@ -303,9 +307,11 @@ DTLS_peer_init(peer_session_t* peer)
             //BIO_ctrl(SSL_get_rbio(ssl), BIO_CTRL_DGRAM_GET_RECV_TIMER_EXP, 0, NULL);
 
 		    /* Set and activate timeouts */
+            #if !DTLS_BUILD_WITH_BORINGSSL
         	timeout.tv_sec = 0;
         	timeout.tv_usec = timeout_msec * 1000;
     	    BIO_ctrl(SSL_get_rbio(ssl), BIO_CTRL_DGRAM_SET_RECV_TIMEOUT, 0, &timeout);
+            #endif
         }
         else
         {
@@ -321,8 +327,11 @@ DTLS_peer_init(peer_session_t* peer)
             SSL_RESULT_CHECK("SSL_set_nbio", ssl, ret);
         }
 
+        /* removed by switch to boringssl */
+        #if !DTLS_BUILD_WITH_BORINGSSL
         ret = SSL_set_options(ssl, SSL_OP_COOKIE_EXCHANGE);
         SSL_RESULT_CHECK("SSL_set_options(COOKIE_EXHCANGE)", ssl, ret);
+        #endif
 
 	    //SSL_CTX_set_cookie_generate_cb(DTLS_ssl_ctx_global, generate_cookie);
     	//SSL_CTX_set_cookie_verify_cb(DTLS_ssl_ctx_global, verify_cookie);
@@ -388,13 +397,19 @@ DTLS_accept_read(peer_session_t* peer, DTLS_read_cb cb_read)
         {
             memcpy(&server_addr, &peer->addr_listen, sizeof(peer->addr_listen));
             //ssl->d1->link_mtu = ssl->d1->mtu = 1500;
+            #if !DTLS_BUILD_WITH_BORINGSSL
             int listen_ret = DTLSv1_listen(ssl, &server_addr);
+            #else
+            int listen_ret = 1;
+            #endif
             if(listen_ret > 0) peer->dtls.state++;
             SSL_RESULT_CHECK("DTLSv1_listen", ssl, listen_ret);
         }
         else
         {
+            #if !DTLS_BUILD_WITH_BORINGSSL
             ssl->d1->listen = 1;
+            #endif
             //ssl->d1->link_mtu = ssl->d1->mtu = 1500;
             peer->dtls.state++;
         }
