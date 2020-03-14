@@ -224,7 +224,7 @@ void DTLS_sock_init(unsigned short listen_port)
     dtls_listen_port = listen_port;
 
     //SSL_CTX *ctx = SSL_CTX_new(DTLSv1_2_server_method());
-    SSL_CTX *ctx = SSL_CTX_new(DTLSv1_server_method());
+    SSL_CTX *ctx = SSL_CTX_new(DTLSv1_2_server_method());
 
     //SSL_CTX_set_cipher_list(ctx, "ALL:NULL:eNULL:aNULL");
     //SSL_CTX_set_cipher_list(ctx, "TLSv1.2+FIPS:kRSA+FIPS:!eNULL:!aNULL");
