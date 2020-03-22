@@ -174,7 +174,7 @@ function resizeObjectWithID(idName, x, y, w, h) {
 
 function attachMediaStream(vidElem, vidStream)
 {
-    var cssButton = 'width:32px; height:32px; position:relative; top:95%; left:45%; background-position:center; background-repeat:no-repeat;';
+    var cssButton = 'width:32px; height:32px; position:relative; top:-50px; left:100px; background-position:center; background-repeat:no-repeat;';
     if(vidElem.srcObject != null) {
         console.debug('attachMediaStream: video element srcObject != null, ignoring');
         return;

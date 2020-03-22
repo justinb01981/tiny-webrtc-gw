@@ -38,9 +38,12 @@ function onLoad() {
 
     if(!getParent().iframeConnectState.advancedSettings)
     {
+        /*
         setTimeout(function() {
             if(!timeoutCancelled) connect(document.getElementById('button_connect'));
           }, 1000);
+        */
+        connect(document.getElementById('button_connect'));
 
         for (elem of ['controlsDiv', 'debugDiv', 'myUsernameDiv']) {
             document.getElementById(elem).style.cssText = '';

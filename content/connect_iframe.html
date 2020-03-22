@@ -195,8 +195,11 @@ function onSelectUserChange(elem)
   videoElemToAdd.class = 'videoMain';
   videoElemToAdd.autoplay = true;
   videoElemToAdd.muted = true;
-  videoElemToAdd.playsinline = true;
+  videoElemToAdd.setAttribute('playsinline', 'true');
   videoElemToAdd.setAttribute('webkit-playsinline', 'webkit-playsinline');
+  videoElemToAdd.id = 'video' + window.parent.videoElemIdCounter;
+
+  window.parent.videoElemIdCounter += 1;
 
   table.appendChild(videoElemToAdd);
 
