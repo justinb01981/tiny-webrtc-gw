@@ -134,7 +134,7 @@ function onJoin() {
 
     var vidElem = joinMode.value == 'broadcast' ?
       parentDoc.getElementById('localVideo') :
-      parentDoc.getElementById('videoMain');
+      /*parentDoc.getElementById('videoMain')*/ window.parent.iframeConnectState.videoElem;
 
     if(vidElem.closeAction) {
       vidElem.closeAction();
@@ -149,7 +149,7 @@ function onJoin() {
   }).catch(function(e) {
 
     var roomElem = parentDoc.getElementById('roomName');
-    var vidElem = parentDoc.getElementById('videoMain');
+    var vidElem = /*parentDoc.getElementById('videoMain')*/ window.parent.iframeConnectState.vidElem;
 
     console.debug('failed to get local video-source');
     window.parent.iframeConnectState.selectedRoom = roomElem.value;
@@ -187,6 +187,20 @@ function onSelectUserChange(elem)
   var elemOption = elem.options[elem.selectedIndex];
 
   window.parent.iframeConnectState.selectedUser = elem.value;
+
+  var table = window.parent.document.getElementById('videoMainContainer');
+
+  var videoElemToAdd = window.parent.document.createElement('video');
+
+  videoElemToAdd.class = 'videoMain';
+  videoElemToAdd.autoplay = true;
+  videoElemToAdd.muted = true;
+  videoElemToAdd.playsinline = true;
+  videoElemToAdd.setAttribute('webkit-playsinline', 'webkit-playsinline');
+
+  table.appendChild(videoElemToAdd);
+
+  window.parent.iframeConnectState.videoElem = videoElemToAdd;
 
   if(elemOption.value != 'NULL')
   {

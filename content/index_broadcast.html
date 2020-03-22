@@ -22,9 +22,13 @@
             <th colspan=1>Meeting Room</th><th colspan=1>Local</th>
         </tr>
         <tr style='height:30%;'>
-            <td colspan=1 id="thPresenter" align="center" >
+            <td colspan=1 id="thPresenter" align="center">
+                <!--
                 <video class="videoMain" id="videoMain" style='width:100%;' autoplay muted loop playsinline controls="true"></video>
-
+                -->
+                <table id="videoMainContainer">
+                    <!-- new video elements will appear here (see popup.js) -->
+                </table>
             </td>
             <td colspan=1 align="center">
                 <div id="localPreviewDiv">
@@ -96,7 +100,7 @@
 var onLeave;
 var urlArgRoom;
 var urlArgName;
-var iframeConnectState = {selectedUser: null, selectedRoom: null, advancedSettings: false, onConnectVideo: null, joinMode: null, awaiting: null, usersLast: null, iframeOnDisconnect: null};
+var iframeConnectState = {selectedUser: null, selectedRoom: null, advancedSettings: false, onConnectVideo: null, joinMode: null, awaiting: null, usersLast: null, iframeOnDisconnect: null, videoElem: null};
 var onLoadDoneAnswerUpload;
 
 var joinPopupCloseDone = function(videoElem) {
@@ -109,6 +113,8 @@ var joinPopupCloseDone = function(videoElem) {
         if(iframeConnectState.iframeOnDisconnect) {
           iframeConnectState.iframeOnDisconnect();
         }
+
+        if(videoElem != null && videoElem.parentElement != null && videoElem.id != 'localVideo') videoElem.parentElement.removeChild(videoElem);
     }
 
     if(videoElem.id == 'localVideo')
@@ -144,7 +150,7 @@ function reloadConnectIframe()
 
 function onLoadDone() {
     onLeave = function() {
-        var elemRemote = document.getElementById('videoMain');
+        var elemRemote = /*document.getElementById('videoMain')*/ window.parent.iframeConnectState.videoElem;
         var elemLocal = document.getElementById('localVideo');
 
         if(elemRemote.closeAction) elemRemote.closeAction(elemRemote);

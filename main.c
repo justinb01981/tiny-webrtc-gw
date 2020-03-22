@@ -250,10 +250,6 @@ void peer_send_block(peer_session_t* peer, char* buf, int len)
     }
     else
     {
-        // reset peer timeout even when we send a packet to them
-        // TODO: better solution would be to reset timer based on RTP report
-        peer->time_pkt_last = time(NULL);
-
         int r = sendto(peer->sock, buf, len, 0, (struct sockaddr*)&(peer->addr), sizeof(peer->addr));
     }
 }

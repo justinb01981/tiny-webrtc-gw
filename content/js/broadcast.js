@@ -327,6 +327,7 @@ function disconnectVideo(vidElem) {
   }
 }
 
+/*
 function connectVideo(videoElem, recvOnly, watchUser, roomName) {
   var popupOnLoad = joinPopupOnLoadBroadcast;
 
@@ -341,6 +342,7 @@ function connectVideo(videoElem, recvOnly, watchUser, roomName) {
   if(!winPopup) alert('popup blocked?');
   //else window.onfocus = function(){ winPopup.close(); }
 }
+*/
 
 function connectVideoIframe(videoElem, afterOnLoad, watchUser, roomName, target) {
   //var popupOnLoad = joinIframeOnLoadBroadcast;
