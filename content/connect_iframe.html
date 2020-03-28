@@ -38,7 +38,6 @@
 
 function connectIFrameOnLoad(htmlBodyElem)
 {
-  let selectedUserTry = null;
   let roomTextfield = window.parent.document.getElementById('roomName');
   var myName = window.parent.document.getElementById('userName').value;
   let state = window.parent.iframeConnectState;
@@ -72,41 +71,65 @@ function connectIFrameOnLoad(htmlBodyElem)
   optionLabel.text = '<select streamer to watch>';
   selectUser.options.add(optionLabel);
 
-  let usersNow = [];
-
   if(state.selectedRoom != null)
   {
     for(let p = 0; p < peerList.length; p++)
     {
-      if(peerList[p]['recvonly'] ||
-         roomTextfield.value != peerList[p]['room'])
-      {
-        continue;
-      }
-
       var name = peerList[p]['name'];
 
-      usersNow.push(name);
-      if(!selectedUserTry && name != myName)
+      if(peerList[p]['recvonly'] ||
+         state.selectedRoom != peerList[p]['room'])
       {
-        selectedUserTry = name;
+        continue;
       }
 
       let option = document.createElement('option');
       option.value = name;
       option.text = name;
       selectUser.options.add(option);
-    }
 
-    /*
-    if(selectedUserTry && !state.selectedUser && state.usersLast != usersNow)
-    {
-      state.selectedUser = selectedUserTry;
+      // ignore this user if already subscribed
+      if(state.usersSubscribed.includes(name) ||
+         window.parent.myUsername == name)
+      { 
+        continue;
+      }
+
+      // add this user
+      state.usersSubscribed.push(name);
+      state.selectedUser = name;
+      prepareVideo();
       onJoin();
-    }
-    */
 
-    state.usersLast = usersNow;
+      break;
+    }
+
+    for(p = 0; p < state.usersSubscribed.length; p++)
+    {
+      found = 0;
+      for(i = 0; i < peerList.length; i++)
+      {
+        if(peerList[i].name == state.usersSubscribed[p])
+        {
+          found = 1;
+        }
+      }
+
+      if(!found)
+      {
+        console.debug('trying to remove ' + state.usersSubscribed[p] + ' that has disappeared');
+
+        // remove video elem
+        var elemToRemoveFromParent = videoElemForUser(state.usersSubscribed[p]);
+        if(elemToRemoveFromParent != null) 
+        {
+          elemToRemoveFromParent.remove();
+        }
+
+        window.parent.iframeConnectState.usersSubscribed.splice(p, 1);
+        if(p > 0) p--;
+      }
+    }
   }
 
   state.iframeOnDisconnect = function() {
@@ -116,40 +139,45 @@ function connectIFrameOnLoad(htmlBodyElem)
 
 function onJoin() {
   var parentDoc = window.parent.document;
+  var state = window.parent.iframeConnectState;
   var joinMode = document.getElementById('joinMode');
   var roomElem = parentDoc.getElementById('roomName');
   if(!roomElem.value) { alert('enter a room name'); return; }
 
   window.parent.onLoadMedia().then(function() {
-    if(window.parent.iframeConnectState.selectedRoom)
+  
+    if(state.selectedRoom)
     {
       joinMode.value = 'watch';
     }
     else
     {
       joinMode.value = 'broadcast';
-      window.parent.iframeConnectState.selectedRoom = roomElem.value;
+      state.selectedRoom = roomElem.value;
+      state.usersSubscribed = [];
     }
     console.debug('joinMode:' + joinMode.value);
 
     var vidElem = joinMode.value == 'broadcast' ?
       parentDoc.getElementById('localVideo') :
-      /*parentDoc.getElementById('videoMain')*/ window.parent.iframeConnectState.videoElem;
+      window.parent.iframeConnectState.videoElem;
 
-    if(vidElem.closeAction) {
+    if(vidElem.closeAction) 
+    {
       vidElem.closeAction();
     }
 
-    window.parent.iframeConnectState.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
-    window.parent.iframeConnectState.joinMode = joinMode.value;
+    state.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
+    state.joinMode = joinMode.value;
 
     connectVideoIframe(vidElem, 
       window.parent.iframeConnectState.onConnectVideo,
       vidElem.value);
+
   }).catch(function(e) {
 
     var roomElem = parentDoc.getElementById('roomName');
-    var vidElem = /*parentDoc.getElementById('videoMain')*/ window.parent.iframeConnectState.vidElem;
+    var vidElem = window.parent.iframeConnectState.vidElem;
 
     console.debug('failed to get local video-source');
     window.parent.iframeConnectState.selectedRoom = roomElem.value;
@@ -182,12 +210,8 @@ function onLeave()
   window.location.reload();
 }
 
-function onSelectUserChange(elem)
+function prepareVideo()
 {
-  var elemOption = elem.options[elem.selectedIndex];
-
-  window.parent.iframeConnectState.selectedUser = elem.value;
-
   var table = window.parent.document.getElementById('videoMainContainer');
 
   var videoElemToAdd = window.parent.document.createElement('video');
@@ -204,6 +228,15 @@ function onSelectUserChange(elem)
   table.appendChild(videoElemToAdd);
 
   window.parent.iframeConnectState.videoElem = videoElemToAdd;
+}
+
+function onSelectUserChange(elem)
+{
+  var elemOption = elem.options[elem.selectedIndex];
+
+  window.parent.iframeConnectState.selectedUser = elem.value;
+
+  prepareVideo();
 
   if(elemOption.value != 'NULL')
   {

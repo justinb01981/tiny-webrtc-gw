@@ -28,7 +28,16 @@ var roomPopup = null;
 var winPopupSdp = null;
 var winPopupVideoTarget = null;
 var winPopupRemoteConnection = null;
+
+class VideoConnection {
+  constructor(user, vidElem, videoConnection) {
+    this.user = user;
+    this.vidElem = vidElem;
+    this.connection = videoConnection;
+  }
+}
 var videoConnectionTable = {}
+
 var localStream = null;
 var audioSourceN = 0;
 var videoSourceN = 0;
@@ -227,6 +236,19 @@ function rebootLocalVideo(vidElem) {
     }
 }
 
+// TODO: move this
+function videoElemForUser(userName) {
+  var result = null;
+  let t = window.parent.videoConnectionTable;
+  Object.keys(t).forEach(function(key) {
+    if(t[key].user == userName) {
+      result = t[key].vidElem;
+    }
+  });
+
+  return result;
+}
+
 function joinPopupClose(connection, userName, recvOnlyChecked, roomName) {
     joinPopupLast.connection = connection;
     joinPopupLast.userName = userName;
@@ -238,7 +260,7 @@ function joinPopupClose(connection, userName, recvOnlyChecked, roomName) {
    
     attachMediaStream(winPopupVideoTarget, winPopupRemoteConnection.getRemoteStreams()[0]);
 
-    videoConnectionTable[winPopupVideoTarget.id] = winPopupRemoteConnection;
+    videoConnectionTable[winPopupVideoTarget.id] = new VideoConnection(userName, winPopupVideoTarget, winPopupRemoteConnection);
 
     window.parent.joinPopupCloseDone(winPopupVideoTarget);
 }
@@ -277,12 +299,13 @@ function joinIframeOnLoadBroadcast() {
     docCForm.my_name.value = user;
     docCForm.room_name.value = room;
     docCForm.peerstream_recv.value = user;
-    if(window.parent.iframeConnectState.selectedUser)
+    if(connIFrameState.selectedUser)
     {
-        console.debug('a=watch='+window.parent.iframeConnectState.selectedUser);
-        docCForm.appendsdp.value += 'a=watch='+window.parent.iframeConnectState.selectedUser+'\n';
-        window.parent.selectedUser = null;
-        window.parent.iframeConnectState.selectedUser = null;
+        console.debug('a=watch='+connIFrameState.selectedUser);
+        docCForm.appendsdp.value += 'a=watch='+connIFrameState.selectedUser+'\n';
+
+        // moved this nulling to iframeOnLoad()
+        //window.parent.iframeConnectState.selectedUser = null;
     }
 
     if(connIFrameState.joinMode == 'watch') {
@@ -309,9 +332,13 @@ function joinPopupOnLoad2(win, winSource) {
 }
 
 function disconnectVideo(vidElem) {
-  if(videoConnectionTable[vidElem.id] != null)
+  console.debug('disconnectVideo');
+
+  var entry = videoConnectionTable[vidElem.id];
+
+  if(entry != null)
   {
-    var conn = videoConnectionTable[vidElem.id];
+    var conn = entry.connection;
 
     if(conn.signalingState != 'closed')
     {
@@ -322,8 +349,8 @@ function disconnectVideo(vidElem) {
 
       //console.debug('closing...');
     }
-    videoConnectionTable[vidElem.id].close();
-    videoConnectionTable[vidElem.id] = null;
+    conn.close();
+    delete videoConnectionTable[vidElem.id];
   }
 }
 

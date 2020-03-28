@@ -133,7 +133,10 @@ function doSubmit() {
 function iframeOnLoad() {
     broadcastStart(
         function() {
-            closeHandler(remoteConnection, document.theform.my_name.value, document.theform.recvonly.checked, document.theform.room_name.value);
+            let user = window.parent.iframeConnectState.selectedUser;
+            window.parent.iframeConnectState.selectedUser = null;
+
+            closeHandler(remoteConnection, user, document.theform.recvonly.checked, document.theform.room_name.value);
         },
         function() {
             alert('broadcastStart failed');

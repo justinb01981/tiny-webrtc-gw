@@ -21,6 +21,8 @@ static char g_chatlog[CHATLOG_SIZE];
 
 static time_t g_chatlog_ts;
 
+static volatile int g_webpeer_mutex = 0;
+
 extern int sdp_prefix_set(const char*);
 
 struct webserver_state {
@@ -885,7 +887,11 @@ webserver_worker(void* p)
                     // handle SDP-answer upload
                     if(strcmp(purl, "/"FILENAME_SDP_ANSWER) == 0)
                     {
-                        /* create temp file, decode, rename for worker thread to pick up/read and remove */
+                        // take mutex which limits access to peer table during SDP parsing
+                        while(g_webpeer_mutex != 0); usleep(10000);
+                        g_webpeer_mutex = 1;
+
+                        // create temp file, decode, rename for worker thread to pick up/read and remove
                         char tmp[256], ufrag_offer_tmp[256];
                         char* sdp = strdup(pbody);
                         
@@ -908,6 +914,7 @@ webserver_worker(void* p)
                                 printf("peer found, but no offer found for ice_ufrag\n");
                                 
                                 free(sdp);
+                                g_webpeer_mutex = 0;
                                 goto response_override;
                             }
                             
@@ -927,6 +934,8 @@ webserver_worker(void* p)
                             if(sidx >= MAX_PEERS)
                             {
                                 free(sdp);
+
+                                g_webpeer_mutex = 0;
                                 goto response_override;
                             }
                             
@@ -967,6 +976,10 @@ webserver_worker(void* p)
                         free(response);
                         response = strdup(page_buf_sdp_uploaded);
                         content_type = content_type_html;
+
+                        // release mutex
+                        g_webpeer_mutex = 0;
+
                         goto response_override;
                     }
                     else if(strcmp(purl, "/chatmsg") == 0)
