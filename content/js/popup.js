@@ -29,13 +29,15 @@ function onIceCandidate(event) {
         var c = {};
         console.debug("onIceCandidate.event.candidate:"+JSON.stringify(event.candidate));
 
-        iceCandidate = event.candidate;
+        //iceCandidate = event.candidate;
         if(remoteConnectionStunConfig == null) {
             //c.candidate = "candidate:" + iceCandidateID++ + " 1 UDP " + 1234+iceCandidateID + " " + stunHost + " " + stunPort + " typ host";
             c.candidate = "%$RTCICECANDIDATE$%";
             c.sdpMid = event.candidate.sdpMid;
             c.sdpMLineIndex = event.candidate.sdpMLineIndex;
-            c.usernameFragment = event.candidate.usernameFragment;
+            // JB: removed this to avoid exception "unknown ICE Ufrag" with firefox
+            //c.usernameFragment = event.candidate.usernameFragment;
+
             //alert(c.candidate);
             console.debug("onIceCandidate:"+JSON.stringify(c.candidate));
         }
@@ -44,9 +46,11 @@ function onIceCandidate(event) {
             new RTCIceCandidate(c)).then(
                 _ => {
                     console.debug("onIceCandidate.then");
+                    iceCandidate = event.candidate;
                 }).catch(
                 e => {
-                    console.debug("error in addIceCandidate");
+                    console.debug("error in addIceCandidate: " + e);
+                    iceCandidate = null;
                 });
     }
 }

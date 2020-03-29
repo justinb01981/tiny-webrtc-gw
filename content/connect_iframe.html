@@ -29,7 +29,6 @@
 </body>
 
 <script src='src/js/adapter.js'></script>
-<script src='src/js/lib/ga.js'></script>
 <script src='js/popup.js'></script>
 <script src='js/peers.js'></script>
 <script src='js/peerdynamic.js'></script>
@@ -182,13 +181,13 @@ function onJoin() {
     console.debug('failed to get local video-source');
     window.parent.iframeConnectState.selectedRoom = roomElem.value;
 
-    if(vidElem.closeAction) {
+    if(vidElem && vidElem.closeAction) {
       vidElem.closeAction();
     }
 
     window.parent.iframeConnectState.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
     window.parent.iframeConnectState.joinMode = 'watch';
-    if(window.parent.iframeConnectState.selectedUser) {
+    if(vidElem && window.parent.iframeConnectState.selectedUser) {
       connectVideoIframe(vidElem, window.parent.iframeConnectState.onConnectVideo,vidElem.value);
     }
     else {

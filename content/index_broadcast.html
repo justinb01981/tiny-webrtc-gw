@@ -17,26 +17,6 @@
                 <button onclick='logout();' id='logout'>logout</button>
            </td>
         </tr>
-
-        <tr style='height:5%;'>
-            <th colspan=1>Meeting Room</th><th colspan=1>Local</th>
-        </tr>
-        <tr style='height:30%;'>
-            <td colspan=1 id="thPresenter" align="center">
-                <!--
-                <video class="videoMain" id="videoMain" style='width:100%;' autoplay muted loop playsinline controls="true"></video>
-                -->
-                <table id="videoMainContainer">
-                    <!-- new video elements will appear here (see popup.js) -->
-                </table>
-            </td>
-            <td colspan=1 align="center">
-                <div id="localPreviewDiv">
-                    <video class="videoLocal" id="localVideo" muted style='width:100%;' autoplay muted loop playsinline controls="true" ></video>
-                </div>
-            </td>
-        </tr>
-
         <tr style='height:5%;'>
             <td style='border-width:0px;' align='right'>
                 Room:
@@ -57,40 +37,32 @@
                 -->
             </td>
         </tr>
-
-        <tr style='height:10%;'>
-           <td colspan=2 align='center'>
+        <tr style='height:5%;'>
+            <th colspan=1>Meeting Room</th><th colspan=1>Chat</th>
+        </tr>
+        <tr style='height:30%;'>
+            <td colspan=1 id="thPresenter" align="center">
+                <div id="localPreviewDiv">
+                    <video class="videoLocal" id="localVideo" muted style='width:100%;' autoplay muted loop playsinline controls="true" ></video>
+                </div>
+                <!--
+                <video class="videoMain" id="videoMain" style='width:100%;' autoplay muted loop playsinline controls="true"></video>
+                -->
+                <table id="videoMainContainer">
+                    <!-- new video elements will appear here (see popup.js) -->
+                </table>
+            </td>
+            <td colspan=1 align='center'>
                 <iframe name='chatFrame' src='chat.html' width='100%; height:100px%; overflow:scroll; -webkit-overflow-scrolling:touch;'>
                 </iframe>
             </td>
         </tr>
-
-        <!--
-        <tr>
-            <td>
-                <table border=1 style="display:inline-block;">
-                    <tr>
-                        <td>
-                            <img src='newUser.jpg'>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <button onClick='onBtnAddUser("");'>Add User</button>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-	-->
-
     </table>
 
 </div> <!-- mainDiv -->
 </body>
 
 <script src="src/js/adapter.js"></script>
-<script src="src/js/lib/ga.js"></script>
 <script src="js/popup.js"></script>
 <script src="js/peers.js"></script>
 <script src="js/broadcast.js"></script>
