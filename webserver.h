@@ -17,6 +17,8 @@ extern int listen_port;
 extern peer_session_t peers[];
 extern int stun_binding_response_count;
 
+const static unsigned long SPIN_WAIT_USEC = 1000;
+
 static char g_chatlog[CHATLOG_SIZE];
 
 static time_t g_chatlog_ts;
@@ -324,7 +326,7 @@ websocket_worker(void* p)
                         peer->alive = 1;
                         peer->restart_needed = 1;
 
-                        while(!peer->restart_done) usleep(1000);
+                        while(!peer->restart_done) usleep(SPIN_WAIT_USEC);
                         peer->alive = 1;
                         peer->time_pkt_last = time(NULL);
 
@@ -708,7 +710,7 @@ webserver_worker(void* p)
                             chatlog_append("logged out:"); chatlog_append(peer_found_via_cookie->name); chatlog_append("\n");
 
                             peer_logout->restart_needed = 1;
-                            while(!peer_logout->restart_done) usleep(1000);
+                            while(!peer_logout->restart_done) usleep(SPIN_WAIT_USEC);
                             peer_logout->alive = 0;
                             peer_logout->restart_needed = 0;
                             peer_init(peer_logout, PEER_INDEX(peer_logout));
@@ -888,7 +890,7 @@ webserver_worker(void* p)
                     if(strcmp(purl, "/"FILENAME_SDP_ANSWER) == 0)
                     {
                         // take mutex which limits access to peer table during SDP parsing
-                        while(g_webpeer_mutex != 0); usleep(10000);
+                        while(g_webpeer_mutex != 0) usleep(SPIN_WAIT_USEC);
                         g_webpeer_mutex = 1;
 
                         // create temp file, decode, rename for worker thread to pick up/read and remove
@@ -953,7 +955,7 @@ webserver_worker(void* p)
                         peers[sidx].alive = 1;
                         peers[sidx].restart_needed = 1;
 
-                        while(!peers[sidx].restart_done) usleep(10000);
+                        while(!peers[sidx].restart_done) usleep(SPIN_WAIT_USEC);
                         peers[sidx].alive = 1;
                         
                         // init stun-ice attributes

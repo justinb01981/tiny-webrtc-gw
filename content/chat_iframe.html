@@ -11,10 +11,19 @@ function onLoad() {
 }
 </script>
 </head>
+
 <body onLoad='onLoad()'>
-<p>chat-iframe
-<textarea id='chatlog'>
-</textarea>
+
+<table style='height:400px;'>
+  <tr>
+    <td>
+      <textarea id='chatlog' style='overflow:scroll;'>
+      </textarea>
+    </td>
+  </tr>
+</table>
+
 <input type='text' id='chattimestamp' value='%$CHATLOGTSVALUE$%'></input>
+
 </body>
 </html>
