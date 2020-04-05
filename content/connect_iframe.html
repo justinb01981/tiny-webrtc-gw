@@ -39,6 +39,8 @@ function connectIFrameOnLoad(htmlBodyElem)
 {
   let roomTextfield = window.parent.document.getElementById('roomName');
   var myName = window.parent.document.getElementById('userName').value;
+  var videoTable = window.parent.document.getElementById('videoMainContainer');
+
   let state = window.parent.iframeConnectState;
 
   console.debug('connectIFrameOnLoad');
@@ -97,7 +99,7 @@ function connectIFrameOnLoad(htmlBodyElem)
       // add this user
       state.usersSubscribed.push(name);
       state.selectedUser = name;
-      prepareVideo();
+      prepareVideo(videoTable);
       onJoin();
 
       break;
@@ -141,6 +143,7 @@ function onJoin() {
   var state = window.parent.iframeConnectState;
   var joinMode = document.getElementById('joinMode');
   var roomElem = parentDoc.getElementById('roomName');
+  
   if(!roomElem.value) { alert('enter a room name'); return; }
 
   window.parent.onLoadMedia().then(function() {
@@ -209,33 +212,17 @@ function onLeave()
   window.location.reload();
 }
 
-function prepareVideo()
-{
-  var table = window.parent.document.getElementById('videoMainContainer');
-
-  var videoElemToAdd = window.parent.document.createElement('video');
-
-  videoElemToAdd.class = 'videoMain';
-  videoElemToAdd.autoplay = true;
-  videoElemToAdd.muted = true;
-  videoElemToAdd.setAttribute('playsinline', 'true');
-  videoElemToAdd.setAttribute('webkit-playsinline', 'webkit-playsinline');
-  videoElemToAdd.id = 'video' + window.parent.videoElemIdCounter;
-
-  window.parent.videoElemIdCounter += 1;
-
-  table.appendChild(videoElemToAdd);
-
-  window.parent.iframeConnectState.videoElem = videoElemToAdd;
-}
-
 function onSelectUserChange(elem)
 {
   var elemOption = elem.options[elem.selectedIndex];
 
   window.parent.iframeConnectState.selectedUser = elem.value;
 
-  prepareVideo();
+  mainVideoTable = window.parent.document.getElementById('videoMainContainer');
+
+  console.assert(mainVideoTable != null, 'ERROR: videoMainContainer not found');
+
+  prepareVideo(mainVideoTable);
 
   if(elemOption.value != 'NULL')
   {

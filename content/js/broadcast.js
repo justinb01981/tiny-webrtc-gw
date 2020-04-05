@@ -242,7 +242,8 @@ function videoElemForUser(userName) {
   let t = window.parent.videoConnectionTable;
   Object.keys(t).forEach(function(key) {
     if(t[key].user == userName) {
-      result = t[key].vidElem;
+      // return video element containing table-row (see popup.js)
+      result = t[key].vidElem.parentRow;
     }
   });
 
@@ -374,7 +375,7 @@ function connectVideo(videoElem, recvOnly, watchUser, roomName) {
 function connectVideoIframe(videoElem, afterOnLoad, watchUser, roomName, target) {
   //var popupOnLoad = joinIframeOnLoadBroadcast;
 
-  disconnectVideo(videoElem);
+  //disconnectVideo(videoElem);
 
   window.parent.winPopupVideoTarget = videoElem;
   rtcPopupCreateIframe(afterOnLoad, joinPopupClose);

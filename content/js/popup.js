@@ -181,55 +181,84 @@ function resizeObjectWithID(idName, x, y, w, h) {
 
 function attachMediaStream(vidElem, vidStream)
 {
-    var cssButton = 'width:32px; height:32px; position:relative; top:-50px; left:100px; background-position:center; background-repeat:no-repeat;';
+    // TODO: have single function for building vidElem and sibling nodes as rows in the table instead of splitting in multiple JS files
+
+    var cssButton = 'width:32px; height:32px; position:relative; top:50px; left:100px; background-position:center; background-repeat:no-repeat;';
     if(vidElem.srcObject != null) {
         console.debug('attachMediaStream: video element srcObject != null, ignoring');
         return;
     }
 
     vidElem.srcObject = vidStream;
-    vidElem.onloadedmetadata = function() {
 
-        if(vidElem.startButton != null) { return; }
+    var startButton = document.createElement('button');
 
-        var startButton = document.createElement('button');
+    startButton.vidElem = vidElem;
 
-        startButton.onclick = function() {
-            if(vidElem.muted) {
-              vidElem.controls = true;
-              vidElem.muted = false;
-              vidElem.startButton.style.cssText = cssButton + ' background-image:url(/content/img/stop.png); z-index:1;';
+    startButton.onclick = function() {
+        if(vidElem.muted) {
+            vidElem.controls = true;
+            vidElem.muted = false;
+                vidElem.startButton.style.cssText = cssButton + ' background-image:url(/content/img/stop.png); z-index:1;';
             }
             else {
-              vidElem.muted = true;
-              if(vidElem.closeAction) {
-                  vidElem.closeAction();
-              }
+                vidElem.muted = true;
+                if(vidElem.closeAction) {
+                    vidElem.closeAction();
+
+                    vidElem.onended = null;
+                    console.debug('vidElem.onended');
+
+                    vidElem.controls = false;
+                    if(vidElem.srcObject) {
+                        // commented this out since it kills local streams and are unrecoverable
+                        vidElem.srcObject.getTracks().forEach(track=>track.stop());
+                        vidElem.srcObject = null;
+                    }
+                    //if(vidElem.startButton) return;
+
+                    //vidElem.startButton.onRemove.removeChild(vidElem.startButton)
+                    vidElem.parentRow.remove();
+                    vidElem.startButton = null;
+                }
             }
         }
-        vidElem.startButton = startButton;
 
-        vidElem.onended = function() {
-            vidElem.onended = null;
-            console.debug('vidElem.onended');
+    vidElem.startButton = startButton;
 
-            vidElem.controls = false;
-            if(vidElem.srcObject) {
-                // commented this out since it kills local streams and are unrecoverable
-                vidElem.srcObject.getTracks().forEach(track=>track.stop());
-                vidElem.srcObject = null;
-            }
-            if(!vidElem.startButton) return;
+    startButton.style.cssText = cssButton + ' background-image:url(/content/img/unmute.png); z-index:1;';
 
-            vidElem.startButton.parentNode.removeChild(vidElem.startButton);
-            vidElem.startButton = null;
-        }
+    if(vidElem.parentNode) vidElem.parentNode.appendChild(startButton);
 
-        startButton.style.cssText = cssButton + ' background-image:url(/content/img/unmute.png); z-index:1;';
-        vidElem.parentNode.appendChild(startButton);
-
-        console.debug('attachMediaStream: onloadedmetadata');
-    }
+    console.debug('attachMediaStream: onloadedmetadata');
 }
 
+function prepareVideo(containerTable)
+{
+    var table = containerTable;
 
+    var row = window.parent.document.createElement('tr');
+    var col = window.parent.document.createElement('td');
+
+    var videoElemToAdd = window.parent.document.createElement('video');
+
+    col.appendChild(videoElemToAdd);
+    row.appendChild(col);
+
+    videoElemToAdd.class = 'videoMain';
+    videoElemToAdd.autoplay = true;
+    videoElemToAdd.muted = true;
+    videoElemToAdd.setAttribute('playsinline', 'true');
+    videoElemToAdd.setAttribute('webkit-playsinline', 'webkit-playsinline');
+    videoElemToAdd.id = 'video' + window.parent.videoElemIdCounter;
+    videoElemToAdd.parentRow = row;
+
+    // TODO: instead of using a counter, use username to identify each videoElem
+    window.parent.videoElemIdCounter += 1;
+
+    table.appendChild(row);
+
+    window.parent.iframeConnectState.videoElem = videoElemToAdd;
+
+    return row
+}

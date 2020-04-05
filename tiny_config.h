@@ -58,7 +58,7 @@ void file_write(char* buf, unsigned int len, char* pathname)
 void file_write2(char* buf, unsigned int len, char* pathname)
 {
     FILE* fp = fopen(pathname, "w");
-    if(fp)
+    if(fp && buf != null)
     {
         fwrite(buf, 1, len, fp);
         fclose(fp);
