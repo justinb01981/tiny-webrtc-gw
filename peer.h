@@ -163,6 +163,7 @@ typedef struct
     int srtp_inited;
 
     volatile int cleanup_in_progress;
+    volatile int thread_paused;
 
     int id;
 

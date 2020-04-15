@@ -1,9 +1,9 @@
 # port for webserver to listen on
-webserver_port=8008
+webserver_port=80
 
 # the address of the interface to listen on (ifconfig)
 # 0.0.0.0 won't work
-udpserver_addr=54.245.225.29
+udpserver_addr=192.168.1.181
 udpserver_port=3478 
 
 udp_read_timeout_usec=16

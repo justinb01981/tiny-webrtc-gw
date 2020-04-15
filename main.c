@@ -72,8 +72,8 @@
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
-
-#define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY 2
+#define PEER_CLEANUP_INTERVAL 10000
+#define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY 1
 
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS+1];
@@ -611,6 +611,7 @@ connection_worker(void* p)
     u32 answer_ssrc[PEER_RTP_CTX_WRITE] = {1, 2};
     u32 offer_ssrc[PEER_RTP_CTX_WRITE];
     char str256[256];
+    char stackPaddingHack[2048];
 
     thread_init();
     
@@ -747,14 +748,17 @@ connection_worker(void* p)
         
         time_t time_sec;
 
-        if(peer->cleanup_in_progress) peer->cleanup_in_progress = 2;
-        
-        while(peer->alive && peer->cleanup_in_progress != 0)
+        if(peer->cleanup_in_progress == 1 && peer->alive)
         {
-            usleep(udp_recv_timeout_usec_max); //sleep_msec(1);
+            peer->thread_paused = 1;
+            goto peer_again;  
         }
-        
-        PEER_THREAD_WAITSIGNAL(peer);
+        else
+        {
+            PEER_THREAD_WAITSIGNAL(peer);
+        }
+
+        peer->thread_paused = 0;
         
         if(!peer->alive) break;
 
@@ -785,7 +789,7 @@ connection_worker(void* p)
         if(!peer->in_buffers_head.next)
         {
             backlog_counter = 0;
-            peer->in_buffers_underrun = PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY;
+            if(peer->in_buffers_underrun == 0) peer->in_buffers_underrun = PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY;
             goto peer_again;
         }
 
@@ -795,13 +799,13 @@ connection_worker(void* p)
         if(buffer_next->consumed)
         { 
             backlog_counter = 0;
-            peer->in_buffers_underrun = PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY;
+            if(peer->in_buffers_underrun == 0) peer->in_buffers_underrun = PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY;
             goto peer_again;
         }
 
         // hack to avoid a potential race condition on the last buffer
         // when writing to it here (marking consumed=1)
-        if(!buffer_next->next) goto peer_again;
+        //if(!buffer_next->next) goto peer_again;
 
         char buffer[PEER_BUFFER_NODE_BUFLEN];
         char buffer_last[PEER_BUFFER_NODE_BUFLEN];
@@ -1485,7 +1489,7 @@ int main( int argc, char* argv[] ) {
             counts[17] = udp_recv_timeout_usec;
         }
         
-        usleep(udp_recv_timeout_usec);
+        //usleep(udp_recv_timeout_usec);
     
         size = sizeof(src);
         int length = recvfrom(listen, buffer, PEER_BUFFER_NODE_BUFLEN, recv_flags, (struct sockaddr*)&src, &size);
@@ -1606,7 +1610,10 @@ int main( int argc, char* argv[] ) {
             memcpy(&peers[sidx].addr, &src, sizeof(src));
         }
 
-        if(length < 1 || length >= PEER_BUFFER_NODE_BUFLEN) goto select_timeout;
+        if(length < 1 || length >= PEER_BUFFER_NODE_BUFLEN) {
+            printf("%s:%d unhandled length\n");
+            goto select_timeout;
+        }
 
         node_inbuf->recv_time = get_time_ms();
 
@@ -1660,8 +1667,8 @@ int main( int argc, char* argv[] ) {
                 {
                     if(peers[i].in_buffers_underrun > 0 && peers[i].thread_inited)
                     {
+                        peers[i].in_buffers_underrun = 0;           
                         repeat = 0;
-                        peers[i].in_buffers_underrun -= 1;
                     }
                 }
                 
@@ -1683,11 +1690,13 @@ int main( int argc, char* argv[] ) {
                 peers[i].bufs.out_len = 0;
             }
 
-            if(select_counter - peers[i].time_cleanup_last >= udp_recv_timeout_usec_min && peers[i].alive)
+            if(select_counter - peers[i].time_cleanup_last >= PEER_CLEANUP_INTERVAL && peers[i].alive)
             {
+                printf("cleanup peer %d\n", i);
+
                 /* HACK: lock out all reader-threads */
                 peers[i].cleanup_in_progress = 1;
-                while(peers[i].running && peers[i].cleanup_in_progress != 1)
+                while(peers[i].running && !peers[i].thread_paused)
                 {
                     PEER_UNLOCK(i);
                     PEER_SIGNAL(i);
@@ -1754,7 +1763,13 @@ int main( int argc, char* argv[] ) {
                
                 /* HACK: lock out all reader-threads */
                 peers[i].cleanup_in_progress = 1;
-                sleep_msec(peer_rtp_send_worker_delay_max * 2);
+                while(peers[i].running && !peers[i].thread_paused)
+                {
+                    PEER_UNLOCK(i);
+                    PEER_SIGNAL(i);
+                    PEER_LOCK(i);
+                }
+                //sleep_msec(peer_rtp_send_worker_delay_max * 2);
 
                 peers[i].alive = 0;
 
