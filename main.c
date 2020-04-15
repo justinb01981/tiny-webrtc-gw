@@ -73,6 +73,8 @@
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
 
+#define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY 2
+
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS+1];
 FILECACHE_INSTANTIATE();
@@ -749,7 +751,7 @@ connection_worker(void* p)
         
         while(peer->alive && peer->cleanup_in_progress != 0)
         {
-            //sleep_msec(1);
+            usleep(udp_recv_timeout_usec_max); //sleep_msec(1);
         }
         
         PEER_THREAD_WAITSIGNAL(peer);
@@ -783,7 +785,7 @@ connection_worker(void* p)
         if(!peer->in_buffers_head.next)
         {
             backlog_counter = 0;
-            peer->in_buffers_underrun = 1;
+            peer->in_buffers_underrun = PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY;
             goto peer_again;
         }
 
@@ -793,7 +795,7 @@ connection_worker(void* p)
         if(buffer_next->consumed)
         { 
             backlog_counter = 0;
-            peer->in_buffers_underrun = 1;
+            peer->in_buffers_underrun = PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY;
             goto peer_again;
         }
 
@@ -1363,6 +1365,7 @@ int main( int argc, char* argv[] ) {
     struct sockaddr_in src;
     struct sockaddr_in dst;
     struct sockaddr_in ret;
+    unsigned long select_counter = 0;
 
     DTLS_init();
 
@@ -1618,6 +1621,9 @@ int main( int argc, char* argv[] ) {
         
         // -- run every loop, not just when packets received
         select_timeout:
+
+        select_counter += 1;
+
         i = 0;
         while(i < MAX_PEERS)
         {
@@ -1652,10 +1658,10 @@ int main( int argc, char* argv[] ) {
                 }
                 else
                 {
-                    if(peers[i].in_buffers_underrun && peers[i].thread_inited)
+                    if(peers[i].in_buffers_underrun > 0 && peers[i].thread_inited)
                     {
                         repeat = 0;
-                        peers[i].in_buffers_underrun = 0;
+                        peers[i].in_buffers_underrun -= 1;
                     }
                 }
                 
@@ -1677,9 +1683,7 @@ int main( int argc, char* argv[] ) {
                 peers[i].bufs.out_len = 0;
             }
 
-            time_t curtime = time(NULL);
-            
-            if(curtime - peers[i].time_cleanup_last > 2 && peers[i].alive)
+            if(select_counter - peers[i].time_cleanup_last >= udp_recv_timeout_usec_min && peers[i].alive)
             {
                 /* HACK: lock out all reader-threads */
                 peers[i].cleanup_in_progress = 1;
@@ -1690,7 +1694,7 @@ int main( int argc, char* argv[] ) {
                     PEER_LOCK(i);
                 }
 
-                peers[i].time_cleanup_last = curtime;
+                peers[i].time_cleanup_last = select_counter;
 
                 while(1)
                 {

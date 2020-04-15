@@ -181,7 +181,7 @@ function onJoin() {
     var roomElem = parentDoc.getElementById('roomName');
     var vidElem = window.parent.iframeConnectState.vidElem;
 
-    console.debug('failed to get local video-source');
+    console.debug('failed to get local video-source with exception: ' + e);
     window.parent.iframeConnectState.selectedRoom = roomElem.value;
 
     if(vidElem && vidElem.closeAction) {

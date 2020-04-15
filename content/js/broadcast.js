@@ -128,7 +128,9 @@ function getMedia() {
                     optional: [{sourceId: audioSource}]
                 },
                 video: {
-                    optional: [{sourceId: videoSource}]
+                    sourceId: {videoSource},
+                    width: { min: 640, ideal: 1920 },
+                    height: { min: 480, ideal: 1080 } 
                 }
             };
 
@@ -148,7 +150,9 @@ function getMedia() {
                     //alert('get media failed\nmaybe try https?\ncamera/mic enabled?\n\n(reload the page after allowing)');
                 }
             );
-        }).catch(function(e) {});
+        }).catch(function(e) {
+            console.debug('exception in getUserMedia:' + e);
+        });
     });
 
     return getMediaPromise;
