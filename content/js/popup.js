@@ -183,7 +183,7 @@ function attachMediaStream(vidElem, vidStream)
 {
     // TODO: have single function for building vidElem and sibling nodes as rows in the table instead of splitting in multiple JS files
 
-    var cssButton = 'width:32px; height:32px; position:relative; top:50px; left:100px; background-position:center; background-repeat:no-repeat;';
+    var cssButton = 'width:32px; height:32px; position:relative; top:-30px; left:150px; background-position:center; background-repeat:no-repeat;';
     if(vidElem.srcObject != null) {
         console.debug('attachMediaStream: video element srcObject != null, ignoring');
         return;
@@ -233,7 +233,7 @@ function attachMediaStream(vidElem, vidStream)
     console.debug('attachMediaStream: onloadedmetadata');
 }
 
-function prepareVideo(containerTable)
+function prepareVideo(containerTable, labelText)
 {
     var table = containerTable;
 
@@ -241,7 +241,9 @@ function prepareVideo(containerTable)
     var col = window.parent.document.createElement('td');
 
     var videoElemToAdd = window.parent.document.createElement('video');
-
+    var labelToAdd = window.parent.document.createTextNode(labelText);
+    
+    col.appendChild(labelToAdd);
     col.appendChild(videoElemToAdd);
     row.appendChild(col);
 

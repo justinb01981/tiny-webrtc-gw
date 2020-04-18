@@ -72,8 +72,9 @@
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
-#define PEER_CLEANUP_INTERVAL 10000
-#define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY 1
+#define PEER_CLEANUP_INTERVAL 100000
+
+#define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY 0
 
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS+1];
@@ -96,6 +97,14 @@ unsigned long connection_worker_backlog_highwater = 0;
 
 const static udp_recv_timeout_usec_min = 20;
 const static udp_recv_timeout_usec_max = 100000;
+
+int terminated = 0;
+
+struct {
+    char inip[64];
+    unsigned short inport;
+    unsigned int sock_buffer_size;
+} udpserver;
 
 int bindsocket( char* ip, int port , int tcp);
 int main( int argc, char* argv[] );
@@ -155,8 +164,14 @@ int bindsocket( char* ip, int port, int tcp) {
     fd = socket( PF_INET, sock_family, IPPROTO_IP );
 
     /* make socket reusable */
-    int optval = 1;
+    unsigned int optval = 1;
     setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
+
+    optval = udpserver.sock_buffer_size;
+    printf("setting SO_RCVBUF to %u:%d(0=OK)\n", optval, setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &optval, sizeof(optval)));
+
+    optval = udpserver.sock_buffer_size;
+    printf("setting SO_SNDBUF to %u:%d(0=OK)\n", optval, setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &optval, sizeof(optval)));
 
     optval = 1;
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
@@ -744,12 +759,15 @@ connection_worker(void* p)
     while(peer->alive)
     {
         unsigned int buffer_count;
-        unsigned long time_ms;
+        unsigned long time_ms = get_time_ms();
         
         time_t time_sec;
 
         if(peer->cleanup_in_progress == 1 && peer->alive)
         {
+            PEER_THREAD_WAITSIGNAL(peer);
+
+            peer->stats.stat[4] += 1;
             peer->thread_paused = 1;
             goto peer_again;  
         }
@@ -760,11 +778,14 @@ connection_worker(void* p)
 
         peer->thread_paused = 0;
         
-        if(!peer->alive) break;
+        if(!peer->alive) {
+            PEER_THREAD_UNLOCK(peer);
+            break;
+        }
 
         buffer_next = NULL;
 
-        time_ms = get_time_ms();
+        time_ms = time_ms;
         time_sec = time(NULL);
 
         buffer_count = 0;
@@ -788,8 +809,15 @@ connection_worker(void* p)
 
         if(!peer->in_buffers_head.next)
         {
+            peer->stats.stat[3] += 1;
             backlog_counter = 0;
-            if(peer->in_buffers_underrun == 0) peer->in_buffers_underrun = PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY;
+            if(peer->in_buffers_underrun == 0)
+            {
+                if(peer->dtls.connected && peer->srtp_inited)
+                {
+                    peer->in_buffers_underrun = PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY;
+                }
+            }
             goto peer_again;
         }
 
@@ -798,10 +826,16 @@ connection_worker(void* p)
 
         if(buffer_next->consumed)
         { 
+            peer->stats.stat[4] += 1;
             backlog_counter = 0;
-            if(peer->in_buffers_underrun == 0) peer->in_buffers_underrun = PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY;
+            if(peer->dtls.connected && peer->srtp_inited)
+            {
+                peer->in_buffers_underrun = PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY;
+            }
             goto peer_again;
         }
+
+        peer->stats.stat[2] += 1;
 
         // hack to avoid a potential race condition on the last buffer
         // when writing to it here (marking consumed=1)
@@ -1340,7 +1374,6 @@ connection_worker(void* p)
         peer_again:
         if(buffer_next)
         {
-            //free(buffer_next);
             buffer_next = NULL;
         }
 
@@ -1351,11 +1384,6 @@ connection_worker(void* p)
     printf("%s:%d connection_worker exiting\n", __FILE__, __LINE__);
 }
 
-struct {
-    char inip[64];
-    unsigned short inport;
-} udpserver;
-
 void bogus_srtp_event_handler(struct srtp_event_data_t* data)
 {
 }
@@ -1364,12 +1392,18 @@ void bogus_sigpipe_handler(int sig)
 {
 }
 
+void sigint_handler(int sig)
+{
+    printf("terminating process....\n");
+    terminated = 1;
+}
+
 int main( int argc, char* argv[] ) {
     int i, listen, output;
     struct sockaddr_in src;
     struct sockaddr_in dst;
     struct sockaddr_in ret;
-    unsigned long select_counter = 0;
+    unsigned long long select_counter = 0;
 
     DTLS_init();
 
@@ -1377,6 +1411,8 @@ int main( int argc, char* argv[] ) {
 
     int peersLen = 0;
     pthread_t thread_webserver;
+
+    signal(SIGINT, sigint_handler);
 
     memset(g_chatlog, 0, sizeof(g_chatlog));
     chatlog_reload();
@@ -1394,6 +1430,7 @@ int main( int argc, char* argv[] ) {
     //strcpy(udpserver.inip, get_config("udpserver_addr="));
     strcpy(udpserver.inip, "0.0.0.0"); // for now bind to all interfaces
     udpserver.inport = strToInt(get_config("udpserver_port="));
+    udpserver.sock_buffer_size = strToInt(get_config("udpserver_sock_buffer_size="));
 
     strcpy(webserver.inip, udpserver.inip);
      
@@ -1416,12 +1453,13 @@ int main( int argc, char* argv[] ) {
     pthread_create(&thread_webserver, NULL, webserver_accept_worker, NULL);
 
     int timedout_last = 0;
-    while(1)
+    while(!terminated)
     {
         //char buffer[PEER_BUFFER_NODE_BUFLEN];
         unsigned int size;
         int recv_flags = 0;
         struct timeval te;
+        unsigned long long time_ms = get_time_ms();
 
         peer_buffer_node_t* node = NULL, *tail_prev;
         peer_buffer_node_t* node_inbuf = buffer_node_alloc();
@@ -1444,7 +1482,7 @@ int main( int argc, char* argv[] ) {
             
             printf("\n");
             for(c = 0; c < sizeof(counts)/sizeof(int); c++) printf("%s:%d ", counts_names[c], counts[c]);
-            printf("time=%lu", get_time_ms());
+            printf("time=%lu", time_ms);
             printf("\n");
             time_last_stats = time(NULL);
             
@@ -1489,6 +1527,7 @@ int main( int argc, char* argv[] ) {
             counts[17] = udp_recv_timeout_usec;
         }
         
+        // HACK: cap cpu usage here by limiting run-interval
         //usleep(udp_recv_timeout_usec);
     
         size = sizeof(src);
@@ -1615,7 +1654,7 @@ int main( int argc, char* argv[] ) {
             goto select_timeout;
         }
 
-        node_inbuf->recv_time = get_time_ms();
+        node_inbuf->recv_time = time_ms;
 
         tail_prev = peer_buffer_node_list_get_tail(&(peers[sidx].in_buffers_head));
         peer_buffer_node_list_add(&(peers[sidx].in_buffers_head), node_inbuf);
@@ -1855,6 +1894,8 @@ int main( int argc, char* argv[] ) {
 
         if(node_inbuf) free(node_inbuf);
     }
+
+    printf("main loop exiting..\n");
 
     if(webserver.running)
     {

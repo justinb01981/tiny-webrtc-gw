@@ -199,7 +199,8 @@ typedef struct
     volatile int in_buffers_underrun;
 } peer_session_t;
 
-const static int PEER_TIMEOUT_DEFAULT = 30;
+const static int PEER_TIMEOUT_DEFAULT = 60;
+const static int PEER_TIMEOUT_SIGNEDIN = 120;
 
 typedef struct {
     struct {
@@ -221,7 +222,7 @@ int peer_cookie_init(peer_session_t* peer, const char* cookie)
 {
     if(strlen(strcpy(peer->http.cookie, cookie)) > 0)
     {
-        peer->timeout_sec = 60;
+        peer->timeout_sec = PEER_TIMEOUT_SIGNEDIN;
         return 1;
     }
     peer->timeout_sec = PEER_TIMEOUT_DEFAULT;

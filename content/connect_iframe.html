@@ -99,7 +99,7 @@ function connectIFrameOnLoad(htmlBodyElem)
       // add this user
       state.usersSubscribed.push(name);
       state.selectedUser = name;
-      prepareVideo(videoTable);
+      prepareVideo(videoTable, name);
       onJoin();
 
       break;
@@ -222,7 +222,7 @@ function onSelectUserChange(elem)
 
   console.assert(mainVideoTable != null, 'ERROR: videoMainContainer not found');
 
-  prepareVideo(mainVideoTable);
+  prepareVideo(mainVideoTable, elem.value);
 
   if(elemOption.value != 'NULL')
   {
