@@ -1055,7 +1055,7 @@ webserver_worker(void* p)
 
     free(args);
 
-    printf("%s:%d exiting\n", __func__, __LINE__);
+    //printf("%s:%d exiting\n", __func__, __LINE__);
     return NULL;
 }
 

@@ -87,6 +87,7 @@ void chatlog_append(const char* msg);
 int listen_port = 0;
 
 char* counts_names[] = {"in_STUN", "in_SRTP", "in_UNK", "DROP", "BYTES_FWD", "", "USER_ID", "master", "rtp_underrun", "rtp_ok", "unknown_report_ssrc", "srtp_unprotect_fail", "buf_reclaimed_pkt", "buf_reclaimed_rtp", "snd_rpt_fix", "rcv_rpt_fix", "subscription_resume", "recv_timeout"};
+char* peer_stat_names[] = {"stun-RTT", "uptime", "#msgOK", "underrun1", "underrun2", "#cleanup", "??", "??"};
 int counts[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 char counts_log[255] = {0};
 int stun_binding_response_count = 0;
@@ -746,7 +747,7 @@ connection_worker(void* p)
         }
     }
 
-    printf("%s:%d peer running\n", __func__, __LINE__);
+    stats_printf(counts_log, "%s:%d peer running\n", __func__, __LINE__);
 
     peers[peer->subscriptionID].subscribed = 1;
     peers[peer->subscriptionID].srtp[0].pli_last = (time(NULL) - RTP_PICT_LOSS_INDICATOR_INTERVAL)+5;
@@ -952,7 +953,7 @@ connection_worker(void* p)
             }
             else if(ntohs(bind_check->hdr.type) == 0x0101)
             {
-                printf("stun-ice: got bind response\n");
+                stats_printf(counts_log, "stun-ice: got bind response\n");
 
                 peer->stun_ice.bound++;
                 if(!peer->stun_ice.bind_req_calc) {
@@ -1498,7 +1499,7 @@ int main( int argc, char* argv[] ) {
                     int si;
                     for(si = 0; si < sizeof(peers[c].stats)/sizeof(peers[c].stats.stat[0]); si++)
                     {
-                        printf(", %lu", peers[c].stats.stat[si]);
+                        printf(",%s=%lu", peer_stat_names[si], peers[c].stats.stat[si]);
                     }
                     printf("\n");
                 }
@@ -1731,7 +1732,7 @@ int main( int argc, char* argv[] ) {
 
             if(select_counter - peers[i].time_cleanup_last >= PEER_CLEANUP_INTERVAL && peers[i].alive)
             {
-                printf("cleanup peer %d\n", i);
+                peers[i].stats.stat[5] += 1;
 
                 /* HACK: lock out all reader-threads */
                 peers[i].cleanup_in_progress = 1;
