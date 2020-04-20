@@ -96,6 +96,8 @@ sdp_offer_table_t sdp_offer_table;
 
 unsigned long connection_worker_backlog_highwater = 0;
 
+volatile time_t wall_time = 0;
+
 const static udp_recv_timeout_usec_min = 20;
 const static udp_recv_timeout_usec_max = 100000;
 
@@ -168,6 +170,9 @@ int bindsocket( char* ip, int port, int tcp) {
     unsigned int optval = 1;
     setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
 
+    // HIGHLY recommend system send/recv buffers be tuned larger since these will return success even if
+    // requested size is greater than system allows
+    // https://www.cyberciti.biz/faq/linux-tcp-tuning/
     optval = udpserver.sock_buffer_size;
     printf("setting SO_RCVBUF to %u:%d(0=OK)\n", optval, setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &optval, sizeof(optval)));
 
@@ -295,8 +300,8 @@ peer_buffer_node_list_init(peer_buffer_node_t* head)
 void
 peer_buffer_node_list_add(peer_buffer_node_t* head, peer_buffer_node_t* tail_new)
 {
-    assert(head->head_inited, "UNINITED HEAD NODE\n");
-    assert((tail_new->next == (peer_buffer_node_t*) NULL), "ADDING non-NULL tail\n");
+    //assert(head->head_inited, "UNINITED HEAD NODE\n");
+    //assert((tail_new->next == (peer_buffer_node_t*) NULL), "ADDING non-NULL tail\n");
     peer_buffer_node_t* tmp = head->tail;
     head->tail = tail_new;
     tmp->next = tail_new;
@@ -305,7 +310,7 @@ peer_buffer_node_list_add(peer_buffer_node_t* head, peer_buffer_node_t* tail_new
 peer_buffer_node_t*
 peer_buffer_node_list_get_tail(peer_buffer_node_t* head)
 {
-    assert(head->head_inited, "UNINITED HEAD NODE\n");
+    //assert(head->head_inited, "UNINITED HEAD NODE\n");
     return head->tail;
 }
 
@@ -315,7 +320,7 @@ peer_buffer_node_list_remove(peer_buffer_node_t* head, peer_buffer_node_t* node)
     int removed = 0;
     peer_buffer_node_t* cur = head;
 
-    assert(head->head_inited, "UNINITED HEAD NODE\n");
+    //assert(head->head_inited, "UNINITED HEAD NODE\n");
 
     while(cur)
     {
@@ -324,6 +329,7 @@ peer_buffer_node_list_remove(peer_buffer_node_t* head, peer_buffer_node_t* node)
             cur->next = cur->next->next;
             removed++;
             if(!cur->next) head->tail = cur;
+            break;
         }
         else
         {
@@ -621,8 +627,7 @@ connection_worker(void* p)
     int rtp_idx;
     int buffer_count_max = 1000;
     
-    char rtpFrameBuffer[PEER_BUFFER_NODE_BUFLEN];
-    rtp_frame_t *rtpFrame = (rtp_frame_t*) rtpFrameBuffer;
+    rtp_frame_t *rtpFrame;
 
     u32 answer_ssrc[PEER_RTP_CTX_WRITE] = {1, 2};
     u32 offer_ssrc[PEER_RTP_CTX_WRITE];
@@ -674,7 +679,7 @@ connection_worker(void* p)
                  offer_ssrc[0], offer_ssrc[1], answer_ssrc[0], answer_ssrc[1]);
     printf("%s", counts_log);
 
-    peer->time_last_run = time(NULL);
+    peer->time_last_run = wall_time;
 
     peer->subscriptionID = /*peer->id*/ PEER_IDX_INVALID;
 
@@ -750,7 +755,7 @@ connection_worker(void* p)
     stats_printf(counts_log, "%s:%d peer running\n", __func__, __LINE__);
 
     peers[peer->subscriptionID].subscribed = 1;
-    peers[peer->subscriptionID].srtp[0].pli_last = (time(NULL) - RTP_PICT_LOSS_INDICATOR_INTERVAL)+5;
+    peers[peer->subscriptionID].srtp[0].pli_last = (wall_time - RTP_PICT_LOSS_INDICATOR_INTERVAL)+5;
     peers[peer->subscriptionID].srtp[1].pli_last = peers[peer->subscriptionID].srtp[0].pli_last;
 
     peer->running = 1;
@@ -787,7 +792,7 @@ connection_worker(void* p)
         buffer_next = NULL;
 
         time_ms = time_ms;
-        time_sec = time(NULL);
+        time_sec = wall_time;
 
         buffer_count = 0;
 
@@ -806,7 +811,7 @@ connection_worker(void* p)
         }
         */
 
-        peer->time_last_run = time(NULL);
+        peer->time_last_run = wall_time;
 
         if(!peer->in_buffers_head.next)
         {
@@ -842,12 +847,10 @@ connection_worker(void* p)
         // when writing to it here (marking consumed=1)
         //if(!buffer_next->next) goto peer_again;
 
-        char buffer[PEER_BUFFER_NODE_BUFLEN];
+        char *buffer = buffer_next->buf;
         char buffer_last[PEER_BUFFER_NODE_BUFLEN];
         char buffer_report[PEER_BUFFER_NODE_BUFLEN];
         int length = buffer_next->len;
-
-        memcpy(buffer, buffer_next->buf, length);
 
         unsigned long buffer_next_recv_time = buffer_next->recv_time;
 
@@ -856,13 +859,13 @@ connection_worker(void* p)
         
         buffer_next->consumed = 1;
 
-        memcpy(buffer_last, buffer, length);
-
         pkt_type_t type = pktType(buffer, length);
 
         stun_binding_msg_t *bind_check = (stun_binding_msg_t*) buffer;
         if(type == PKT_TYPE_STUN)
         {
+            memcpy(buffer_last, buffer, length);
+
             if(ntohs(bind_check->hdr.type) == 0x01)
             {
                 stun_binding_msg_t *bind_resp = (stun_binding_msg_t*) buffer;
@@ -1033,9 +1036,7 @@ connection_worker(void* p)
         {
             if(length >= sizeof(rtp_frame_t) && peer->dtls.ssl)
             {
-                //rtp_frame_t *rtpFrame = (rtp_frame_t*) buffer;
-
-                memcpy(rtpFrame, buffer, length);
+                rtpFrame = buffer;
 
                 u32 in_ssrc = ntohl(rtpFrame->hdr.seq_src_id);
                 u32 timestamp_in = ntohl(rtpFrame->hdr.timestamp);
@@ -1295,12 +1296,12 @@ connection_worker(void* p)
                     }
                 }
 
-                if(time(NULL) - peer->srtp[rtp_idx].pli_last >= RTP_PICT_LOSS_INDICATOR_INTERVAL &&
+                if(wall_time - peer->srtp[rtp_idx].pli_last >= RTP_PICT_LOSS_INDICATOR_INTERVAL &&
                    RTP_PICT_LOSS_INDICATOR_INTERVAL > 0)
                 {
                     rtp_report_pli_t report_pli;
                     int report_len = sizeof(report_pli);
-                    peer->srtp[rtp_idx].pli_last = time(NULL);
+                    peer->srtp[rtp_idx].pli_last = wall_time;
 
                     /* see RFC 4585 */
                     memset(&report_pli, 0, sizeof(report_pli));
@@ -1461,6 +1462,7 @@ int main( int argc, char* argv[] ) {
         int recv_flags = 0;
         struct timeval te;
         unsigned long long time_ms = get_time_ms();
+        wall_time = time(NULL);
 
         peer_buffer_node_t* node = NULL, *tail_prev;
         peer_buffer_node_t* node_inbuf = buffer_node_alloc();
@@ -1476,7 +1478,7 @@ int main( int argc, char* argv[] ) {
         
         static time_t time_last_stats = 0;
         
-        if(time(NULL) - time_last_stats > 2)
+        if(wall_time - time_last_stats > 2)
         {
             /* print counters */
             int c;
@@ -1558,7 +1560,7 @@ int main( int argc, char* argv[] ) {
                 src.sin_port == peers[i].addr.sin_port))
             {
                 sidx = i;
-                peers[sidx].time_pkt_last = time(NULL);
+                peers[sidx].time_pkt_last = wall_time;
                 break;
             }
         }
