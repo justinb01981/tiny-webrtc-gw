@@ -638,7 +638,9 @@ connection_worker(void* p)
     
     while(peer->alive)
     {
-        PEER_THREAD_WAITSIGNAL(peer);
+        //PEER_THREAD_WAITSIGNAL(peer);
+        PEER_THREAD_LOCK(peer);
+
         if((strlen(peer->sdp.offer) > 0 && strlen(peer->sdp.answer) > 0) || !peer->alive)
         {
             PEER_THREAD_UNLOCK(peer);
@@ -769,25 +771,19 @@ connection_worker(void* p)
         
         time_t time_sec;
 
+        PEER_THREAD_LOCK(peer);
+        //PEER_THREAD_WAITSIGNAL(peer);
+
         if(peer->cleanup_in_progress == 1 && peer->alive)
         {
-            PEER_THREAD_WAITSIGNAL(peer);
-
             peer->stats.stat[4] += 1;
             peer->thread_paused = 1;
             goto peer_again;  
         }
-        else
-        {
-            PEER_THREAD_WAITSIGNAL(peer);
-        }
 
         peer->thread_paused = 0;
         
-        if(!peer->alive) {
-            PEER_THREAD_UNLOCK(peer);
-            break;
-        }
+        if(!peer->alive) goto peer_again;
 
         buffer_next = NULL;
 
@@ -1718,7 +1714,7 @@ int main( int argc, char* argv[] ) {
                 {
                     /* signal peer thread to run */
                     PEER_UNLOCK(i);
-                    PEER_SIGNAL(i);
+                    //PEER_SIGNAL(i);
                     PEER_LOCK(i);
 
                     repeat--;
@@ -1788,6 +1784,12 @@ int main( int argc, char* argv[] ) {
 
                 // done cleaning up this peer
                 peers[i].cleanup_in_progress = 0;
+                while(peers[i].thread_paused)
+                {
+                    PEER_UNLOCK(i);
+                    PEER_SIGNAL(i);
+                    PEER_LOCK(i);
+                }
 
                 // send a keepalive packet to keep UDP ports open
                 char keepalive[] = {0};
