@@ -1737,7 +1737,7 @@ int main( int argc, char* argv[] ) {
                 while(peers[i].running && !peers[i].thread_paused)
                 {
                     PEER_UNLOCK(i);
-                    PEER_SIGNAL(i);
+                    //PEER_SIGNAL(i);
                     PEER_LOCK(i);
                 }
 
@@ -1787,7 +1787,7 @@ int main( int argc, char* argv[] ) {
                 while(peers[i].thread_paused)
                 {
                     PEER_UNLOCK(i);
-                    PEER_SIGNAL(i);
+                    //PEER_SIGNAL(i);
                     PEER_LOCK(i);
                 }
 
@@ -1810,7 +1810,7 @@ int main( int argc, char* argv[] ) {
                 while(peers[i].running && !peers[i].thread_paused)
                 {
                     PEER_UNLOCK(i);
-                    PEER_SIGNAL(i);
+                    //PEER_SIGNAL(i);
                     PEER_LOCK(i);
                 }
                 //sleep_msec(peer_rtp_send_worker_delay_max * 2);
@@ -1841,7 +1841,7 @@ int main( int argc, char* argv[] ) {
                     printf("%s:%d terminating peer %d threads\n", __func__, __LINE__, i);
                     
                     PEER_UNLOCK(i);
-                    PEER_SIGNAL(i);
+                    //PEER_SIGNAL(i);
                     
                     //pthread_join(peers[i].thread_rtp_send, NULL);
                     pthread_join(peers[i].thread, NULL);
