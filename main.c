@@ -74,7 +74,7 @@
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
 #define PEER_CLEANUP_INTERVAL 100000
 
-#define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY 0
+#define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY 64
 
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS+1];
@@ -258,23 +258,9 @@ void sleep_msec(int ms)
     usleep(ms * 1000);
 }
 
-int peer_send_block_direct = 1;
-
 void peer_send_block(peer_session_t* peer, char* buf, int len)
 {
-    if(!peer_send_block_direct)
-    {
-        memcpy(peer->bufs.out, buf, len);
-        peer->bufs.out_len = len;
-        while(peer->bufs.out_len > 0)
-        {
-            sleep_msec(1);
-        }
-    }
-    else
-    {
-        int r = sendto(peer->sock, buf, len, 0, (struct sockaddr*)&(peer->addr), sizeof(peer->addr));
-    }
+    int r = sendto(peer->sock, buf, len, 0, (struct sockaddr*)&(peer->addr), sizeof(peer->addr));
 }
 
 peer_buffer_node_t*
@@ -809,11 +795,28 @@ connection_worker(void* p)
 
         peer->time_last_run = wall_time;
 
+        buffer_next = &peer->in_buffers_head;
+        while(buffer_next && buffer_next->consumed) buffer_next = buffer_next->next;
+        
+        if(!buffer_next)
+        {
+            if(!peer->in_buffers_underrun)
+            {
+                if(peer->dtls.connected && peer->srtp_inited)
+                {
+                    peer->in_buffers_underrun = PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY;
+                }
+            }
+            goto peer_again; 
+        }
+
+        /*
+        while(buffer_next->next && buffer_next->consumed) buffer_next = buffer_next->next;       
         if(!peer->in_buffers_head.next)
         {
             peer->stats.stat[3] += 1;
             backlog_counter = 0;
-            if(peer->in_buffers_underrun == 0)
+            if(!peer->in_buffers_underrun)
             {
                 if(peer->dtls.connected && peer->srtp_inited)
                 {
@@ -830,12 +833,14 @@ connection_worker(void* p)
         { 
             peer->stats.stat[4] += 1;
             backlog_counter = 0;
+            if(!peer->in_buffers_underrun)
             if(peer->dtls.connected && peer->srtp_inited)
             {
                 peer->in_buffers_underrun = PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY;
             }
             goto peer_again;
         }
+        */
 
         peer->stats.stat[2] += 1;
 
@@ -1082,7 +1087,7 @@ connection_worker(void* p)
                    srtp_unprotect_rtcp(peer->srtp[rtp_idx].session, report, &length) == srtp_err_status_ok)
                 {
                     if(is_sender_report ||
-                        (peers[peer->subscriptionID].alive))
+                       peers[peer->subscriptionID].alive)
                     {
                         int i, p, reportsize, stat_idx;
                         rtp_report_receiver_block_t *repblocks;
@@ -1135,59 +1140,60 @@ connection_worker(void* p)
 
                         for(p = 0; p < MAX_PEERS; p++)
                         {
-                        if(is_sender_report)
-                        {
-                            rtp_report_sender_t *reportPeer = (rtp_report_sender_t*) buffer_report;
-                            int lengthPeer;
-                           
-                            if(peers[p].alive && peers[p].running &&
-                               peers[p].subscriptionID == peer->id &&
-                               //peer->id != peers[p].subscriptionID &&
-                               peers[p].srtp[rtp_idx].inited)
+                            if(is_sender_report)
                             {
-                                lengthPeer = length;
-                                memcpy(reportPeer, report, lengthPeer);
-                                if(srtp_protect_rtcp(peers[p].srtp[rtp_idx_write].session, reportPeer, &lengthPeer) == srtp_err_status_ok) {
-                                    peer_send_block(&peers[p], buffer_report, lengthPeer);
-                                }
-                            }
-                        }
-                        else  /* is_receiver_report */
-                        {
-                            u32 tscur = timestamp_get();
-                            if(tscur - peer->report.receiver_tslast < RECEIVER_REPORT_MIN_INTERVAL_MS) { break; }
-                            peer->report.receiver_tslast = tscur;
-
-                            char reportclone[PEER_BUFFER_NODE_BUFLEN];
-
-                            memcpy(reportclone, report, length);
-
-                            u32* pssrc = (u32*) reportclone;
-
-                            if(peer->subscriptionID == p)
-                            { 
-                                for(si = 0; si < length/sizeof(*pssrc); si++)
+                                rtp_report_sender_t *reportPeer = (rtp_report_sender_t*) buffer_report;
+                                int lengthPeer;
+                           
+                                if(peers[p].alive && peers[p].running &&
+                                   peers[p].subscriptionID == peer->id &&
+                                   //peer->id != peers[p].subscriptionID &&
+                                   peers[p].srtp[rtp_idx].inited)
                                 {
-                                    if(pssrc[si] == ssrc_after_peersub[0])
+                                    lengthPeer = length;
+                                    memcpy(reportPeer, report, lengthPeer);
+                                    if(srtp_protect_rtcp(peers[p].srtp[rtp_idx_write].session, reportPeer, &lengthPeer) == srtp_err_status_ok) 
                                     {
-                                        pssrc[si] = htonl(peers[p].rtp_states[0].ssid);
-                                        //printf("updating recvreport ssrc:%lu\n", ntohl(pssrc[si]));
-                                    }
-
-                                    if(pssrc[si] == ssrc_after_peersub[1])
-                                    {
-                                        pssrc[si] = htonl(peers[p].rtp_states[1].ssid);
-                                        //printf("updating recvreport ssrc:%lu\n", ntohl(pssrc[si]));
+                                        peer_send_block(&peers[p], buffer_report, lengthPeer);
                                     }
                                 }
+                            }
+                            else  /* is_receiver_report */
+                            {
+                                u32 tscur = timestamp_get();
+                                if(tscur - peer->report.receiver_tslast < RECEIVER_REPORT_MIN_INTERVAL_MS) { break; }
+                                peer->report.receiver_tslast = tscur;
 
-                                if(peers[p].srtp[rtp_idx_write].inited &&
-                                   srtp_protect_rtcp(peers[p].srtp[rtp_idx_write].session, reportclone, &length) == srtp_err_status_ok)
-                                {
-                                    peer_send_block(&peers[p], (char*) reportclone, length);
+                                char reportclone[PEER_BUFFER_NODE_BUFLEN];
+
+                                memcpy(reportclone, report, length);
+
+                                u32* pssrc = (u32*) reportclone;
+
+                                if(peer->subscriptionID == p)
+                                { 
+                                    for(si = 0; si < length/sizeof(*pssrc); si++)
+                                    {
+                                        if(pssrc[si] == ssrc_after_peersub[0])
+                                        {
+                                            pssrc[si] = htonl(peers[p].rtp_states[0].ssid);
+                                            //printf("updating recvreport ssrc:%lu\n", ntohl(pssrc[si]));
+                                        }
+
+                                        if(pssrc[si] == ssrc_after_peersub[1])
+                                        {
+                                            pssrc[si] = htonl(peers[p].rtp_states[1].ssid);
+                                            //printf("updating recvreport ssrc:%lu\n", ntohl(pssrc[si]));
+                                        }
+                                    }
+
+                                    if(peers[p].srtp[rtp_idx_write].inited &&
+                                        srtp_protect_rtcp(peers[p].srtp[rtp_idx_write].session, reportclone, &length) == srtp_err_status_ok)
+                                    {
+                                        peer_send_block(&peers[p], (char*) reportclone, length);
+                                    }
                                 }
                             }
-                        }
                         }// end for loop
                     }
                     goto peer_again;
@@ -1213,7 +1219,6 @@ connection_worker(void* p)
                     peer_buffer_node_t* cur = NULL;
 
                     peer->srtp[rtp_idx].ts_last_unprotect = ntohl(rtpFrame->hdr.timestamp);
-                    peer_buffer_node_t *rtp_buffer = buffer_node_alloc();
 
                     if(peer->rtp_timestamp_initial[rtp_idx] == 0)
                     {
@@ -1224,69 +1229,26 @@ connection_worker(void* p)
                         peer->rtp_buffers_head[rtp_idx].timestamp = timestamp_in;
                     }
 
-                    //cur = peer_buffer_node_list_get_tail(&(peer->rtp_buffers_head[rtp_idx]));
-
-                    if(rtp_buffer && srtp_len > 0 && srtp_len < PEER_BUFFER_NODE_BUFLEN)
-                    {
-                        rtp_buffer->id = rtp_idx;
-                        rtp_buffer->timestamp = timestamp_in;
-                        if(cur) rtp_buffer->timestamp_delta = rtp_buffer->timestamp - cur->timestamp;
-                        rtp_buffer->timestamp_delta_initial = rtp_buffer->timestamp - peer->rtp_timestamp_initial[rtp_idx];
-                        rtp_buffer->recv_time = buffer_next_recv_time;
-                        if(cur) rtp_buffer->seq = cur->seq+1;
-                        rtp_buffer->reclaimable = /*(rtp_buffer->seq >= PEER_RTP_SEQ_MIN_RECLAIMABLE ? 1: 0)*/ /*rtp_frame_marker(rtpFrame)*/ peer_rtp_buffer_reclaimable(peer, rtp_idx);
-                        rtp_buffer->next = NULL;
-                        rtp_buffer->len = srtp_len;
-                        rtp_buffer->rtp_idx = rtp_idx;
-                        rtp_buffer->type = (rtpFrame->hdr.ver & 0x10)? 1: 0;
-                        rtp_buffer->rtp_payload_type = rtpFrame->hdr.payload_type;
-
-                        memcpy(rtp_buffer->buf, rtpFrame, srtp_len);
-                        
-                        peer->rtp_buffered_total += rtp_buffer->len;
-
-                        if(cur)
-                        {
-                            assert(0, "peer-buffering rtp DEPRECATED\n");
-
-                            if(rtp_buffer->recv_time - cur->recv_time < peer->srtp[rtp_idx].recv_time_avg) peer->srtp[rtp_idx].recv_time_avg--;
-                            else peer->srtp[rtp_idx].recv_time_avg++;
-                            rtp_buffer->recv_time_delta = rtp_buffer->recv_time - cur->recv_time;
-                            peer_buffer_node_list_add(&(peer->rtp_buffers_head[rtp_idx]), rtp_buffer);
-                        }
-                        else
-                        {
-                            free(rtp_buffer);
-                        }
-                    }
-                    else
-                    {
-                        if(rtp_buffer) free(rtp_buffer);
-                    }
-
-                    if(!cur)
-                    {
-                        int p, lengthPeer;
+                    int p, lengthPeer;
                            
-                        for(p = 0; p < MAX_PEERS; p++)
+                    for(p = 0; p < MAX_PEERS; p++)
+                    {
+                        if(peers[p].alive &&
+                           peers[p].subscriptionID == peer->id &&
+                           peers[p].srtp[rtp_idx].inited)
                         {
-                            if(peers[p].alive &&
-                               peers[p].subscriptionID == peer->id &&
-                               peers[p].srtp[rtp_idx].inited)
+                            int rtp_idx_write = rtp_idx + PEER_RTP_CTX_WRITE;
+                            char buf[PEER_BUFFER_NODE_BUFLEN];
+                            rtp_frame_t *rtp_frame_out = (rtp_frame_t*) buf;
+
+                            lengthPeer = srtp_len;
+                            memcpy(rtp_frame_out, rtpFrame, lengthPeer);
+
+                            rtp_frame_out->hdr.seq_src_id = htonl(peers[p].srtp[rtp_idx_write].ssrc);
+
+                            if(srtp_protect(peers[p].srtp[rtp_idx_write].session, rtp_frame_out, &lengthPeer) == srtp_err_status_ok)
                             {
-                                int rtp_idx_write = rtp_idx + PEER_RTP_CTX_WRITE;
-                                char buf[PEER_BUFFER_NODE_BUFLEN];
-                                rtp_frame_t *rtp_frame_out = (rtp_frame_t*) buf;
-
-                                lengthPeer = srtp_len;
-                                memcpy(rtp_frame_out, rtpFrame, lengthPeer);
-
-                                rtp_frame_out->hdr.seq_src_id = htonl(peers[p].srtp[rtp_idx_write].ssrc);
-
-                                if(srtp_protect(peers[p].srtp[rtp_idx_write].session, rtp_frame_out, &lengthPeer) == srtp_err_status_ok)
-                                {
-                                    peer_send_block(&peers[p], (char*) rtp_frame_out, lengthPeer);
-                                }
+                                peer_send_block(&peers[p], (char*) rtp_frame_out, lengthPeer);
                             }
                         }
                     }
@@ -1640,10 +1602,11 @@ int main( int argc, char* argv[] ) {
         
         if(sidx < 0) goto select_timeout;
 
+        /*
         if(src.sin_addr.s_addr != peers[sidx].addr.sin_addr.s_addr ||
            src.sin_port != peers[sidx].addr.sin_port)
         {
-            /* ignore (same peer) */
+            // ignore (same peer)
             printf("%s:%d peer address updated (duplicate STUN cookie)\n", __func__, __LINE__);
             memcpy(&peers[sidx].addr, &src, sizeof(src));
         }
@@ -1652,6 +1615,7 @@ int main( int argc, char* argv[] ) {
             printf("%s:%d unhandled length\n");
             goto select_timeout;
         }
+        */
 
         node_inbuf->recv_time = time_ms;
 
@@ -1705,7 +1669,7 @@ int main( int argc, char* argv[] ) {
                 {
                     if(peers[i].in_buffers_underrun > 0 && peers[i].thread_inited)
                     {
-                        peers[i].in_buffers_underrun = 0;           
+                        peers[i].in_buffers_underrun -= 1;
                         repeat = 0;
                     }
                 }
@@ -1792,8 +1756,8 @@ int main( int argc, char* argv[] ) {
                 }
 
                 // send a keepalive packet to keep UDP ports open
-                char keepalive[] = {0};
-                int r = sendto(peers[i].sock, keepalive, 1, 0, (struct sockaddr*)&peers[i].addr, sizeof(peers[i].addr));
+                //char keepalive[] = {0};
+                //int r = sendto(peers[i].sock, keepalive, 1, 0, (struct sockaddr*)&peers[i].addr, sizeof(peers[i].addr));
             }
 
             if(peers[i].restart_needed ||

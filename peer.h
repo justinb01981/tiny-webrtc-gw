@@ -17,7 +17,7 @@
 #define PEER_THREAD_LOCK(x) pthread_mutex_lock(&((x)->mutex))
 #define PEER_THREAD_UNLOCK(x) pthread_mutex_unlock(&((x)->mutex))
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&((x)->mcond), &((x->mutex)))
-#define PEER_BUFFER_NODE_BUFLEN 4096
+#define PEER_BUFFER_NODE_BUFLEN 2048
 #define OFFER_SDP_SIZE 4096
 
 const char* PEER_DYNAMIC_JS_EMPTY = "/* dynamic js */\n"
