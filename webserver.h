@@ -845,7 +845,7 @@ webserver_worker(void* p)
                     {
                         size_t jslen = sizeof(g_chatlog)*4;
                         char* js = malloc(jslen);
-                        if(!js) return;
+                        if(!js) return NULL;
                         char* ptr = g_chatlog;
                         char* wptr = js;
                         const char* eoltag = "\n";
