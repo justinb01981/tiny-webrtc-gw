@@ -3,6 +3,7 @@
 
 #include "peer.h"
 #include "thread.h"
+#include <sys/errno.h>
 
 /* include websockets */
 #define sha1 sha1_
@@ -414,7 +415,7 @@ websocket_worker(void* p)
 }
 
 
-static void*
+void*
 webserver_worker(void* p)
 {
     int r;
@@ -481,7 +482,7 @@ webserver_worker(void* p)
         {
             char recvbuf[buf_size];
 
-            //printf("%s:%d connection (%s:%d)\n", __func__, __LINE__, inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
+            printf("%s:%d connection thread (%s:%d)\n", __func__, __LINE__, inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
 
             memset(recvbuf, 0, sizeof(recvbuf));
 
@@ -1069,19 +1070,19 @@ void*
 webserver_accept_worker(void* p)
 {    
     int backlog = 5;
-    pthread_t thread;
+    pthread_t thread = 0;
+    int r;
 
     thread_init();
 
     int sock_web = bindsocket(webserver.inip, strToInt(get_config("webserver_port=")), 1);
 
-    printf("%s:%d starting (sock_web=%d)\n", __func__, __LINE__, sock_web);
 
     if(sock_web >= 0)
     {
-        int r = listen(sock_web, backlog);
+        r = listen(sock_web, backlog);
     }
-    
+
     while(webserver.running && sock_web >= 0)
     {
         struct sockaddr sa;
@@ -1090,8 +1091,8 @@ webserver_accept_worker(void* p)
         int flags = 0;
         pthread_attr_t thread_attrs;
 
-        memset(&thread_attrs, 0, sizeof(thread_attrs));
-        pthread_attr_setdetachstate(&thread_attrs, 1);
+        pthread_attr_init(&thread_attrs);
+        pthread_attr_setdetachstate(&thread_attrs, PTHREAD_CREATE_DETACHED);
 
         memset(&sa, 0, sizeof(sa));
         sa_len = sizeof(sa);
@@ -1104,13 +1105,15 @@ webserver_accept_worker(void* p)
             {
                 args->ws_thread = 0;
                 args->sock = sock;
-
-                pthread_create(&thread, &thread_attrs, webserver_worker, args);
+                if(pthread_create(&thread, &thread_attrs, webserver_worker, args) != 0)
+                {
+                    printf("creating thread failed (errno=%s)\n", strerror(errno));
+                }
             }
         }
     }
 
-    printf("%s:%d exiting\n", __func__, __LINE__);
+    //printf("%s:%d exiting\n", __func__, __LINE__);
 }
 
 
