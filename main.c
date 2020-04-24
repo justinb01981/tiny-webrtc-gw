@@ -74,7 +74,10 @@
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
 #define PEER_CLEANUP_INTERVAL 100000
 
-#define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY 64
+#define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY 0
+
+// HACK: totally arbitrary, based on my testing with AWS small instance
+#define PEER_SCHEDULE_DIV (1)
 
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS+1];
@@ -1364,6 +1367,7 @@ int main( int argc, char* argv[] ) {
     struct sockaddr_in dst;
     struct sockaddr_in ret;
     unsigned long long select_counter = 0;
+    char strbuf[2048];
 
     DTLS_init();
 
@@ -1415,7 +1419,6 @@ int main( int argc, char* argv[] ) {
     int timedout_last = 0;
     while(!terminated)
     {
-        //char buffer[PEER_BUFFER_NODE_BUFLEN];
         unsigned int size;
         int recv_flags = 0;
         struct timeval te;
@@ -1661,16 +1664,23 @@ int main( int argc, char* argv[] ) {
                 }
 
                 int repeat = 1;
-                if(peers[i].recv_only)
+                if(peers[i].schedule_counter % PEER_SCHEDULE_DIV != 0)
                 {
-                    repeat = 1;
+                    repeat = 0;
                 }
-                else
+                else 
                 {
-                    if(peers[i].in_buffers_underrun > 0 && peers[i].thread_inited)
+                    if(peers[i].recv_only)
                     {
-                        peers[i].in_buffers_underrun -= 1;
-                        repeat = 0;
+                        repeat = 1;
+                    }
+                    else
+                    {
+                        if(peers[i].in_buffers_underrun > 0 && peers[i].thread_inited)
+                        {
+                            peers[i].in_buffers_underrun -= 1;
+                            repeat = 0;
+                        }
                     }
                 }
                 
@@ -1683,6 +1693,8 @@ int main( int argc, char* argv[] ) {
 
                     repeat--;
                 }
+
+                peers[i].schedule_counter += 1;
             }
 
             if(peers[i].bufs.out_len > 0)
@@ -1766,8 +1778,8 @@ int main( int argc, char* argv[] ) {
             {
                 printf("%s:%d timeout/reclaim peer %d/n", __func__, __LINE__, i);
 
-                sprintf(buffer, "%s ", peers[i].name);
-                chatlog_append(buffer);
+                sprintf(strbuf, "%s ", peers[i].name);
+                chatlog_append(strbuf);
                
                 /* HACK: lock out all reader-threads */
                 peers[i].cleanup_in_progress = 1;
@@ -1854,8 +1866,8 @@ int main( int argc, char* argv[] ) {
 
                 printf("%s:%d reclaim peer DONE (alive=%d)\n", __func__, __LINE__, peers[i].alive);
                 
-                sprintf(buffer, "(peer[%d]) has left\n(timed out)\n", i);
-                chatlog_append(buffer);
+                sprintf(strbuf, "(peer[%d]) has left\n(timed out)\n", i);
+                chatlog_append(strbuf);
             }
 
             i++;
