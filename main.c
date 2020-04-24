@@ -638,7 +638,7 @@ connection_worker(void* p)
         PEER_THREAD_UNLOCK(peer);
     }
     
-    if(!peer->alive) return;
+    if(!peer->alive) return NULL;
     
     printf("%s:%d sdp answer:\n %s\nsdp offer:\n%s\n", __func__, __LINE__, peer->sdp.answer, peer->sdp.offer);
 
@@ -1345,6 +1345,7 @@ connection_worker(void* p)
     connection_worker_exit:
     peer->running = 0;
     printf("%s:%d connection_worker exiting\n", __FILE__, __LINE__);
+    return NULL;
 }
 
 void bogus_srtp_event_handler(struct srtp_event_data_t* data)
