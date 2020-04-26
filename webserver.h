@@ -482,7 +482,7 @@ webserver_worker(void* p)
         {
             char recvbuf[buf_size];
 
-            printf("%s:%d connection thread (%s:%d)\n", __func__, __LINE__, inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
+            //printf("%s:%d connection thread (%s:%d)\n", __func__, __LINE__, inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
 
             memset(recvbuf, 0, sizeof(recvbuf));
 
@@ -711,7 +711,7 @@ webserver_worker(void* p)
                             chatlog_append("logged out:"); chatlog_append(peer_found_via_cookie->name); chatlog_append("\n");
 
                             peer_logout->restart_needed = 1;
-                            while(!peer_logout->restart_done) usleep(SPIN_WAIT_USEC);
+                            while(!peer_logout->restart_done) usleep(SPIN_WAIT_USEC); // TODO: bug here
                             peer_logout->alive = 0;
                             peer_logout->restart_needed = 0;
                             peer_init(peer_logout, PEER_INDEX(peer_logout));

@@ -236,7 +236,7 @@ pktType(unsigned char* buf, unsigned int len)
         return PKT_TYPE_SRTP;
     }
 
-    HD(buf, len);
+    //HD(buf, len);
 
     return PKT_TYPE_UNKNOWN;
 }
