@@ -72,9 +72,9 @@
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
-#define PEER_CLEANUP_INTERVAL 1000000
+#define PEER_CLEANUP_INTERVAL 320000
 
-#define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY 65536
+#define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY (PEER_CLEANUP_INTERVAL/32)
 
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS+1];
@@ -804,13 +804,9 @@ connection_worker(void* p)
         if(!buffer_next)
         {
             peer->stats.stat[3] += 1;
-            if(!peer->in_buffers_underrun)
+            if(!peer->in_buffers_underrun && peer->dtls.connected && peer->srtp_inited)
             {
-                if(peer->dtls.connected && peer->srtp_inited)
-                {
-                    peer->in_buffers_underrun = PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY;
-		    usleep(10000); // HACK: remove this experiment
-                }
+                peer->in_buffers_underrun = PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY;
             }
             goto peer_again; 
         }
