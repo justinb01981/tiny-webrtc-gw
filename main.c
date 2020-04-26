@@ -72,7 +72,7 @@
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
-#define PEER_CLEANUP_INTERVAL 320000
+#define PEER_CLEANUP_INTERVAL /*320000*/ 3560000
 
 #define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY (PEER_CLEANUP_INTERVAL/32)
 
@@ -1704,9 +1704,16 @@ int main( int argc, char* argv[] ) {
                 peers[i].bufs.out_len = 0;
             }
 
-            if(select_counter - peers[i].time_cleanup_last >= PEER_CLEANUP_INTERVAL && peers[i].alive && !peers[i].in_buffers_underrun)
+            if(select_counter - peers[i].time_cleanup_last >= PEER_CLEANUP_INTERVAL && peers[i].alive)
             {
                 peers[i].stats.stat[5] += 1;
+
+                /* if the thread is locked because of in_buffers_underrun throttling we are holding the lock */
+                if(peers[i].in_buffers_underrun)
+                {
+                    peers[i].in_buffers_underrun = 0;
+                    PEER_UNLOCK(i);
+                }
 
                 /* HACK: lock out all reader-threads */
                 peers[i].cleanup_in_progress = 1;
@@ -1783,7 +1790,14 @@ int main( int argc, char* argv[] ) {
 
                 sprintf(strbuf, "%s ", peers[i].name);
                 chatlog_append(strbuf);
-               
+
+                /* if the thread is locked because of in_buffers_underrun throttling we are holding the lock */
+                if(peers[i].in_buffers_underrun)
+                {
+                    peers[i].in_buffers_underrun = 0;
+                    PEER_UNLOCK(i);
+                }
+
                 // HACK: lock out all reader-threads
                 peers[i].cleanup_in_progress = 1;
                 while(peers[i].running && !peers[i].thread_paused)
