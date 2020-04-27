@@ -325,7 +325,7 @@ websocket_worker(void* p)
 
                         // mark -- wait for peer to be initialized
                         peer->alive = 1;
-			peer->restart_done = 0;
+                        peer->restart_done = 0;
                         peer->restart_needed = 1;
 
                         while(!peer->restart_done) usleep(SPIN_WAIT_USEC);
@@ -957,7 +957,7 @@ webserver_worker(void* p)
                         peers[sidx].time_pkt_last = time(NULL);
                         // moved setting .alive to below to avoid a race
                         //peers[sidx].alive = 1;
-			peers[sidx].restart_done = 0;
+                        peers[sidx].restart_done = 0;
                         peers[sidx].restart_needed = 1;
 
                         while(!peers[sidx].restart_done) usleep(SPIN_WAIT_USEC);
@@ -975,8 +975,8 @@ webserver_worker(void* p)
 
                         printf("peer restarted (stun_ice.user-name answer/offer: %s:%s)\n", peers[sidx].stun_ice.ufrag_answer, peers[sidx].stun_ice.ufrag_offer);
                         
-                        peers[sidx].restart_needed = 0;
                         peers[sidx].alive = 1;
+                        peers[sidx].restart_needed = 0;
                         
                         free(sdp);
 

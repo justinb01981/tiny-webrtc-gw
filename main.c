@@ -72,9 +72,9 @@
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
-#define PEER_CLEANUP_INTERVAL /*320000*/ 3560000
+#define PEER_CLEANUP_INTERVAL /*320000*/ /*3560000*/ 160000
 
-#define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY (PEER_CLEANUP_INTERVAL/32)
+#define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY (PEER_CLEANUP_INTERVAL/16)
 
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS+1];
@@ -773,21 +773,6 @@ connection_worker(void* p)
 
         buffer_count = 0;
 
-        /*
-        if(buffer_count > buffer_count_max || time(NULL) - peer->time_last_run >= 2)
-        {
-            printf("%s:%d flushing\n", __func__, __LINE__);
-            // delayed, flush
-            while(peer->in_buffers_head.next)
-            {
-                buffer_next = peer->in_buffers_head.next;
-                peer->in_buffers_head.next = buffer_next->next;
-                free(buffer_next);
-                buffer_next = NULL;
-            }
-        }
-        */
-
         peer->time_last_run = wall_time;
 
         if(!buffer_next)
@@ -811,43 +796,7 @@ connection_worker(void* p)
             goto peer_again; 
         }
 
-        /*
-        while(buffer_next->next && buffer_next->consumed) buffer_next = buffer_next->next;       
-        if(!peer->in_buffers_head.next)
-        {
-            peer->stats.stat[3] += 1;
-            backlog_counter = 0;
-            if(!peer->in_buffers_underrun)
-            {
-                if(peer->dtls.connected && peer->srtp_inited)
-                {
-                    peer->in_buffers_underrun = PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY;
-                }
-            }
-            goto peer_again;
-        }
-
-        buffer_next = peer->in_buffers_head.next;
-        while(buffer_next->next && buffer_next->consumed) buffer_next = buffer_next->next;
-
-        if(buffer_next->consumed)
-        { 
-            peer->stats.stat[4] += 1;
-            backlog_counter = 0;
-            if(!peer->in_buffers_underrun)
-            if(peer->dtls.connected && peer->srtp_inited)
-            {
-                peer->in_buffers_underrun = PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY;
-            }
-            goto peer_again;
-        }
-        */
-
         peer->stats.stat[2] += 1;
-
-        // hack to avoid a potential race condition on the last buffer
-        // when writing to it here (marking consumed=1)
-        //if(!buffer_next->next) goto peer_again;
 
         char *buffer = buffer_next->buf;
         char buffer_last[PEER_BUFFER_NODE_BUFLEN];
@@ -1386,7 +1335,7 @@ int main( int argc, char* argv[] ) {
     srtp_init();
     srtp_install_event_handler(bogus_srtp_event_handler);
     
-    sdp_offer_table.next = 1;
+    sdp_offer_table.next = 0;
 
     //strcpy(udpserver.inip, get_config("udpserver_addr="));
     strcpy(udpserver.inip, "0.0.0.0"); // for now bind to all interfaces
@@ -1418,7 +1367,7 @@ int main( int argc, char* argv[] ) {
     {
         unsigned int size;
         int recv_flags = 0;
-        struct timeval te;
+        //struct timeval te;
         unsigned long long time_ms = get_time_ms();
         wall_time = time(NULL);
 
@@ -1426,13 +1375,14 @@ int main( int argc, char* argv[] ) {
         peer_buffer_node_t* node_inbuf = buffer_node_alloc();
         if(!node_inbuf)
         {
+            // out of memory!
             usleep(100000);
             continue;
         }
 
         char* buffer = node_inbuf->buf;
         
-        gettimeofday(&te, NULL); // get current time
+        //gettimeofday(&te, NULL); // get current time
         
         static time_t time_last_stats = 0;
         
@@ -1709,7 +1659,7 @@ int main( int argc, char* argv[] ) {
                 peers[i].stats.stat[5] += 1;
 
                 /* if the thread is locked because of in_buffers_underrun throttling we are holding the lock */
-                if(peers[i].in_buffers_underrun)
+                if(peers[i].in_buffers_underrun && peers[i].in_buffers_underrun != PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY)
                 {
                     peers[i].in_buffers_underrun = 0;
                     PEER_UNLOCK(i);
@@ -1730,8 +1680,7 @@ int main( int argc, char* argv[] ) {
                 while(1)
                 {
                     peer_buffer_node_t *curfree = peers[i].in_buffers_head.next;
-                    if(!curfree) break;
-                    if(!curfree->consumed) break;
+                    if(!curfree || !curfree->consumed) break;
 
                     peer_buffer_node_list_remove(&peers[i].in_buffers_head, curfree);
                     free(curfree);
@@ -1784,7 +1733,7 @@ int main( int argc, char* argv[] ) {
 
             if(peers[i].restart_needed ||
                (peers[i].alive &&
-                time(NULL) - peers[i].time_pkt_last > peers[i].timeout_sec))
+                wall_time - peers[i].time_pkt_last > peers[i].timeout_sec))
             {
                 printf("%s:%d timeout/reclaim peer %d/n", __func__, __LINE__, i);
 
@@ -1792,7 +1741,7 @@ int main( int argc, char* argv[] ) {
                 chatlog_append(strbuf);
 
                 /* if the thread is locked because of in_buffers_underrun throttling we are holding the lock */
-                if(peers[i].in_buffers_underrun)
+                if(peers[i].in_buffers_underrun && peers[i].in_buffers_underrun != PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY)
                 {
                     peers[i].in_buffers_underrun = 0;
                     PEER_UNLOCK(i);
