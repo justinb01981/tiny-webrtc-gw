@@ -17,16 +17,16 @@
 
 
 
-.type	gcm_gmult_ssse3, @function
-.globl	gcm_gmult_ssse3
-.hidden gcm_gmult_ssse3
-.align	16
-gcm_gmult_ssse3:
-.cfi_startproc	
-.Lgmult_seh_begin:
+
+.globl	_gcm_gmult_ssse3
+.private_extern _gcm_gmult_ssse3
+.p2align	4
+_gcm_gmult_ssse3:
+
+L$gmult_seh_begin:
 	movdqu	(%rdi),%xmm0
-	movdqa	.Lreverse_bytes(%rip),%xmm10
-	movdqa	.Llow4_mask(%rip),%xmm2
+	movdqa	L$reverse_bytes(%rip),%xmm10
+	movdqa	L$low4_mask(%rip),%xmm2
 
 
 .byte	102,65,15,56,0,194
@@ -43,7 +43,7 @@ gcm_gmult_ssse3:
 	pxor	%xmm2,%xmm2
 	pxor	%xmm3,%xmm3
 	movq	$5,%rax
-.Loop_row_1:
+L$oop_row_1:
 	movdqa	(%rsi),%xmm4
 	leaq	16(%rsi),%rsi
 
@@ -78,7 +78,7 @@ gcm_gmult_ssse3:
 	pxor	%xmm4,%xmm2
 
 	subq	$1,%rax
-	jnz	.Loop_row_1
+	jnz	L$oop_row_1
 
 
 
@@ -91,7 +91,7 @@ gcm_gmult_ssse3:
 	pxor	%xmm3,%xmm2
 	pxor	%xmm3,%xmm3
 	movq	$5,%rax
-.Loop_row_2:
+L$oop_row_2:
 	movdqa	(%rsi),%xmm4
 	leaq	16(%rsi),%rsi
 
@@ -126,7 +126,7 @@ gcm_gmult_ssse3:
 	pxor	%xmm4,%xmm2
 
 	subq	$1,%rax
-	jnz	.Loop_row_2
+	jnz	L$oop_row_2
 
 
 
@@ -139,7 +139,7 @@ gcm_gmult_ssse3:
 	pxor	%xmm3,%xmm2
 	pxor	%xmm3,%xmm3
 	movq	$6,%rax
-.Loop_row_3:
+L$oop_row_3:
 	movdqa	(%rsi),%xmm4
 	leaq	16(%rsi),%rsi
 
@@ -174,7 +174,7 @@ gcm_gmult_ssse3:
 	pxor	%xmm4,%xmm2
 
 	subq	$1,%rax
-	jnz	.Loop_row_3
+	jnz	L$oop_row_3
 
 
 
@@ -199,24 +199,24 @@ gcm_gmult_ssse3:
 	pxor	%xmm5,%xmm5
 	pxor	%xmm6,%xmm6
 	.byte	0xf3,0xc3
-.Lgmult_seh_end:
-.cfi_endproc	
-.size	gcm_gmult_ssse3,.-gcm_gmult_ssse3
+L$gmult_seh_end:
 
 
 
 
 
-.type	gcm_ghash_ssse3, @function
-.globl	gcm_ghash_ssse3
-.hidden gcm_ghash_ssse3
-.align	16
-gcm_ghash_ssse3:
-.Lghash_seh_begin:
-.cfi_startproc	
+
+
+
+.globl	_gcm_ghash_ssse3
+.private_extern _gcm_ghash_ssse3
+.p2align	4
+_gcm_ghash_ssse3:
+L$ghash_seh_begin:
+
 	movdqu	(%rdi),%xmm0
-	movdqa	.Lreverse_bytes(%rip),%xmm10
-	movdqa	.Llow4_mask(%rip),%xmm11
+	movdqa	L$reverse_bytes(%rip),%xmm10
+	movdqa	L$low4_mask(%rip),%xmm11
 
 
 	andq	$-16,%rcx
@@ -227,7 +227,7 @@ gcm_ghash_ssse3:
 
 
 	pxor	%xmm3,%xmm3
-.Loop_ghash:
+L$oop_ghash:
 
 	movdqu	(%rdx),%xmm1
 .byte	102,65,15,56,0,202
@@ -245,7 +245,7 @@ gcm_ghash_ssse3:
 	pxor	%xmm2,%xmm2
 
 	movq	$5,%rax
-.Loop_row_4:
+L$oop_row_4:
 	movdqa	(%rsi),%xmm4
 	leaq	16(%rsi),%rsi
 
@@ -280,7 +280,7 @@ gcm_ghash_ssse3:
 	pxor	%xmm4,%xmm2
 
 	subq	$1,%rax
-	jnz	.Loop_row_4
+	jnz	L$oop_row_4
 
 
 
@@ -293,7 +293,7 @@ gcm_ghash_ssse3:
 	pxor	%xmm3,%xmm2
 	pxor	%xmm3,%xmm3
 	movq	$5,%rax
-.Loop_row_5:
+L$oop_row_5:
 	movdqa	(%rsi),%xmm4
 	leaq	16(%rsi),%rsi
 
@@ -328,7 +328,7 @@ gcm_ghash_ssse3:
 	pxor	%xmm4,%xmm2
 
 	subq	$1,%rax
-	jnz	.Loop_row_5
+	jnz	L$oop_row_5
 
 
 
@@ -341,7 +341,7 @@ gcm_ghash_ssse3:
 	pxor	%xmm3,%xmm2
 	pxor	%xmm3,%xmm3
 	movq	$6,%rax
-.Loop_row_6:
+L$oop_row_6:
 	movdqa	(%rsi),%xmm4
 	leaq	16(%rsi),%rsi
 
@@ -376,7 +376,7 @@ gcm_ghash_ssse3:
 	pxor	%xmm4,%xmm2
 
 	subq	$1,%rax
-	jnz	.Loop_row_6
+	jnz	L$oop_row_6
 
 
 
@@ -396,7 +396,7 @@ gcm_ghash_ssse3:
 
 	leaq	16(%rdx),%rdx
 	subq	$16,%rcx
-	jnz	.Loop_ghash
+	jnz	L$oop_ghash
 
 
 .byte	102,65,15,56,0,194
@@ -411,17 +411,16 @@ gcm_ghash_ssse3:
 	pxor	%xmm5,%xmm5
 	pxor	%xmm6,%xmm6
 	.byte	0xf3,0xc3
-.Lghash_seh_end:
-.cfi_endproc	
-.size	gcm_ghash_ssse3,.-gcm_ghash_ssse3
-
-.align	16
+L$ghash_seh_end:
 
 
-.Lreverse_bytes:
+
+.p2align	4
+
+
+L$reverse_bytes:
 .byte	15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
 
-.Llow4_mask:
+L$low4_mask:
 .quad	0x0f0f0f0f0f0f0f0f, 0x0f0f0f0f0f0f0f0f
 #endif
-.section	.note.GNU-stack,"",@progbits

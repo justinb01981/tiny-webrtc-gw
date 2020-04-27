@@ -12,29 +12,24 @@
 #include <boringssl_prefix_symbols_asm.h>
 #endif
 .text	
-.align	16
+.p2align	4
 
-.globl	md5_block_asm_data_order
-.hidden md5_block_asm_data_order
-.type	md5_block_asm_data_order,@function
-md5_block_asm_data_order:
-.cfi_startproc	
+.globl	_md5_block_asm_data_order
+.private_extern _md5_block_asm_data_order
+
+_md5_block_asm_data_order:
+
 	pushq	%rbp
-.cfi_adjust_cfa_offset	8
-.cfi_offset	rbp,-16
+
 	pushq	%rbx
-.cfi_adjust_cfa_offset	8
-.cfi_offset	rbx,-24
+
 	pushq	%r12
-.cfi_adjust_cfa_offset	8
-.cfi_offset	r12,-32
+
 	pushq	%r14
-.cfi_adjust_cfa_offset	8
-.cfi_offset	r14,-40
+
 	pushq	%r15
-.cfi_adjust_cfa_offset	8
-.cfi_offset	r15,-48
-.Lprologue:
+
+L$prologue:
 
 
 
@@ -54,10 +49,10 @@ md5_block_asm_data_order:
 
 
 	cmpq	%rdi,%rsi
-	je	.Lend
+	je	L$end
 
 
-.Lloop:
+L$loop:
 	movl	%eax,%r8d
 	movl	%ebx,%r9d
 	movl	%ecx,%r14d
@@ -673,30 +668,29 @@ md5_block_asm_data_order:
 
 	addq	$64,%rsi
 	cmpq	%rdi,%rsi
-	jb	.Lloop
+	jb	L$loop
 
 
-.Lend:
+L$end:
 	movl	%eax,0(%rbp)
 	movl	%ebx,4(%rbp)
 	movl	%ecx,8(%rbp)
 	movl	%edx,12(%rbp)
 
 	movq	(%rsp),%r15
-.cfi_restore	r15
+
 	movq	8(%rsp),%r14
-.cfi_restore	r14
+
 	movq	16(%rsp),%r12
-.cfi_restore	r12
+
 	movq	24(%rsp),%rbx
-.cfi_restore	rbx
+
 	movq	32(%rsp),%rbp
-.cfi_restore	rbp
+
 	addq	$40,%rsp
-.cfi_adjust_cfa_offset	-40
-.Lepilogue:
+
+L$epilogue:
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	md5_block_asm_data_order,.-md5_block_asm_data_order
+
+
 #endif
-.section	.note.GNU-stack,"",@progbits

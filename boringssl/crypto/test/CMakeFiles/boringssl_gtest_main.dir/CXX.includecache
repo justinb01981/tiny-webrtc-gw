@@ -1,4 +1,4 @@
-#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
 
 #IncludeRegexScan: ^.*$
 
@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/internal.h
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 openssl/ex_data.h
 -
 openssl/stack.h
@@ -28,7 +28,7 @@ windows.h
 stdlib.h
 -
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/test/abi_test.h
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/test/abi_test.h
 gtest/gtest.h
 -
 string
@@ -40,9 +40,9 @@ vector
 openssl/base.h
 -
 ../internal.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/internal.h
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/test/gtest_main.cc
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/test/gtest_main.cc
 stdio.h
 -
 string.h
@@ -54,15 +54,15 @@ openssl/cpu.h
 openssl/rand.h
 -
 abi_test.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/test/abi_test.h
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/test/abi_test.h
 gtest_main.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/test/gtest_main.h
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/test/gtest_main.h
 ../internal.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/internal.h
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 openssl/arm_arch.h
 -
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/test/gtest_main.h
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/test/gtest_main.h
 stdio.h
 -
 stdlib.h

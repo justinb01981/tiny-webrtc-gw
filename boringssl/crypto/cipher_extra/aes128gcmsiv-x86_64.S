@@ -13,7 +13,7 @@
 #endif
 .data	
 
-.align	16
+.p2align	4
 one:
 .quad	1,0
 two:
@@ -46,10 +46,10 @@ con3:
 and_mask:
 .long	0,0xffffffff, 0xffffffff, 0xffffffff
 .text	
-.type	GFMUL,@function
-.align	16
+
+.p2align	4
 GFMUL:
-.cfi_startproc	
+
 	vpclmulqdq	$0x00,%xmm1,%xmm0,%xmm2
 	vpclmulqdq	$0x11,%xmm1,%xmm0,%xmm5
 	vpclmulqdq	$0x10,%xmm1,%xmm0,%xmm3
@@ -70,14 +70,14 @@ GFMUL:
 
 	vpxor	%xmm5,%xmm2,%xmm0
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	GFMUL, .-GFMUL
-.globl	aesgcmsiv_htable_init
-.hidden aesgcmsiv_htable_init
-.type	aesgcmsiv_htable_init,@function
-.align	16
-aesgcmsiv_htable_init:
-.cfi_startproc	
+
+
+.globl	_aesgcmsiv_htable_init
+.private_extern _aesgcmsiv_htable_init
+
+.p2align	4
+_aesgcmsiv_htable_init:
+
 	vmovdqa	(%rsi),%xmm0
 	vmovdqa	%xmm0,%xmm1
 	vmovdqa	%xmm0,(%rdi)
@@ -96,14 +96,14 @@ aesgcmsiv_htable_init:
 	call	GFMUL
 	vmovdqa	%xmm0,112(%rdi)
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	aesgcmsiv_htable_init, .-aesgcmsiv_htable_init
-.globl	aesgcmsiv_htable6_init
-.hidden aesgcmsiv_htable6_init
-.type	aesgcmsiv_htable6_init,@function
-.align	16
-aesgcmsiv_htable6_init:
-.cfi_startproc	
+
+
+.globl	_aesgcmsiv_htable6_init
+.private_extern _aesgcmsiv_htable6_init
+
+.p2align	4
+_aesgcmsiv_htable6_init:
+
 	vmovdqa	(%rsi),%xmm0
 	vmovdqa	%xmm0,%xmm1
 	vmovdqa	%xmm0,(%rdi)
@@ -118,19 +118,19 @@ aesgcmsiv_htable6_init:
 	call	GFMUL
 	vmovdqa	%xmm0,80(%rdi)
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	aesgcmsiv_htable6_init, .-aesgcmsiv_htable6_init
-.globl	aesgcmsiv_htable_polyval
-.hidden aesgcmsiv_htable_polyval
-.type	aesgcmsiv_htable_polyval,@function
-.align	16
-aesgcmsiv_htable_polyval:
-.cfi_startproc	
+
+
+.globl	_aesgcmsiv_htable_polyval
+.private_extern _aesgcmsiv_htable_polyval
+
+.p2align	4
+_aesgcmsiv_htable_polyval:
+
 	testq	%rdx,%rdx
-	jnz	.Lhtable_polyval_start
+	jnz	L$htable_polyval_start
 	.byte	0xf3,0xc3
 
-.Lhtable_polyval_start:
+L$htable_polyval_start:
 	vzeroall
 
 
@@ -138,7 +138,7 @@ aesgcmsiv_htable_polyval:
 	movq	%rdx,%r11
 	andq	$127,%r11
 
-	jz	.Lhtable_polyval_no_prefix
+	jz	L$htable_polyval_no_prefix
 
 	vpxor	%xmm9,%xmm9,%xmm9
 	vmovdqa	(%rcx),%xmm1
@@ -158,12 +158,12 @@ aesgcmsiv_htable_polyval:
 
 	leaq	16(%rsi),%rsi
 	testq	%r11,%r11
-	jnz	.Lhtable_polyval_prefix_loop
-	jmp	.Lhtable_polyval_prefix_complete
+	jnz	L$htable_polyval_prefix_loop
+	jmp	L$htable_polyval_prefix_complete
 
 
-.align	64
-.Lhtable_polyval_prefix_loop:
+.p2align	6
+L$htable_polyval_prefix_loop:
 	subq	$16,%r11
 
 	vmovdqu	(%rsi),%xmm0
@@ -181,18 +181,18 @@ aesgcmsiv_htable_polyval:
 
 	leaq	16(%rsi),%rsi
 
-	jnz	.Lhtable_polyval_prefix_loop
+	jnz	L$htable_polyval_prefix_loop
 
-.Lhtable_polyval_prefix_complete:
+L$htable_polyval_prefix_complete:
 	vpsrldq	$8,%xmm5,%xmm6
 	vpslldq	$8,%xmm5,%xmm5
 
 	vpxor	%xmm6,%xmm4,%xmm9
 	vpxor	%xmm5,%xmm3,%xmm1
 
-	jmp	.Lhtable_polyval_main_loop
+	jmp	L$htable_polyval_main_loop
 
-.Lhtable_polyval_no_prefix:
+L$htable_polyval_no_prefix:
 
 
 
@@ -200,10 +200,10 @@ aesgcmsiv_htable_polyval:
 	vpxor	%xmm1,%xmm1,%xmm1
 	vmovdqa	(%rcx),%xmm9
 
-.align	64
-.Lhtable_polyval_main_loop:
+.p2align	6
+L$htable_polyval_main_loop:
 	subq	$0x80,%rdx
-	jb	.Lhtable_polyval_out
+	jb	L$htable_polyval_out
 
 	vmovdqu	112(%rsi),%xmm0
 
@@ -318,11 +318,11 @@ aesgcmsiv_htable_polyval:
 	vpxor	%xmm5,%xmm3,%xmm1
 
 	leaq	128(%rsi),%rsi
-	jmp	.Lhtable_polyval_main_loop
+	jmp	L$htable_polyval_main_loop
 
 
 
-.Lhtable_polyval_out:
+L$htable_polyval_out:
 	vpclmulqdq	$0x10,poly(%rip),%xmm1,%xmm6
 	vpalignr	$8,%xmm1,%xmm1,%xmm1
 	vpxor	%xmm6,%xmm1,%xmm1
@@ -335,19 +335,19 @@ aesgcmsiv_htable_polyval:
 	vmovdqu	%xmm1,(%rcx)
 	vzeroupper
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	aesgcmsiv_htable_polyval,.-aesgcmsiv_htable_polyval
-.globl	aesgcmsiv_polyval_horner
-.hidden aesgcmsiv_polyval_horner
-.type	aesgcmsiv_polyval_horner,@function
-.align	16
-aesgcmsiv_polyval_horner:
-.cfi_startproc	
+
+
+.globl	_aesgcmsiv_polyval_horner
+.private_extern _aesgcmsiv_polyval_horner
+
+.p2align	4
+_aesgcmsiv_polyval_horner:
+
 	testq	%rcx,%rcx
-	jnz	.Lpolyval_horner_start
+	jnz	L$polyval_horner_start
 	.byte	0xf3,0xc3
 
-.Lpolyval_horner_start:
+L$polyval_horner_start:
 
 
 
@@ -357,25 +357,25 @@ aesgcmsiv_polyval_horner:
 	vmovdqa	(%rsi),%xmm1
 	vmovdqa	(%rdi),%xmm0
 
-.Lpolyval_horner_loop:
+L$polyval_horner_loop:
 	vpxor	(%rdx,%r10,1),%xmm0,%xmm0
 	call	GFMUL
 
 	addq	$16,%r10
 	cmpq	%r10,%rcx
-	jne	.Lpolyval_horner_loop
+	jne	L$polyval_horner_loop
 
 
 	vmovdqa	%xmm0,(%rdi)
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	aesgcmsiv_polyval_horner,.-aesgcmsiv_polyval_horner
-.globl	aes128gcmsiv_aes_ks
-.hidden aes128gcmsiv_aes_ks
-.type	aes128gcmsiv_aes_ks,@function
-.align	16
-aes128gcmsiv_aes_ks:
-.cfi_startproc	
+
+
+.globl	_aes128gcmsiv_aes_ks
+.private_extern _aes128gcmsiv_aes_ks
+
+.p2align	4
+_aes128gcmsiv_aes_ks:
+
 	vmovdqu	(%rdi),%xmm1
 	vmovdqa	%xmm1,(%rsi)
 
@@ -384,7 +384,7 @@ aes128gcmsiv_aes_ks:
 
 	movq	$8,%rax
 
-.Lks128_loop:
+L$ks128_loop:
 	addq	$16,%rsi
 	subq	$1,%rax
 	vpshufb	%xmm15,%xmm1,%xmm2
@@ -398,7 +398,7 @@ aes128gcmsiv_aes_ks:
 	vpxor	%xmm3,%xmm1,%xmm1
 	vpxor	%xmm2,%xmm1,%xmm1
 	vmovdqa	%xmm1,(%rsi)
-	jne	.Lks128_loop
+	jne	L$ks128_loop
 
 	vmovdqa	con2(%rip),%xmm0
 	vpshufb	%xmm15,%xmm1,%xmm2
@@ -424,14 +424,14 @@ aes128gcmsiv_aes_ks:
 	vpxor	%xmm2,%xmm1,%xmm1
 	vmovdqa	%xmm1,32(%rsi)
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	aes128gcmsiv_aes_ks,.-aes128gcmsiv_aes_ks
-.globl	aes256gcmsiv_aes_ks
-.hidden aes256gcmsiv_aes_ks
-.type	aes256gcmsiv_aes_ks,@function
-.align	16
-aes256gcmsiv_aes_ks:
-.cfi_startproc	
+
+
+.globl	_aes256gcmsiv_aes_ks
+.private_extern _aes256gcmsiv_aes_ks
+
+.p2align	4
+_aes256gcmsiv_aes_ks:
+
 	vmovdqu	(%rdi),%xmm1
 	vmovdqu	16(%rdi),%xmm3
 	vmovdqa	%xmm1,(%rsi)
@@ -441,7 +441,7 @@ aes256gcmsiv_aes_ks:
 	vpxor	%xmm14,%xmm14,%xmm14
 	movq	$6,%rax
 
-.Lks256_loop:
+L$ks256_loop:
 	addq	$32,%rsi
 	subq	$1,%rax
 	vpshufb	%xmm15,%xmm3,%xmm2
@@ -461,7 +461,7 @@ aes256gcmsiv_aes_ks:
 	vpxor	%xmm4,%xmm3,%xmm3
 	vpxor	%xmm2,%xmm3,%xmm3
 	vmovdqa	%xmm3,16(%rsi)
-	jne	.Lks256_loop
+	jne	L$ks256_loop
 
 	vpshufb	%xmm15,%xmm3,%xmm2
 	vaesenclast	%xmm0,%xmm2,%xmm2
@@ -472,13 +472,13 @@ aes256gcmsiv_aes_ks:
 	vpxor	%xmm2,%xmm1,%xmm1
 	vmovdqa	%xmm1,32(%rsi)
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.globl	aes128gcmsiv_aes_ks_enc_x1
-.hidden aes128gcmsiv_aes_ks_enc_x1
-.type	aes128gcmsiv_aes_ks_enc_x1,@function
-.align	16
-aes128gcmsiv_aes_ks_enc_x1:
-.cfi_startproc	
+
+.globl	_aes128gcmsiv_aes_ks_enc_x1
+.private_extern _aes128gcmsiv_aes_ks_enc_x1
+
+.p2align	4
+_aes128gcmsiv_aes_ks_enc_x1:
+
 	vmovdqa	(%rcx),%xmm1
 	vmovdqa	0(%rdi),%xmm4
 
@@ -613,14 +613,14 @@ aes128gcmsiv_aes_ks_enc_x1:
 
 	vmovdqa	%xmm4,0(%rsi)
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	aes128gcmsiv_aes_ks_enc_x1,.-aes128gcmsiv_aes_ks_enc_x1
-.globl	aes128gcmsiv_kdf
-.hidden aes128gcmsiv_kdf
-.type	aes128gcmsiv_kdf,@function
-.align	16
-aes128gcmsiv_kdf:
-.cfi_startproc	
+
+
+.globl	_aes128gcmsiv_kdf
+.private_extern _aes128gcmsiv_kdf
+
+.p2align	4
+_aes128gcmsiv_kdf:
+
 
 
 
@@ -706,25 +706,23 @@ aes128gcmsiv_kdf:
 	vmovdqa	%xmm11,32(%rsi)
 	vmovdqa	%xmm12,48(%rsi)
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	aes128gcmsiv_kdf,.-aes128gcmsiv_kdf
-.globl	aes128gcmsiv_enc_msg_x4
-.hidden aes128gcmsiv_enc_msg_x4
-.type	aes128gcmsiv_enc_msg_x4,@function
-.align	16
-aes128gcmsiv_enc_msg_x4:
-.cfi_startproc	
+
+
+.globl	_aes128gcmsiv_enc_msg_x4
+.private_extern _aes128gcmsiv_enc_msg_x4
+
+.p2align	4
+_aes128gcmsiv_enc_msg_x4:
+
 	testq	%r8,%r8
-	jnz	.L128_enc_msg_x4_start
+	jnz	L$128_enc_msg_x4_start
 	.byte	0xf3,0xc3
 
-.L128_enc_msg_x4_start:
+L$128_enc_msg_x4_start:
 	pushq	%r12
-.cfi_adjust_cfa_offset	8
-.cfi_offset	%r12,-16
+
 	pushq	%r13
-.cfi_adjust_cfa_offset	8
-.cfi_offset	%r13,-24
+
 
 	shrq	$4,%r8
 	movq	%r8,%r10
@@ -742,12 +740,12 @@ aes128gcmsiv_enc_msg_x4:
 	vpaddd	three(%rip),%xmm15,%xmm3
 
 	shrq	$2,%r8
-	je	.L128_enc_msg_x4_check_remainder
+	je	L$128_enc_msg_x4_check_remainder
 
 	subq	$64,%rsi
 	subq	$64,%rdi
 
-.L128_enc_msg_x4_loop1:
+L$128_enc_msg_x4_loop1:
 	addq	$64,%rsi
 	addq	$64,%rdi
 
@@ -840,16 +838,16 @@ aes128gcmsiv_enc_msg_x4:
 	vmovdqu	%xmm7,32(%rsi)
 	vmovdqu	%xmm8,48(%rsi)
 
-	jne	.L128_enc_msg_x4_loop1
+	jne	L$128_enc_msg_x4_loop1
 
 	addq	$64,%rsi
 	addq	$64,%rdi
 
-.L128_enc_msg_x4_check_remainder:
+L$128_enc_msg_x4_check_remainder:
 	cmpq	$0,%r10
-	je	.L128_enc_msg_x4_out
+	je	L$128_enc_msg_x4_out
 
-.L128_enc_msg_x4_loop2:
+L$128_enc_msg_x4_loop2:
 
 
 	vmovdqa	%xmm0,%xmm5
@@ -875,40 +873,35 @@ aes128gcmsiv_enc_msg_x4:
 	addq	$16,%rsi
 
 	subq	$1,%r10
-	jne	.L128_enc_msg_x4_loop2
+	jne	L$128_enc_msg_x4_loop2
 
-.L128_enc_msg_x4_out:
+L$128_enc_msg_x4_out:
 	popq	%r13
-.cfi_adjust_cfa_offset	-8
-.cfi_restore	%r13
+
 	popq	%r12
-.cfi_adjust_cfa_offset	-8
-.cfi_restore	%r12
-	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	aes128gcmsiv_enc_msg_x4,.-aes128gcmsiv_enc_msg_x4
-.globl	aes128gcmsiv_enc_msg_x8
-.hidden aes128gcmsiv_enc_msg_x8
-.type	aes128gcmsiv_enc_msg_x8,@function
-.align	16
-aes128gcmsiv_enc_msg_x8:
-.cfi_startproc	
-	testq	%r8,%r8
-	jnz	.L128_enc_msg_x8_start
+
 	.byte	0xf3,0xc3
 
-.L128_enc_msg_x8_start:
+
+.globl	_aes128gcmsiv_enc_msg_x8
+.private_extern _aes128gcmsiv_enc_msg_x8
+
+.p2align	4
+_aes128gcmsiv_enc_msg_x8:
+
+	testq	%r8,%r8
+	jnz	L$128_enc_msg_x8_start
+	.byte	0xf3,0xc3
+
+L$128_enc_msg_x8_start:
 	pushq	%r12
-.cfi_adjust_cfa_offset	8
-.cfi_offset	%r12,-16
+
 	pushq	%r13
-.cfi_adjust_cfa_offset	8
-.cfi_offset	%r13,-24
+
 	pushq	%rbp
-.cfi_adjust_cfa_offset	8
-.cfi_offset	%rbp,-32
+
 	movq	%rsp,%rbp
-.cfi_def_cfa_register	rbp
+
 
 
 	subq	$128,%rsp
@@ -935,12 +928,12 @@ aes128gcmsiv_enc_msg_x8:
 	vmovdqa	%xmm1,%xmm0
 
 	shrq	$3,%r8
-	je	.L128_enc_msg_x8_check_remainder
+	je	L$128_enc_msg_x8_check_remainder
 
 	subq	$128,%rsi
 	subq	$128,%rdi
 
-.L128_enc_msg_x8_loop1:
+L$128_enc_msg_x8_loop1:
 	addq	$128,%rsi
 	addq	$128,%rdi
 
@@ -1095,16 +1088,16 @@ aes128gcmsiv_enc_msg_x8:
 	vmovdqu	%xmm7,96(%rsi)
 	vmovdqu	%xmm8,112(%rsi)
 
-	jne	.L128_enc_msg_x8_loop1
+	jne	L$128_enc_msg_x8_loop1
 
 	addq	$128,%rsi
 	addq	$128,%rdi
 
-.L128_enc_msg_x8_check_remainder:
+L$128_enc_msg_x8_check_remainder:
 	cmpq	$0,%r10
-	je	.L128_enc_msg_x8_out
+	je	L$128_enc_msg_x8_out
 
-.L128_enc_msg_x8_loop2:
+L$128_enc_msg_x8_loop2:
 
 
 	vmovdqa	%xmm0,%xmm1
@@ -1131,34 +1124,31 @@ aes128gcmsiv_enc_msg_x8:
 	addq	$16,%rsi
 
 	decq	%r10
-	jne	.L128_enc_msg_x8_loop2
+	jne	L$128_enc_msg_x8_loop2
 
-.L128_enc_msg_x8_out:
+L$128_enc_msg_x8_out:
 	movq	%rbp,%rsp
-.cfi_def_cfa_register	%rsp
+
 	popq	%rbp
-.cfi_adjust_cfa_offset	-8
-.cfi_restore	%rbp
+
 	popq	%r13
-.cfi_adjust_cfa_offset	-8
-.cfi_restore	%r13
+
 	popq	%r12
-.cfi_adjust_cfa_offset	-8
-.cfi_restore	%r12
-	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	aes128gcmsiv_enc_msg_x8,.-aes128gcmsiv_enc_msg_x8
-.globl	aes128gcmsiv_dec
-.hidden aes128gcmsiv_dec
-.type	aes128gcmsiv_dec,@function
-.align	16
-aes128gcmsiv_dec:
-.cfi_startproc	
-	testq	$~15,%r9
-	jnz	.L128_dec_start
+
 	.byte	0xf3,0xc3
 
-.L128_dec_start:
+
+.globl	_aes128gcmsiv_dec
+.private_extern _aes128gcmsiv_dec
+
+.p2align	4
+_aes128gcmsiv_dec:
+
+	testq	$~15,%r9
+	jnz	L$128_dec_start
+	.byte	0xf3,0xc3
+
+L$128_dec_start:
 	vzeroupper
 	vmovdqa	(%rdx),%xmm0
 	movq	%rdx,%rax
@@ -1173,7 +1163,7 @@ aes128gcmsiv_dec:
 
 
 	cmpq	$96,%r9
-	jb	.L128_dec_loop2
+	jb	L$128_dec_loop2
 
 
 	subq	$96,%r9
@@ -1289,13 +1279,13 @@ aes128gcmsiv_dec:
 
 	addq	$96,%rdi
 	addq	$96,%rsi
-	jmp	.L128_dec_loop1
+	jmp	L$128_dec_loop1
 
 
-.align	64
-.L128_dec_loop1:
+.p2align	6
+L$128_dec_loop1:
 	cmpq	$96,%r9
-	jb	.L128_dec_finish_96
+	jb	L$128_dec_finish_96
 	subq	$96,%r9
 
 	vmovdqa	%xmm12,%xmm6
@@ -1507,9 +1497,9 @@ aes128gcmsiv_dec:
 
 	leaq	96(%rdi),%rdi
 	leaq	96(%rsi),%rsi
-	jmp	.L128_dec_loop1
+	jmp	L$128_dec_loop1
 
-.L128_dec_finish_96:
+L$128_dec_finish_96:
 	vmovdqa	%xmm12,%xmm6
 	vmovdqa	%xmm11,16-32(%rax)
 	vmovdqa	%xmm10,32-32(%rax)
@@ -1602,12 +1592,12 @@ aes128gcmsiv_dec:
 
 	vpxor	%xmm5,%xmm0,%xmm0
 
-.L128_dec_loop2:
+L$128_dec_loop2:
 
 
 
 	cmpq	$16,%r9
-	jb	.L128_dec_out
+	jb	L$128_dec_out
 	subq	$16,%r9
 
 	vmovdqa	%xmm15,%xmm2
@@ -1633,19 +1623,19 @@ aes128gcmsiv_dec:
 	vmovdqa	-32(%rcx),%xmm1
 	call	GFMUL
 
-	jmp	.L128_dec_loop2
+	jmp	L$128_dec_loop2
 
-.L128_dec_out:
+L$128_dec_out:
 	vmovdqu	%xmm0,(%rdx)
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	aes128gcmsiv_dec, .-aes128gcmsiv_dec
-.globl	aes128gcmsiv_ecb_enc_block
-.hidden aes128gcmsiv_ecb_enc_block
-.type	aes128gcmsiv_ecb_enc_block,@function
-.align	16
-aes128gcmsiv_ecb_enc_block:
-.cfi_startproc	
+
+
+.globl	_aes128gcmsiv_ecb_enc_block
+.private_extern _aes128gcmsiv_ecb_enc_block
+
+.p2align	4
+_aes128gcmsiv_ecb_enc_block:
+
 	vmovdqa	(%rdi),%xmm1
 
 	vpxor	(%rdx),%xmm1,%xmm1
@@ -1663,14 +1653,14 @@ aes128gcmsiv_ecb_enc_block:
 	vmovdqa	%xmm1,(%rsi)
 
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	aes128gcmsiv_ecb_enc_block,.-aes128gcmsiv_ecb_enc_block
-.globl	aes256gcmsiv_aes_ks_enc_x1
-.hidden aes256gcmsiv_aes_ks_enc_x1
-.type	aes256gcmsiv_aes_ks_enc_x1,@function
-.align	16
-aes256gcmsiv_aes_ks_enc_x1:
-.cfi_startproc	
+
+
+.globl	_aes256gcmsiv_aes_ks_enc_x1
+.private_extern _aes256gcmsiv_aes_ks_enc_x1
+
+.p2align	4
+_aes256gcmsiv_aes_ks_enc_x1:
+
 	vmovdqa	con1(%rip),%xmm0
 	vmovdqa	mask(%rip),%xmm15
 	vmovdqa	(%rdi),%xmm8
@@ -1846,14 +1836,14 @@ aes256gcmsiv_aes_ks_enc_x1:
 
 	vmovdqa	%xmm8,(%rsi)
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	aes256gcmsiv_aes_ks_enc_x1,.-aes256gcmsiv_aes_ks_enc_x1
-.globl	aes256gcmsiv_ecb_enc_block
-.hidden aes256gcmsiv_ecb_enc_block
-.type	aes256gcmsiv_ecb_enc_block,@function
-.align	16
-aes256gcmsiv_ecb_enc_block:
-.cfi_startproc	
+
+
+.globl	_aes256gcmsiv_ecb_enc_block
+.private_extern _aes256gcmsiv_ecb_enc_block
+
+.p2align	4
+_aes256gcmsiv_ecb_enc_block:
+
 	vmovdqa	(%rdi),%xmm1
 	vpxor	(%rdx),%xmm1,%xmm1
 	vaesenc	16(%rdx),%xmm1,%xmm1
@@ -1872,26 +1862,26 @@ aes256gcmsiv_ecb_enc_block:
 	vaesenclast	224(%rdx),%xmm1,%xmm1
 	vmovdqa	%xmm1,(%rsi)
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	aes256gcmsiv_ecb_enc_block,.-aes256gcmsiv_ecb_enc_block
-.globl	aes256gcmsiv_enc_msg_x4
-.hidden aes256gcmsiv_enc_msg_x4
-.type	aes256gcmsiv_enc_msg_x4,@function
-.align	16
-aes256gcmsiv_enc_msg_x4:
-.cfi_startproc	
+
+
+.globl	_aes256gcmsiv_enc_msg_x4
+.private_extern _aes256gcmsiv_enc_msg_x4
+
+.p2align	4
+_aes256gcmsiv_enc_msg_x4:
+
 	testq	%r8,%r8
-	jnz	.L256_enc_msg_x4_start
+	jnz	L$256_enc_msg_x4_start
 	.byte	0xf3,0xc3
 
-.L256_enc_msg_x4_start:
+L$256_enc_msg_x4_start:
 	movq	%r8,%r10
 	shrq	$4,%r8
 	shlq	$60,%r10
-	jz	.L256_enc_msg_x4_start2
+	jz	L$256_enc_msg_x4_start2
 	addq	$1,%r8
 
-.L256_enc_msg_x4_start2:
+L$256_enc_msg_x4_start2:
 	movq	%r8,%r10
 	shlq	$62,%r10
 	shrq	$62,%r10
@@ -1907,12 +1897,12 @@ aes256gcmsiv_enc_msg_x4:
 	vpaddd	three(%rip),%xmm15,%xmm3
 
 	shrq	$2,%r8
-	je	.L256_enc_msg_x4_check_remainder
+	je	L$256_enc_msg_x4_check_remainder
 
 	subq	$64,%rsi
 	subq	$64,%rdi
 
-.L256_enc_msg_x4_loop1:
+L$256_enc_msg_x4_loop1:
 	addq	$64,%rsi
 	addq	$64,%rdi
 
@@ -2029,16 +2019,16 @@ aes256gcmsiv_enc_msg_x4:
 	vmovdqu	%xmm7,32(%rsi)
 	vmovdqu	%xmm8,48(%rsi)
 
-	jne	.L256_enc_msg_x4_loop1
+	jne	L$256_enc_msg_x4_loop1
 
 	addq	$64,%rsi
 	addq	$64,%rdi
 
-.L256_enc_msg_x4_check_remainder:
+L$256_enc_msg_x4_check_remainder:
 	cmpq	$0,%r10
-	je	.L256_enc_msg_x4_out
+	je	L$256_enc_msg_x4_out
 
-.L256_enc_msg_x4_loop2:
+L$256_enc_msg_x4_loop2:
 
 
 
@@ -2069,23 +2059,23 @@ aes256gcmsiv_enc_msg_x4:
 	addq	$16,%rsi
 
 	subq	$1,%r10
-	jne	.L256_enc_msg_x4_loop2
+	jne	L$256_enc_msg_x4_loop2
 
-.L256_enc_msg_x4_out:
+L$256_enc_msg_x4_out:
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	aes256gcmsiv_enc_msg_x4,.-aes256gcmsiv_enc_msg_x4
-.globl	aes256gcmsiv_enc_msg_x8
-.hidden aes256gcmsiv_enc_msg_x8
-.type	aes256gcmsiv_enc_msg_x8,@function
-.align	16
-aes256gcmsiv_enc_msg_x8:
-.cfi_startproc	
+
+
+.globl	_aes256gcmsiv_enc_msg_x8
+.private_extern _aes256gcmsiv_enc_msg_x8
+
+.p2align	4
+_aes256gcmsiv_enc_msg_x8:
+
 	testq	%r8,%r8
-	jnz	.L256_enc_msg_x8_start
+	jnz	L$256_enc_msg_x8_start
 	.byte	0xf3,0xc3
 
-.L256_enc_msg_x8_start:
+L$256_enc_msg_x8_start:
 
 	movq	%rsp,%r11
 	subq	$16,%r11
@@ -2094,10 +2084,10 @@ aes256gcmsiv_enc_msg_x8:
 	movq	%r8,%r10
 	shrq	$4,%r8
 	shlq	$60,%r10
-	jz	.L256_enc_msg_x8_start2
+	jz	L$256_enc_msg_x8_start2
 	addq	$1,%r8
 
-.L256_enc_msg_x8_start2:
+L$256_enc_msg_x8_start2:
 	movq	%r8,%r10
 	shlq	$61,%r10
 	shrq	$61,%r10
@@ -2118,12 +2108,12 @@ aes256gcmsiv_enc_msg_x8:
 	vmovdqa	%xmm1,%xmm0
 
 	shrq	$3,%r8
-	jz	.L256_enc_msg_x8_check_remainder
+	jz	L$256_enc_msg_x8_check_remainder
 
 	subq	$128,%rsi
 	subq	$128,%rdi
 
-.L256_enc_msg_x8_loop1:
+L$256_enc_msg_x8_loop1:
 	addq	$128,%rsi
 	addq	$128,%rdi
 
@@ -2318,16 +2308,16 @@ aes256gcmsiv_enc_msg_x8:
 	vmovdqu	%xmm7,96(%rsi)
 	vmovdqu	%xmm8,112(%rsi)
 
-	jne	.L256_enc_msg_x8_loop1
+	jne	L$256_enc_msg_x8_loop1
 
 	addq	$128,%rsi
 	addq	$128,%rdi
 
-.L256_enc_msg_x8_check_remainder:
+L$256_enc_msg_x8_check_remainder:
 	cmpq	$0,%r10
-	je	.L256_enc_msg_x8_out
+	je	L$256_enc_msg_x8_out
 
-.L256_enc_msg_x8_loop2:
+L$256_enc_msg_x8_loop2:
 
 
 	vmovdqa	%xmm0,%xmm1
@@ -2357,24 +2347,24 @@ aes256gcmsiv_enc_msg_x8:
 	addq	$16,%rdi
 	addq	$16,%rsi
 	subq	$1,%r10
-	jnz	.L256_enc_msg_x8_loop2
+	jnz	L$256_enc_msg_x8_loop2
 
-.L256_enc_msg_x8_out:
+L$256_enc_msg_x8_out:
 	.byte	0xf3,0xc3
 
-.cfi_endproc	
-.size	aes256gcmsiv_enc_msg_x8,.-aes256gcmsiv_enc_msg_x8
-.globl	aes256gcmsiv_dec
-.hidden aes256gcmsiv_dec
-.type	aes256gcmsiv_dec,@function
-.align	16
-aes256gcmsiv_dec:
-.cfi_startproc	
+
+
+.globl	_aes256gcmsiv_dec
+.private_extern _aes256gcmsiv_dec
+
+.p2align	4
+_aes256gcmsiv_dec:
+
 	testq	$~15,%r9
-	jnz	.L256_dec_start
+	jnz	L$256_dec_start
 	.byte	0xf3,0xc3
 
-.L256_dec_start:
+L$256_dec_start:
 	vzeroupper
 	vmovdqa	(%rdx),%xmm0
 	movq	%rdx,%rax
@@ -2389,7 +2379,7 @@ aes256gcmsiv_dec:
 
 
 	cmpq	$96,%r9
-	jb	.L256_dec_loop2
+	jb	L$256_dec_loop2
 
 
 	subq	$96,%r9
@@ -2537,13 +2527,13 @@ aes256gcmsiv_dec:
 
 	addq	$96,%rdi
 	addq	$96,%rsi
-	jmp	.L256_dec_loop1
+	jmp	L$256_dec_loop1
 
 
-.align	64
-.L256_dec_loop1:
+.p2align	6
+L$256_dec_loop1:
 	cmpq	$96,%r9
-	jb	.L256_dec_finish_96
+	jb	L$256_dec_finish_96
 	subq	$96,%r9
 
 	vmovdqa	%xmm12,%xmm6
@@ -2787,9 +2777,9 @@ aes256gcmsiv_dec:
 
 	leaq	96(%rdi),%rdi
 	leaq	96(%rsi),%rsi
-	jmp	.L256_dec_loop1
+	jmp	L$256_dec_loop1
 
-.L256_dec_finish_96:
+L$256_dec_finish_96:
 	vmovdqa	%xmm12,%xmm6
 	vmovdqa	%xmm11,16-32(%rax)
 	vmovdqa	%xmm10,32-32(%rax)
@@ -2882,12 +2872,12 @@ aes256gcmsiv_dec:
 
 	vpxor	%xmm5,%xmm0,%xmm0
 
-.L256_dec_loop2:
+L$256_dec_loop2:
 
 
 
 	cmpq	$16,%r9
-	jb	.L256_dec_out
+	jb	L$256_dec_out
 	subq	$16,%r9
 
 	vmovdqa	%xmm15,%xmm2
@@ -2917,19 +2907,19 @@ aes256gcmsiv_dec:
 	vmovdqa	-32(%rcx),%xmm1
 	call	GFMUL
 
-	jmp	.L256_dec_loop2
+	jmp	L$256_dec_loop2
 
-.L256_dec_out:
+L$256_dec_out:
 	vmovdqu	%xmm0,(%rdx)
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	aes256gcmsiv_dec, .-aes256gcmsiv_dec
-.globl	aes256gcmsiv_kdf
-.hidden aes256gcmsiv_kdf
-.type	aes256gcmsiv_kdf,@function
-.align	16
-aes256gcmsiv_kdf:
-.cfi_startproc	
+
+
+.globl	_aes256gcmsiv_kdf
+.private_extern _aes256gcmsiv_kdf
+
+.p2align	4
+_aes256gcmsiv_kdf:
+
 
 
 
@@ -3073,7 +3063,6 @@ aes256gcmsiv_kdf:
 	vmovdqa	%xmm12,64(%rsi)
 	vmovdqa	%xmm13,80(%rsi)
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	aes256gcmsiv_kdf, .-aes256gcmsiv_kdf
+
+
 #endif
-.section	.note.GNU-stack,"",@progbits

@@ -1,4 +1,4 @@
-#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
 
 #IncludeRegexScan: ^.*$
 
@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/internal.h
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 openssl/ex_data.h
 -
 openssl/stack.h
@@ -28,7 +28,7 @@ windows.h
 stdlib.h
 -
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/test/test_util.h
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/test/test_util.h
 stddef.h
 -
 stdint.h
@@ -46,39 +46,39 @@ vector
 openssl/span.h
 -
 ../internal.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/internal.h
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/decrepit/blowfish/blowfish_test.cc
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/decrepit/blowfish/blowfish_test.cc
 openssl/cipher.h
 -
 gtest/gtest.h
 -
 ../../crypto/internal.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/internal.h
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 ../../crypto/test/test_util.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/test/test_util.h
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/test/test_util.h
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/decrepit/cast/cast_test.cc
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/decrepit/cast/cast_test.cc
 openssl/cipher.h
 -
 gtest/gtest.h
 -
 ../../crypto/internal.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/internal.h
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 ../../crypto/test/test_util.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/test/test_util.h
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/test/test_util.h
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/decrepit/cfb/cfb_test.cc
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/decrepit/cfb/cfb_test.cc
 openssl/cipher.h
 -
 gtest/gtest.h
 -
 ../../crypto/internal.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/internal.h
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 ../../crypto/test/test_util.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/test/test_util.h
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/test/test_util.h
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/decrepit/ripemd/ripemd_test.cc
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/decrepit/ripemd/ripemd_test.cc
 openssl/ripemd.h
 -
 memory
@@ -90,11 +90,11 @@ string.h
 gtest/gtest.h
 -
 ../../crypto/internal.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/internal.h
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 ../../crypto/test/test_util.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/test/test_util.h
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/test/test_util.h
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/decrepit/xts/xts_test.cc
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/decrepit/xts/xts_test.cc
 openssl/cipher.h
 -
 vector
@@ -102,9 +102,9 @@ vector
 gtest/gtest.h
 -
 ../../crypto/internal.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/internal.h
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 ../../crypto/test/test_util.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/test/test_util.h
+/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/test/test_util.h
 
 decrepit/../include/openssl/base.h
 stddef.h

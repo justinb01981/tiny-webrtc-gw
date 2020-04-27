@@ -13,87 +13,80 @@
 #endif
 .text	
 
-.extern	OPENSSL_ia32cap_P
-.hidden OPENSSL_ia32cap_P
 
-.align	64
-.Lzero:
+
+.p2align	6
+L$zero:
 .long	0,0,0,0
-.Lone:
+L$one:
 .long	1,0,0,0
-.Linc:
+L$inc:
 .long	0,1,2,3
-.Lfour:
+L$four:
 .long	4,4,4,4
-.Lincy:
+L$incy:
 .long	0,2,4,6,1,3,5,7
-.Leight:
+L$eight:
 .long	8,8,8,8,8,8,8,8
-.Lrot16:
+L$rot16:
 .byte	0x2,0x3,0x0,0x1, 0x6,0x7,0x4,0x5, 0xa,0xb,0x8,0x9, 0xe,0xf,0xc,0xd
-.Lrot24:
+L$rot24:
 .byte	0x3,0x0,0x1,0x2, 0x7,0x4,0x5,0x6, 0xb,0x8,0x9,0xa, 0xf,0xc,0xd,0xe
-.Lsigma:
+L$sigma:
 .byte	101,120,112,97,110,100,32,51,50,45,98,121,116,101,32,107,0
-.align	64
-.Lzeroz:
+.p2align	6
+L$zeroz:
 .long	0,0,0,0, 1,0,0,0, 2,0,0,0, 3,0,0,0
-.Lfourz:
+L$fourz:
 .long	4,0,0,0, 4,0,0,0, 4,0,0,0, 4,0,0,0
-.Lincz:
+L$incz:
 .long	0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
-.Lsixteen:
+L$sixteen:
 .long	16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16
 .byte	67,104,97,67,104,97,50,48,32,102,111,114,32,120,56,54,95,54,52,44,32,67,82,89,80,84,79,71,65,77,83,32,98,121,32,60,97,112,112,114,111,64,111,112,101,110,115,115,108,46,111,114,103,62,0
-.globl	ChaCha20_ctr32
-.hidden ChaCha20_ctr32
-.type	ChaCha20_ctr32,@function
-.align	64
-ChaCha20_ctr32:
-.cfi_startproc	
+.globl	_ChaCha20_ctr32
+.private_extern _ChaCha20_ctr32
+
+.p2align	6
+_ChaCha20_ctr32:
+
 	cmpq	$0,%rdx
-	je	.Lno_data
-	movq	OPENSSL_ia32cap_P+4(%rip),%r10
+	je	L$no_data
+	movq	_OPENSSL_ia32cap_P+4(%rip),%r10
 	testl	$512,%r10d
-	jnz	.LChaCha20_ssse3
+	jnz	L$ChaCha20_ssse3
 
 	pushq	%rbx
-.cfi_adjust_cfa_offset	8
-.cfi_offset	rbx,-16
+
 	pushq	%rbp
-.cfi_adjust_cfa_offset	8
-.cfi_offset	rbp,-24
+
 	pushq	%r12
-.cfi_adjust_cfa_offset	8
-.cfi_offset	r12,-32
+
 	pushq	%r13
-.cfi_adjust_cfa_offset	8
-.cfi_offset	r13,-40
+
 	pushq	%r14
-.cfi_adjust_cfa_offset	8
-.cfi_offset	r14,-48
+
 	pushq	%r15
-.cfi_adjust_cfa_offset	8
-.cfi_offset	r15,-56
+
 	subq	$64+24,%rsp
-.cfi_adjust_cfa_offset	88
-.Lctr32_body:
+
+L$ctr32_body:
 
 
 	movdqu	(%rcx),%xmm1
 	movdqu	16(%rcx),%xmm2
 	movdqu	(%r8),%xmm3
-	movdqa	.Lone(%rip),%xmm4
+	movdqa	L$one(%rip),%xmm4
 
 
 	movdqa	%xmm1,16(%rsp)
 	movdqa	%xmm2,32(%rsp)
 	movdqa	%xmm3,48(%rsp)
 	movq	%rdx,%rbp
-	jmp	.Loop_outer
+	jmp	L$oop_outer
 
-.align	32
-.Loop_outer:
+.p2align	5
+L$oop_outer:
 	movl	$0x61707865,%eax
 	movl	$0x3320646e,%ebx
 	movl	$0x79622d32,%ecx
@@ -114,10 +107,10 @@ ChaCha20_ctr32:
 	movq	%rdi,64+16(%rsp)
 	movq	%rsi,%rdi
 	shrq	$32,%rdi
-	jmp	.Loop
+	jmp	L$oop
 
-.align	32
-.Loop:
+.p2align	5
+L$oop:
 	addl	%r8d,%eax
 	xorl	%eax,%r12d
 	roll	$16,%r12d
@@ -223,7 +216,7 @@ ChaCha20_ctr32:
 	xorl	%edi,%r8d
 	roll	$7,%r8d
 	decl	%ebp
-	jnz	.Loop
+	jnz	L$oop
 	movl	%edi,36(%rsp)
 	movl	%esi,32(%rsp)
 	movq	64(%rsp),%rbp
@@ -247,7 +240,7 @@ ChaCha20_ctr32:
 	paddd	32(%rsp),%xmm1
 
 	cmpq	$64,%rbp
-	jb	.Ltail
+	jb	L$tail
 
 	xorl	0(%rsi),%eax
 	xorl	4(%rsi),%ebx
@@ -284,12 +277,12 @@ ChaCha20_ctr32:
 	leaq	64(%rdi),%rdi
 
 	subq	$64,%rbp
-	jnz	.Loop_outer
+	jnz	L$oop_outer
 
-	jmp	.Ldone
+	jmp	L$done
 
-.align	16
-.Ltail:
+.p2align	4
+L$tail:
 	movl	%eax,0(%rsp)
 	movl	%ebx,4(%rsp)
 	xorq	%rbx,%rbx
@@ -305,74 +298,74 @@ ChaCha20_ctr32:
 	movl	%r14d,56(%rsp)
 	movl	%r15d,60(%rsp)
 
-.Loop_tail:
+L$oop_tail:
 	movzbl	(%rsi,%rbx,1),%eax
 	movzbl	(%rsp,%rbx,1),%edx
 	leaq	1(%rbx),%rbx
 	xorl	%edx,%eax
 	movb	%al,-1(%rdi,%rbx,1)
 	decq	%rbp
-	jnz	.Loop_tail
+	jnz	L$oop_tail
 
-.Ldone:
+L$done:
 	leaq	64+24+48(%rsp),%rsi
 	movq	-48(%rsi),%r15
-.cfi_restore	r15
-	movq	-40(%rsi),%r14
-.cfi_restore	r14
-	movq	-32(%rsi),%r13
-.cfi_restore	r13
-	movq	-24(%rsi),%r12
-.cfi_restore	r12
-	movq	-16(%rsi),%rbp
-.cfi_restore	rbp
-	movq	-8(%rsi),%rbx
-.cfi_restore	rbx
-	leaq	(%rsi),%rsp
-.cfi_adjust_cfa_offset	-136
-.Lno_data:
-	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	ChaCha20_ctr32,.-ChaCha20_ctr32
-.type	ChaCha20_ssse3,@function
-.align	32
-ChaCha20_ssse3:
-.LChaCha20_ssse3:
-.cfi_startproc	
-	movq	%rsp,%r9
-.cfi_def_cfa_register	r9
-	cmpq	$128,%rdx
-	ja	.LChaCha20_4x
 
-.Ldo_sse3_after_all:
+	movq	-40(%rsi),%r14
+
+	movq	-32(%rsi),%r13
+
+	movq	-24(%rsi),%r12
+
+	movq	-16(%rsi),%rbp
+
+	movq	-8(%rsi),%rbx
+
+	leaq	(%rsi),%rsp
+
+L$no_data:
+	.byte	0xf3,0xc3
+
+
+
+.p2align	5
+ChaCha20_ssse3:
+L$ChaCha20_ssse3:
+
+	movq	%rsp,%r9
+
+	cmpq	$128,%rdx
+	ja	L$ChaCha20_4x
+
+L$do_sse3_after_all:
 	subq	$64+8,%rsp
-	movdqa	.Lsigma(%rip),%xmm0
+	movdqa	L$sigma(%rip),%xmm0
 	movdqu	(%rcx),%xmm1
 	movdqu	16(%rcx),%xmm2
 	movdqu	(%r8),%xmm3
-	movdqa	.Lrot16(%rip),%xmm6
-	movdqa	.Lrot24(%rip),%xmm7
+	movdqa	L$rot16(%rip),%xmm6
+	movdqa	L$rot24(%rip),%xmm7
 
 	movdqa	%xmm0,0(%rsp)
 	movdqa	%xmm1,16(%rsp)
 	movdqa	%xmm2,32(%rsp)
 	movdqa	%xmm3,48(%rsp)
 	movq	$10,%r8
-	jmp	.Loop_ssse3
+	jmp	L$oop_ssse3
 
-.align	32
-.Loop_outer_ssse3:
-	movdqa	.Lone(%rip),%xmm3
+.p2align	5
+L$oop_outer_ssse3:
+	movdqa	L$one(%rip),%xmm3
 	movdqa	0(%rsp),%xmm0
 	movdqa	16(%rsp),%xmm1
 	movdqa	32(%rsp),%xmm2
 	paddd	48(%rsp),%xmm3
 	movq	$10,%r8
 	movdqa	%xmm3,48(%rsp)
-	jmp	.Loop_ssse3
+	jmp	L$oop_ssse3
 
-.align	32
-.Loop_ssse3:
+.p2align	5
+L$oop_ssse3:
 	paddd	%xmm1,%xmm0
 	pxor	%xmm0,%xmm3
 .byte	102,15,56,0,222
@@ -417,14 +410,14 @@ ChaCha20_ssse3:
 	pshufd	$147,%xmm1,%xmm1
 	pshufd	$57,%xmm3,%xmm3
 	decq	%r8
-	jnz	.Loop_ssse3
+	jnz	L$oop_ssse3
 	paddd	0(%rsp),%xmm0
 	paddd	16(%rsp),%xmm1
 	paddd	32(%rsp),%xmm2
 	paddd	48(%rsp),%xmm3
 
 	cmpq	$64,%rdx
-	jb	.Ltail_ssse3
+	jb	L$tail_ssse3
 
 	movdqu	0(%rsi),%xmm4
 	movdqu	16(%rsi),%xmm5
@@ -443,61 +436,61 @@ ChaCha20_ssse3:
 	leaq	64(%rdi),%rdi
 
 	subq	$64,%rdx
-	jnz	.Loop_outer_ssse3
+	jnz	L$oop_outer_ssse3
 
-	jmp	.Ldone_ssse3
+	jmp	L$done_ssse3
 
-.align	16
-.Ltail_ssse3:
+.p2align	4
+L$tail_ssse3:
 	movdqa	%xmm0,0(%rsp)
 	movdqa	%xmm1,16(%rsp)
 	movdqa	%xmm2,32(%rsp)
 	movdqa	%xmm3,48(%rsp)
 	xorq	%r8,%r8
 
-.Loop_tail_ssse3:
+L$oop_tail_ssse3:
 	movzbl	(%rsi,%r8,1),%eax
 	movzbl	(%rsp,%r8,1),%ecx
 	leaq	1(%r8),%r8
 	xorl	%ecx,%eax
 	movb	%al,-1(%rdi,%r8,1)
 	decq	%rdx
-	jnz	.Loop_tail_ssse3
+	jnz	L$oop_tail_ssse3
 
-.Ldone_ssse3:
+L$done_ssse3:
 	leaq	(%r9),%rsp
-.cfi_def_cfa_register	rsp
-.Lssse3_epilogue:
+
+L$ssse3_epilogue:
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	ChaCha20_ssse3,.-ChaCha20_ssse3
-.type	ChaCha20_4x,@function
-.align	32
+
+
+
+.p2align	5
 ChaCha20_4x:
-.LChaCha20_4x:
-.cfi_startproc	
+L$ChaCha20_4x:
+
 	movq	%rsp,%r9
-.cfi_def_cfa_register	r9
+
 	movq	%r10,%r11
 	shrq	$32,%r10
 	testq	$32,%r10
-	jnz	.LChaCha20_8x
+	jnz	L$ChaCha20_8x
 	cmpq	$192,%rdx
-	ja	.Lproceed4x
+	ja	L$proceed4x
 
 	andq	$71303168,%r11
 	cmpq	$4194304,%r11
-	je	.Ldo_sse3_after_all
+	je	L$do_sse3_after_all
 
-.Lproceed4x:
+L$proceed4x:
 	subq	$0x140+8,%rsp
-	movdqa	.Lsigma(%rip),%xmm11
+	movdqa	L$sigma(%rip),%xmm11
 	movdqu	(%rcx),%xmm15
 	movdqu	16(%rcx),%xmm7
 	movdqu	(%r8),%xmm3
 	leaq	256(%rsp),%rcx
-	leaq	.Lrot16(%rip),%r10
-	leaq	.Lrot24(%rip),%r11
+	leaq	L$rot16(%rip),%r10
+	leaq	L$rot24(%rip),%r11
 
 	pshufd	$0x00,%xmm11,%xmm8
 	pshufd	$0x55,%xmm11,%xmm9
@@ -528,17 +521,17 @@ ChaCha20_4x:
 
 	pshufd	$0x00,%xmm3,%xmm0
 	pshufd	$0x55,%xmm3,%xmm1
-	paddd	.Linc(%rip),%xmm0
+	paddd	L$inc(%rip),%xmm0
 	pshufd	$0xaa,%xmm3,%xmm2
 	movdqa	%xmm1,272-256(%rcx)
 	pshufd	$0xff,%xmm3,%xmm3
 	movdqa	%xmm2,288-256(%rcx)
 	movdqa	%xmm3,304-256(%rcx)
 
-	jmp	.Loop_enter4x
+	jmp	L$oop_enter4x
 
-.align	32
-.Loop_outer4x:
+.p2align	5
+L$oop_outer4x:
 	movdqa	64(%rsp),%xmm8
 	movdqa	80(%rsp),%xmm9
 	movdqa	96(%rsp),%xmm10
@@ -555,18 +548,18 @@ ChaCha20_4x:
 	movdqa	272-256(%rcx),%xmm1
 	movdqa	288-256(%rcx),%xmm2
 	movdqa	304-256(%rcx),%xmm3
-	paddd	.Lfour(%rip),%xmm0
+	paddd	L$four(%rip),%xmm0
 
-.Loop_enter4x:
+L$oop_enter4x:
 	movdqa	%xmm6,32(%rsp)
 	movdqa	%xmm7,48(%rsp)
 	movdqa	(%r10),%xmm7
 	movl	$10,%eax
 	movdqa	%xmm0,256-256(%rcx)
-	jmp	.Loop4x
+	jmp	L$oop4x
 
-.align	32
-.Loop4x:
+.p2align	5
+L$oop4x:
 	paddd	%xmm12,%xmm8
 	paddd	%xmm13,%xmm9
 	pxor	%xmm8,%xmm0
@@ -728,7 +721,7 @@ ChaCha20_4x:
 	movdqa	(%r10),%xmm7
 	por	%xmm6,%xmm12
 	decl	%eax
-	jnz	.Loop4x
+	jnz	L$oop4x
 
 	paddd	64(%rsp),%xmm8
 	paddd	80(%rsp),%xmm9
@@ -807,7 +800,7 @@ ChaCha20_4x:
 	punpckhqdq	%xmm2,%xmm1
 	punpckhqdq	%xmm7,%xmm3
 	cmpq	$256,%rdx
-	jb	.Ltail4x
+	jb	L$tail4x
 
 	movdqu	0(%rsi),%xmm6
 	movdqu	16(%rsi),%xmm11
@@ -866,17 +859,17 @@ ChaCha20_4x:
 	leaq	128(%rdi),%rdi
 
 	subq	$256,%rdx
-	jnz	.Loop_outer4x
+	jnz	L$oop_outer4x
 
-	jmp	.Ldone4x
+	jmp	L$done4x
 
-.Ltail4x:
+L$tail4x:
 	cmpq	$192,%rdx
-	jae	.L192_or_more4x
+	jae	L$192_or_more4x
 	cmpq	$128,%rdx
-	jae	.L128_or_more4x
+	jae	L$128_or_more4x
 	cmpq	$64,%rdx
-	jae	.L64_or_more4x
+	jae	L$64_or_more4x
 
 
 	xorq	%r10,%r10
@@ -884,10 +877,10 @@ ChaCha20_4x:
 	movdqa	%xmm12,16(%rsp)
 	movdqa	%xmm4,32(%rsp)
 	movdqa	%xmm0,48(%rsp)
-	jmp	.Loop_tail4x
+	jmp	L$oop_tail4x
 
-.align	32
-.L64_or_more4x:
+.p2align	5
+L$64_or_more4x:
 	movdqu	0(%rsi),%xmm6
 	movdqu	16(%rsi),%xmm11
 	movdqu	32(%rsi),%xmm2
@@ -900,7 +893,7 @@ ChaCha20_4x:
 	movdqu	%xmm11,16(%rdi)
 	movdqu	%xmm2,32(%rdi)
 	movdqu	%xmm7,48(%rdi)
-	je	.Ldone4x
+	je	L$done4x
 
 	movdqa	16(%rsp),%xmm6
 	leaq	64(%rsi),%rsi
@@ -911,10 +904,10 @@ ChaCha20_4x:
 	movdqa	%xmm5,32(%rsp)
 	subq	$64,%rdx
 	movdqa	%xmm1,48(%rsp)
-	jmp	.Loop_tail4x
+	jmp	L$oop_tail4x
 
-.align	32
-.L128_or_more4x:
+.p2align	5
+L$128_or_more4x:
 	movdqu	0(%rsi),%xmm6
 	movdqu	16(%rsi),%xmm11
 	movdqu	32(%rsi),%xmm2
@@ -940,7 +933,7 @@ ChaCha20_4x:
 	movdqu	%xmm11,80(%rdi)
 	movdqu	%xmm2,96(%rdi)
 	movdqu	%xmm7,112(%rdi)
-	je	.Ldone4x
+	je	L$done4x
 
 	movdqa	32(%rsp),%xmm6
 	leaq	128(%rsi),%rsi
@@ -951,10 +944,10 @@ ChaCha20_4x:
 	movdqa	%xmm14,32(%rsp)
 	subq	$128,%rdx
 	movdqa	%xmm8,48(%rsp)
-	jmp	.Loop_tail4x
+	jmp	L$oop_tail4x
 
-.align	32
-.L192_or_more4x:
+.p2align	5
+L$192_or_more4x:
 	movdqu	0(%rsi),%xmm6
 	movdqu	16(%rsi),%xmm11
 	movdqu	32(%rsi),%xmm2
@@ -995,7 +988,7 @@ ChaCha20_4x:
 	movdqu	%xmm11,16(%rdi)
 	movdqu	%xmm2,32(%rdi)
 	movdqu	%xmm7,48(%rdi)
-	je	.Ldone4x
+	je	L$done4x
 
 	movdqa	48(%rsp),%xmm6
 	leaq	64(%rsi),%rsi
@@ -1007,29 +1000,29 @@ ChaCha20_4x:
 	subq	$192,%rdx
 	movdqa	%xmm3,48(%rsp)
 
-.Loop_tail4x:
+L$oop_tail4x:
 	movzbl	(%rsi,%r10,1),%eax
 	movzbl	(%rsp,%r10,1),%ecx
 	leaq	1(%r10),%r10
 	xorl	%ecx,%eax
 	movb	%al,-1(%rdi,%r10,1)
 	decq	%rdx
-	jnz	.Loop_tail4x
+	jnz	L$oop_tail4x
 
-.Ldone4x:
+L$done4x:
 	leaq	(%r9),%rsp
-.cfi_def_cfa_register	rsp
-.L4x_epilogue:
+
+L$4x_epilogue:
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	ChaCha20_4x,.-ChaCha20_4x
-.type	ChaCha20_8x,@function
-.align	32
+
+
+
+.p2align	5
 ChaCha20_8x:
-.LChaCha20_8x:
-.cfi_startproc	
+L$ChaCha20_8x:
+
 	movq	%rsp,%r9
-.cfi_def_cfa_register	r9
+
 	subq	$0x280+8,%rsp
 	andq	$-32,%rsp
 	vzeroupper
@@ -1043,14 +1036,14 @@ ChaCha20_8x:
 
 
 
-	vbroadcasti128	.Lsigma(%rip),%ymm11
+	vbroadcasti128	L$sigma(%rip),%ymm11
 	vbroadcasti128	(%rcx),%ymm3
 	vbroadcasti128	16(%rcx),%ymm15
 	vbroadcasti128	(%r8),%ymm7
 	leaq	256(%rsp),%rcx
 	leaq	512(%rsp),%rax
-	leaq	.Lrot16(%rip),%r10
-	leaq	.Lrot24(%rip),%r11
+	leaq	L$rot16(%rip),%r10
+	leaq	L$rot24(%rip),%r11
 
 	vpshufd	$0x00,%ymm11,%ymm8
 	vpshufd	$0x55,%ymm11,%ymm9
@@ -1081,17 +1074,17 @@ ChaCha20_8x:
 
 	vpshufd	$0x00,%ymm7,%ymm4
 	vpshufd	$0x55,%ymm7,%ymm5
-	vpaddd	.Lincy(%rip),%ymm4,%ymm4
+	vpaddd	L$incy(%rip),%ymm4,%ymm4
 	vpshufd	$0xaa,%ymm7,%ymm6
 	vmovdqa	%ymm5,544-512(%rax)
 	vpshufd	$0xff,%ymm7,%ymm7
 	vmovdqa	%ymm6,576-512(%rax)
 	vmovdqa	%ymm7,608-512(%rax)
 
-	jmp	.Loop_enter8x
+	jmp	L$oop_enter8x
 
-.align	32
-.Loop_outer8x:
+.p2align	5
+L$oop_outer8x:
 	vmovdqa	128-256(%rcx),%ymm8
 	vmovdqa	160-256(%rcx),%ymm9
 	vmovdqa	192-256(%rcx),%ymm10
@@ -1108,18 +1101,18 @@ ChaCha20_8x:
 	vmovdqa	544-512(%rax),%ymm5
 	vmovdqa	576-512(%rax),%ymm6
 	vmovdqa	608-512(%rax),%ymm7
-	vpaddd	.Leight(%rip),%ymm4,%ymm4
+	vpaddd	L$eight(%rip),%ymm4,%ymm4
 
-.Loop_enter8x:
+L$oop_enter8x:
 	vmovdqa	%ymm14,64(%rsp)
 	vmovdqa	%ymm15,96(%rsp)
 	vbroadcasti128	(%r10),%ymm15
 	vmovdqa	%ymm4,512-512(%rax)
 	movl	$10,%eax
-	jmp	.Loop8x
+	jmp	L$oop8x
 
-.align	32
-.Loop8x:
+.p2align	5
+L$oop8x:
 	vpaddd	%ymm0,%ymm8,%ymm8
 	vpxor	%ymm4,%ymm8,%ymm4
 	vpshufb	%ymm15,%ymm4,%ymm4
@@ -1265,7 +1258,7 @@ ChaCha20_8x:
 	vpsrld	$25,%ymm0,%ymm0
 	vpor	%ymm0,%ymm14,%ymm0
 	decl	%eax
-	jnz	.Loop8x
+	jnz	L$oop8x
 
 	leaq	512(%rsp),%rax
 	vpaddd	128-256(%rcx),%ymm8,%ymm8
@@ -1345,7 +1338,7 @@ ChaCha20_8x:
 	vmovdqa	32(%rsp),%ymm12
 
 	cmpq	$512,%rdx
-	jb	.Ltail8x
+	jb	L$tail8x
 
 	vpxor	0(%rsi),%ymm6,%ymm6
 	vpxor	32(%rsi),%ymm8,%ymm8
@@ -1392,38 +1385,38 @@ ChaCha20_8x:
 	leaq	128(%rdi),%rdi
 
 	subq	$512,%rdx
-	jnz	.Loop_outer8x
+	jnz	L$oop_outer8x
 
-	jmp	.Ldone8x
+	jmp	L$done8x
 
-.Ltail8x:
+L$tail8x:
 	cmpq	$448,%rdx
-	jae	.L448_or_more8x
+	jae	L$448_or_more8x
 	cmpq	$384,%rdx
-	jae	.L384_or_more8x
+	jae	L$384_or_more8x
 	cmpq	$320,%rdx
-	jae	.L320_or_more8x
+	jae	L$320_or_more8x
 	cmpq	$256,%rdx
-	jae	.L256_or_more8x
+	jae	L$256_or_more8x
 	cmpq	$192,%rdx
-	jae	.L192_or_more8x
+	jae	L$192_or_more8x
 	cmpq	$128,%rdx
-	jae	.L128_or_more8x
+	jae	L$128_or_more8x
 	cmpq	$64,%rdx
-	jae	.L64_or_more8x
+	jae	L$64_or_more8x
 
 	xorq	%r10,%r10
 	vmovdqa	%ymm6,0(%rsp)
 	vmovdqa	%ymm8,32(%rsp)
-	jmp	.Loop_tail8x
+	jmp	L$oop_tail8x
 
-.align	32
-.L64_or_more8x:
+.p2align	5
+L$64_or_more8x:
 	vpxor	0(%rsi),%ymm6,%ymm6
 	vpxor	32(%rsi),%ymm8,%ymm8
 	vmovdqu	%ymm6,0(%rdi)
 	vmovdqu	%ymm8,32(%rdi)
-	je	.Ldone8x
+	je	L$done8x
 
 	leaq	64(%rsi),%rsi
 	xorq	%r10,%r10
@@ -1431,10 +1424,10 @@ ChaCha20_8x:
 	leaq	64(%rdi),%rdi
 	subq	$64,%rdx
 	vmovdqa	%ymm5,32(%rsp)
-	jmp	.Loop_tail8x
+	jmp	L$oop_tail8x
 
-.align	32
-.L128_or_more8x:
+.p2align	5
+L$128_or_more8x:
 	vpxor	0(%rsi),%ymm6,%ymm6
 	vpxor	32(%rsi),%ymm8,%ymm8
 	vpxor	64(%rsi),%ymm1,%ymm1
@@ -1443,7 +1436,7 @@ ChaCha20_8x:
 	vmovdqu	%ymm8,32(%rdi)
 	vmovdqu	%ymm1,64(%rdi)
 	vmovdqu	%ymm5,96(%rdi)
-	je	.Ldone8x
+	je	L$done8x
 
 	leaq	128(%rsi),%rsi
 	xorq	%r10,%r10
@@ -1451,10 +1444,10 @@ ChaCha20_8x:
 	leaq	128(%rdi),%rdi
 	subq	$128,%rdx
 	vmovdqa	%ymm13,32(%rsp)
-	jmp	.Loop_tail8x
+	jmp	L$oop_tail8x
 
-.align	32
-.L192_or_more8x:
+.p2align	5
+L$192_or_more8x:
 	vpxor	0(%rsi),%ymm6,%ymm6
 	vpxor	32(%rsi),%ymm8,%ymm8
 	vpxor	64(%rsi),%ymm1,%ymm1
@@ -1467,7 +1460,7 @@ ChaCha20_8x:
 	vmovdqu	%ymm5,96(%rdi)
 	vmovdqu	%ymm12,128(%rdi)
 	vmovdqu	%ymm13,160(%rdi)
-	je	.Ldone8x
+	je	L$done8x
 
 	leaq	192(%rsi),%rsi
 	xorq	%r10,%r10
@@ -1475,10 +1468,10 @@ ChaCha20_8x:
 	leaq	192(%rdi),%rdi
 	subq	$192,%rdx
 	vmovdqa	%ymm15,32(%rsp)
-	jmp	.Loop_tail8x
+	jmp	L$oop_tail8x
 
-.align	32
-.L256_or_more8x:
+.p2align	5
+L$256_or_more8x:
 	vpxor	0(%rsi),%ymm6,%ymm6
 	vpxor	32(%rsi),%ymm8,%ymm8
 	vpxor	64(%rsi),%ymm1,%ymm1
@@ -1495,7 +1488,7 @@ ChaCha20_8x:
 	vmovdqu	%ymm13,160(%rdi)
 	vmovdqu	%ymm10,192(%rdi)
 	vmovdqu	%ymm15,224(%rdi)
-	je	.Ldone8x
+	je	L$done8x
 
 	leaq	256(%rsi),%rsi
 	xorq	%r10,%r10
@@ -1503,10 +1496,10 @@ ChaCha20_8x:
 	leaq	256(%rdi),%rdi
 	subq	$256,%rdx
 	vmovdqa	%ymm2,32(%rsp)
-	jmp	.Loop_tail8x
+	jmp	L$oop_tail8x
 
-.align	32
-.L320_or_more8x:
+.p2align	5
+L$320_or_more8x:
 	vpxor	0(%rsi),%ymm6,%ymm6
 	vpxor	32(%rsi),%ymm8,%ymm8
 	vpxor	64(%rsi),%ymm1,%ymm1
@@ -1527,7 +1520,7 @@ ChaCha20_8x:
 	vmovdqu	%ymm15,224(%rdi)
 	vmovdqu	%ymm14,256(%rdi)
 	vmovdqu	%ymm2,288(%rdi)
-	je	.Ldone8x
+	je	L$done8x
 
 	leaq	320(%rsi),%rsi
 	xorq	%r10,%r10
@@ -1535,10 +1528,10 @@ ChaCha20_8x:
 	leaq	320(%rdi),%rdi
 	subq	$320,%rdx
 	vmovdqa	%ymm7,32(%rsp)
-	jmp	.Loop_tail8x
+	jmp	L$oop_tail8x
 
-.align	32
-.L384_or_more8x:
+.p2align	5
+L$384_or_more8x:
 	vpxor	0(%rsi),%ymm6,%ymm6
 	vpxor	32(%rsi),%ymm8,%ymm8
 	vpxor	64(%rsi),%ymm1,%ymm1
@@ -1563,7 +1556,7 @@ ChaCha20_8x:
 	vmovdqu	%ymm2,288(%rdi)
 	vmovdqu	%ymm3,320(%rdi)
 	vmovdqu	%ymm7,352(%rdi)
-	je	.Ldone8x
+	je	L$done8x
 
 	leaq	384(%rsi),%rsi
 	xorq	%r10,%r10
@@ -1571,10 +1564,10 @@ ChaCha20_8x:
 	leaq	384(%rdi),%rdi
 	subq	$384,%rdx
 	vmovdqa	%ymm9,32(%rsp)
-	jmp	.Loop_tail8x
+	jmp	L$oop_tail8x
 
-.align	32
-.L448_or_more8x:
+.p2align	5
+L$448_or_more8x:
 	vpxor	0(%rsi),%ymm6,%ymm6
 	vpxor	32(%rsi),%ymm8,%ymm8
 	vpxor	64(%rsi),%ymm1,%ymm1
@@ -1603,7 +1596,7 @@ ChaCha20_8x:
 	vmovdqu	%ymm7,352(%rdi)
 	vmovdqu	%ymm11,384(%rdi)
 	vmovdqu	%ymm9,416(%rdi)
-	je	.Ldone8x
+	je	L$done8x
 
 	leaq	448(%rsi),%rsi
 	xorq	%r10,%r10
@@ -1612,22 +1605,21 @@ ChaCha20_8x:
 	subq	$448,%rdx
 	vmovdqa	%ymm4,32(%rsp)
 
-.Loop_tail8x:
+L$oop_tail8x:
 	movzbl	(%rsi,%r10,1),%eax
 	movzbl	(%rsp,%r10,1),%ecx
 	leaq	1(%r10),%r10
 	xorl	%ecx,%eax
 	movb	%al,-1(%rdi,%r10,1)
 	decq	%rdx
-	jnz	.Loop_tail8x
+	jnz	L$oop_tail8x
 
-.Ldone8x:
+L$done8x:
 	vzeroall
 	leaq	(%r9),%rsp
-.cfi_def_cfa_register	rsp
-.L8x_epilogue:
+
+L$8x_epilogue:
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	ChaCha20_8x,.-ChaCha20_8x
+
+
 #endif
-.section	.note.GNU-stack,"",@progbits

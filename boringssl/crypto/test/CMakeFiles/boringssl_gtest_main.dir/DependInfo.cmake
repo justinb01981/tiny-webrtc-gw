@@ -4,9 +4,9 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/test/gtest_main.cc" "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/test/CMakeFiles/boringssl_gtest_main.dir/gtest_main.cc.o"
+  "/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/test/gtest_main.cc" "/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/test/CMakeFiles/boringssl_gtest_main.dir/gtest_main.cc.o"
   )
-set(CMAKE_CXX_COMPILER_ID "GNU")
+set(CMAKE_CXX_COMPILER_ID "AppleClang")
 
 # Preprocessor definitions for this target.
 set(CMAKE_TARGET_DEFINITIONS_CXX

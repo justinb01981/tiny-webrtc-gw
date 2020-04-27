@@ -16,48 +16,47 @@
 
 
 
-.globl	CRYPTO_rdrand
-.hidden CRYPTO_rdrand
-.type	CRYPTO_rdrand,@function
-.align	16
-CRYPTO_rdrand:
-.cfi_startproc	
+.globl	_CRYPTO_rdrand
+.private_extern _CRYPTO_rdrand
+
+.p2align	4
+_CRYPTO_rdrand:
+
 	xorq	%rax,%rax
 .byte	72,15,199,242
 
 	adcq	%rax,%rax
 	movq	%rdx,0(%rdi)
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	CRYPTO_rdrand,.-CRYPTO_rdrand
 
 
 
 
 
-.globl	CRYPTO_rdrand_multiple8_buf
-.hidden CRYPTO_rdrand_multiple8_buf
-.type	CRYPTO_rdrand_multiple8_buf,@function
-.align	16
-CRYPTO_rdrand_multiple8_buf:
-.cfi_startproc	
+
+
+.globl	_CRYPTO_rdrand_multiple8_buf
+.private_extern _CRYPTO_rdrand_multiple8_buf
+
+.p2align	4
+_CRYPTO_rdrand_multiple8_buf:
+
 	testq	%rsi,%rsi
-	jz	.Lout
+	jz	L$out
 	movq	$8,%rdx
-.Lloop:
+L$loop:
 .byte	72,15,199,241
-	jnc	.Lerr
+	jnc	L$err
 	movq	%rcx,0(%rdi)
 	addq	%rdx,%rdi
 	subq	%rdx,%rsi
-	jnz	.Lloop
-.Lout:
+	jnz	L$loop
+L$out:
 	movq	$1,%rax
 	.byte	0xf3,0xc3
-.Lerr:
+L$err:
 	xorq	%rax,%rax
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	CRYPTO_rdrand_multiple8_buf,.-CRYPTO_rdrand_multiple8_buf
+
+
 #endif
-.section	.note.GNU-stack,"",@progbits

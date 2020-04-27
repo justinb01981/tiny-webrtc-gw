@@ -12,21 +12,20 @@
 #include <boringssl_prefix_symbols_asm.h>
 #endif
 .text	
-.extern	OPENSSL_ia32cap_P
-.hidden OPENSSL_ia32cap_P
 
-.globl	sha1_block_data_order
-.hidden sha1_block_data_order
-.type	sha1_block_data_order,@function
-.align	16
-sha1_block_data_order:
-.cfi_startproc	
-	leaq	OPENSSL_ia32cap_P(%rip),%r10
+
+.globl	_sha1_block_data_order
+.private_extern _sha1_block_data_order
+
+.p2align	4
+_sha1_block_data_order:
+
+	leaq	_OPENSSL_ia32cap_P(%rip),%r10
 	movl	0(%r10),%r9d
 	movl	4(%r10),%r8d
 	movl	8(%r10),%r10d
 	testl	$512,%r8d
-	jz	.Lialu
+	jz	L$ialu
 	andl	$268435456,%r8d
 	andl	$1073741824,%r9d
 	orl	%r9d,%r8d
@@ -34,38 +33,38 @@ sha1_block_data_order:
 	je	_avx_shortcut
 	jmp	_ssse3_shortcut
 
-.align	16
-.Lialu:
+.p2align	4
+L$ialu:
 	movq	%rsp,%rax
-.cfi_def_cfa_register	%rax
+
 	pushq	%rbx
-.cfi_offset	%rbx,-16
+
 	pushq	%rbp
-.cfi_offset	%rbp,-24
+
 	pushq	%r12
-.cfi_offset	%r12,-32
+
 	pushq	%r13
-.cfi_offset	%r13,-40
+
 	pushq	%r14
-.cfi_offset	%r14,-48
+
 	movq	%rdi,%r8
 	subq	$72,%rsp
 	movq	%rsi,%r9
 	andq	$-64,%rsp
 	movq	%rdx,%r10
 	movq	%rax,64(%rsp)
-.cfi_escape	0x0f,0x06,0x77,0xc0,0x00,0x06,0x23,0x08
-.Lprologue:
+
+L$prologue:
 
 	movl	0(%r8),%esi
 	movl	4(%r8),%edi
 	movl	8(%r8),%r11d
 	movl	12(%r8),%r12d
 	movl	16(%r8),%r13d
-	jmp	.Lloop
+	jmp	L$loop
 
-.align	16
-.Lloop:
+.p2align	4
+L$loop:
 	movl	0(%r9),%edx
 	bswapl	%edx
 	movl	4(%r9),%ebp
@@ -1246,43 +1245,43 @@ sha1_block_data_order:
 
 	subq	$1,%r10
 	leaq	64(%r9),%r9
-	jnz	.Lloop
+	jnz	L$loop
 
 	movq	64(%rsp),%rsi
-.cfi_def_cfa	%rsi,8
+
 	movq	-40(%rsi),%r14
-.cfi_restore	%r14
+
 	movq	-32(%rsi),%r13
-.cfi_restore	%r13
+
 	movq	-24(%rsi),%r12
-.cfi_restore	%r12
+
 	movq	-16(%rsi),%rbp
-.cfi_restore	%rbp
+
 	movq	-8(%rsi),%rbx
-.cfi_restore	%rbx
+
 	leaq	(%rsi),%rsp
-.cfi_def_cfa_register	%rsp
-.Lepilogue:
+
+L$epilogue:
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	sha1_block_data_order,.-sha1_block_data_order
-.type	sha1_block_data_order_ssse3,@function
-.align	16
+
+
+
+.p2align	4
 sha1_block_data_order_ssse3:
 _ssse3_shortcut:
-.cfi_startproc	
+
 	movq	%rsp,%r11
-.cfi_def_cfa_register	%r11
+
 	pushq	%rbx
-.cfi_offset	%rbx,-16
+
 	pushq	%rbp
-.cfi_offset	%rbp,-24
+
 	pushq	%r12
-.cfi_offset	%r12,-32
+
 	pushq	%r13
-.cfi_offset	%r13,-40
+
 	pushq	%r14
-.cfi_offset	%r14,-48
+
 	leaq	-64(%rsp),%rsp
 	andq	$-64,%rsp
 	movq	%rdi,%r8
@@ -1323,9 +1322,9 @@ _ssse3_shortcut:
 	psubd	%xmm9,%xmm1
 	movdqa	%xmm2,32(%rsp)
 	psubd	%xmm9,%xmm2
-	jmp	.Loop_ssse3
-.align	16
-.Loop_ssse3:
+	jmp	L$oop_ssse3
+.p2align	4
+L$oop_ssse3:
 	rorl	$2,%ebx
 	pshufd	$238,%xmm0,%xmm4
 	xorl	%edx,%esi
@@ -2199,7 +2198,7 @@ _ssse3_shortcut:
 	rorl	$7,%ebp
 	addl	%edx,%ecx
 	cmpq	%r10,%r9
-	je	.Ldone_ssse3
+	je	L$done_ssse3
 	movdqa	64(%r14),%xmm6
 	movdqa	-64(%r14),%xmm9
 	movdqu	0(%r9),%xmm0
@@ -2329,10 +2328,10 @@ _ssse3_shortcut:
 	xorl	%edx,%edi
 	movl	%ebp,16(%r8)
 	andl	%edi,%esi
-	jmp	.Loop_ssse3
+	jmp	L$oop_ssse3
 
-.align	16
-.Ldone_ssse3:
+.p2align	4
+L$done_ssse3:
 	addl	16(%rsp),%ebx
 	xorl	%ebp,%esi
 	movl	%ecx,%edi
@@ -2439,38 +2438,38 @@ _ssse3_shortcut:
 	movl	%edx,12(%r8)
 	movl	%ebp,16(%r8)
 	movq	-40(%r11),%r14
-.cfi_restore	%r14
+
 	movq	-32(%r11),%r13
-.cfi_restore	%r13
+
 	movq	-24(%r11),%r12
-.cfi_restore	%r12
+
 	movq	-16(%r11),%rbp
-.cfi_restore	%rbp
+
 	movq	-8(%r11),%rbx
-.cfi_restore	%rbx
+
 	leaq	(%r11),%rsp
-.cfi_def_cfa_register	%rsp
-.Lepilogue_ssse3:
+
+L$epilogue_ssse3:
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	sha1_block_data_order_ssse3,.-sha1_block_data_order_ssse3
-.type	sha1_block_data_order_avx,@function
-.align	16
+
+
+
+.p2align	4
 sha1_block_data_order_avx:
 _avx_shortcut:
-.cfi_startproc	
+
 	movq	%rsp,%r11
-.cfi_def_cfa_register	%r11
+
 	pushq	%rbx
-.cfi_offset	%rbx,-16
+
 	pushq	%rbp
-.cfi_offset	%rbp,-24
+
 	pushq	%r12
-.cfi_offset	%r12,-32
+
 	pushq	%r13
-.cfi_offset	%r13,-40
+
 	pushq	%r14
-.cfi_offset	%r14,-48
+
 	leaq	-64(%rsp),%rsp
 	vzeroupper
 	andq	$-64,%rsp
@@ -2509,9 +2508,9 @@ _avx_shortcut:
 	vmovdqa	%xmm4,0(%rsp)
 	vmovdqa	%xmm5,16(%rsp)
 	vmovdqa	%xmm6,32(%rsp)
-	jmp	.Loop_avx
-.align	16
-.Loop_avx:
+	jmp	L$oop_avx
+.p2align	4
+L$oop_avx:
 	shrdl	$2,%ebx,%ebx
 	xorl	%edx,%esi
 	vpalignr	$8,%xmm0,%xmm1,%xmm4
@@ -3328,7 +3327,7 @@ _avx_shortcut:
 	shrdl	$7,%ebp,%ebp
 	addl	%edx,%ecx
 	cmpq	%r10,%r9
-	je	.Ldone_avx
+	je	L$done_avx
 	vmovdqa	64(%r14),%xmm6
 	vmovdqa	-64(%r14),%xmm11
 	vmovdqu	0(%r9),%xmm0
@@ -3455,10 +3454,10 @@ _avx_shortcut:
 	xorl	%edx,%edi
 	movl	%ebp,16(%r8)
 	andl	%edi,%esi
-	jmp	.Loop_avx
+	jmp	L$oop_avx
 
-.align	16
-.Ldone_avx:
+.p2align	4
+L$done_avx:
 	addl	16(%rsp),%ebx
 	xorl	%ebp,%esi
 	movl	%ecx,%edi
@@ -3567,22 +3566,22 @@ _avx_shortcut:
 	movl	%edx,12(%r8)
 	movl	%ebp,16(%r8)
 	movq	-40(%r11),%r14
-.cfi_restore	%r14
+
 	movq	-32(%r11),%r13
-.cfi_restore	%r13
+
 	movq	-24(%r11),%r12
-.cfi_restore	%r12
+
 	movq	-16(%r11),%rbp
-.cfi_restore	%rbp
+
 	movq	-8(%r11),%rbx
-.cfi_restore	%rbx
+
 	leaq	(%r11),%rsp
-.cfi_def_cfa_register	%rsp
-.Lepilogue_avx:
+
+L$epilogue_avx:
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	sha1_block_data_order_avx,.-sha1_block_data_order_avx
-.align	64
+
+
+.p2align	6
 K_XX_XX:
 .long	0x5a827999,0x5a827999,0x5a827999,0x5a827999
 .long	0x5a827999,0x5a827999,0x5a827999,0x5a827999
@@ -3596,6 +3595,5 @@ K_XX_XX:
 .long	0x00010203,0x04050607,0x08090a0b,0x0c0d0e0f
 .byte	0xf,0xe,0xd,0xc,0xb,0xa,0x9,0x8,0x7,0x6,0x5,0x4,0x3,0x2,0x1,0x0
 .byte	83,72,65,49,32,98,108,111,99,107,32,116,114,97,110,115,102,111,114,109,32,102,111,114,32,120,56,54,95,54,52,44,32,67,82,89,80,84,79,71,65,77,83,32,98,121,32,60,97,112,112,114,111,64,111,112,101,110,115,115,108,46,111,114,103,62,0
-.align	64
+.p2align	6
 #endif
-.section	.note.GNU-stack,"",@progbits
