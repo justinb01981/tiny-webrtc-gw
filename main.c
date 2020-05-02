@@ -68,13 +68,13 @@
 
 #define CONNECTION_DELAY_MS 2000
 
-#define RTP_PICT_LOSS_INDICATOR_INTERVAL 10
+#define RTP_PICT_LOSS_INDICATOR_INTERVAL /*10*/ 5
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
-#define PEER_CLEANUP_INTERVAL /*320000*/ /*3560000*/ 160000
+#define PEER_CLEANUP_INTERVAL /*320000*/ /*3560000*/ 1600000
 
-#define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY (PEER_CLEANUP_INTERVAL/16)
+#define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY (PEER_CLEANUP_INTERVAL/128)
 
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS+1];
@@ -1493,6 +1493,10 @@ int main( int argc, char* argv[] ) {
                 {
                     sidx = p;
                     printf("stun_locate: found peer %s (%s)\n", stun_uname, peers[sidx].name);
+
+                    // clear peer_index_sdp_last
+                    if(p == webserver.peer_index_sdp_last) webserver.peer_index_sdp_last = -1;
+
                     break;
                 }
 
@@ -1513,8 +1517,6 @@ int main( int argc, char* argv[] ) {
                 {
                     printf("stun_locate: anonymous peer found: %s\n", stun_uname);
                     sidx = webserver.peer_index_sdp_last;
-                    
-                    webserver.peer_index_sdp_last = -1;
                 }
                 else
                 {
@@ -1823,9 +1825,9 @@ int main( int argc, char* argv[] ) {
                 memset(&peers[i].addr_listen, 0, sizeof(peers[i].addr_listen));
 
                 peers[i].name[0] = '\0';
-                peers[i].restart_done = 1;
                 peers[i].cleanup_in_progress = 0;
                 peers[i].subscribed = 0;
+                peers[i].restart_done = 1;
 
                 while(peers[i].restart_needed) sleep_msec(1);
                 peers[i].restart_done = 0;

@@ -24,8 +24,6 @@ static char g_chatlog[CHATLOG_SIZE];
 
 static time_t g_chatlog_ts;
 
-static volatile int g_webpeer_mutex = 0;
-
 extern int sdp_prefix_set(const char*);
 
 struct webserver_state {
@@ -892,10 +890,6 @@ webserver_worker(void* p)
                     // handle SDP-answer upload
                     if(strcmp(purl, "/"FILENAME_SDP_ANSWER) == 0)
                     {
-                        // take mutex which limits access to peer table during SDP parsing
-                        while(g_webpeer_mutex != 0) usleep(SPIN_WAIT_USEC);
-                        g_webpeer_mutex = 1;
-
                         // create temp file, decode, rename for worker thread to pick up/read and remove
                         char tmp[256], ufrag_offer_tmp[256];
                         char* sdp = strdup(pbody);
@@ -919,7 +913,6 @@ webserver_worker(void* p)
                                 printf("peer found, but no offer found for ice_ufrag\n");
                                 
                                 free(sdp);
-                                g_webpeer_mutex = 0;
                                 goto response_override;
                             }
                             
@@ -940,7 +933,6 @@ webserver_worker(void* p)
                             {
                                 free(sdp);
 
-                                g_webpeer_mutex = 0;
                                 goto response_override;
                             }
                             
@@ -953,39 +945,38 @@ webserver_worker(void* p)
                         sprintf(tmp, "webserver: new SDP answer for peer %d\n", sidx);
                         chatlog_append(tmp);
 
-                        // mark -- signal/wait for peer to be initialized
-                        peers[sidx].time_pkt_last = time(NULL);
                         // moved setting .alive to below to avoid a race
                         //peers[sidx].alive = 1;
                         peers[sidx].restart_done = 0;
                         peers[sidx].restart_needed = 1;
 
                         while(!peers[sidx].restart_done) usleep(SPIN_WAIT_USEC);
-                        
+
                         // init stun-ice attributes
                         strcpy(peers[sidx].stun_ice.ufrag_answer, ufrag_answer);
                         strcpy(peers[sidx].stun_ice.ufrag_offer, ufrag_offer_tmp);
                         strcpy(peers[sidx].sdp.offer, sdp_offer_find(peers[sidx].stun_ice.ufrag_offer, ufrag_answer));
                         strcpy(peers[sidx].sdp.answer, sdp);
+
+                        // mark -- signal/wait for peer to be initialized
+                        peers[sidx].time_pkt_last = time(NULL);
+                        peers[sidx].alive = 1;
+                          
+                        peers[sidx].restart_needed = 0;                       
                         
                         strcpy(peers[sidx].name, str_read_unsafe(sdp, "a=myname=", 0));
                         strcpy(peers[sidx].roomname, str_read_unsafe(sdp, "a=room=", 0));
 
+                        while(webserver.peer_index_sdp_last >= 0) sleep_msec(1);    
                         webserver.peer_index_sdp_last = sidx;
 
                         printf("peer restarted (stun_ice.user-name answer/offer: %s:%s)\n", peers[sidx].stun_ice.ufrag_answer, peers[sidx].stun_ice.ufrag_offer);
-                        
-                        peers[sidx].alive = 1;
-                        peers[sidx].restart_needed = 0;
                         
                         free(sdp);
 
                         free(response);
                         response = strdup(page_buf_sdp_uploaded);
                         content_type = content_type_html;
-
-                        // release mutex
-                        g_webpeer_mutex = 0;
 
                         goto response_override;
                     }
