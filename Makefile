@@ -14,10 +14,10 @@ all: lib/libcrypto.a lib/libsrtp2.a lib/libssl.a
 	#ld *.o -static -o webrtc_gw -L${LIB_OPENSSL} ${LDARGS};
 
 lib/libcrypto.a:
-	pushd boringssl && cmake . && make && cp crypto/libcrypto.a ../lib;
+	cd boringssl && cmake . && make && cp crypto/libcrypto.a ../lib;
 lib/libssl.a:
-	pushd boringssl && cmake . && make && cp ssl/libssl.a ../lib;
+	cd boringssl && cmake . && make && cp ssl/libssl.a ../lib;
 lib/libsrtp2.a:
-	pushd libsrtp && cmake . && make && cp libsrtp2.a ../lib;
+	cd libsrtp && cmake . && make && cp libsrtp2.a ../lib;
 
 
