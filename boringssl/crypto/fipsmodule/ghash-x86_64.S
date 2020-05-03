@@ -12,15 +12,14 @@
 #include <boringssl_prefix_symbols_asm.h>
 #endif
 .text	
-.extern	OPENSSL_ia32cap_P
-.hidden OPENSSL_ia32cap_P
-.globl	gcm_init_clmul
-.hidden gcm_init_clmul
-.type	gcm_init_clmul,@function
-.align	16
-gcm_init_clmul:
-.cfi_startproc	
-.L_init_clmul:
+
+.globl	_gcm_init_clmul
+.private_extern _gcm_init_clmul
+
+.p2align	4
+_gcm_init_clmul:
+
+L$_init_clmul:
 	movdqu	(%rsi),%xmm2
 	pshufd	$78,%xmm2,%xmm2
 
@@ -35,7 +34,7 @@ gcm_init_clmul:
 	por	%xmm3,%xmm2
 
 
-	pand	.L0x1c2_polynomial(%rip),%xmm5
+	pand	L$0x1c2_polynomial(%rip),%xmm5
 	pxor	%xmm5,%xmm2
 
 
@@ -171,17 +170,17 @@ gcm_init_clmul:
 .byte	102,15,58,15,227,8
 	movdqu	%xmm4,80(%rdi)
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	gcm_init_clmul,.-gcm_init_clmul
-.globl	gcm_gmult_clmul
-.hidden gcm_gmult_clmul
-.type	gcm_gmult_clmul,@function
-.align	16
-gcm_gmult_clmul:
-.cfi_startproc	
-.L_gmult_clmul:
+
+
+.globl	_gcm_gmult_clmul
+.private_extern _gcm_gmult_clmul
+
+.p2align	4
+_gcm_gmult_clmul:
+
+L$_gmult_clmul:
 	movdqu	(%rdi),%xmm0
-	movdqa	.Lbswap_mask(%rip),%xmm5
+	movdqa	L$bswap_mask(%rip),%xmm5
 	movdqu	(%rsi),%xmm2
 	movdqu	32(%rsi),%xmm4
 .byte	102,15,56,0,197
@@ -225,16 +224,16 @@ gcm_gmult_clmul:
 .byte	102,15,56,0,197
 	movdqu	%xmm0,(%rdi)
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	gcm_gmult_clmul,.-gcm_gmult_clmul
-.globl	gcm_ghash_clmul
-.hidden gcm_ghash_clmul
-.type	gcm_ghash_clmul,@function
-.align	32
-gcm_ghash_clmul:
-.cfi_startproc	
-.L_ghash_clmul:
-	movdqa	.Lbswap_mask(%rip),%xmm10
+
+
+.globl	_gcm_ghash_clmul
+.private_extern _gcm_ghash_clmul
+
+.p2align	5
+_gcm_ghash_clmul:
+
+L$_ghash_clmul:
+	movdqa	L$bswap_mask(%rip),%xmm10
 
 	movdqu	(%rdi),%xmm0
 	movdqu	(%rsi),%xmm2
@@ -242,17 +241,17 @@ gcm_ghash_clmul:
 .byte	102,65,15,56,0,194
 
 	subq	$0x10,%rcx
-	jz	.Lodd_tail
+	jz	L$odd_tail
 
 	movdqu	16(%rsi),%xmm6
-	leaq	OPENSSL_ia32cap_P(%rip),%rax
+	leaq	_OPENSSL_ia32cap_P(%rip),%rax
 	movl	4(%rax),%eax
 	cmpq	$0x30,%rcx
-	jb	.Lskip4x
+	jb	L$skip4x
 
 	andl	$71303168,%eax
 	cmpl	$4194304,%eax
-	je	.Lskip4x
+	je	L$skip4x
 
 	subq	$0x30,%rcx
 	movq	$0xA040608020C0E000,%rax
@@ -303,11 +302,11 @@ gcm_ghash_clmul:
 
 	leaq	64(%rdx),%rdx
 	subq	$0x40,%rcx
-	jc	.Ltail4x
+	jc	L$tail4x
 
-	jmp	.Lmod4_loop
-.align	32
-.Lmod4_loop:
+	jmp	L$mod4_loop
+.p2align	5
+L$mod4_loop:
 .byte	102,65,15,58,68,199,0
 	xorps	%xmm12,%xmm4
 	movdqu	48(%rdx),%xmm11
@@ -335,7 +334,7 @@ gcm_ghash_clmul:
 	pslldq	$8,%xmm8
 	psrldq	$8,%xmm9
 	pxor	%xmm8,%xmm0
-	movdqa	.L7_mask(%rip),%xmm8
+	movdqa	L$7_mask(%rip),%xmm8
 	pxor	%xmm9,%xmm1
 .byte	102,76,15,110,200
 
@@ -386,9 +385,9 @@ gcm_ghash_clmul:
 
 	leaq	64(%rdx),%rdx
 	subq	$0x40,%rcx
-	jnc	.Lmod4_loop
+	jnc	L$mod4_loop
 
-.Ltail4x:
+L$tail4x:
 .byte	102,65,15,58,68,199,0
 .byte	102,65,15,58,68,207,17
 .byte	102,68,15,58,68,199,16
@@ -430,11 +429,11 @@ gcm_ghash_clmul:
 	psrlq	$1,%xmm0
 	pxor	%xmm1,%xmm0
 	addq	$0x40,%rcx
-	jz	.Ldone
+	jz	L$done
 	movdqu	32(%rsi),%xmm7
 	subq	$0x10,%rcx
-	jz	.Lodd_tail
-.Lskip4x:
+	jz	L$odd_tail
+L$skip4x:
 
 
 
@@ -456,12 +455,12 @@ gcm_ghash_clmul:
 	leaq	32(%rdx),%rdx
 	nop
 	subq	$0x20,%rcx
-	jbe	.Leven_tail
+	jbe	L$even_tail
 	nop
-	jmp	.Lmod_loop
+	jmp	L$mod_loop
 
-.align	32
-.Lmod_loop:
+.p2align	5
+L$mod_loop:
 	movdqa	%xmm0,%xmm1
 	movdqa	%xmm4,%xmm8
 	pshufd	$78,%xmm0,%xmm4
@@ -519,9 +518,9 @@ gcm_ghash_clmul:
 	pxor	%xmm1,%xmm0
 
 	subq	$0x20,%rcx
-	ja	.Lmod_loop
+	ja	L$mod_loop
 
-.Leven_tail:
+L$even_tail:
 	movdqa	%xmm0,%xmm1
 	movdqa	%xmm4,%xmm8
 	pshufd	$78,%xmm0,%xmm4
@@ -565,9 +564,9 @@ gcm_ghash_clmul:
 	psrlq	$1,%xmm0
 	pxor	%xmm1,%xmm0
 	testq	%rcx,%rcx
-	jnz	.Ldone
+	jnz	L$done
 
-.Lodd_tail:
+L$odd_tail:
 	movdqu	(%rdx),%xmm8
 .byte	102,69,15,56,0,194
 	pxor	%xmm8,%xmm0
@@ -608,18 +607,18 @@ gcm_ghash_clmul:
 	pxor	%xmm4,%xmm0
 	psrlq	$1,%xmm0
 	pxor	%xmm1,%xmm0
-.Ldone:
+L$done:
 .byte	102,65,15,56,0,194
 	movdqu	%xmm0,(%rdi)
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	gcm_ghash_clmul,.-gcm_ghash_clmul
-.globl	gcm_init_avx
-.hidden gcm_init_avx
-.type	gcm_init_avx,@function
-.align	32
-gcm_init_avx:
-.cfi_startproc	
+
+
+.globl	_gcm_init_avx
+.private_extern _gcm_init_avx
+
+.p2align	5
+_gcm_init_avx:
+
 	vzeroupper
 
 	vmovdqu	(%rsi),%xmm2
@@ -635,16 +634,16 @@ gcm_init_avx:
 	vpor	%xmm3,%xmm2,%xmm2
 
 
-	vpand	.L0x1c2_polynomial(%rip),%xmm5,%xmm5
+	vpand	L$0x1c2_polynomial(%rip),%xmm5,%xmm5
 	vpxor	%xmm5,%xmm2,%xmm2
 
 	vpunpckhqdq	%xmm2,%xmm2,%xmm6
 	vmovdqa	%xmm2,%xmm0
 	vpxor	%xmm2,%xmm6,%xmm6
 	movq	$4,%r10
-	jmp	.Linit_start_avx
-.align	32
-.Linit_loop_avx:
+	jmp	L$init_start_avx
+.p2align	5
+L$init_loop_avx:
 	vpalignr	$8,%xmm3,%xmm4,%xmm5
 	vmovdqu	%xmm5,-16(%rdi)
 	vpunpckhqdq	%xmm0,%xmm0,%xmm3
@@ -676,7 +675,7 @@ gcm_init_avx:
 	vpxor	%xmm4,%xmm0,%xmm0
 	vpsrlq	$1,%xmm0,%xmm0
 	vpxor	%xmm1,%xmm0,%xmm0
-.Linit_start_avx:
+L$init_start_avx:
 	vmovdqa	%xmm0,%xmm5
 	vpunpckhqdq	%xmm0,%xmm0,%xmm3
 	vpxor	%xmm0,%xmm3,%xmm3
@@ -715,39 +714,39 @@ gcm_init_avx:
 	vmovdqu	%xmm0,16(%rdi)
 	leaq	48(%rdi),%rdi
 	subq	$1,%r10
-	jnz	.Linit_loop_avx
+	jnz	L$init_loop_avx
 
 	vpalignr	$8,%xmm4,%xmm3,%xmm5
 	vmovdqu	%xmm5,-16(%rdi)
 
 	vzeroupper
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	gcm_init_avx,.-gcm_init_avx
-.globl	gcm_gmult_avx
-.hidden gcm_gmult_avx
-.type	gcm_gmult_avx,@function
-.align	32
-gcm_gmult_avx:
-.cfi_startproc	
-	jmp	.L_gmult_clmul
-.cfi_endproc	
-.size	gcm_gmult_avx,.-gcm_gmult_avx
-.globl	gcm_ghash_avx
-.hidden gcm_ghash_avx
-.type	gcm_ghash_avx,@function
-.align	32
-gcm_ghash_avx:
-.cfi_startproc	
+
+
+.globl	_gcm_gmult_avx
+.private_extern _gcm_gmult_avx
+
+.p2align	5
+_gcm_gmult_avx:
+
+	jmp	L$_gmult_clmul
+
+
+.globl	_gcm_ghash_avx
+.private_extern _gcm_ghash_avx
+
+.p2align	5
+_gcm_ghash_avx:
+
 	vzeroupper
 
 	vmovdqu	(%rdi),%xmm10
-	leaq	.L0x1c2_polynomial(%rip),%r10
+	leaq	L$0x1c2_polynomial(%rip),%r10
 	leaq	64(%rsi),%rsi
-	vmovdqu	.Lbswap_mask(%rip),%xmm13
+	vmovdqu	L$bswap_mask(%rip),%xmm13
 	vpshufb	%xmm13,%xmm10,%xmm10
 	cmpq	$0x80,%rcx
-	jb	.Lshort_avx
+	jb	L$short_avx
 	subq	$0x80,%rcx
 
 	vmovdqu	112(%rdx),%xmm14
@@ -838,14 +837,14 @@ gcm_ghash_avx:
 
 	leaq	128(%rdx),%rdx
 	cmpq	$0x80,%rcx
-	jb	.Ltail_avx
+	jb	L$tail_avx
 
 	vpxor	%xmm10,%xmm15,%xmm15
 	subq	$0x80,%rcx
-	jmp	.Loop8x_avx
+	jmp	L$oop8x_avx
 
-.align	32
-.Loop8x_avx:
+.p2align	5
+L$oop8x_avx:
 	vpunpckhqdq	%xmm15,%xmm15,%xmm8
 	vmovdqu	112(%rdx),%xmm14
 	vpxor	%xmm0,%xmm3,%xmm3
@@ -959,13 +958,13 @@ gcm_ghash_avx:
 
 	leaq	128(%rdx),%rdx
 	subq	$0x80,%rcx
-	jnc	.Loop8x_avx
+	jnc	L$oop8x_avx
 
 	addq	$0x80,%rcx
-	jmp	.Ltail_no_xor_avx
+	jmp	L$tail_no_xor_avx
 
-.align	32
-.Lshort_avx:
+.p2align	5
+L$short_avx:
 	vmovdqu	-16(%rdx,%rcx,1),%xmm14
 	leaq	(%rdx,%rcx,1),%rdx
 	vmovdqu	0-64(%rsi),%xmm6
@@ -976,7 +975,7 @@ gcm_ghash_avx:
 	vmovdqa	%xmm1,%xmm4
 	vmovdqa	%xmm2,%xmm5
 	subq	$0x10,%rcx
-	jz	.Ltail_avx
+	jz	L$tail_avx
 
 	vpunpckhqdq	%xmm15,%xmm15,%xmm8
 	vpxor	%xmm0,%xmm3,%xmm3
@@ -991,7 +990,7 @@ gcm_ghash_avx:
 	vpclmulqdq	$0x00,%xmm7,%xmm8,%xmm2
 	vpsrldq	$8,%xmm7,%xmm7
 	subq	$0x10,%rcx
-	jz	.Ltail_avx
+	jz	L$tail_avx
 
 	vpunpckhqdq	%xmm15,%xmm15,%xmm8
 	vpxor	%xmm0,%xmm3,%xmm3
@@ -1006,7 +1005,7 @@ gcm_ghash_avx:
 	vpclmulqdq	$0x00,%xmm7,%xmm8,%xmm2
 	vmovdqu	80-64(%rsi),%xmm7
 	subq	$0x10,%rcx
-	jz	.Ltail_avx
+	jz	L$tail_avx
 
 	vpunpckhqdq	%xmm15,%xmm15,%xmm8
 	vpxor	%xmm0,%xmm3,%xmm3
@@ -1021,7 +1020,7 @@ gcm_ghash_avx:
 	vpclmulqdq	$0x00,%xmm7,%xmm8,%xmm2
 	vpsrldq	$8,%xmm7,%xmm7
 	subq	$0x10,%rcx
-	jz	.Ltail_avx
+	jz	L$tail_avx
 
 	vpunpckhqdq	%xmm15,%xmm15,%xmm8
 	vpxor	%xmm0,%xmm3,%xmm3
@@ -1036,7 +1035,7 @@ gcm_ghash_avx:
 	vpclmulqdq	$0x00,%xmm7,%xmm8,%xmm2
 	vmovdqu	128-64(%rsi),%xmm7
 	subq	$0x10,%rcx
-	jz	.Ltail_avx
+	jz	L$tail_avx
 
 	vpunpckhqdq	%xmm15,%xmm15,%xmm8
 	vpxor	%xmm0,%xmm3,%xmm3
@@ -1051,7 +1050,7 @@ gcm_ghash_avx:
 	vpclmulqdq	$0x00,%xmm7,%xmm8,%xmm2
 	vpsrldq	$8,%xmm7,%xmm7
 	subq	$0x10,%rcx
-	jz	.Ltail_avx
+	jz	L$tail_avx
 
 	vpunpckhqdq	%xmm15,%xmm15,%xmm8
 	vpxor	%xmm0,%xmm3,%xmm3
@@ -1066,12 +1065,12 @@ gcm_ghash_avx:
 	vpclmulqdq	$0x00,%xmm7,%xmm8,%xmm2
 	vmovq	184-64(%rsi),%xmm7
 	subq	$0x10,%rcx
-	jmp	.Ltail_avx
+	jmp	L$tail_avx
 
-.align	32
-.Ltail_avx:
+.p2align	5
+L$tail_avx:
 	vpxor	%xmm10,%xmm15,%xmm15
-.Ltail_no_xor_avx:
+L$tail_no_xor_avx:
 	vpunpckhqdq	%xmm15,%xmm15,%xmm8
 	vpxor	%xmm0,%xmm3,%xmm3
 	vpclmulqdq	$0x00,%xmm6,%xmm15,%xmm0
@@ -1104,26 +1103,25 @@ gcm_ghash_avx:
 	vpxor	%xmm9,%xmm10,%xmm10
 
 	cmpq	$0,%rcx
-	jne	.Lshort_avx
+	jne	L$short_avx
 
 	vpshufb	%xmm13,%xmm10,%xmm10
 	vmovdqu	%xmm10,(%rdi)
 	vzeroupper
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	gcm_ghash_avx,.-gcm_ghash_avx
-.align	64
-.Lbswap_mask:
+
+
+.p2align	6
+L$bswap_mask:
 .byte	15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0
-.L0x1c2_polynomial:
+L$0x1c2_polynomial:
 .byte	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0xc2
-.L7_mask:
+L$7_mask:
 .long	7,0,7,0
-.L7_mask_poly:
+L$7_mask_poly:
 .long	7,0,450,0
-.align	64
+.p2align	6
 
 .byte	71,72,65,83,72,32,102,111,114,32,120,56,54,95,54,52,44,32,67,82,89,80,84,79,71,65,77,83,32,98,121,32,60,97,112,112,114,111,64,111,112,101,110,115,115,108,46,111,114,103,62,0
-.align	64
+.p2align	6
 #endif
-.section	.note.GNU-stack,"",@progbits

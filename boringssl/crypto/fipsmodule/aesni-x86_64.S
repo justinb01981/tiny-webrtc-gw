@@ -12,18 +12,16 @@
 #include <boringssl_prefix_symbols_asm.h>
 #endif
 .text	
-.extern	OPENSSL_ia32cap_P
-.hidden OPENSSL_ia32cap_P
-.globl	aes_hw_encrypt
-.hidden aes_hw_encrypt
-.type	aes_hw_encrypt,@function
-.align	16
-aes_hw_encrypt:
-.cfi_startproc	
+
+.globl	_aes_hw_encrypt
+.private_extern _aes_hw_encrypt
+
+.p2align	4
+_aes_hw_encrypt:
+
 #ifdef BORINGSSL_DISPATCH_TEST
-.extern	BORINGSSL_function_hit
-.hidden BORINGSSL_function_hit
-	movb	$1,BORINGSSL_function_hit+1(%rip)
+
+	movb	$1,_BORINGSSL_function_hit+1(%rip)
 #endif
 	movups	(%rdi),%xmm2
 	movl	240(%rdx),%eax
@@ -31,51 +29,51 @@ aes_hw_encrypt:
 	movups	16(%rdx),%xmm1
 	leaq	32(%rdx),%rdx
 	xorps	%xmm0,%xmm2
-.Loop_enc1_1:
+L$oop_enc1_1:
 .byte	102,15,56,220,209
 	decl	%eax
 	movups	(%rdx),%xmm1
 	leaq	16(%rdx),%rdx
-	jnz	.Loop_enc1_1
+	jnz	L$oop_enc1_1
 .byte	102,15,56,221,209
 	pxor	%xmm0,%xmm0
 	pxor	%xmm1,%xmm1
 	movups	%xmm2,(%rsi)
 	pxor	%xmm2,%xmm2
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	aes_hw_encrypt,.-aes_hw_encrypt
 
-.globl	aes_hw_decrypt
-.hidden aes_hw_decrypt
-.type	aes_hw_decrypt,@function
-.align	16
-aes_hw_decrypt:
-.cfi_startproc	
+
+
+.globl	_aes_hw_decrypt
+.private_extern _aes_hw_decrypt
+
+.p2align	4
+_aes_hw_decrypt:
+
 	movups	(%rdi),%xmm2
 	movl	240(%rdx),%eax
 	movups	(%rdx),%xmm0
 	movups	16(%rdx),%xmm1
 	leaq	32(%rdx),%rdx
 	xorps	%xmm0,%xmm2
-.Loop_dec1_2:
+L$oop_dec1_2:
 .byte	102,15,56,222,209
 	decl	%eax
 	movups	(%rdx),%xmm1
 	leaq	16(%rdx),%rdx
-	jnz	.Loop_dec1_2
+	jnz	L$oop_dec1_2
 .byte	102,15,56,223,209
 	pxor	%xmm0,%xmm0
 	pxor	%xmm1,%xmm1
 	movups	%xmm2,(%rsi)
 	pxor	%xmm2,%xmm2
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	aes_hw_decrypt, .-aes_hw_decrypt
-.type	_aesni_encrypt2,@function
-.align	16
+
+
+
+.p2align	4
 _aesni_encrypt2:
-.cfi_startproc	
+
 	movups	(%rcx),%xmm0
 	shll	$4,%eax
 	movups	16(%rcx),%xmm1
@@ -86,7 +84,7 @@ _aesni_encrypt2:
 	negq	%rax
 	addq	$16,%rax
 
-.Lenc_loop2:
+L$enc_loop2:
 .byte	102,15,56,220,209
 .byte	102,15,56,220,217
 	movups	(%rcx,%rax,1),%xmm1
@@ -94,19 +92,19 @@ _aesni_encrypt2:
 .byte	102,15,56,220,208
 .byte	102,15,56,220,216
 	movups	-16(%rcx,%rax,1),%xmm0
-	jnz	.Lenc_loop2
+	jnz	L$enc_loop2
 
 .byte	102,15,56,220,209
 .byte	102,15,56,220,217
 .byte	102,15,56,221,208
 .byte	102,15,56,221,216
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	_aesni_encrypt2,.-_aesni_encrypt2
-.type	_aesni_decrypt2,@function
-.align	16
+
+
+
+.p2align	4
 _aesni_decrypt2:
-.cfi_startproc	
+
 	movups	(%rcx),%xmm0
 	shll	$4,%eax
 	movups	16(%rcx),%xmm1
@@ -117,7 +115,7 @@ _aesni_decrypt2:
 	negq	%rax
 	addq	$16,%rax
 
-.Ldec_loop2:
+L$dec_loop2:
 .byte	102,15,56,222,209
 .byte	102,15,56,222,217
 	movups	(%rcx,%rax,1),%xmm1
@@ -125,19 +123,19 @@ _aesni_decrypt2:
 .byte	102,15,56,222,208
 .byte	102,15,56,222,216
 	movups	-16(%rcx,%rax,1),%xmm0
-	jnz	.Ldec_loop2
+	jnz	L$dec_loop2
 
 .byte	102,15,56,222,209
 .byte	102,15,56,222,217
 .byte	102,15,56,223,208
 .byte	102,15,56,223,216
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	_aesni_decrypt2,.-_aesni_decrypt2
-.type	_aesni_encrypt3,@function
-.align	16
+
+
+
+.p2align	4
 _aesni_encrypt3:
-.cfi_startproc	
+
 	movups	(%rcx),%xmm0
 	shll	$4,%eax
 	movups	16(%rcx),%xmm1
@@ -149,7 +147,7 @@ _aesni_encrypt3:
 	negq	%rax
 	addq	$16,%rax
 
-.Lenc_loop3:
+L$enc_loop3:
 .byte	102,15,56,220,209
 .byte	102,15,56,220,217
 .byte	102,15,56,220,225
@@ -159,7 +157,7 @@ _aesni_encrypt3:
 .byte	102,15,56,220,216
 .byte	102,15,56,220,224
 	movups	-16(%rcx,%rax,1),%xmm0
-	jnz	.Lenc_loop3
+	jnz	L$enc_loop3
 
 .byte	102,15,56,220,209
 .byte	102,15,56,220,217
@@ -168,12 +166,12 @@ _aesni_encrypt3:
 .byte	102,15,56,221,216
 .byte	102,15,56,221,224
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	_aesni_encrypt3,.-_aesni_encrypt3
-.type	_aesni_decrypt3,@function
-.align	16
+
+
+
+.p2align	4
 _aesni_decrypt3:
-.cfi_startproc	
+
 	movups	(%rcx),%xmm0
 	shll	$4,%eax
 	movups	16(%rcx),%xmm1
@@ -185,7 +183,7 @@ _aesni_decrypt3:
 	negq	%rax
 	addq	$16,%rax
 
-.Ldec_loop3:
+L$dec_loop3:
 .byte	102,15,56,222,209
 .byte	102,15,56,222,217
 .byte	102,15,56,222,225
@@ -195,7 +193,7 @@ _aesni_decrypt3:
 .byte	102,15,56,222,216
 .byte	102,15,56,222,224
 	movups	-16(%rcx,%rax,1),%xmm0
-	jnz	.Ldec_loop3
+	jnz	L$dec_loop3
 
 .byte	102,15,56,222,209
 .byte	102,15,56,222,217
@@ -204,12 +202,12 @@ _aesni_decrypt3:
 .byte	102,15,56,223,216
 .byte	102,15,56,223,224
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	_aesni_decrypt3,.-_aesni_decrypt3
-.type	_aesni_encrypt4,@function
-.align	16
+
+
+
+.p2align	4
 _aesni_encrypt4:
-.cfi_startproc	
+
 	movups	(%rcx),%xmm0
 	shll	$4,%eax
 	movups	16(%rcx),%xmm1
@@ -223,7 +221,7 @@ _aesni_encrypt4:
 .byte	0x0f,0x1f,0x00
 	addq	$16,%rax
 
-.Lenc_loop4:
+L$enc_loop4:
 .byte	102,15,56,220,209
 .byte	102,15,56,220,217
 .byte	102,15,56,220,225
@@ -235,7 +233,7 @@ _aesni_encrypt4:
 .byte	102,15,56,220,224
 .byte	102,15,56,220,232
 	movups	-16(%rcx,%rax,1),%xmm0
-	jnz	.Lenc_loop4
+	jnz	L$enc_loop4
 
 .byte	102,15,56,220,209
 .byte	102,15,56,220,217
@@ -246,12 +244,12 @@ _aesni_encrypt4:
 .byte	102,15,56,221,224
 .byte	102,15,56,221,232
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	_aesni_encrypt4,.-_aesni_encrypt4
-.type	_aesni_decrypt4,@function
-.align	16
+
+
+
+.p2align	4
 _aesni_decrypt4:
-.cfi_startproc	
+
 	movups	(%rcx),%xmm0
 	shll	$4,%eax
 	movups	16(%rcx),%xmm1
@@ -265,7 +263,7 @@ _aesni_decrypt4:
 .byte	0x0f,0x1f,0x00
 	addq	$16,%rax
 
-.Ldec_loop4:
+L$dec_loop4:
 .byte	102,15,56,222,209
 .byte	102,15,56,222,217
 .byte	102,15,56,222,225
@@ -277,7 +275,7 @@ _aesni_decrypt4:
 .byte	102,15,56,222,224
 .byte	102,15,56,222,232
 	movups	-16(%rcx,%rax,1),%xmm0
-	jnz	.Ldec_loop4
+	jnz	L$dec_loop4
 
 .byte	102,15,56,222,209
 .byte	102,15,56,222,217
@@ -288,12 +286,12 @@ _aesni_decrypt4:
 .byte	102,15,56,223,224
 .byte	102,15,56,223,232
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	_aesni_decrypt4,.-_aesni_decrypt4
-.type	_aesni_encrypt6,@function
-.align	16
+
+
+
+.p2align	4
 _aesni_encrypt6:
-.cfi_startproc	
+
 	movups	(%rcx),%xmm0
 	shll	$4,%eax
 	movups	16(%rcx),%xmm1
@@ -310,13 +308,13 @@ _aesni_encrypt6:
 	pxor	%xmm0,%xmm7
 	movups	(%rcx,%rax,1),%xmm0
 	addq	$16,%rax
-	jmp	.Lenc_loop6_enter
-.align	16
-.Lenc_loop6:
+	jmp	L$enc_loop6_enter
+.p2align	4
+L$enc_loop6:
 .byte	102,15,56,220,209
 .byte	102,15,56,220,217
 .byte	102,15,56,220,225
-.Lenc_loop6_enter:
+L$enc_loop6_enter:
 .byte	102,15,56,220,233
 .byte	102,15,56,220,241
 .byte	102,15,56,220,249
@@ -329,7 +327,7 @@ _aesni_encrypt6:
 .byte	102,15,56,220,240
 .byte	102,15,56,220,248
 	movups	-16(%rcx,%rax,1),%xmm0
-	jnz	.Lenc_loop6
+	jnz	L$enc_loop6
 
 .byte	102,15,56,220,209
 .byte	102,15,56,220,217
@@ -344,12 +342,12 @@ _aesni_encrypt6:
 .byte	102,15,56,221,240
 .byte	102,15,56,221,248
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	_aesni_encrypt6,.-_aesni_encrypt6
-.type	_aesni_decrypt6,@function
-.align	16
+
+
+
+.p2align	4
 _aesni_decrypt6:
-.cfi_startproc	
+
 	movups	(%rcx),%xmm0
 	shll	$4,%eax
 	movups	16(%rcx),%xmm1
@@ -366,13 +364,13 @@ _aesni_decrypt6:
 	pxor	%xmm0,%xmm7
 	movups	(%rcx,%rax,1),%xmm0
 	addq	$16,%rax
-	jmp	.Ldec_loop6_enter
-.align	16
-.Ldec_loop6:
+	jmp	L$dec_loop6_enter
+.p2align	4
+L$dec_loop6:
 .byte	102,15,56,222,209
 .byte	102,15,56,222,217
 .byte	102,15,56,222,225
-.Ldec_loop6_enter:
+L$dec_loop6_enter:
 .byte	102,15,56,222,233
 .byte	102,15,56,222,241
 .byte	102,15,56,222,249
@@ -385,7 +383,7 @@ _aesni_decrypt6:
 .byte	102,15,56,222,240
 .byte	102,15,56,222,248
 	movups	-16(%rcx,%rax,1),%xmm0
-	jnz	.Ldec_loop6
+	jnz	L$dec_loop6
 
 .byte	102,15,56,222,209
 .byte	102,15,56,222,217
@@ -400,12 +398,12 @@ _aesni_decrypt6:
 .byte	102,15,56,223,240
 .byte	102,15,56,223,248
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	_aesni_decrypt6,.-_aesni_decrypt6
-.type	_aesni_encrypt8,@function
-.align	16
+
+
+
+.p2align	4
 _aesni_encrypt8:
-.cfi_startproc	
+
 	movups	(%rcx),%xmm0
 	shll	$4,%eax
 	movups	16(%rcx),%xmm1
@@ -423,19 +421,19 @@ _aesni_encrypt8:
 	pxor	%xmm0,%xmm9
 	movups	(%rcx,%rax,1),%xmm0
 	addq	$16,%rax
-	jmp	.Lenc_loop8_inner
-.align	16
-.Lenc_loop8:
+	jmp	L$enc_loop8_inner
+.p2align	4
+L$enc_loop8:
 .byte	102,15,56,220,209
 .byte	102,15,56,220,217
-.Lenc_loop8_inner:
+L$enc_loop8_inner:
 .byte	102,15,56,220,225
 .byte	102,15,56,220,233
 .byte	102,15,56,220,241
 .byte	102,15,56,220,249
 .byte	102,68,15,56,220,193
 .byte	102,68,15,56,220,201
-.Lenc_loop8_enter:
+L$enc_loop8_enter:
 	movups	(%rcx,%rax,1),%xmm1
 	addq	$32,%rax
 .byte	102,15,56,220,208
@@ -447,7 +445,7 @@ _aesni_encrypt8:
 .byte	102,68,15,56,220,192
 .byte	102,68,15,56,220,200
 	movups	-16(%rcx,%rax,1),%xmm0
-	jnz	.Lenc_loop8
+	jnz	L$enc_loop8
 
 .byte	102,15,56,220,209
 .byte	102,15,56,220,217
@@ -466,12 +464,12 @@ _aesni_encrypt8:
 .byte	102,68,15,56,221,192
 .byte	102,68,15,56,221,200
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	_aesni_encrypt8,.-_aesni_encrypt8
-.type	_aesni_decrypt8,@function
-.align	16
+
+
+
+.p2align	4
 _aesni_decrypt8:
-.cfi_startproc	
+
 	movups	(%rcx),%xmm0
 	shll	$4,%eax
 	movups	16(%rcx),%xmm1
@@ -489,19 +487,19 @@ _aesni_decrypt8:
 	pxor	%xmm0,%xmm9
 	movups	(%rcx,%rax,1),%xmm0
 	addq	$16,%rax
-	jmp	.Ldec_loop8_inner
-.align	16
-.Ldec_loop8:
+	jmp	L$dec_loop8_inner
+.p2align	4
+L$dec_loop8:
 .byte	102,15,56,222,209
 .byte	102,15,56,222,217
-.Ldec_loop8_inner:
+L$dec_loop8_inner:
 .byte	102,15,56,222,225
 .byte	102,15,56,222,233
 .byte	102,15,56,222,241
 .byte	102,15,56,222,249
 .byte	102,68,15,56,222,193
 .byte	102,68,15,56,222,201
-.Ldec_loop8_enter:
+L$dec_loop8_enter:
 	movups	(%rcx,%rax,1),%xmm1
 	addq	$32,%rax
 .byte	102,15,56,222,208
@@ -513,7 +511,7 @@ _aesni_decrypt8:
 .byte	102,68,15,56,222,192
 .byte	102,68,15,56,222,200
 	movups	-16(%rcx,%rax,1),%xmm0
-	jnz	.Ldec_loop8
+	jnz	L$dec_loop8
 
 .byte	102,15,56,222,209
 .byte	102,15,56,222,217
@@ -532,26 +530,26 @@ _aesni_decrypt8:
 .byte	102,68,15,56,223,192
 .byte	102,68,15,56,223,200
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	_aesni_decrypt8,.-_aesni_decrypt8
-.globl	aes_hw_ecb_encrypt
-.hidden aes_hw_ecb_encrypt
-.type	aes_hw_ecb_encrypt,@function
-.align	16
-aes_hw_ecb_encrypt:
-.cfi_startproc	
+
+
+.globl	_aes_hw_ecb_encrypt
+.private_extern _aes_hw_ecb_encrypt
+
+.p2align	4
+_aes_hw_ecb_encrypt:
+
 	andq	$-16,%rdx
-	jz	.Lecb_ret
+	jz	L$ecb_ret
 
 	movl	240(%rcx),%eax
 	movups	(%rcx),%xmm0
 	movq	%rcx,%r11
 	movl	%eax,%r10d
 	testl	%r8d,%r8d
-	jz	.Lecb_decrypt
+	jz	L$ecb_decrypt
 
 	cmpq	$0x80,%rdx
-	jb	.Lecb_enc_tail
+	jb	L$ecb_enc_tail
 
 	movdqu	(%rdi),%xmm2
 	movdqu	16(%rdi),%xmm3
@@ -563,9 +561,9 @@ aes_hw_ecb_encrypt:
 	movdqu	112(%rdi),%xmm9
 	leaq	128(%rdi),%rdi
 	subq	$0x80,%rdx
-	jmp	.Lecb_enc_loop8_enter
-.align	16
-.Lecb_enc_loop8:
+	jmp	L$ecb_enc_loop8_enter
+.p2align	4
+L$ecb_enc_loop8:
 	movups	%xmm2,(%rsi)
 	movq	%r11,%rcx
 	movdqu	(%rdi),%xmm2
@@ -586,12 +584,12 @@ aes_hw_ecb_encrypt:
 	leaq	128(%rsi),%rsi
 	movdqu	112(%rdi),%xmm9
 	leaq	128(%rdi),%rdi
-.Lecb_enc_loop8_enter:
+L$ecb_enc_loop8_enter:
 
 	call	_aesni_encrypt8
 
 	subq	$0x80,%rdx
-	jnc	.Lecb_enc_loop8
+	jnc	L$ecb_enc_loop8
 
 	movups	%xmm2,(%rsi)
 	movq	%r11,%rcx
@@ -605,24 +603,24 @@ aes_hw_ecb_encrypt:
 	movups	%xmm9,112(%rsi)
 	leaq	128(%rsi),%rsi
 	addq	$0x80,%rdx
-	jz	.Lecb_ret
+	jz	L$ecb_ret
 
-.Lecb_enc_tail:
+L$ecb_enc_tail:
 	movups	(%rdi),%xmm2
 	cmpq	$0x20,%rdx
-	jb	.Lecb_enc_one
+	jb	L$ecb_enc_one
 	movups	16(%rdi),%xmm3
-	je	.Lecb_enc_two
+	je	L$ecb_enc_two
 	movups	32(%rdi),%xmm4
 	cmpq	$0x40,%rdx
-	jb	.Lecb_enc_three
+	jb	L$ecb_enc_three
 	movups	48(%rdi),%xmm5
-	je	.Lecb_enc_four
+	je	L$ecb_enc_four
 	movups	64(%rdi),%xmm6
 	cmpq	$0x60,%rdx
-	jb	.Lecb_enc_five
+	jb	L$ecb_enc_five
 	movups	80(%rdi),%xmm7
-	je	.Lecb_enc_six
+	je	L$ecb_enc_six
 	movdqu	96(%rdi),%xmm8
 	xorps	%xmm9,%xmm9
 	call	_aesni_encrypt8
@@ -633,45 +631,45 @@ aes_hw_ecb_encrypt:
 	movups	%xmm6,64(%rsi)
 	movups	%xmm7,80(%rsi)
 	movups	%xmm8,96(%rsi)
-	jmp	.Lecb_ret
-.align	16
-.Lecb_enc_one:
+	jmp	L$ecb_ret
+.p2align	4
+L$ecb_enc_one:
 	movups	(%rcx),%xmm0
 	movups	16(%rcx),%xmm1
 	leaq	32(%rcx),%rcx
 	xorps	%xmm0,%xmm2
-.Loop_enc1_3:
+L$oop_enc1_3:
 .byte	102,15,56,220,209
 	decl	%eax
 	movups	(%rcx),%xmm1
 	leaq	16(%rcx),%rcx
-	jnz	.Loop_enc1_3
+	jnz	L$oop_enc1_3
 .byte	102,15,56,221,209
 	movups	%xmm2,(%rsi)
-	jmp	.Lecb_ret
-.align	16
-.Lecb_enc_two:
+	jmp	L$ecb_ret
+.p2align	4
+L$ecb_enc_two:
 	call	_aesni_encrypt2
 	movups	%xmm2,(%rsi)
 	movups	%xmm3,16(%rsi)
-	jmp	.Lecb_ret
-.align	16
-.Lecb_enc_three:
+	jmp	L$ecb_ret
+.p2align	4
+L$ecb_enc_three:
 	call	_aesni_encrypt3
 	movups	%xmm2,(%rsi)
 	movups	%xmm3,16(%rsi)
 	movups	%xmm4,32(%rsi)
-	jmp	.Lecb_ret
-.align	16
-.Lecb_enc_four:
+	jmp	L$ecb_ret
+.p2align	4
+L$ecb_enc_four:
 	call	_aesni_encrypt4
 	movups	%xmm2,(%rsi)
 	movups	%xmm3,16(%rsi)
 	movups	%xmm4,32(%rsi)
 	movups	%xmm5,48(%rsi)
-	jmp	.Lecb_ret
-.align	16
-.Lecb_enc_five:
+	jmp	L$ecb_ret
+.p2align	4
+L$ecb_enc_five:
 	xorps	%xmm7,%xmm7
 	call	_aesni_encrypt6
 	movups	%xmm2,(%rsi)
@@ -679,9 +677,9 @@ aes_hw_ecb_encrypt:
 	movups	%xmm4,32(%rsi)
 	movups	%xmm5,48(%rsi)
 	movups	%xmm6,64(%rsi)
-	jmp	.Lecb_ret
-.align	16
-.Lecb_enc_six:
+	jmp	L$ecb_ret
+.p2align	4
+L$ecb_enc_six:
 	call	_aesni_encrypt6
 	movups	%xmm2,(%rsi)
 	movups	%xmm3,16(%rsi)
@@ -689,12 +687,12 @@ aes_hw_ecb_encrypt:
 	movups	%xmm5,48(%rsi)
 	movups	%xmm6,64(%rsi)
 	movups	%xmm7,80(%rsi)
-	jmp	.Lecb_ret
+	jmp	L$ecb_ret
 
-.align	16
-.Lecb_decrypt:
+.p2align	4
+L$ecb_decrypt:
 	cmpq	$0x80,%rdx
-	jb	.Lecb_dec_tail
+	jb	L$ecb_dec_tail
 
 	movdqu	(%rdi),%xmm2
 	movdqu	16(%rdi),%xmm3
@@ -706,9 +704,9 @@ aes_hw_ecb_encrypt:
 	movdqu	112(%rdi),%xmm9
 	leaq	128(%rdi),%rdi
 	subq	$0x80,%rdx
-	jmp	.Lecb_dec_loop8_enter
-.align	16
-.Lecb_dec_loop8:
+	jmp	L$ecb_dec_loop8_enter
+.p2align	4
+L$ecb_dec_loop8:
 	movups	%xmm2,(%rsi)
 	movq	%r11,%rcx
 	movdqu	(%rdi),%xmm2
@@ -729,13 +727,13 @@ aes_hw_ecb_encrypt:
 	leaq	128(%rsi),%rsi
 	movdqu	112(%rdi),%xmm9
 	leaq	128(%rdi),%rdi
-.Lecb_dec_loop8_enter:
+L$ecb_dec_loop8_enter:
 
 	call	_aesni_decrypt8
 
 	movups	(%r11),%xmm0
 	subq	$0x80,%rdx
-	jnc	.Lecb_dec_loop8
+	jnc	L$ecb_dec_loop8
 
 	movups	%xmm2,(%rsi)
 	pxor	%xmm2,%xmm2
@@ -757,24 +755,24 @@ aes_hw_ecb_encrypt:
 	pxor	%xmm9,%xmm9
 	leaq	128(%rsi),%rsi
 	addq	$0x80,%rdx
-	jz	.Lecb_ret
+	jz	L$ecb_ret
 
-.Lecb_dec_tail:
+L$ecb_dec_tail:
 	movups	(%rdi),%xmm2
 	cmpq	$0x20,%rdx
-	jb	.Lecb_dec_one
+	jb	L$ecb_dec_one
 	movups	16(%rdi),%xmm3
-	je	.Lecb_dec_two
+	je	L$ecb_dec_two
 	movups	32(%rdi),%xmm4
 	cmpq	$0x40,%rdx
-	jb	.Lecb_dec_three
+	jb	L$ecb_dec_three
 	movups	48(%rdi),%xmm5
-	je	.Lecb_dec_four
+	je	L$ecb_dec_four
 	movups	64(%rdi),%xmm6
 	cmpq	$0x60,%rdx
-	jb	.Lecb_dec_five
+	jb	L$ecb_dec_five
 	movups	80(%rdi),%xmm7
-	je	.Lecb_dec_six
+	je	L$ecb_dec_six
 	movups	96(%rdi),%xmm8
 	movups	(%rcx),%xmm0
 	xorps	%xmm9,%xmm9
@@ -794,33 +792,33 @@ aes_hw_ecb_encrypt:
 	movups	%xmm8,96(%rsi)
 	pxor	%xmm8,%xmm8
 	pxor	%xmm9,%xmm9
-	jmp	.Lecb_ret
-.align	16
-.Lecb_dec_one:
+	jmp	L$ecb_ret
+.p2align	4
+L$ecb_dec_one:
 	movups	(%rcx),%xmm0
 	movups	16(%rcx),%xmm1
 	leaq	32(%rcx),%rcx
 	xorps	%xmm0,%xmm2
-.Loop_dec1_4:
+L$oop_dec1_4:
 .byte	102,15,56,222,209
 	decl	%eax
 	movups	(%rcx),%xmm1
 	leaq	16(%rcx),%rcx
-	jnz	.Loop_dec1_4
+	jnz	L$oop_dec1_4
 .byte	102,15,56,223,209
 	movups	%xmm2,(%rsi)
 	pxor	%xmm2,%xmm2
-	jmp	.Lecb_ret
-.align	16
-.Lecb_dec_two:
+	jmp	L$ecb_ret
+.p2align	4
+L$ecb_dec_two:
 	call	_aesni_decrypt2
 	movups	%xmm2,(%rsi)
 	pxor	%xmm2,%xmm2
 	movups	%xmm3,16(%rsi)
 	pxor	%xmm3,%xmm3
-	jmp	.Lecb_ret
-.align	16
-.Lecb_dec_three:
+	jmp	L$ecb_ret
+.p2align	4
+L$ecb_dec_three:
 	call	_aesni_decrypt3
 	movups	%xmm2,(%rsi)
 	pxor	%xmm2,%xmm2
@@ -828,9 +826,9 @@ aes_hw_ecb_encrypt:
 	pxor	%xmm3,%xmm3
 	movups	%xmm4,32(%rsi)
 	pxor	%xmm4,%xmm4
-	jmp	.Lecb_ret
-.align	16
-.Lecb_dec_four:
+	jmp	L$ecb_ret
+.p2align	4
+L$ecb_dec_four:
 	call	_aesni_decrypt4
 	movups	%xmm2,(%rsi)
 	pxor	%xmm2,%xmm2
@@ -840,9 +838,9 @@ aes_hw_ecb_encrypt:
 	pxor	%xmm4,%xmm4
 	movups	%xmm5,48(%rsi)
 	pxor	%xmm5,%xmm5
-	jmp	.Lecb_ret
-.align	16
-.Lecb_dec_five:
+	jmp	L$ecb_ret
+.p2align	4
+L$ecb_dec_five:
 	xorps	%xmm7,%xmm7
 	call	_aesni_decrypt6
 	movups	%xmm2,(%rsi)
@@ -856,9 +854,9 @@ aes_hw_ecb_encrypt:
 	movups	%xmm6,64(%rsi)
 	pxor	%xmm6,%xmm6
 	pxor	%xmm7,%xmm7
-	jmp	.Lecb_ret
-.align	16
-.Lecb_dec_six:
+	jmp	L$ecb_ret
+.p2align	4
+L$ecb_dec_six:
 	call	_aesni_decrypt6
 	movups	%xmm2,(%rsi)
 	pxor	%xmm2,%xmm2
@@ -873,23 +871,23 @@ aes_hw_ecb_encrypt:
 	movups	%xmm7,80(%rsi)
 	pxor	%xmm7,%xmm7
 
-.Lecb_ret:
+L$ecb_ret:
 	xorps	%xmm0,%xmm0
 	pxor	%xmm1,%xmm1
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	aes_hw_ecb_encrypt,.-aes_hw_ecb_encrypt
-.globl	aes_hw_ctr32_encrypt_blocks
-.hidden aes_hw_ctr32_encrypt_blocks
-.type	aes_hw_ctr32_encrypt_blocks,@function
-.align	16
-aes_hw_ctr32_encrypt_blocks:
-.cfi_startproc	
+
+
+.globl	_aes_hw_ctr32_encrypt_blocks
+.private_extern _aes_hw_ctr32_encrypt_blocks
+
+.p2align	4
+_aes_hw_ctr32_encrypt_blocks:
+
 #ifdef BORINGSSL_DISPATCH_TEST
-	movb	$1,BORINGSSL_function_hit(%rip)
+	movb	$1,_BORINGSSL_function_hit(%rip)
 #endif
 	cmpq	$1,%rdx
-	jne	.Lctr32_bulk
+	jne	L$ctr32_bulk
 
 
 
@@ -900,12 +898,12 @@ aes_hw_ctr32_encrypt_blocks:
 	movups	16(%rcx),%xmm1
 	leaq	32(%rcx),%rcx
 	xorps	%xmm0,%xmm2
-.Loop_enc1_5:
+L$oop_enc1_5:
 .byte	102,15,56,220,209
 	decl	%edx
 	movups	(%rcx),%xmm1
 	leaq	16(%rcx),%rcx
-	jnz	.Loop_enc1_5
+	jnz	L$oop_enc1_5
 .byte	102,15,56,221,209
 	pxor	%xmm0,%xmm0
 	pxor	%xmm1,%xmm1
@@ -913,14 +911,14 @@ aes_hw_ctr32_encrypt_blocks:
 	pxor	%xmm3,%xmm3
 	movups	%xmm2,(%rsi)
 	xorps	%xmm2,%xmm2
-	jmp	.Lctr32_epilogue
+	jmp	L$ctr32_epilogue
 
-.align	16
-.Lctr32_bulk:
+.p2align	4
+L$ctr32_bulk:
 	leaq	(%rsp),%r11
-.cfi_def_cfa_register	%r11
+
 	pushq	%rbp
-.cfi_offset	%rbp,-16
+
 	subq	$128,%rsp
 	andq	$-16,%rsp
 
@@ -974,7 +972,7 @@ aes_hw_ctr32_encrypt_blocks:
 	leaq	7(%r8),%r9
 	movl	%r10d,96+12(%rsp)
 	bswapl	%r9d
-	leaq	OPENSSL_ia32cap_P(%rip),%r10
+	leaq	_OPENSSL_ia32cap_P(%rip),%r10
 	movl	4(%r10),%r10d
 	xorl	%ebp,%r9d
 	andl	$71303168,%r10d
@@ -986,27 +984,27 @@ aes_hw_ctr32_encrypt_blocks:
 	movdqa	80(%rsp),%xmm7
 
 	cmpq	$8,%rdx
-	jb	.Lctr32_tail
+	jb	L$ctr32_tail
 
 	subq	$6,%rdx
 	cmpl	$4194304,%r10d
-	je	.Lctr32_6x
+	je	L$ctr32_6x
 
 	leaq	128(%rcx),%rcx
 	subq	$2,%rdx
-	jmp	.Lctr32_loop8
+	jmp	L$ctr32_loop8
 
-.align	16
-.Lctr32_6x:
+.p2align	4
+L$ctr32_6x:
 	shll	$4,%eax
 	movl	$48,%r10d
 	bswapl	%ebp
 	leaq	32(%rcx,%rax,1),%rcx
 	subq	%rax,%r10
-	jmp	.Lctr32_loop6
+	jmp	L$ctr32_loop6
 
-.align	16
-.Lctr32_loop6:
+.p2align	4
+L$ctr32_loop6:
 	addl	$6,%r8d
 	movups	-48(%rcx,%r10,1),%xmm0
 .byte	102,15,56,220,209
@@ -1044,7 +1042,7 @@ aes_hw_ctr32_encrypt_blocks:
 .byte	102,15,56,220,248
 	movups	-16(%rcx,%r10,1),%xmm0
 
-	call	.Lenc_loop6
+	call	L$enc_loop6
 
 	movdqu	(%rdi),%xmm8
 	movdqu	16(%rdi),%xmm9
@@ -1075,19 +1073,19 @@ aes_hw_ctr32_encrypt_blocks:
 	leaq	96(%rsi),%rsi
 
 	subq	$6,%rdx
-	jnc	.Lctr32_loop6
+	jnc	L$ctr32_loop6
 
 	addq	$6,%rdx
-	jz	.Lctr32_done
+	jz	L$ctr32_done
 
 	leal	-48(%r10),%eax
 	leaq	-80(%rcx,%r10,1),%rcx
 	negl	%eax
 	shrl	$4,%eax
-	jmp	.Lctr32_tail
+	jmp	L$ctr32_tail
 
-.align	32
-.Lctr32_loop8:
+.p2align	5
+L$ctr32_loop8:
 	addl	$8,%r8d
 	movdqa	96(%rsp),%xmm8
 .byte	102,15,56,220,209
@@ -1206,7 +1204,7 @@ aes_hw_ctr32_encrypt_blocks:
 .byte	102,68,15,56,220,200
 	movups	160-128(%rcx),%xmm0
 
-	jb	.Lctr32_enc_done
+	jb	L$ctr32_enc_done
 
 .byte	102,15,56,220,209
 .byte	102,15,56,220,217
@@ -1227,7 +1225,7 @@ aes_hw_ctr32_encrypt_blocks:
 .byte	102,68,15,56,220,192
 .byte	102,68,15,56,220,200
 	movups	192-128(%rcx),%xmm0
-	je	.Lctr32_enc_done
+	je	L$ctr32_enc_done
 
 .byte	102,15,56,220,209
 .byte	102,15,56,220,217
@@ -1248,10 +1246,10 @@ aes_hw_ctr32_encrypt_blocks:
 .byte	102,68,15,56,220,192
 .byte	102,68,15,56,220,200
 	movups	224-128(%rcx),%xmm0
-	jmp	.Lctr32_enc_done
+	jmp	L$ctr32_enc_done
 
-.align	16
-.Lctr32_enc_done:
+.p2align	4
+L$ctr32_enc_done:
 	movdqu	16(%rdi),%xmm11
 	pxor	%xmm0,%xmm10
 	movdqu	32(%rdi),%xmm12
@@ -1310,19 +1308,19 @@ aes_hw_ctr32_encrypt_blocks:
 	leaq	128(%rsi),%rsi
 
 	subq	$8,%rdx
-	jnc	.Lctr32_loop8
+	jnc	L$ctr32_loop8
 
 	addq	$8,%rdx
-	jz	.Lctr32_done
+	jz	L$ctr32_done
 	leaq	-128(%rcx),%rcx
 
-.Lctr32_tail:
+L$ctr32_tail:
 
 
 	leaq	16(%rcx),%rcx
 	cmpq	$4,%rdx
-	jb	.Lctr32_loop3
-	je	.Lctr32_loop4
+	jb	L$ctr32_loop3
+	je	L$ctr32_loop4
 
 
 	shll	$4,%eax
@@ -1344,7 +1342,7 @@ aes_hw_ctr32_encrypt_blocks:
 .byte	102,15,56,220,249
 .byte	102,68,15,56,220,193
 
-	call	.Lenc_loop8_enter
+	call	L$enc_loop8_enter
 
 	movdqu	48(%rdi),%xmm13
 	pxor	%xmm10,%xmm2
@@ -1359,20 +1357,20 @@ aes_hw_ctr32_encrypt_blocks:
 	movdqu	%xmm5,48(%rsi)
 	movdqu	%xmm6,64(%rsi)
 	cmpq	$6,%rdx
-	jb	.Lctr32_done
+	jb	L$ctr32_done
 
 	movups	80(%rdi),%xmm11
 	xorps	%xmm11,%xmm7
 	movups	%xmm7,80(%rsi)
-	je	.Lctr32_done
+	je	L$ctr32_done
 
 	movups	96(%rdi),%xmm12
 	xorps	%xmm12,%xmm8
 	movups	%xmm8,96(%rsi)
-	jmp	.Lctr32_done
+	jmp	L$ctr32_done
 
-.align	32
-.Lctr32_loop4:
+.p2align	5
+L$ctr32_loop4:
 .byte	102,15,56,220,209
 	leaq	16(%rcx),%rcx
 	decl	%eax
@@ -1380,7 +1378,7 @@ aes_hw_ctr32_encrypt_blocks:
 .byte	102,15,56,220,225
 .byte	102,15,56,220,233
 	movups	(%rcx),%xmm1
-	jnz	.Lctr32_loop4
+	jnz	L$ctr32_loop4
 .byte	102,15,56,221,209
 .byte	102,15,56,221,217
 	movups	(%rdi),%xmm10
@@ -1398,17 +1396,17 @@ aes_hw_ctr32_encrypt_blocks:
 	movdqu	%xmm4,32(%rsi)
 	pxor	%xmm13,%xmm5
 	movdqu	%xmm5,48(%rsi)
-	jmp	.Lctr32_done
+	jmp	L$ctr32_done
 
-.align	32
-.Lctr32_loop3:
+.p2align	5
+L$ctr32_loop3:
 .byte	102,15,56,220,209
 	leaq	16(%rcx),%rcx
 	decl	%eax
 .byte	102,15,56,220,217
 .byte	102,15,56,220,225
 	movups	(%rcx),%xmm1
-	jnz	.Lctr32_loop3
+	jnz	L$ctr32_loop3
 .byte	102,15,56,221,209
 .byte	102,15,56,221,217
 .byte	102,15,56,221,225
@@ -1417,18 +1415,18 @@ aes_hw_ctr32_encrypt_blocks:
 	xorps	%xmm10,%xmm2
 	movups	%xmm2,(%rsi)
 	cmpq	$2,%rdx
-	jb	.Lctr32_done
+	jb	L$ctr32_done
 
 	movups	16(%rdi),%xmm11
 	xorps	%xmm11,%xmm3
 	movups	%xmm3,16(%rsi)
-	je	.Lctr32_done
+	je	L$ctr32_done
 
 	movups	32(%rdi),%xmm12
 	xorps	%xmm12,%xmm4
 	movups	%xmm4,32(%rsi)
 
-.Lctr32_done:
+L$ctr32_done:
 	xorps	%xmm0,%xmm0
 	xorl	%ebp,%ebp
 	pxor	%xmm1,%xmm1
@@ -1455,35 +1453,35 @@ aes_hw_ctr32_encrypt_blocks:
 	movaps	%xmm0,112(%rsp)
 	pxor	%xmm15,%xmm15
 	movq	-8(%r11),%rbp
-.cfi_restore	%rbp
+
 	leaq	(%r11),%rsp
-.cfi_def_cfa_register	%rsp
-.Lctr32_epilogue:
+
+L$ctr32_epilogue:
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	aes_hw_ctr32_encrypt_blocks,.-aes_hw_ctr32_encrypt_blocks
-.globl	aes_hw_cbc_encrypt
-.hidden aes_hw_cbc_encrypt
-.type	aes_hw_cbc_encrypt,@function
-.align	16
-aes_hw_cbc_encrypt:
-.cfi_startproc	
+
+
+.globl	_aes_hw_cbc_encrypt
+.private_extern _aes_hw_cbc_encrypt
+
+.p2align	4
+_aes_hw_cbc_encrypt:
+
 	testq	%rdx,%rdx
-	jz	.Lcbc_ret
+	jz	L$cbc_ret
 
 	movl	240(%rcx),%r10d
 	movq	%rcx,%r11
 	testl	%r9d,%r9d
-	jz	.Lcbc_decrypt
+	jz	L$cbc_decrypt
 
 	movups	(%r8),%xmm2
 	movl	%r10d,%eax
 	cmpq	$16,%rdx
-	jb	.Lcbc_enc_tail
+	jb	L$cbc_enc_tail
 	subq	$16,%rdx
-	jmp	.Lcbc_enc_loop
-.align	16
-.Lcbc_enc_loop:
+	jmp	L$cbc_enc_loop
+.p2align	4
+L$cbc_enc_loop:
 	movups	(%rdi),%xmm3
 	leaq	16(%rdi),%rdi
 
@@ -1492,29 +1490,29 @@ aes_hw_cbc_encrypt:
 	xorps	%xmm0,%xmm3
 	leaq	32(%rcx),%rcx
 	xorps	%xmm3,%xmm2
-.Loop_enc1_6:
+L$oop_enc1_6:
 .byte	102,15,56,220,209
 	decl	%eax
 	movups	(%rcx),%xmm1
 	leaq	16(%rcx),%rcx
-	jnz	.Loop_enc1_6
+	jnz	L$oop_enc1_6
 .byte	102,15,56,221,209
 	movl	%r10d,%eax
 	movq	%r11,%rcx
 	movups	%xmm2,0(%rsi)
 	leaq	16(%rsi),%rsi
 	subq	$16,%rdx
-	jnc	.Lcbc_enc_loop
+	jnc	L$cbc_enc_loop
 	addq	$16,%rdx
-	jnz	.Lcbc_enc_tail
+	jnz	L$cbc_enc_tail
 	pxor	%xmm0,%xmm0
 	pxor	%xmm1,%xmm1
 	movups	%xmm2,(%r8)
 	pxor	%xmm2,%xmm2
 	pxor	%xmm3,%xmm3
-	jmp	.Lcbc_ret
+	jmp	L$cbc_ret
 
-.Lcbc_enc_tail:
+L$cbc_enc_tail:
 	movq	%rdx,%rcx
 	xchgq	%rdi,%rsi
 .long	0x9066A4F3
@@ -1527,12 +1525,12 @@ aes_hw_cbc_encrypt:
 	movq	%rdi,%rsi
 	movq	%r11,%rcx
 	xorq	%rdx,%rdx
-	jmp	.Lcbc_enc_loop
+	jmp	L$cbc_enc_loop
 
-.align	16
-.Lcbc_decrypt:
+.p2align	4
+L$cbc_decrypt:
 	cmpq	$16,%rdx
-	jne	.Lcbc_decrypt_bulk
+	jne	L$cbc_decrypt_bulk
 
 
 
@@ -1543,12 +1541,12 @@ aes_hw_cbc_encrypt:
 	movups	16(%rcx),%xmm1
 	leaq	32(%rcx),%rcx
 	xorps	%xmm0,%xmm2
-.Loop_dec1_7:
+L$oop_dec1_7:
 .byte	102,15,56,222,209
 	decl	%r10d
 	movups	(%rcx),%xmm1
 	leaq	16(%rcx),%rcx
-	jnz	.Loop_dec1_7
+	jnz	L$oop_dec1_7
 .byte	102,15,56,223,209
 	pxor	%xmm0,%xmm0
 	pxor	%xmm1,%xmm1
@@ -1557,20 +1555,20 @@ aes_hw_cbc_encrypt:
 	pxor	%xmm3,%xmm3
 	movups	%xmm2,(%rsi)
 	pxor	%xmm2,%xmm2
-	jmp	.Lcbc_ret
-.align	16
-.Lcbc_decrypt_bulk:
+	jmp	L$cbc_ret
+.p2align	4
+L$cbc_decrypt_bulk:
 	leaq	(%rsp),%r11
-.cfi_def_cfa_register	%r11
+
 	pushq	%rbp
-.cfi_offset	%rbp,-16
+
 	subq	$16,%rsp
 	andq	$-16,%rsp
 	movq	%rcx,%rbp
 	movups	(%r8),%xmm10
 	movl	%r10d,%eax
 	cmpq	$0x50,%rdx
-	jbe	.Lcbc_dec_tail
+	jbe	L$cbc_dec_tail
 
 	movups	(%rcx),%xmm0
 	movdqu	0(%rdi),%xmm2
@@ -1584,23 +1582,23 @@ aes_hw_cbc_encrypt:
 	movdqa	%xmm5,%xmm14
 	movdqu	80(%rdi),%xmm7
 	movdqa	%xmm6,%xmm15
-	leaq	OPENSSL_ia32cap_P(%rip),%r9
+	leaq	_OPENSSL_ia32cap_P(%rip),%r9
 	movl	4(%r9),%r9d
 	cmpq	$0x70,%rdx
-	jbe	.Lcbc_dec_six_or_seven
+	jbe	L$cbc_dec_six_or_seven
 
 	andl	$71303168,%r9d
 	subq	$0x50,%rdx
 	cmpl	$4194304,%r9d
-	je	.Lcbc_dec_loop6_enter
+	je	L$cbc_dec_loop6_enter
 	subq	$0x20,%rdx
 	leaq	112(%rcx),%rcx
-	jmp	.Lcbc_dec_loop8_enter
-.align	16
-.Lcbc_dec_loop8:
+	jmp	L$cbc_dec_loop8_enter
+.p2align	4
+L$cbc_dec_loop8:
 	movups	%xmm9,(%rsi)
 	leaq	16(%rsi),%rsi
-.Lcbc_dec_loop8_enter:
+L$cbc_dec_loop8_enter:
 	movdqu	96(%rdi),%xmm8
 	pxor	%xmm0,%xmm2
 	movdqu	112(%rdi),%xmm9
@@ -1697,7 +1695,7 @@ aes_hw_cbc_encrypt:
 .byte	102,68,15,56,222,192
 .byte	102,68,15,56,222,200
 	movups	160-112(%rcx),%xmm0
-	jb	.Lcbc_dec_done
+	jb	L$cbc_dec_done
 .byte	102,15,56,222,209
 .byte	102,15,56,222,217
 .byte	102,15,56,222,225
@@ -1717,7 +1715,7 @@ aes_hw_cbc_encrypt:
 .byte	102,68,15,56,222,192
 .byte	102,68,15,56,222,200
 	movups	192-112(%rcx),%xmm0
-	je	.Lcbc_dec_done
+	je	L$cbc_dec_done
 .byte	102,15,56,222,209
 .byte	102,15,56,222,217
 .byte	102,15,56,222,225
@@ -1737,9 +1735,9 @@ aes_hw_cbc_encrypt:
 .byte	102,68,15,56,222,192
 .byte	102,68,15,56,222,200
 	movups	224-112(%rcx),%xmm0
-	jmp	.Lcbc_dec_done
-.align	16
-.Lcbc_dec_done:
+	jmp	L$cbc_dec_done
+.p2align	4
+L$cbc_dec_done:
 .byte	102,15,56,222,209
 .byte	102,15,56,222,217
 	pxor	%xmm0,%xmm10
@@ -1794,21 +1792,21 @@ aes_hw_cbc_encrypt:
 	leaq	112(%rsi),%rsi
 
 	subq	$0x80,%rdx
-	ja	.Lcbc_dec_loop8
+	ja	L$cbc_dec_loop8
 
 	movaps	%xmm9,%xmm2
 	leaq	-112(%rcx),%rcx
 	addq	$0x70,%rdx
-	jle	.Lcbc_dec_clear_tail_collected
+	jle	L$cbc_dec_clear_tail_collected
 	movups	%xmm9,(%rsi)
 	leaq	16(%rsi),%rsi
 	cmpq	$0x50,%rdx
-	jbe	.Lcbc_dec_tail
+	jbe	L$cbc_dec_tail
 
 	movaps	%xmm11,%xmm2
-.Lcbc_dec_six_or_seven:
+L$cbc_dec_six_or_seven:
 	cmpq	$0x60,%rdx
-	ja	.Lcbc_dec_seven
+	ja	L$cbc_dec_seven
 
 	movaps	%xmm7,%xmm8
 	call	_aesni_decrypt6
@@ -1831,10 +1829,10 @@ aes_hw_cbc_encrypt:
 	leaq	80(%rsi),%rsi
 	movdqa	%xmm7,%xmm2
 	pxor	%xmm7,%xmm7
-	jmp	.Lcbc_dec_tail_collected
+	jmp	L$cbc_dec_tail_collected
 
-.align	16
-.Lcbc_dec_seven:
+.p2align	4
+L$cbc_dec_seven:
 	movups	96(%rdi),%xmm8
 	xorps	%xmm9,%xmm9
 	call	_aesni_decrypt8
@@ -1862,10 +1860,10 @@ aes_hw_cbc_encrypt:
 	movdqa	%xmm8,%xmm2
 	pxor	%xmm8,%xmm8
 	pxor	%xmm9,%xmm9
-	jmp	.Lcbc_dec_tail_collected
+	jmp	L$cbc_dec_tail_collected
 
-.align	16
-.Lcbc_dec_loop6:
+.p2align	4
+L$cbc_dec_loop6:
 	movups	%xmm7,(%rsi)
 	leaq	16(%rsi),%rsi
 	movdqu	0(%rdi),%xmm2
@@ -1879,7 +1877,7 @@ aes_hw_cbc_encrypt:
 	movdqa	%xmm5,%xmm14
 	movdqu	80(%rdi),%xmm7
 	movdqa	%xmm6,%xmm15
-.Lcbc_dec_loop6_enter:
+L$cbc_dec_loop6_enter:
 	leaq	96(%rdi),%rdi
 	movdqa	%xmm7,%xmm8
 
@@ -1901,33 +1899,33 @@ aes_hw_cbc_encrypt:
 	movdqu	%xmm6,64(%rsi)
 	leaq	80(%rsi),%rsi
 	subq	$0x60,%rdx
-	ja	.Lcbc_dec_loop6
+	ja	L$cbc_dec_loop6
 
 	movdqa	%xmm7,%xmm2
 	addq	$0x50,%rdx
-	jle	.Lcbc_dec_clear_tail_collected
+	jle	L$cbc_dec_clear_tail_collected
 	movups	%xmm7,(%rsi)
 	leaq	16(%rsi),%rsi
 
-.Lcbc_dec_tail:
+L$cbc_dec_tail:
 	movups	(%rdi),%xmm2
 	subq	$0x10,%rdx
-	jbe	.Lcbc_dec_one
+	jbe	L$cbc_dec_one
 
 	movups	16(%rdi),%xmm3
 	movaps	%xmm2,%xmm11
 	subq	$0x10,%rdx
-	jbe	.Lcbc_dec_two
+	jbe	L$cbc_dec_two
 
 	movups	32(%rdi),%xmm4
 	movaps	%xmm3,%xmm12
 	subq	$0x10,%rdx
-	jbe	.Lcbc_dec_three
+	jbe	L$cbc_dec_three
 
 	movups	48(%rdi),%xmm5
 	movaps	%xmm4,%xmm13
 	subq	$0x10,%rdx
-	jbe	.Lcbc_dec_four
+	jbe	L$cbc_dec_four
 
 	movups	64(%rdi),%xmm6
 	movaps	%xmm5,%xmm14
@@ -1952,27 +1950,27 @@ aes_hw_cbc_encrypt:
 	pxor	%xmm6,%xmm6
 	pxor	%xmm7,%xmm7
 	subq	$0x10,%rdx
-	jmp	.Lcbc_dec_tail_collected
+	jmp	L$cbc_dec_tail_collected
 
-.align	16
-.Lcbc_dec_one:
+.p2align	4
+L$cbc_dec_one:
 	movaps	%xmm2,%xmm11
 	movups	(%rcx),%xmm0
 	movups	16(%rcx),%xmm1
 	leaq	32(%rcx),%rcx
 	xorps	%xmm0,%xmm2
-.Loop_dec1_8:
+L$oop_dec1_8:
 .byte	102,15,56,222,209
 	decl	%eax
 	movups	(%rcx),%xmm1
 	leaq	16(%rcx),%rcx
-	jnz	.Loop_dec1_8
+	jnz	L$oop_dec1_8
 .byte	102,15,56,223,209
 	xorps	%xmm10,%xmm2
 	movaps	%xmm11,%xmm10
-	jmp	.Lcbc_dec_tail_collected
-.align	16
-.Lcbc_dec_two:
+	jmp	L$cbc_dec_tail_collected
+.p2align	4
+L$cbc_dec_two:
 	movaps	%xmm3,%xmm12
 	call	_aesni_decrypt2
 	pxor	%xmm10,%xmm2
@@ -1982,9 +1980,9 @@ aes_hw_cbc_encrypt:
 	movdqa	%xmm3,%xmm2
 	pxor	%xmm3,%xmm3
 	leaq	16(%rsi),%rsi
-	jmp	.Lcbc_dec_tail_collected
-.align	16
-.Lcbc_dec_three:
+	jmp	L$cbc_dec_tail_collected
+.p2align	4
+L$cbc_dec_three:
 	movaps	%xmm4,%xmm13
 	call	_aesni_decrypt3
 	pxor	%xmm10,%xmm2
@@ -1997,9 +1995,9 @@ aes_hw_cbc_encrypt:
 	movdqa	%xmm4,%xmm2
 	pxor	%xmm4,%xmm4
 	leaq	32(%rsi),%rsi
-	jmp	.Lcbc_dec_tail_collected
-.align	16
-.Lcbc_dec_four:
+	jmp	L$cbc_dec_tail_collected
+.p2align	4
+L$cbc_dec_four:
 	movaps	%xmm5,%xmm14
 	call	_aesni_decrypt4
 	pxor	%xmm10,%xmm2
@@ -2015,10 +2013,10 @@ aes_hw_cbc_encrypt:
 	movdqa	%xmm5,%xmm2
 	pxor	%xmm5,%xmm5
 	leaq	48(%rsi),%rsi
-	jmp	.Lcbc_dec_tail_collected
+	jmp	L$cbc_dec_tail_collected
 
-.align	16
-.Lcbc_dec_clear_tail_collected:
+.p2align	4
+L$cbc_dec_clear_tail_collected:
 	pxor	%xmm3,%xmm3
 	pxor	%xmm4,%xmm4
 	pxor	%xmm5,%xmm5
@@ -2026,15 +2024,15 @@ aes_hw_cbc_encrypt:
 	pxor	%xmm7,%xmm7
 	pxor	%xmm8,%xmm8
 	pxor	%xmm9,%xmm9
-.Lcbc_dec_tail_collected:
+L$cbc_dec_tail_collected:
 	movups	%xmm10,(%r8)
 	andq	$15,%rdx
-	jnz	.Lcbc_dec_tail_partial
+	jnz	L$cbc_dec_tail_partial
 	movups	%xmm2,(%rsi)
 	pxor	%xmm2,%xmm2
-	jmp	.Lcbc_dec_ret
-.align	16
-.Lcbc_dec_tail_partial:
+	jmp	L$cbc_dec_ret
+.p2align	4
+L$cbc_dec_tail_partial:
 	movaps	%xmm2,(%rsp)
 	pxor	%xmm2,%xmm2
 	movq	$16,%rcx
@@ -2044,29 +2042,29 @@ aes_hw_cbc_encrypt:
 .long	0x9066A4F3
 	movdqa	%xmm2,(%rsp)
 
-.Lcbc_dec_ret:
+L$cbc_dec_ret:
 	xorps	%xmm0,%xmm0
 	pxor	%xmm1,%xmm1
 	movq	-8(%r11),%rbp
-.cfi_restore	%rbp
+
 	leaq	(%r11),%rsp
-.cfi_def_cfa_register	%rsp
-.Lcbc_ret:
+
+L$cbc_ret:
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	aes_hw_cbc_encrypt,.-aes_hw_cbc_encrypt
-.globl	aes_hw_set_decrypt_key
-.hidden aes_hw_set_decrypt_key
-.type	aes_hw_set_decrypt_key,@function
-.align	16
-aes_hw_set_decrypt_key:
-.cfi_startproc	
+
+
+.globl	_aes_hw_set_decrypt_key
+.private_extern _aes_hw_set_decrypt_key
+
+.p2align	4
+_aes_hw_set_decrypt_key:
+
 .byte	0x48,0x83,0xEC,0x08
-.cfi_adjust_cfa_offset	8
+
 	call	__aesni_set_encrypt_key
 	shll	$4,%esi
 	testl	%eax,%eax
-	jnz	.Ldec_key_ret
+	jnz	L$dec_key_ret
 	leaq	16(%rdx,%rsi,1),%rdi
 
 	movups	(%rdx),%xmm0
@@ -2076,7 +2074,7 @@ aes_hw_set_decrypt_key:
 	leaq	16(%rdx),%rdx
 	leaq	-16(%rdi),%rdi
 
-.Ldec_key_inverse:
+L$dec_key_inverse:
 	movups	(%rdx),%xmm0
 	movups	(%rdi),%xmm1
 .byte	102,15,56,219,192
@@ -2086,93 +2084,93 @@ aes_hw_set_decrypt_key:
 	movups	%xmm0,16(%rdi)
 	movups	%xmm1,-16(%rdx)
 	cmpq	%rdx,%rdi
-	ja	.Ldec_key_inverse
+	ja	L$dec_key_inverse
 
 	movups	(%rdx),%xmm0
 .byte	102,15,56,219,192
 	pxor	%xmm1,%xmm1
 	movups	%xmm0,(%rdi)
 	pxor	%xmm0,%xmm0
-.Ldec_key_ret:
+L$dec_key_ret:
 	addq	$8,%rsp
-.cfi_adjust_cfa_offset	-8
+
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.LSEH_end_set_decrypt_key:
-.size	aes_hw_set_decrypt_key,.-aes_hw_set_decrypt_key
-.globl	aes_hw_set_encrypt_key
-.hidden aes_hw_set_encrypt_key
-.type	aes_hw_set_encrypt_key,@function
-.align	16
-aes_hw_set_encrypt_key:
+
+L$SEH_end_set_decrypt_key:
+
+.globl	_aes_hw_set_encrypt_key
+.private_extern _aes_hw_set_encrypt_key
+
+.p2align	4
+_aes_hw_set_encrypt_key:
 __aesni_set_encrypt_key:
-.cfi_startproc	
+
 #ifdef BORINGSSL_DISPATCH_TEST
-	movb	$1,BORINGSSL_function_hit+3(%rip)
+	movb	$1,_BORINGSSL_function_hit+3(%rip)
 #endif
 .byte	0x48,0x83,0xEC,0x08
-.cfi_adjust_cfa_offset	8
+
 	movq	$-1,%rax
 	testq	%rdi,%rdi
-	jz	.Lenc_key_ret
+	jz	L$enc_key_ret
 	testq	%rdx,%rdx
-	jz	.Lenc_key_ret
+	jz	L$enc_key_ret
 
 	movups	(%rdi),%xmm0
 	xorps	%xmm4,%xmm4
-	leaq	OPENSSL_ia32cap_P(%rip),%r10
+	leaq	_OPENSSL_ia32cap_P(%rip),%r10
 	movl	4(%r10),%r10d
 	andl	$268437504,%r10d
 	leaq	16(%rdx),%rax
 	cmpl	$256,%esi
-	je	.L14rounds
+	je	L$14rounds
 	cmpl	$192,%esi
-	je	.L12rounds
+	je	L$12rounds
 	cmpl	$128,%esi
-	jne	.Lbad_keybits
+	jne	L$bad_keybits
 
-.L10rounds:
+L$10rounds:
 	movl	$9,%esi
 	cmpl	$268435456,%r10d
-	je	.L10rounds_alt
+	je	L$10rounds_alt
 
 	movups	%xmm0,(%rdx)
 .byte	102,15,58,223,200,1
-	call	.Lkey_expansion_128_cold
+	call	L$key_expansion_128_cold
 .byte	102,15,58,223,200,2
-	call	.Lkey_expansion_128
+	call	L$key_expansion_128
 .byte	102,15,58,223,200,4
-	call	.Lkey_expansion_128
+	call	L$key_expansion_128
 .byte	102,15,58,223,200,8
-	call	.Lkey_expansion_128
+	call	L$key_expansion_128
 .byte	102,15,58,223,200,16
-	call	.Lkey_expansion_128
+	call	L$key_expansion_128
 .byte	102,15,58,223,200,32
-	call	.Lkey_expansion_128
+	call	L$key_expansion_128
 .byte	102,15,58,223,200,64
-	call	.Lkey_expansion_128
+	call	L$key_expansion_128
 .byte	102,15,58,223,200,128
-	call	.Lkey_expansion_128
+	call	L$key_expansion_128
 .byte	102,15,58,223,200,27
-	call	.Lkey_expansion_128
+	call	L$key_expansion_128
 .byte	102,15,58,223,200,54
-	call	.Lkey_expansion_128
+	call	L$key_expansion_128
 	movups	%xmm0,(%rax)
 	movl	%esi,80(%rax)
 	xorl	%eax,%eax
-	jmp	.Lenc_key_ret
+	jmp	L$enc_key_ret
 
-.align	16
-.L10rounds_alt:
-	movdqa	.Lkey_rotate(%rip),%xmm5
+.p2align	4
+L$10rounds_alt:
+	movdqa	L$key_rotate(%rip),%xmm5
 	movl	$8,%r10d
-	movdqa	.Lkey_rcon1(%rip),%xmm4
+	movdqa	L$key_rcon1(%rip),%xmm4
 	movdqa	%xmm0,%xmm2
 	movdqu	%xmm0,(%rdx)
-	jmp	.Loop_key128
+	jmp	L$oop_key128
 
-.align	16
-.Loop_key128:
+.p2align	4
+L$oop_key128:
 .byte	102,15,56,0,197
 .byte	102,15,56,221,196
 	pslld	$1,%xmm4
@@ -2191,9 +2189,9 @@ __aesni_set_encrypt_key:
 	movdqa	%xmm0,%xmm2
 
 	decl	%r10d
-	jnz	.Loop_key128
+	jnz	L$oop_key128
 
-	movdqa	.Lkey_rcon1b(%rip),%xmm4
+	movdqa	L$key_rcon1b(%rip),%xmm4
 
 .byte	102,15,56,0,197
 .byte	102,15,56,221,196
@@ -2227,47 +2225,47 @@ __aesni_set_encrypt_key:
 
 	movl	%esi,96(%rax)
 	xorl	%eax,%eax
-	jmp	.Lenc_key_ret
+	jmp	L$enc_key_ret
 
-.align	16
-.L12rounds:
+.p2align	4
+L$12rounds:
 	movq	16(%rdi),%xmm2
 	movl	$11,%esi
 	cmpl	$268435456,%r10d
-	je	.L12rounds_alt
+	je	L$12rounds_alt
 
 	movups	%xmm0,(%rdx)
 .byte	102,15,58,223,202,1
-	call	.Lkey_expansion_192a_cold
+	call	L$key_expansion_192a_cold
 .byte	102,15,58,223,202,2
-	call	.Lkey_expansion_192b
+	call	L$key_expansion_192b
 .byte	102,15,58,223,202,4
-	call	.Lkey_expansion_192a
+	call	L$key_expansion_192a
 .byte	102,15,58,223,202,8
-	call	.Lkey_expansion_192b
+	call	L$key_expansion_192b
 .byte	102,15,58,223,202,16
-	call	.Lkey_expansion_192a
+	call	L$key_expansion_192a
 .byte	102,15,58,223,202,32
-	call	.Lkey_expansion_192b
+	call	L$key_expansion_192b
 .byte	102,15,58,223,202,64
-	call	.Lkey_expansion_192a
+	call	L$key_expansion_192a
 .byte	102,15,58,223,202,128
-	call	.Lkey_expansion_192b
+	call	L$key_expansion_192b
 	movups	%xmm0,(%rax)
 	movl	%esi,48(%rax)
 	xorq	%rax,%rax
-	jmp	.Lenc_key_ret
+	jmp	L$enc_key_ret
 
-.align	16
-.L12rounds_alt:
-	movdqa	.Lkey_rotate192(%rip),%xmm5
-	movdqa	.Lkey_rcon1(%rip),%xmm4
+.p2align	4
+L$12rounds_alt:
+	movdqa	L$key_rotate192(%rip),%xmm5
+	movdqa	L$key_rcon1(%rip),%xmm4
 	movl	$8,%r10d
 	movdqu	%xmm0,(%rdx)
-	jmp	.Loop_key192
+	jmp	L$oop_key192
 
-.align	16
-.Loop_key192:
+.p2align	4
+L$oop_key192:
 	movq	%xmm2,0(%rax)
 	movdqa	%xmm2,%xmm1
 .byte	102,15,56,0,213
@@ -2293,65 +2291,65 @@ __aesni_set_encrypt_key:
 	movdqu	%xmm0,-16(%rax)
 
 	decl	%r10d
-	jnz	.Loop_key192
+	jnz	L$oop_key192
 
 	movl	%esi,32(%rax)
 	xorl	%eax,%eax
-	jmp	.Lenc_key_ret
+	jmp	L$enc_key_ret
 
-.align	16
-.L14rounds:
+.p2align	4
+L$14rounds:
 	movups	16(%rdi),%xmm2
 	movl	$13,%esi
 	leaq	16(%rax),%rax
 	cmpl	$268435456,%r10d
-	je	.L14rounds_alt
+	je	L$14rounds_alt
 
 	movups	%xmm0,(%rdx)
 	movups	%xmm2,16(%rdx)
 .byte	102,15,58,223,202,1
-	call	.Lkey_expansion_256a_cold
+	call	L$key_expansion_256a_cold
 .byte	102,15,58,223,200,1
-	call	.Lkey_expansion_256b
+	call	L$key_expansion_256b
 .byte	102,15,58,223,202,2
-	call	.Lkey_expansion_256a
+	call	L$key_expansion_256a
 .byte	102,15,58,223,200,2
-	call	.Lkey_expansion_256b
+	call	L$key_expansion_256b
 .byte	102,15,58,223,202,4
-	call	.Lkey_expansion_256a
+	call	L$key_expansion_256a
 .byte	102,15,58,223,200,4
-	call	.Lkey_expansion_256b
+	call	L$key_expansion_256b
 .byte	102,15,58,223,202,8
-	call	.Lkey_expansion_256a
+	call	L$key_expansion_256a
 .byte	102,15,58,223,200,8
-	call	.Lkey_expansion_256b
+	call	L$key_expansion_256b
 .byte	102,15,58,223,202,16
-	call	.Lkey_expansion_256a
+	call	L$key_expansion_256a
 .byte	102,15,58,223,200,16
-	call	.Lkey_expansion_256b
+	call	L$key_expansion_256b
 .byte	102,15,58,223,202,32
-	call	.Lkey_expansion_256a
+	call	L$key_expansion_256a
 .byte	102,15,58,223,200,32
-	call	.Lkey_expansion_256b
+	call	L$key_expansion_256b
 .byte	102,15,58,223,202,64
-	call	.Lkey_expansion_256a
+	call	L$key_expansion_256a
 	movups	%xmm0,(%rax)
 	movl	%esi,16(%rax)
 	xorq	%rax,%rax
-	jmp	.Lenc_key_ret
+	jmp	L$enc_key_ret
 
-.align	16
-.L14rounds_alt:
-	movdqa	.Lkey_rotate(%rip),%xmm5
-	movdqa	.Lkey_rcon1(%rip),%xmm4
+.p2align	4
+L$14rounds_alt:
+	movdqa	L$key_rotate(%rip),%xmm5
+	movdqa	L$key_rcon1(%rip),%xmm4
 	movl	$7,%r10d
 	movdqu	%xmm0,0(%rdx)
 	movdqa	%xmm2,%xmm1
 	movdqu	%xmm2,16(%rdx)
-	jmp	.Loop_key256
+	jmp	L$oop_key256
 
-.align	16
-.Loop_key256:
+.p2align	4
+L$oop_key256:
 .byte	102,15,56,0,213
 .byte	102,15,56,221,212
 
@@ -2368,7 +2366,7 @@ __aesni_set_encrypt_key:
 	movdqu	%xmm0,(%rax)
 
 	decl	%r10d
-	jz	.Ldone_key256
+	jz	L$done_key256
 
 	pshufd	$0xff,%xmm0,%xmm2
 	pxor	%xmm3,%xmm3
@@ -2387,17 +2385,17 @@ __aesni_set_encrypt_key:
 	leaq	32(%rax),%rax
 	movdqa	%xmm2,%xmm1
 
-	jmp	.Loop_key256
+	jmp	L$oop_key256
 
-.Ldone_key256:
+L$done_key256:
 	movl	%esi,16(%rax)
 	xorl	%eax,%eax
-	jmp	.Lenc_key_ret
+	jmp	L$enc_key_ret
 
-.align	16
-.Lbad_keybits:
+.p2align	4
+L$bad_keybits:
 	movq	$-2,%rax
-.Lenc_key_ret:
+L$enc_key_ret:
 	pxor	%xmm0,%xmm0
 	pxor	%xmm1,%xmm1
 	pxor	%xmm2,%xmm2
@@ -2405,16 +2403,16 @@ __aesni_set_encrypt_key:
 	pxor	%xmm4,%xmm4
 	pxor	%xmm5,%xmm5
 	addq	$8,%rsp
-.cfi_adjust_cfa_offset	-8
-	.byte	0xf3,0xc3
-.cfi_endproc	
-.LSEH_end_set_encrypt_key:
 
-.align	16
-.Lkey_expansion_128:
+	.byte	0xf3,0xc3
+
+L$SEH_end_set_encrypt_key:
+
+.p2align	4
+L$key_expansion_128:
 	movups	%xmm0,(%rax)
 	leaq	16(%rax),%rax
-.Lkey_expansion_128_cold:
+L$key_expansion_128_cold:
 	shufps	$16,%xmm0,%xmm4
 	xorps	%xmm4,%xmm0
 	shufps	$140,%xmm0,%xmm4
@@ -2423,13 +2421,13 @@ __aesni_set_encrypt_key:
 	xorps	%xmm1,%xmm0
 	.byte	0xf3,0xc3
 
-.align	16
-.Lkey_expansion_192a:
+.p2align	4
+L$key_expansion_192a:
 	movups	%xmm0,(%rax)
 	leaq	16(%rax),%rax
-.Lkey_expansion_192a_cold:
+L$key_expansion_192a_cold:
 	movaps	%xmm2,%xmm5
-.Lkey_expansion_192b_warm:
+L$key_expansion_192b_warm:
 	shufps	$16,%xmm0,%xmm4
 	movdqa	%xmm2,%xmm3
 	xorps	%xmm4,%xmm0
@@ -2443,21 +2441,21 @@ __aesni_set_encrypt_key:
 	pxor	%xmm3,%xmm2
 	.byte	0xf3,0xc3
 
-.align	16
-.Lkey_expansion_192b:
+.p2align	4
+L$key_expansion_192b:
 	movaps	%xmm0,%xmm3
 	shufps	$68,%xmm0,%xmm5
 	movups	%xmm5,(%rax)
 	shufps	$78,%xmm2,%xmm3
 	movups	%xmm3,16(%rax)
 	leaq	32(%rax),%rax
-	jmp	.Lkey_expansion_192b_warm
+	jmp	L$key_expansion_192b_warm
 
-.align	16
-.Lkey_expansion_256a:
+.p2align	4
+L$key_expansion_256a:
 	movups	%xmm2,(%rax)
 	leaq	16(%rax),%rax
-.Lkey_expansion_256a_cold:
+L$key_expansion_256a_cold:
 	shufps	$16,%xmm0,%xmm4
 	xorps	%xmm4,%xmm0
 	shufps	$140,%xmm0,%xmm4
@@ -2466,8 +2464,8 @@ __aesni_set_encrypt_key:
 	xorps	%xmm1,%xmm0
 	.byte	0xf3,0xc3
 
-.align	16
-.Lkey_expansion_256b:
+.p2align	4
+L$key_expansion_256b:
 	movups	%xmm0,(%rax)
 	leaq	16(%rax),%rax
 
@@ -2478,29 +2476,28 @@ __aesni_set_encrypt_key:
 	shufps	$170,%xmm1,%xmm1
 	xorps	%xmm1,%xmm2
 	.byte	0xf3,0xc3
-.size	aes_hw_set_encrypt_key,.-aes_hw_set_encrypt_key
-.size	__aesni_set_encrypt_key,.-__aesni_set_encrypt_key
-.align	64
-.Lbswap_mask:
+
+
+.p2align	6
+L$bswap_mask:
 .byte	15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0
-.Lincrement32:
+L$increment32:
 .long	6,6,6,0
-.Lincrement64:
+L$increment64:
 .long	1,0,0,0
-.Lxts_magic:
+L$xts_magic:
 .long	0x87,0,1,0
-.Lincrement1:
+L$increment1:
 .byte	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-.Lkey_rotate:
+L$key_rotate:
 .long	0x0c0f0e0d,0x0c0f0e0d,0x0c0f0e0d,0x0c0f0e0d
-.Lkey_rotate192:
+L$key_rotate192:
 .long	0x04070605,0x04070605,0x04070605,0x04070605
-.Lkey_rcon1:
+L$key_rcon1:
 .long	1,1,1,1
-.Lkey_rcon1b:
+L$key_rcon1b:
 .long	0x1b,0x1b,0x1b,0x1b
 
 .byte	65,69,83,32,102,111,114,32,73,110,116,101,108,32,65,69,83,45,78,73,44,32,67,82,89,80,84,79,71,65,77,83,32,98,121,32,60,97,112,112,114,111,64,111,112,101,110,115,115,108,46,111,114,103,62,0
-.align	64
+.p2align	6
 #endif
-.section	.note.GNU-stack,"",@progbits

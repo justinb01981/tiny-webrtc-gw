@@ -13,37 +13,30 @@
 #endif
 .text	
 
-.type	beeu_mod_inverse_vartime,@function
-.hidden	beeu_mod_inverse_vartime
-.globl	beeu_mod_inverse_vartime
-.hidden beeu_mod_inverse_vartime
-.align	32
-beeu_mod_inverse_vartime:
-.cfi_startproc	
+
+.private_extern	_beeu_mod_inverse_vartime
+.globl	_beeu_mod_inverse_vartime
+.private_extern _beeu_mod_inverse_vartime
+.p2align	5
+_beeu_mod_inverse_vartime:
+
 	pushq	%rbp
-.cfi_adjust_cfa_offset	8
-.cfi_offset	rbp,-16
+
 	pushq	%r12
-.cfi_adjust_cfa_offset	8
-.cfi_offset	r12,-24
+
 	pushq	%r13
-.cfi_adjust_cfa_offset	8
-.cfi_offset	r13,-32
+
 	pushq	%r14
-.cfi_adjust_cfa_offset	8
-.cfi_offset	r14,-40
+
 	pushq	%r15
-.cfi_adjust_cfa_offset	8
-.cfi_offset	r15,-48
+
 	pushq	%rbx
-.cfi_adjust_cfa_offset	8
-.cfi_offset	rbx,-56
+
 	pushq	%rsi
-.cfi_adjust_cfa_offset	8
-.cfi_offset	rsi,-64
+
 
 	subq	$80,%rsp
-.cfi_adjust_cfa_offset	80
+
 	movq	%rdi,0(%rsp)
 
 
@@ -70,13 +63,13 @@ beeu_mod_inverse_vartime:
 	vmovdqu	%xmm0,16(%rsp)
 	vmovdqu	%xmm1,32(%rsp)
 
-.Lbeeu_loop:
+L$beeu_loop:
 	xorq	%rbx,%rbx
 	orq	48(%rsp),%rbx
 	orq	56(%rsp),%rbx
 	orq	64(%rsp),%rbx
 	orq	72(%rsp),%rbx
-	jz	.Lbeeu_loop_end
+	jz	L$beeu_loop_end
 
 
 
@@ -90,22 +83,22 @@ beeu_mod_inverse_vartime:
 	movq	$1,%rcx
 
 
-.Lbeeu_shift_loop_XB:
+L$beeu_shift_loop_XB:
 	movq	%rcx,%rbx
 	andq	48(%rsp),%rbx
-	jnz	.Lbeeu_shift_loop_end_XB
+	jnz	L$beeu_shift_loop_end_XB
 
 
 	movq	$1,%rbx
 	andq	%r8,%rbx
-	jz	.Lshift1_0
+	jz	L$shift1_0
 	addq	0(%rdx),%r8
 	adcq	8(%rdx),%r9
 	adcq	16(%rdx),%r10
 	adcq	24(%rdx),%r11
 	adcq	$0,%rdi
 
-.Lshift1_0:
+L$shift1_0:
 	shrdq	$1,%r9,%r8
 	shrdq	$1,%r10,%r9
 	shrdq	$1,%r11,%r10
@@ -119,12 +112,12 @@ beeu_mod_inverse_vartime:
 
 
 	cmpq	$0x8000000,%rcx
-	jne	.Lbeeu_shift_loop_XB
+	jne	L$beeu_shift_loop_XB
 
-.Lbeeu_shift_loop_end_XB:
+L$beeu_shift_loop_end_XB:
 	bsfq	%rcx,%rcx
 	testq	%rcx,%rcx
-	jz	.Lbeeu_no_shift_XB
+	jz	L$beeu_no_shift_XB
 
 
 
@@ -140,27 +133,27 @@ beeu_mod_inverse_vartime:
 	movq	%rsi,24+48(%rsp)
 
 
-.Lbeeu_no_shift_XB:
+L$beeu_no_shift_XB:
 
 	movq	$1,%rcx
 
 
-.Lbeeu_shift_loop_YA:
+L$beeu_shift_loop_YA:
 	movq	%rcx,%rbx
 	andq	16(%rsp),%rbx
-	jnz	.Lbeeu_shift_loop_end_YA
+	jnz	L$beeu_shift_loop_end_YA
 
 
 	movq	$1,%rbx
 	andq	%r12,%rbx
-	jz	.Lshift1_1
+	jz	L$shift1_1
 	addq	0(%rdx),%r12
 	adcq	8(%rdx),%r13
 	adcq	16(%rdx),%r14
 	adcq	24(%rdx),%r15
 	adcq	$0,%rbp
 
-.Lshift1_1:
+L$shift1_1:
 	shrdq	$1,%r13,%r12
 	shrdq	$1,%r14,%r13
 	shrdq	$1,%r15,%r14
@@ -174,12 +167,12 @@ beeu_mod_inverse_vartime:
 
 
 	cmpq	$0x8000000,%rcx
-	jne	.Lbeeu_shift_loop_YA
+	jne	L$beeu_shift_loop_YA
 
-.Lbeeu_shift_loop_end_YA:
+L$beeu_shift_loop_end_YA:
 	bsfq	%rcx,%rcx
 	testq	%rcx,%rcx
-	jz	.Lbeeu_no_shift_YA
+	jz	L$beeu_no_shift_YA
 
 
 
@@ -195,7 +188,7 @@ beeu_mod_inverse_vartime:
 	movq	%rsi,24+16(%rsp)
 
 
-.Lbeeu_no_shift_YA:
+L$beeu_no_shift_YA:
 
 	movq	48(%rsp),%rax
 	movq	56(%rsp),%rbx
@@ -205,7 +198,7 @@ beeu_mod_inverse_vartime:
 	sbbq	24(%rsp),%rbx
 	sbbq	32(%rsp),%rsi
 	sbbq	40(%rsp),%rcx
-	jnc	.Lbeeu_B_bigger_than_A
+	jnc	L$beeu_B_bigger_than_A
 
 
 	movq	16(%rsp),%rax
@@ -227,9 +220,9 @@ beeu_mod_inverse_vartime:
 	adcq	%r10,%r14
 	adcq	%r11,%r15
 	adcq	%rdi,%rbp
-	jmp	.Lbeeu_loop
+	jmp	L$beeu_loop
 
-.Lbeeu_B_bigger_than_A:
+L$beeu_B_bigger_than_A:
 
 	movq	%rax,48(%rsp)
 	movq	%rbx,56(%rsp)
@@ -243,9 +236,9 @@ beeu_mod_inverse_vartime:
 	adcq	%r15,%r11
 	adcq	%rbp,%rdi
 
-	jmp	.Lbeeu_loop
+	jmp	L$beeu_loop
 
-.Lbeeu_loop_end:
+L$beeu_loop_end:
 
 
 
@@ -256,7 +249,7 @@ beeu_mod_inverse_vartime:
 	orq	32(%rsp),%rbx
 	orq	40(%rsp),%rbx
 
-	jnz	.Lbeeu_err
+	jnz	L$beeu_err
 
 
 
@@ -267,7 +260,7 @@ beeu_mod_inverse_vartime:
 	movq	24(%rdx),%r11
 	xorq	%rdi,%rdi
 
-.Lbeeu_reduction_loop:
+L$beeu_reduction_loop:
 	movq	%r12,16(%rsp)
 	movq	%r13,24(%rsp)
 	movq	%r14,32(%rsp)
@@ -286,7 +279,7 @@ beeu_mod_inverse_vartime:
 	cmovcq	24(%rsp),%r13
 	cmovcq	32(%rsp),%r14
 	cmovcq	40(%rsp),%r15
-	jnc	.Lbeeu_reduction_loop
+	jnc	L$beeu_reduction_loop
 
 
 	subq	%r12,%r8
@@ -294,7 +287,7 @@ beeu_mod_inverse_vartime:
 	sbbq	%r14,%r10
 	sbbq	%r15,%r11
 
-.Lbeeu_save:
+L$beeu_save:
 
 	movq	0(%rsp),%rdi
 
@@ -305,39 +298,31 @@ beeu_mod_inverse_vartime:
 
 
 	movq	$1,%rax
-	jmp	.Lbeeu_finish
+	jmp	L$beeu_finish
 
-.Lbeeu_err:
+L$beeu_err:
 
 	xorq	%rax,%rax
 
-.Lbeeu_finish:
+L$beeu_finish:
 	addq	$80,%rsp
-.cfi_adjust_cfa_offset	-80
-	popq	%rsi
-.cfi_adjust_cfa_offset	-8
-.cfi_restore	rsi
-	popq	%rbx
-.cfi_adjust_cfa_offset	-8
-.cfi_restore	rbx
-	popq	%r15
-.cfi_adjust_cfa_offset	-8
-.cfi_restore	r15
-	popq	%r14
-.cfi_adjust_cfa_offset	-8
-.cfi_restore	r14
-	popq	%r13
-.cfi_adjust_cfa_offset	-8
-.cfi_restore	r13
-	popq	%r12
-.cfi_adjust_cfa_offset	-8
-.cfi_restore	r12
-	popq	%rbp
-.cfi_adjust_cfa_offset	-8
-.cfi_restore	rbp
-	.byte	0xf3,0xc3
-.cfi_endproc	
 
-.size	beeu_mod_inverse_vartime, .-beeu_mod_inverse_vartime
+	popq	%rsi
+
+	popq	%rbx
+
+	popq	%r15
+
+	popq	%r14
+
+	popq	%r13
+
+	popq	%r12
+
+	popq	%rbp
+
+	.byte	0xf3,0xc3
+
+
+
 #endif
-.section	.note.GNU-stack,"",@progbits

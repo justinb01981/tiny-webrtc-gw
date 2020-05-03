@@ -4,23 +4,23 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/args.cc" "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/args.cc.o"
-  "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/ciphers.cc" "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/ciphers.cc.o"
-  "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/client.cc" "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/client.cc.o"
-  "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/const.cc" "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/const.cc.o"
-  "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/digest.cc" "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/digest.cc.o"
-  "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/file.cc" "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/file.cc.o"
-  "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/generate_ed25519.cc" "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/generate_ed25519.cc.o"
-  "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/genrsa.cc" "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/genrsa.cc.o"
-  "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/pkcs12.cc" "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/pkcs12.cc.o"
-  "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/rand.cc" "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/rand.cc.o"
-  "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/server.cc" "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/server.cc.o"
-  "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/sign.cc" "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/sign.cc.o"
-  "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/speed.cc" "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/speed.cc.o"
-  "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/tool.cc" "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/tool.cc.o"
-  "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/transport_common.cc" "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/transport_common.cc.o"
+  "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/args.cc" "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/args.cc.o"
+  "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/ciphers.cc" "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/ciphers.cc.o"
+  "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/client.cc" "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/client.cc.o"
+  "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/const.cc" "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/const.cc.o"
+  "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/digest.cc" "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/digest.cc.o"
+  "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/file.cc" "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/file.cc.o"
+  "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/generate_ed25519.cc" "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/generate_ed25519.cc.o"
+  "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/genrsa.cc" "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/genrsa.cc.o"
+  "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/pkcs12.cc" "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/pkcs12.cc.o"
+  "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/rand.cc" "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/rand.cc.o"
+  "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/server.cc" "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/server.cc.o"
+  "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/sign.cc" "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/sign.cc.o"
+  "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/speed.cc" "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/speed.cc.o"
+  "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/tool.cc" "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/tool.cc.o"
+  "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/transport_common.cc" "/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/transport_common.cc.o"
   )
-set(CMAKE_CXX_COMPILER_ID "GNU")
+set(CMAKE_CXX_COMPILER_ID "AppleClang")
 
 # Preprocessor definitions for this target.
 set(CMAKE_TARGET_DEFINITIONS_CXX
@@ -36,8 +36,8 @@ set(CMAKE_CXX_TARGET_INCLUDE_PATH
 
 # Targets to which this target links.
 set(CMAKE_TARGET_LINKED_INFO_FILES
-  "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/CMakeFiles/ssl.dir/DependInfo.cmake"
-  "/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/CMakeFiles/crypto.dir/DependInfo.cmake"
+  "/Users/justin/workspace/tiny-webrtc-gw/boringssl/ssl/CMakeFiles/ssl.dir/DependInfo.cmake"
+  "/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/CMakeFiles/crypto.dir/DependInfo.cmake"
   )
 
 # Fortran module output directory.

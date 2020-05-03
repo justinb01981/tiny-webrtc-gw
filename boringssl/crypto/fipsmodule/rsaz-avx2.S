@@ -13,29 +13,29 @@
 #endif
 .text	
 
-.globl	rsaz_1024_sqr_avx2
-.hidden rsaz_1024_sqr_avx2
-.type	rsaz_1024_sqr_avx2,@function
-.align	64
-rsaz_1024_sqr_avx2:
-.cfi_startproc	
+.globl	_rsaz_1024_sqr_avx2
+.private_extern _rsaz_1024_sqr_avx2
+
+.p2align	6
+_rsaz_1024_sqr_avx2:
+
 	leaq	(%rsp),%rax
-.cfi_def_cfa_register	%rax
+
 	pushq	%rbx
-.cfi_offset	%rbx,-16
+
 	pushq	%rbp
-.cfi_offset	%rbp,-24
+
 	pushq	%r12
-.cfi_offset	%r12,-32
+
 	pushq	%r13
-.cfi_offset	%r13,-40
+
 	pushq	%r14
-.cfi_offset	%r14,-48
+
 	pushq	%r15
-.cfi_offset	%r15,-56
+
 	vzeroupper
 	movq	%rax,%rbp
-.cfi_def_cfa_register	%rbp
+
 	movq	%rdx,%r13
 	subq	$832,%rsp
 	movq	%r13,%r15
@@ -47,7 +47,7 @@ rsaz_1024_sqr_avx2:
 	addq	$320,%r15
 	shrq	$12,%r15
 	vpxor	%ymm9,%ymm9,%ymm9
-	jz	.Lsqr_1024_no_n_copy
+	jz	L$sqr_1024_no_n_copy
 
 
 
@@ -76,7 +76,7 @@ rsaz_1024_sqr_avx2:
 	vmovdqu	%ymm8,256-128(%r13)
 	vmovdqu	%ymm9,288-128(%r13)
 
-.Lsqr_1024_no_n_copy:
+L$sqr_1024_no_n_copy:
 	andq	$-1024,%rsp
 
 	vmovdqu	32-128(%rsi),%ymm1
@@ -89,11 +89,11 @@ rsaz_1024_sqr_avx2:
 	vmovdqu	256-128(%rsi),%ymm8
 
 	leaq	192(%rsp),%rbx
-	vmovdqu	.Land_mask(%rip),%ymm15
-	jmp	.LOOP_GRANDE_SQR_1024
+	vmovdqu	L$and_mask(%rip),%ymm15
+	jmp	L$OOP_GRANDE_SQR_1024
 
-.align	32
-.LOOP_GRANDE_SQR_1024:
+.p2align	5
+L$OOP_GRANDE_SQR_1024:
 	leaq	576+128(%rsp),%r9
 	leaq	448(%rsp),%r12
 
@@ -142,9 +142,9 @@ rsaz_1024_sqr_avx2:
 
 	movq	%rsi,%r15
 	movl	$4,%r14d
-	jmp	.Lsqr_entry_1024
-.align	32
-.LOOP_SQR_1024:
+	jmp	L$sqr_entry_1024
+.p2align	5
+L$OOP_SQR_1024:
 	vpbroadcastq	32-128(%r15),%ymm11
 	vpmuludq	0-128(%rsi),%ymm10,%ymm0
 	vpaddq	0-192(%rbx),%ymm0,%ymm0
@@ -165,7 +165,7 @@ rsaz_1024_sqr_avx2:
 	vpmuludq	224-128(%r9),%ymm10,%ymm8
 	vpbroadcastq	64-128(%r15),%ymm10
 	vpaddq	256-192(%rbx),%ymm8,%ymm8
-.Lsqr_entry_1024:
+L$sqr_entry_1024:
 	vmovdqu	%ymm0,0-192(%rbx)
 	vmovdqu	%ymm1,32-192(%rbx)
 
@@ -281,7 +281,7 @@ rsaz_1024_sqr_avx2:
 	leaq	8(%r12),%r12
 
 	decl	%r14d
-	jnz	.LOOP_SQR_1024
+	jnz	L$OOP_SQR_1024
 
 	vmovdqu	256(%rsp),%ymm8
 	vmovdqu	288(%rsp),%ymm1
@@ -343,10 +343,10 @@ rsaz_1024_sqr_avx2:
 	andl	$0x1fffffff,%eax
 
 	movl	$9,%r14d
-	jmp	.LOOP_REDUCE_1024
+	jmp	L$OOP_REDUCE_1024
 
-.align	32
-.LOOP_REDUCE_1024:
+.p2align	5
+L$OOP_REDUCE_1024:
 	vmovd	%eax,%xmm13
 	vpbroadcastq	%xmm13,%ymm13
 
@@ -517,7 +517,7 @@ rsaz_1024_sqr_avx2:
 	movq	%rdx,%r12
 
 	decl	%r14d
-	jnz	.LOOP_REDUCE_1024
+	jnz	L$OOP_REDUCE_1024
 	leaq	448(%rsp),%r12
 	vpaddq	%ymm9,%ymm13,%ymm0
 	vpxor	%ymm9,%ymm9,%ymm9
@@ -644,51 +644,51 @@ rsaz_1024_sqr_avx2:
 
 	movq	%rdi,%rsi
 	decl	%r8d
-	jne	.LOOP_GRANDE_SQR_1024
+	jne	L$OOP_GRANDE_SQR_1024
 
 	vzeroall
 	movq	%rbp,%rax
-.cfi_def_cfa_register	%rax
+
 	movq	-48(%rax),%r15
-.cfi_restore	%r15
+
 	movq	-40(%rax),%r14
-.cfi_restore	%r14
+
 	movq	-32(%rax),%r13
-.cfi_restore	%r13
+
 	movq	-24(%rax),%r12
-.cfi_restore	%r12
+
 	movq	-16(%rax),%rbp
-.cfi_restore	%rbp
+
 	movq	-8(%rax),%rbx
-.cfi_restore	%rbx
+
 	leaq	(%rax),%rsp
-.cfi_def_cfa_register	%rsp
-.Lsqr_1024_epilogue:
+
+L$sqr_1024_epilogue:
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	rsaz_1024_sqr_avx2,.-rsaz_1024_sqr_avx2
-.globl	rsaz_1024_mul_avx2
-.hidden rsaz_1024_mul_avx2
-.type	rsaz_1024_mul_avx2,@function
-.align	64
-rsaz_1024_mul_avx2:
-.cfi_startproc	
+
+
+.globl	_rsaz_1024_mul_avx2
+.private_extern _rsaz_1024_mul_avx2
+
+.p2align	6
+_rsaz_1024_mul_avx2:
+
 	leaq	(%rsp),%rax
-.cfi_def_cfa_register	%rax
+
 	pushq	%rbx
-.cfi_offset	%rbx,-16
+
 	pushq	%rbp
-.cfi_offset	%rbp,-24
+
 	pushq	%r12
-.cfi_offset	%r12,-32
+
 	pushq	%r13
-.cfi_offset	%r13,-40
+
 	pushq	%r14
-.cfi_offset	%r14,-48
+
 	pushq	%r15
-.cfi_offset	%r15,-56
+
 	movq	%rax,%rbp
-.cfi_def_cfa_register	%rbp
+
 	vzeroall
 	movq	%rdx,%r13
 	subq	$64,%rsp
@@ -716,7 +716,7 @@ rsaz_1024_mul_avx2:
 	addq	$320,%r15
 .byte	0x67,0x67
 	shrq	$12,%r15
-	jz	.Lmul_1024_no_n_copy
+	jz	L$mul_1024_no_n_copy
 
 
 
@@ -753,7 +753,7 @@ rsaz_1024_mul_avx2:
 	vmovdqu	%ymm8,256-128(%rcx)
 	vmovdqa	%ymm0,%ymm8
 	vmovdqu	%ymm9,288-128(%rcx)
-.Lmul_1024_no_n_copy:
+L$mul_1024_no_n_copy:
 	andq	$-64,%rsp
 
 	movq	(%r13),%rbx
@@ -765,13 +765,13 @@ rsaz_1024_mul_avx2:
 	xorq	%r11,%r11
 	xorq	%r12,%r12
 
-	vmovdqu	.Land_mask(%rip),%ymm15
+	vmovdqu	L$and_mask(%rip),%ymm15
 	movl	$9,%r14d
 	vmovdqu	%ymm9,288-128(%rdi)
-	jmp	.Loop_mul_1024
+	jmp	L$oop_mul_1024
 
-.align	32
-.Loop_mul_1024:
+.p2align	5
+L$oop_mul_1024:
 	vpsrlq	$29,%ymm3,%ymm9
 	movq	%rbx,%rax
 	imulq	-128(%rsi),%rax
@@ -1087,7 +1087,7 @@ rsaz_1024_mul_avx2:
 	vpaddq	%ymm13,%ymm9,%ymm8
 
 	decl	%r14d
-	jnz	.Loop_mul_1024
+	jnz	L$oop_mul_1024
 	vpaddq	(%rsp),%ymm12,%ymm0
 
 	vpsrlq	$29,%ymm0,%ymm12
@@ -1204,31 +1204,31 @@ rsaz_1024_mul_avx2:
 	vzeroupper
 
 	movq	%rbp,%rax
-.cfi_def_cfa_register	%rax
+
 	movq	-48(%rax),%r15
-.cfi_restore	%r15
+
 	movq	-40(%rax),%r14
-.cfi_restore	%r14
+
 	movq	-32(%rax),%r13
-.cfi_restore	%r13
+
 	movq	-24(%rax),%r12
-.cfi_restore	%r12
+
 	movq	-16(%rax),%rbp
-.cfi_restore	%rbp
+
 	movq	-8(%rax),%rbx
-.cfi_restore	%rbx
+
 	leaq	(%rax),%rsp
-.cfi_def_cfa_register	%rsp
-.Lmul_1024_epilogue:
+
+L$mul_1024_epilogue:
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	rsaz_1024_mul_avx2,.-rsaz_1024_mul_avx2
-.globl	rsaz_1024_red2norm_avx2
-.hidden rsaz_1024_red2norm_avx2
-.type	rsaz_1024_red2norm_avx2,@function
-.align	32
-rsaz_1024_red2norm_avx2:
-.cfi_startproc	
+
+
+.globl	_rsaz_1024_red2norm_avx2
+.private_extern _rsaz_1024_red2norm_avx2
+
+.p2align	5
+_rsaz_1024_red2norm_avx2:
+
 	subq	$-128,%rsi
 	xorq	%rax,%rax
 	movq	-128(%rsi),%r8
@@ -1420,15 +1420,15 @@ rsaz_1024_red2norm_avx2:
 	movq	%rax,120(%rdi)
 	movq	%r11,%rax
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	rsaz_1024_red2norm_avx2,.-rsaz_1024_red2norm_avx2
 
-.globl	rsaz_1024_norm2red_avx2
-.hidden rsaz_1024_norm2red_avx2
-.type	rsaz_1024_norm2red_avx2,@function
-.align	32
-rsaz_1024_norm2red_avx2:
-.cfi_startproc	
+
+
+.globl	_rsaz_1024_norm2red_avx2
+.private_extern _rsaz_1024_norm2red_avx2
+
+.p2align	5
+_rsaz_1024_norm2red_avx2:
+
 	subq	$-128,%rdi
 	movq	(%rsi),%r8
 	movl	$0x1fffffff,%eax
@@ -1581,48 +1581,48 @@ rsaz_1024_norm2red_avx2:
 	movq	%r8,176(%rdi)
 	movq	%r8,184(%rdi)
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	rsaz_1024_norm2red_avx2,.-rsaz_1024_norm2red_avx2
-.globl	rsaz_1024_scatter5_avx2
-.hidden rsaz_1024_scatter5_avx2
-.type	rsaz_1024_scatter5_avx2,@function
-.align	32
-rsaz_1024_scatter5_avx2:
-.cfi_startproc	
+
+
+.globl	_rsaz_1024_scatter5_avx2
+.private_extern _rsaz_1024_scatter5_avx2
+
+.p2align	5
+_rsaz_1024_scatter5_avx2:
+
 	vzeroupper
-	vmovdqu	.Lscatter_permd(%rip),%ymm5
+	vmovdqu	L$scatter_permd(%rip),%ymm5
 	shll	$4,%edx
 	leaq	(%rdi,%rdx,1),%rdi
 	movl	$9,%eax
-	jmp	.Loop_scatter_1024
+	jmp	L$oop_scatter_1024
 
-.align	32
-.Loop_scatter_1024:
+.p2align	5
+L$oop_scatter_1024:
 	vmovdqu	(%rsi),%ymm0
 	leaq	32(%rsi),%rsi
 	vpermd	%ymm0,%ymm5,%ymm0
 	vmovdqu	%xmm0,(%rdi)
 	leaq	512(%rdi),%rdi
 	decl	%eax
-	jnz	.Loop_scatter_1024
+	jnz	L$oop_scatter_1024
 
 	vzeroupper
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.size	rsaz_1024_scatter5_avx2,.-rsaz_1024_scatter5_avx2
 
-.globl	rsaz_1024_gather5_avx2
-.hidden rsaz_1024_gather5_avx2
-.type	rsaz_1024_gather5_avx2,@function
-.align	32
-rsaz_1024_gather5_avx2:
-.cfi_startproc	
+
+
+.globl	_rsaz_1024_gather5_avx2
+.private_extern _rsaz_1024_gather5_avx2
+
+.p2align	5
+_rsaz_1024_gather5_avx2:
+
 	vzeroupper
 	movq	%rsp,%r11
-.cfi_def_cfa_register	%r11
+
 	leaq	-256(%rsp),%rsp
 	andq	$-32,%rsp
-	leaq	.Linc(%rip),%r10
+	leaq	L$inc(%rip),%r10
 	leaq	-128(%rsp),%rax
 
 	vmovd	%edx,%xmm4
@@ -1674,7 +1674,7 @@ rsaz_1024_gather5_avx2:
 	leaq	128(%rsi),%rsi
 	movl	$9,%edx
 
-.Loop_gather_1024:
+L$oop_gather_1024:
 	vmovdqa	0-128(%rsi),%ymm0
 	vmovdqa	32-128(%rsi),%ymm1
 	vmovdqa	64-128(%rsi),%ymm2
@@ -1722,28 +1722,27 @@ rsaz_1024_gather5_avx2:
 	vmovdqu	%ymm5,(%rdi)
 	leaq	32(%rdi),%rdi
 	decl	%edx
-	jnz	.Loop_gather_1024
+	jnz	L$oop_gather_1024
 
 	vpxor	%ymm0,%ymm0,%ymm0
 	vmovdqu	%ymm0,(%rdi)
 	vzeroupper
 	leaq	(%r11),%rsp
-.cfi_def_cfa_register	%rsp
+
 	.byte	0xf3,0xc3
-.cfi_endproc	
-.LSEH_end_rsaz_1024_gather5:
-.size	rsaz_1024_gather5_avx2,.-rsaz_1024_gather5_avx2
-.align	64
-.Land_mask:
+
+L$SEH_end_rsaz_1024_gather5:
+
+.p2align	6
+L$and_mask:
 .quad	0x1fffffff,0x1fffffff,0x1fffffff,0x1fffffff
-.Lscatter_permd:
+L$scatter_permd:
 .long	0,2,4,6,7,7,7,7
-.Lgather_permd:
+L$gather_permd:
 .long	0,7,1,7,2,7,3,7
-.Linc:
+L$inc:
 .long	0,0,0,0, 1,1,1,1
 .long	2,2,2,2, 3,3,3,3
 .long	4,4,4,4, 4,4,4,4
-.align	64
+.p2align	6
 #endif
-.section	.note.GNU-stack,"",@progbits
