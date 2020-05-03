@@ -1,2 +1,2 @@
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar qc libtest_support_lib.a  CMakeFiles/test_support_lib.dir/abi_test.cc.o CMakeFiles/test_support_lib.dir/file_test.cc.o CMakeFiles/test_support_lib.dir/malloc.cc.o CMakeFiles/test_support_lib.dir/test_util.cc.o CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib libtest_support_lib.a
+/usr/bin/ar qc libtest_support_lib.a  CMakeFiles/test_support_lib.dir/abi_test.cc.o CMakeFiles/test_support_lib.dir/file_test.cc.o CMakeFiles/test_support_lib.dir/malloc.cc.o CMakeFiles/test_support_lib.dir/test_util.cc.o CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o
+/usr/bin/ranlib libtest_support_lib.a

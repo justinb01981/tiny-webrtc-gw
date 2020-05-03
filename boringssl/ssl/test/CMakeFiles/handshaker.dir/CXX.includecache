@@ -1,4 +1,4 @@
-#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
 
 #IncludeRegexScan: ^.*$
 
@@ -6,11 +6,11 @@
 
 #IncludeRegexTransform: 
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/err/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/err/internal.h
 openssl/err.h
 -
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/internal.h
 openssl/ex_data.h
 -
 openssl/stack.h
@@ -32,7 +32,7 @@ windows.h
 stdlib.h
 -
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/internal.h
 openssl/base.h
 -
 stdlib.h
@@ -60,17 +60,17 @@ openssl/ssl.h
 openssl/stack.h
 -
 ../crypto/err/internal.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/err/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/err/internal.h
 ../crypto/internal.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/internal.h
 winsock2.h
 -
 sys/time.h
 -
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/async_bio.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/async_bio.cc
 async_bio.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/async_bio.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/async_bio.h
 errno.h
 -
 string.h
@@ -80,19 +80,19 @@ openssl/bio.h
 openssl/mem.h
 -
 ../../crypto/internal.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/internal.h
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/async_bio.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/async_bio.h
 openssl/bio.h
 -
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/fuzzer_tags.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/fuzzer_tags.h
 stdint.h
 -
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/handshake_util.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/handshake_util.cc
 handshake_util.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/handshake_util.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/handshake_util.h
 assert.h
 -
 errno.h
@@ -114,25 +114,25 @@ unistd.h
 functional
 -
 async_bio.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/async_bio.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/async_bio.h
 packeted_bio.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/packeted_bio.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/packeted_bio.h
 test_config.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/test_config.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/test_config.h
 test_state.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/test_state.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/test_state.h
 openssl/ssl.h
 -
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/handshake_util.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/handshake_util.h
 functional
 -
 openssl/base.h
 -
 settings_writer.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/settings_writer.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/settings_writer.h
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/handshaker.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/handshaker.cc
 errno.h
 -
 fcntl.h
@@ -148,17 +148,17 @@ openssl/rand.h
 openssl/ssl.h
 -
 ../internal.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/internal.h
 handshake_util.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/handshake_util.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/handshake_util.h
 test_config.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/test_config.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/test_config.h
 test_state.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/test_state.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/test_state.h
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/mock_quic_transport.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/mock_quic_transport.cc
 mock_quic_transport.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/mock_quic_transport.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/mock_quic_transport.h
 openssl/span.h
 -
 cstring
@@ -166,7 +166,7 @@ cstring
 limits
 -
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/mock_quic_transport.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/mock_quic_transport.h
 openssl/base.h
 -
 openssl/bio.h
@@ -176,9 +176,9 @@ openssl/ssl.h
 vector
 -
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/packeted_bio.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/packeted_bio.cc
 packeted_bio.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/packeted_bio.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/packeted_bio.h
 assert.h
 -
 limits.h
@@ -190,9 +190,9 @@ string.h
 openssl/mem.h
 -
 ../../crypto/internal.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/internal.h
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/packeted_bio.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/packeted_bio.h
 openssl/base.h
 -
 openssl/bio.h
@@ -202,19 +202,19 @@ winsock2.h
 sys/time.h
 -
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/settings_writer.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/settings_writer.cc
 settings_writer.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/settings_writer.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/settings_writer.h
 stdio.h
 -
 openssl/ssl.h
 -
 fuzzer_tags.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/fuzzer_tags.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/fuzzer_tags.h
 test_config.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/test_config.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/test_config.h
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/settings_writer.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/settings_writer.h
 string
 -
 openssl/bytestring.h
@@ -222,13 +222,13 @@ openssl/bytestring.h
 openssl/ssl.h
 -
 ../internal.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/internal.h
 test_config.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/test_config.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/test_config.h
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/test_config.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/test_config.cc
 test_config.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/test_config.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/test_config.h
 assert.h
 -
 stdio.h
@@ -246,13 +246,13 @@ openssl/rand.h
 openssl/ssl.h
 -
 ../../crypto/internal.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/internal.h
 ../internal.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/internal.h
 test_state.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/test_state.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/test_state.h
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/test_config.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/test_config.h
 string
 -
 vector
@@ -262,19 +262,19 @@ openssl/base.h
 openssl/x509.h
 -
 test_state.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/test_state.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/test_state.h
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/test_state.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/test_state.cc
 test_state.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/test_state.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/test_state.h
 openssl/ssl.h
 -
 ../../crypto/internal.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/crypto/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/internal.h
 ../internal.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/internal.h
 
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/test_state.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/test_state.h
 openssl/base.h
 -
 memory
@@ -284,7 +284,7 @@ string
 vector
 -
 mock_quic_transport.h
-/home/ubuntu/tiny-webrtc-gw/tmp/tiny-webrtc-gw/boringssl/ssl/test/mock_quic_transport.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/ssl/test/mock_quic_transport.h
 
 ssl/test/../../include/openssl/aead.h
 openssl/base.h

@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/internal.h
 openssl/ex_data.h
 -
 openssl/stack.h
@@ -28,7 +28,7 @@ windows.h
 stdlib.h
 -
 
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/args.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/args.cc
 string
 -
 vector
@@ -42,9 +42,9 @@ stdlib.h
 string.h
 -
 internal.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/internal.h
 
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/ciphers.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/ciphers.cc
 string
 -
 vector
@@ -56,9 +56,9 @@ stdlib.h
 openssl/ssl.h
 -
 internal.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/internal.h
 
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/client.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/client.cc
 openssl/base.h
 -
 stdio.h
@@ -74,21 +74,21 @@ openssl/pem.h
 openssl/ssl.h
 -
 ../crypto/internal.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/internal.h
 internal.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/internal.h
 transport_common.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/transport_common.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/transport_common.h
 
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/const.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/const.cc
 stddef.h
 -
 stdint.h
 -
 internal.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/internal.h
 
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/digest.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/digest.cc
 openssl/base.h
 -
 memory
@@ -120,9 +120,9 @@ io.h
 openssl/digest.h
 -
 internal.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/internal.h
 
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/file.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/file.cc
 stdio.h
 -
 algorithm
@@ -130,9 +130,9 @@ algorithm
 vector
 -
 internal.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/internal.h
 
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/generate_ed25519.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/generate_ed25519.cc
 openssl/curve25519.h
 -
 errno.h
@@ -142,9 +142,9 @@ stdio.h
 string.h
 -
 internal.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/internal.h
 
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/genrsa.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/genrsa.cc
 openssl/bio.h
 -
 openssl/bn.h
@@ -156,9 +156,9 @@ openssl/pem.h
 openssl/rsa.h
 -
 internal.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/internal.h
 
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/internal.h
 openssl/base.h
 -
 string
@@ -168,7 +168,7 @@ vector
 map
 -
 
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/pkcs12.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/pkcs12.cc
 openssl/base.h
 -
 memory
@@ -204,11 +204,11 @@ openssl/pkcs8.h
 openssl/stack.h
 -
 ../crypto/internal.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/internal.h
 internal.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/internal.h
 
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/rand.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/rand.cc
 string
 -
 vector
@@ -222,9 +222,9 @@ stdlib.h
 openssl/rand.h
 -
 internal.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/internal.h
 
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/server.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/server.cc
 openssl/base.h
 -
 memory
@@ -236,11 +236,11 @@ openssl/rand.h
 openssl/ssl.h
 -
 internal.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/internal.h
 transport_common.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/transport_common.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/transport_common.h
 
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/sign.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/sign.cc
 map
 -
 vector
@@ -252,9 +252,9 @@ openssl/evp.h
 openssl/pem.h
 -
 internal.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/internal.h
 
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/speed.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/speed.cc
 algorithm
 -
 functional
@@ -310,11 +310,11 @@ sys/time.h
 time.h
 -
 ../crypto/internal.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/internal.h
 internal.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/internal.h
 
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/tool.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/tool.cc
 string
 -
 vector
@@ -332,9 +332,9 @@ io.h
 libgen.h
 -
 internal.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/internal.h
 
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/transport_common.cc
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/transport_common.cc
 openssl/base.h
 -
 string
@@ -394,13 +394,13 @@ openssl/ssl.h
 openssl/x509.h
 -
 ../crypto/internal.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/internal.h
 internal.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/internal.h
 transport_common.h
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/transport_common.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/transport_common.h
 
-/Users/justin/workspace/tiny-webrtc-gw/boringssl/tool/transport_common.h
+/home/ubuntu/tiny-webrtc-gw/boringssl/tool/transport_common.h
 openssl/ssl.h
 -
 string.h
