@@ -68,11 +68,11 @@
 
 #define CONNECTION_DELAY_MS 2000
 
-#define RTP_PICT_LOSS_INDICATOR_INTERVAL /*10*/ 5
+#define RTP_PICT_LOSS_INDICATOR_INTERVAL 10
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
-#define PEER_CLEANUP_INTERVAL /*320000*/ /*3560000*/ 1600000
+#define PEER_CLEANUP_INTERVAL /*320000*/ /*3560000*/ 16000000
 
 #define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY (PEER_CLEANUP_INTERVAL/128)
 
@@ -102,6 +102,8 @@ const static udp_recv_timeout_usec_min = 20;
 const static udp_recv_timeout_usec_max = 100000;
 
 int terminated = 0;
+
+int block_srtp_recv_report = 0;
 
 struct {
     char inip[64];
@@ -269,7 +271,13 @@ buffer_node_alloc()
     peer_buffer_node_t* n = (peer_buffer_node_t*) malloc(sizeof(peer_buffer_node_t));
     if(n)
     {
-        memset(n, 0, sizeof(*n));
+        //memset(n, 0, sizeof(*n));
+
+        n->head_inited = 0;
+        n->consumed = 0;
+        n->next = n->tail = 0;
+        n->len = 0;
+        n->reclaimable = 0;
     }
     else assert(0, "alloc failure\n");
     return n;
@@ -1137,6 +1145,7 @@ connection_worker(void* p)
                                         }
                                     }
 
+                                    if(!block_srtp_recv_report)
                                     if(peers[p].srtp[rtp_idx_write].inited &&
                                         srtp_protect_rtcp(peers[p].srtp[rtp_idx_write].session, reportclone, &length) == srtp_err_status_ok)
                                     {
@@ -1341,6 +1350,7 @@ int main( int argc, char* argv[] ) {
     strcpy(udpserver.inip, "0.0.0.0"); // for now bind to all interfaces
     udpserver.inport = strToInt(get_config("udpserver_port="));
     udpserver.sock_buffer_size = strToInt(get_config("udpserver_sock_buffer_size="));
+    block_srtp_recv_report = strToInt(get_config("block_srtp_recv_report"));
 
     strcpy(webserver.inip, udpserver.inip);
      
