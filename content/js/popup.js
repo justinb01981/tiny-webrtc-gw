@@ -183,7 +183,7 @@ function attachMediaStream(vidElem, vidStream)
 {
     // TODO: have single function for building vidElem and sibling nodes as rows in the table instead of splitting in multiple JS files
 
-    var cssButton = 'width:32px; height:32px; position:relative; top:-30px; left:150px; background-position:center; background-repeat:no-repeat;';
+    var cssButton = 'width:32px; height:32px; position:relative; top:-60px; left:150px; background-position:center; background-repeat:no-repeat;';
     if(vidElem.srcObject != null) {
         console.debug('attachMediaStream: video element srcObject != null, ignoring');
         return;
@@ -242,12 +242,17 @@ function prepareVideo(containerTable, labelText)
 
     var videoElemToAdd = window.parent.document.createElement('video');
     var labelToAdd = window.parent.document.createTextNode(labelText);
+    var paraToAdd = window.parent.document.createElement('p');
+
+    paraToAdd.appendChild(labelToAdd);
+    //paraToAdd.className = 'videoLabel';
+    paraToAdd.style.cssText = 'z-index:1; position:relative; top:40px; left:120px; width:100px; color:green; background-color:white;';
     
-    col.appendChild(labelToAdd);
+    col.appendChild(paraToAdd);
     col.appendChild(videoElemToAdd);
     row.appendChild(col);
 
-    videoElemToAdd.class = 'videoMain';
+    videoElemToAdd.className = 'videoMain';
     videoElemToAdd.autoplay = true;
     videoElemToAdd.muted = true;
     videoElemToAdd.setAttribute('playsinline', 'true');

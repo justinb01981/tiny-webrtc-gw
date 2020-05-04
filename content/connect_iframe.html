@@ -28,7 +28,6 @@
 </table>
 </body>
 
-<script src='src/js/adapter.js'></script>
 <script src='js/popup.js'></script>
 <script src='js/peers.js'></script>
 <script src='js/peerdynamic.js'></script>
@@ -69,7 +68,7 @@ function connectIFrameOnLoad(htmlBodyElem)
 
   let optionLabel = document.createElement('option');
   optionLabel.value = 'NULL';
-  optionLabel.text = '<select streamer to watch>';
+  optionLabel.text = '<users online>';
   selectUser.options.add(optionLabel);
 
   if(state.selectedRoom != null)

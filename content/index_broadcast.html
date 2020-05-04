@@ -5,7 +5,7 @@
 
 <body onLoad="broadcastOnLoad()">
 <div id="mainDiv">
-    <table border=1 id="mainDivTable" style=''>
+    <table border=1 id="mainDivTable">
         <tr style='height:5%;'>
             <th colspan=2>gitHub:<a href='https://github.com/justinb01981/tiny-webrtc-gw/wiki'>https://github.com/justinb01981/tiny-webrtc-gw/wiki</a></th>
         </tr>
@@ -43,12 +43,10 @@
         <tr style="height:80%;">
             <td id="thPresenter" align="center">
                 <div id="localPreviewDiv">
-                    <video class="videoLocal" id="localVideo" muted style='width:100%;' autoplay muted loop playsinline controls="true" ></video>
+                    <p class="videoLabel">Me:</p>
+                    <video class="videoLocal" id="localVideo" muted autoplay muted loop playsinline controls="true" ></video>
                 </div>
-                <!--
-                <video class="videoMain" id="videoMain" style='width:100%;' autoplay muted loop playsinline controls="true"></video>
-                -->
-                <table id="videoMainContainer">
+                <table id="videoMainContainer" class="table">
                     <!-- new video elements will appear here (see popup.js) -->
                 </table>
             </td>
@@ -62,7 +60,6 @@
 </div> <!-- mainDiv -->
 </body>
 
-<script src="src/js/adapter.js"></script>
 <script src="js/popup.js"></script>
 <script src="js/peers.js"></script>
 <script src="js/broadcast.js"></script>
