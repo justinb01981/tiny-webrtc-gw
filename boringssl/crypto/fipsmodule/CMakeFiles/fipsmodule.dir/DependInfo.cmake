@@ -5,21 +5,15 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_ASM
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aesni-gcm-x86_64.S" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-gcm-x86_64.S.o"
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aesni-x86_64.S" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-x86_64.S.o"
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghash-ssse3-x86_64.S" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-ssse3-x86_64.S.o"
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghash-x86_64.S" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-x86_64.S.o"
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/md5-x86_64.S" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/md5-x86_64.S.o"
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/p256-x86_64-asm.S" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-x86_64-asm.S.o"
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/p256_beeu-x86_64-asm.S" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-x86_64-asm.S.o"
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/rdrand-x86_64.S" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rdrand-x86_64.S.o"
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/rsaz-avx2.S" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rsaz-avx2.S.o"
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha1-x86_64.S" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-x86_64.S.o"
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha256-x86_64.S" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-x86_64.S.o"
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha512-x86_64.S" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-x86_64.S.o"
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/vpaes-x86_64.S" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-x86_64.S.o"
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/x86_64-mont.S" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont.S.o"
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/x86_64-mont5.S" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont5.S.o"
+  "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aesv8-armx.S" "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armx.S.o"
+  "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/armv4-mont.S" "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv4-mont.S.o"
+  "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bsaes-armv7.S" "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bsaes-armv7.S.o"
+  "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghash-armv4.S" "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-armv4.S.o"
+  "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghashv8-armx.S" "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armx.S.o"
+  "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha1-armv4-large.S" "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv4-large.S.o"
+  "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha256-armv4.S" "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv4.S.o"
+  "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha512-armv4.S" "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv4.S.o"
+  "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/vpaes-armv7.S" "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv7.S.o"
   )
 set(CMAKE_ASM_COMPILER_ID "GNU")
 
@@ -36,9 +30,9 @@ set(CMAKE_ASM_TARGET_INCLUDE_PATH
   "crypto/fipsmodule/../../include"
   )
 set(CMAKE_DEPENDS_CHECK_C
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bcm.c" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bcm.c.o"
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/fips_shared_support.c" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/fips_shared_support.c.o"
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/is_fips.c" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/is_fips.c.o"
+  "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bcm.c" "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bcm.c.o"
+  "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/fips_shared_support.c" "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/fips_shared_support.c.o"
+  "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/is_fips.c" "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/is_fips.c.o"
   )
 set(CMAKE_C_COMPILER_ID "GNU")
 

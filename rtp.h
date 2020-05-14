@@ -119,7 +119,7 @@ rtp_frame_marker(rtp_frame_t* f) { return (f->hdr.payload_type & rtp_marker_bit)
 u32
 rtp_timestamp(float rtp_ts_m, float rtp_ts_initial, float time_initial_ms)
 {
-    extern unsigned long get_time_ms();
+    extern unsigned long long get_time_ms();
 
     float tm_msec = get_time_ms() - time_initial_ms;
 

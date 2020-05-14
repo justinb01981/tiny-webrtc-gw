@@ -1,4 +1,4 @@
-# Install script for directory: /home/ubuntu/tiny-webrtc-gw/boringssl/util/fipstools/acvp/modulewrapper
+# Install script for directory: /home/pi/workspace/tiny-webrtc-gw/boringssl/util/fipstools/acvp/modulewrapper
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

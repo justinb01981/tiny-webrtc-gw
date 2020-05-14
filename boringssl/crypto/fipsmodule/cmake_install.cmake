@@ -1,4 +1,4 @@
-# Install script for directory: /home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule
+# Install script for directory: /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

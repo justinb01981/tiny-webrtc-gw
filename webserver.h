@@ -709,7 +709,7 @@ webserver_worker(void* p)
 
                             chatlog_append("logged out:"); chatlog_append(peer_found_via_cookie->name); chatlog_append("\n");
 
-			    peer_logout->restart_done = 0;
+                            peer_logout->restart_done = 0;
                             peer_logout->restart_needed = 1;
                             while(!peer_logout->restart_done) usleep(SPIN_WAIT_USEC); // TODO: bug here
                             peer_logout->alive = 0;
@@ -962,10 +962,10 @@ webserver_worker(void* p)
                         peers[sidx].time_pkt_last = time(NULL);
                         peers[sidx].alive = 1;
                           
-                        peers[sidx].restart_needed = 0;                       
-                        
                         strcpy(peers[sidx].name, str_read_unsafe(sdp, "a=myname=", 0));
                         strcpy(peers[sidx].roomname, str_read_unsafe(sdp, "a=room=", 0));
+
+                        peers[sidx].restart_needed = 0;                       
 
                         while(webserver.peer_index_sdp_last >= 0) sleep_msec(1);    
                         webserver.peer_index_sdp_last = sidx;

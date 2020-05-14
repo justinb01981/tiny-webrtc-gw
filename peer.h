@@ -10,8 +10,15 @@
 //#define PEER_RTP_SEQ_MIN_RECLAIMABLE 128
 #define PEER_RTP_SEQ_MIN_RECLAIMABLE 0
 
-#define PEER_LOCK(x) pthread_mutex_lock(&peers[(x)].mutex)
-#define PEER_UNLOCK(x) pthread_mutex_unlock(&peers[(x)].mutex)
+#define PEER_LOCK(x) { \
+    pthread_mutex_lock(&peers[(x)].mutex); \
+    peers_lock_held[x] = 1; \
+}
+#define PEER_UNLOCK(x) { \
+    pthread_mutex_unlock(&peers[(x)].mutex); \
+    peers_lock_held[x] = 0; \
+}
+#define PEER_IS_LOCKED(x) (peers_lock_held[x])
 #define PEER_SIGNAL(x) pthread_cond_signal(&peers[(x)].mcond)
 
 #define PEER_THREAD_LOCK(x) pthread_mutex_lock(&((x)->mutex))
@@ -27,7 +34,6 @@ typedef struct peer_buffer_node
 {
     volatile struct peer_buffer_node* next, *tail;
 
-    char buf[PEER_BUFFER_NODE_BUFLEN];
     unsigned int len;
     unsigned int id;
     unsigned long seq;
@@ -42,6 +48,7 @@ typedef struct peer_buffer_node
     volatile int consumed;
     int head_inited;
     int reclaimable;
+    char buf[/*PEER_BUFFER_NODE_BUFLEN */ 1];
 } peer_buffer_node_t;
 
 typedef struct
@@ -146,7 +153,7 @@ typedef struct
     int sock;
 
     time_t time_pkt_last;
-    time_t time_cleanup_last;
+    unsigned long long time_cleanup_last;
     time_t time_start;
     time_t time_http_last;
 
@@ -163,7 +170,6 @@ typedef struct
     int srtp_inited;
 
     volatile int cleanup_in_progress;
-    volatile int thread_paused;
 
     int id;
 
@@ -196,7 +202,7 @@ typedef struct
     int restart_needed;
     int restart_done;
 
-    volatile int in_buffers_underrun;
+    volatile unsigned long long underrun_deschedule_time;
 } peer_session_t;
 
 const static int PEER_TIMEOUT_DEFAULT = 60;
@@ -214,7 +220,7 @@ typedef struct {
 } sdp_offer_table_t;
 extern sdp_offer_table_t sdp_offer_table;
 
-extern unsigned long get_time_ms();
+extern unsigned long long get_time_ms();
 
 extern void peer_buffer_node_list_init(peer_buffer_node_t* head);
 
