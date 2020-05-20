@@ -4,14 +4,22 @@
 #include <assert.h>
 #include "peer.h"
 
-#define PEER_ANSWER_SDP_GET(peer, val, index) \
-    str_read_unsafe((peer)->sdp.answer, val, index)
+#define ICE_ALLCHARS "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/+"
 
-#define PEER_OFFER_SDP_GET(peer, val, index) \
-    str_read_unsafe((peer)->sdp.offer, val, index)
+#define PEER_OFFER_SDP_GET_ICE(peer, val, index) \
+    str_read_unsafe_allowedchars((peer)->sdp.offer, val, index, ICE_ALLCHARS)
+
+#define PEER_ANSWER_SDP_GET_ICE(peer, val, index) \
+    str_read_unsafe_allowedchars((peer)->sdp.answer, val, index, ICE_ALLCHARS)
+
+#define PEER_OFFER_SDP_GET_SSRC(peer, val, index) \
+    str_read_unsafe_allowedchars((peer)->sdp.offer, val, index, "0123456789")
+
+#define PEER_ANSWER_SDP_GET_SSRC(peer, val, index) \
+    str_read_unsafe_allowedchars((peer)->sdp.answer, val, index, "0123456789")
 
 extern peer_session_t peers[];
-
+    
 static int
 str_read(const char* src, char* dest, char *endChars, unsigned int maxlen)
 {
@@ -48,12 +56,13 @@ extern char str_read_key_buf[4096];
 
 static char* str_read_unsafe(char* buf, char* key, int index)
 {
-    const char* delimSSRC = ":+\r\n";
     char* delim = ":\r\n";
-    if(strstr(key, "ssrc=")) delim = (char*) delimSSRC;
+
     memset(str_read_key_buf, 0, sizeof(str_read_key_buf));
     /* hack: */
+    int result = 
     str_read_from_key(key, buf, str_read_key_buf, delim, sizeof(str_read_key_buf), index);
+
     return str_read_key_buf;
 }
 
@@ -62,6 +71,45 @@ static char* str_read_unsafe_delim(char* buf, char* key, int index, char* delim)
     memset(str_read_key_buf, 0, sizeof(str_read_key_buf));
     /* hack: */
     str_read_from_key(key, buf, str_read_key_buf, delim, sizeof(str_read_key_buf), index);
+    return str_read_key_buf;
+}
+
+static char* str_read_unsafe_allowedchars(char* buf, char* key, int index, const char* allowedchars)
+{
+    char *offset = buf;
+    char *p = buf;
+
+    memset(str_read_key_buf, 0, sizeof(str_read_key_buf));
+
+    while(1)
+    {
+        p = strstr(offset, key);
+        if(!p) return str_read_key_buf;
+
+        offset = p + strlen(key);
+        if(index == 0) break;
+        index -= 1;
+    }
+
+    if(index == 0 && offset != NULL)
+    {
+        p = offset;
+
+        while(1)
+        {
+            int allowed = 0;
+            for(int i = 0; i < strlen(allowedchars); i++)
+            {
+                if(*p == allowedchars[i]) { allowed = 1; break; }
+            }
+            if(!allowed) break;
+            p += 1;
+        }
+
+        strncpy(str_read_key_buf, offset, p-offset);
+        printf("str_read_unsafe_ulong: %s\n", str_read_key_buf);
+    }
+
     return str_read_key_buf;
 }
 

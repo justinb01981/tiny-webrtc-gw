@@ -1,4 +1,4 @@
-# Install script for directory: /home/ubuntu/tiny-webrtc-gw/boringssl/crypto/test
+# Install script for directory: /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

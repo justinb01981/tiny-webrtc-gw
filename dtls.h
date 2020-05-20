@@ -515,7 +515,7 @@ DTLS_read(peer_session_t* peer, u8 *buf, unsigned int len)
     if(ret < 0 && SSL_get_error(peer->dtls.ssl, ret) == SSL_ERROR_SYSCALL)
     {
         // graceful close
-        peer->alive = 0;
+        peer->time_pkt_last = 0;
     }
     return ret;
 }

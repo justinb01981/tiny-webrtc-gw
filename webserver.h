@@ -29,7 +29,7 @@ extern int sdp_prefix_set(const char*);
 struct webserver_state {
     char inip[64];
     int running;
-    int peer_index_sdp_last;
+    unsigned int peer_idx_next;
 };
 extern struct webserver_state webserver;
 
@@ -327,8 +327,8 @@ websocket_worker(void* p)
                         peer->restart_needed = 1;
 
                         while(!peer->restart_done) usleep(SPIN_WAIT_USEC);
-                        peer->alive = 1;
                         peer->time_pkt_last = time(NULL);
+                        peer->alive = 1;
 
                         peer->restart_needed = 0;
                     }
@@ -448,7 +448,7 @@ webserver_worker(void* p)
     char *tag_logout = "logout.html";
     char *tag_sdp = "%$SDP_OFFER$%";
     char *tag_authcookie = "%$AUTHCOOKIE$%";
-    const size_t buf_size = 4096;
+    const size_t buf_size = 8024;
     int use_user_fragment_prefix = 1;
     webserver_worker_args* args = (webserver_worker_args*) p;
     unsigned int content_len = 0;
@@ -680,25 +680,25 @@ webserver_worker(void* p)
                     if(strstr(purl, tag_login) && strlen(url_args) > 0)
                     {
                         printf("cookie=%s\n", cookie);
-                        
-                        for(sidx = 0; sidx < MAX_PEERS && !peer_found_via_cookie; sidx++) {
-                            if(!peers[sidx].alive) {
-                                printf("peer[%d] logging in\n", sidx);
+                       
+                        sidx = webserver.peer_idx_next % MAX_PEERS;
+                        webserver.peer_idx_next += 1;
 
-                                peer_init(&peers[sidx], sidx);
+                        if(peers[sidx].alive) break;
 
-                                peers[sidx].time_pkt_last = time(NULL);
-                                peers[sidx].alive = 1;
+                        printf("peer[%d] logging in\n", sidx);
 
-                                peer_cookie_init(&peers[sidx], cookie);
-                                strcpy((char*) &peers[sidx].name, str_read_unsafe(url_args, "name=", 0));
-                                chatlog_append("login:"); chatlog_append(peers[sidx].name); chatlog_append("\n");
-                                strcat(peers[sidx].http.dynamic_js, "myUsername = '");
-                                strcat(peers[sidx].http.dynamic_js, peers[sidx].name);
-                                strcat(peers[sidx].http.dynamic_js, "';\n");
-                                break;
-                            }
-                        }
+                        peer_init(&peers[sidx], sidx);
+
+                        peers[sidx].time_pkt_last = time(NULL);
+                        peers[sidx].alive = 1;
+
+                        peer_cookie_init(&peers[sidx], cookie);
+                        strcpy((char*) &peers[sidx].name, str_read_unsafe(url_args, "name=", 0));
+                        chatlog_append("login:"); chatlog_append(peers[sidx].name); chatlog_append("\n");
+                        strcat(peers[sidx].http.dynamic_js, "myUsername = '");
+                        strcat(peers[sidx].http.dynamic_js, peers[sidx].name);
+                        strcat(peers[sidx].http.dynamic_js, "';\n");
                     }
 
                     if(strstr(purl, tag_logout))
@@ -709,9 +709,9 @@ webserver_worker(void* p)
 
                             chatlog_append("logged out:"); chatlog_append(peer_found_via_cookie->name); chatlog_append("\n");
 
-			    peer_logout->restart_done = 0;
+                            peer_logout->restart_done = 0;
                             peer_logout->restart_needed = 1;
-                            while(!peer_logout->restart_done) usleep(SPIN_WAIT_USEC); // TODO: bug here
+                            while(!peer_logout->restart_done) usleep(SPIN_WAIT_USEC);
                             peer_logout->alive = 0;
                             peer_logout->restart_needed = 0;
                             peer_init(peer_logout, PEER_INDEX(peer_logout));
@@ -895,7 +895,7 @@ webserver_worker(void* p)
                         char* sdp = strdup(pbody);
                         
                         sdp = sdp_decode(sdp);
-                        
+
                         const char* ufrag_answer = sdp_read(sdp, "a=ice-ufrag:");
                         
                         // anonymous+watching-only peers use new slot
@@ -922,25 +922,25 @@ webserver_worker(void* p)
                         }
                         else
                         {
-                            sidx = 0;
-                            while(sidx < MAX_PEERS)
-                            {
-                                if(!peers[sidx].alive) break;
-                                sidx++;
-                            }
                             
-                            if(sidx >= MAX_PEERS)
+                            sidx = webserver.peer_idx_next % MAX_PEERS;
+                            webserver.peer_idx_next += 1;
+
+                            if(peers[sidx].alive)
                             {
                                 free(sdp);
+                                sdp = NULL;
 
                                 goto response_override;
                             }
-                            
+
                             peer_init(&peers[sidx], sidx);
                             peers[sidx].broadcastingID = peer_broadcast_from_cookie;
                             
                             strcpy(ufrag_offer_tmp, sdp_offer_table.t[(sdp_offer_table.next-1) % MAX_PEERS].iceufrag);
                         }
+
+                        printf("webserver got SDP:\n%s\n", sdp);
 
                         sprintf(tmp, "webserver: new SDP answer for peer %d\n", sidx);
                         chatlog_append(tmp);
@@ -960,19 +960,17 @@ webserver_worker(void* p)
 
                         // mark -- signal/wait for peer to be initialized
                         peers[sidx].time_pkt_last = time(NULL);
-                        peers[sidx].alive = 1;
                           
-                        peers[sidx].restart_needed = 0;                       
-                        
                         strcpy(peers[sidx].name, str_read_unsafe(sdp, "a=myname=", 0));
                         strcpy(peers[sidx].roomname, str_read_unsafe(sdp, "a=room=", 0));
 
-                        while(webserver.peer_index_sdp_last >= 0) sleep_msec(1);    
-                        webserver.peer_index_sdp_last = sidx;
+                        peers[sidx].restart_needed = 0;                       
+
+                        peers[sidx].alive = 1;
 
                         printf("peer restarted (stun_ice.user-name answer/offer: %s:%s)\n", peers[sidx].stun_ice.ufrag_answer, peers[sidx].stun_ice.ufrag_offer);
-                        
                         free(sdp);
+                        sdp = NULL;
 
                         free(response);
                         response = strdup(page_buf_sdp_uploaded);
@@ -1056,8 +1054,8 @@ webserver_worker(void* p)
 
 void webserver_init()
 {
-    webserver.peer_index_sdp_last = -1;
     webserver.running = 1;
+    webserver.peer_idx_next = 0;
 }
 
 void*

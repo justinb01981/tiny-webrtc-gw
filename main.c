@@ -38,9 +38,6 @@
 
 #include "webserver.h"
 
-#ifdef assert
-#undef assert
-#endif 
 
 #ifndef SO_REUSEPORT
 #define SO_REUSEPORT 15
@@ -54,16 +51,6 @@
 
 #include "thread.h"
 
-#define assert(x, msg)        \
-{                             \
-    if(!x)                    \
-    {                         \
-        while(1){             \
-            printf("%s", msg);\
-        };                    \
-    }                         \
-}
-
 #define stats_printf sprintf
 
 #define CONNECTION_DELAY_MS 2000
@@ -72,9 +59,9 @@
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
-#define PEER_CLEANUP_INTERVAL /*320000*/ /*3560000*/ 16000000
+#define PEER_CLEANUP_INTERVAL /*320000*/ /*3560000*/ 4000
 
-#define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY (PEER_CLEANUP_INTERVAL/128)
+#define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY (0)
 
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS+1];
@@ -86,8 +73,8 @@ void chatlog_append(const char* msg);
 
 int listen_port = 0;
 
-char* counts_names[] = {"in_STUN", "in_SRTP", "in_UNK", "DROP", "BYTES_FWD", "", "USER_ID", "master", "rtp_underrun", "rtp_ok", "unknown_report_ssrc", "srtp_unprotect_fail", "buf_reclaimed_pkt", "buf_reclaimed_rtp", "snd_rpt_fix", "rcv_rpt_fix", "subscription_resume", "recv_timeout"};
-char* peer_stat_names[] = {"stun-RTTmsec", "uptimesec", "#subscribeforwarded", "#worker_underrun", "#subscribe_buffer_search", "#cleanup", "#subscribe_buffer_resume", "??"};
+char* counts_names[] = {"in_STUN", "in_SRTP", "in_UNK", "DROP", "BYTES_FWD", "", "USER_ID", "master", "rtp_underrun", "rtp_ok", "unknown_srtp_ssrc", "srtp_unprotect_fail", "buf_reclaimed_pkt", "buf_reclaimed_rtp", "snd_rpt_fix", "rcv_rpt_fix", "subscription_resume", "recv_timeout"};
+char* peer_stat_names[] = {"stun-RTTmsec", "uptimesec", "#subscribeforwarded", "#worker_underrun", "#subscribe_buffer_search", "#cleanup", "#subscribe_buffer_resume", "srtpreceived"};
 int counts[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 char counts_log[255] = {0};
 int stun_binding_response_count = 0;
@@ -265,87 +252,7 @@ void peer_send_block(peer_session_t* peer, char* buf, int len)
     int r = sendto(peer->sock, buf, len, 0, (struct sockaddr*)&(peer->addr), sizeof(peer->addr));
 }
 
-peer_buffer_node_t*
-buffer_node_alloc()
-{
-    peer_buffer_node_t* n = (peer_buffer_node_t*) malloc(sizeof(peer_buffer_node_t));
-    if(n)
-    {
-        //memset(n, 0, sizeof(*n));
 
-        n->head_inited = 0;
-        n->consumed = 0;
-        n->next = n->tail = 0;
-        n->len = 0;
-        n->reclaimable = 0;
-    }
-    else assert(0, "alloc failure\n");
-    return n;
-}
-
-void
-peer_buffer_node_list_init(peer_buffer_node_t* head)
-{
-    memset(head, 0, sizeof(*head));
-    head->tail = head;
-    head->head_inited = 1;
-}
-
-void
-peer_buffer_node_list_add(peer_buffer_node_t* head, peer_buffer_node_t* tail_new)
-{
-    //assert(head->head_inited, "UNINITED HEAD NODE\n");
-    //assert((tail_new->next == (peer_buffer_node_t*) NULL), "ADDING non-NULL tail\n");
-    peer_buffer_node_t* tmp = head->tail;
-    head->tail = tail_new;
-    tmp->next = tail_new;
-}
-
-peer_buffer_node_t*
-peer_buffer_node_list_get_tail(peer_buffer_node_t* head)
-{
-    //assert(head->head_inited, "UNINITED HEAD NODE\n");
-    return head->tail;
-}
-
-int
-peer_buffer_node_list_remove(peer_buffer_node_t* head, peer_buffer_node_t* node)
-{
-    int removed = 0;
-    peer_buffer_node_t* cur = head;
-
-    //assert(head->head_inited, "UNINITED HEAD NODE\n");
-
-    while(cur)
-    {
-        if(cur->next == node)
-        {
-            cur->next = cur->next->next;
-            removed++;
-            if(!cur->next) head->tail = cur;
-            break;
-        }
-        else
-        {
-            cur = cur->next;
-        }
-    }
-    return removed;
-}
-
-int
-peer_buffer_node_list_free_all(peer_buffer_node_t* head)
-{
-    unsigned int total = 0;
-    peer_buffer_node_t* node = head->next;
-    while(node)
-    {
-        total += peer_buffer_node_list_remove(head, node);
-        free(node);
-        node = head->next;
-    }
-    return total;
-}
 
 typedef struct {
     peer_session_t* peer;
@@ -629,12 +536,13 @@ connection_worker(void* p)
     char stackPaddingHack[2048];
 
     thread_init();
-    
+
     while(peer->alive)
     {
         PEER_THREAD_LOCK(peer);
 
-        if((strlen(peer->sdp.offer) > 0 && strlen(peer->sdp.answer) > 0) || !peer->alive)
+        //if((strlen(peer->sdp.offer) > 0 && strlen(peer->sdp.answer) > 0) || !peer->alive)
+        if(peer->stunID32 != 0 || !peer->alive)
         {
             PEER_THREAD_UNLOCK(peer);
             break;
@@ -650,22 +558,22 @@ connection_worker(void* p)
     if(strstr(peer->sdp.answer, "a=sendonly")) { peer->send_only = 1; }
 
     int ssrc_idx = 0;
-    answer_ssrc[0] = strToInt(PEER_ANSWER_SDP_GET(peer, "a=ssrc:", ssrc_idx));
+    answer_ssrc[0] = strToInt(PEER_ANSWER_SDP_GET_SSRC(peer, "a=ssrc:", ssrc_idx));
     answer_ssrc[1] = answer_ssrc[0];
     while(!peer->recv_only && peer->alive &&
           answer_ssrc[0] == answer_ssrc[1])
     {
-        answer_ssrc[1] = strToInt(PEER_ANSWER_SDP_GET(peer, "a=ssrc:", ssrc_idx));
+        answer_ssrc[1] = strToInt(PEER_ANSWER_SDP_GET_SSRC(peer, "a=ssrc:", ssrc_idx));
         ssrc_idx++;
     }
 
-    offer_ssrc[0] = strToInt(PEER_OFFER_SDP_GET(peer, "a=ssrc:", 0));
-    offer_ssrc[1] = strToInt(PEER_OFFER_SDP_GET(peer, "a=ssrc:", 1));
+    offer_ssrc[0] = strToInt(PEER_OFFER_SDP_GET_SSRC(peer, "a=ssrc:", 0));
+    offer_ssrc[1] = strToInt(PEER_OFFER_SDP_GET_SSRC(peer, "a=ssrc:", 1));
 
-    strcpy(peer->stun_ice.ufrag_answer, PEER_ANSWER_SDP_GET(peer, "a=ice-ufrag:", 0));
-    strcpy(peer->stun_ice.answer_pwd, PEER_ANSWER_SDP_GET(peer, "a=ice-pwd:", 0));
-    strcpy(peer->stun_ice.offer_pwd, PEER_OFFER_SDP_GET(peer, "a=ice-pwd:", 0));
-    strcpy(peer->stun_ice.ufrag_offer, PEER_OFFER_SDP_GET(peer, "a=ice-ufrag:", 0));
+    strcpy(peer->stun_ice.ufrag_answer, PEER_ANSWER_SDP_GET_ICE(peer, "a=ice-ufrag:", 0));
+    strcpy(peer->stun_ice.answer_pwd, PEER_ANSWER_SDP_GET_ICE(peer, "a=ice-pwd:", 0));
+    strcpy(peer->stun_ice.offer_pwd, PEER_OFFER_SDP_GET_ICE(peer, "a=ice-pwd:", 0));
+    strcpy(peer->stun_ice.ufrag_offer, PEER_OFFER_SDP_GET_ICE(peer, "a=ice-ufrag:", 0));
 
     stats_printf(counts_log, "%s:%d (ufrag-offer:%s ufrag-answer:%s pwd-answer:%s pwd-offer:%s, "
                  "offer_ssrc:%u/%u answer_ssrc:%u/%u)\n", __func__, __LINE__,
@@ -678,15 +586,15 @@ connection_worker(void* p)
 
     peer->subscriptionID = /*peer->id*/ PEER_IDX_INVALID;
 
-    char* my_name = PEER_ANSWER_SDP_GET(peer, "a=myname=", 0);
+    char* my_name = PEER_ANSWER_SDP_GET_ICE(peer, "a=myname=", 0);
     sprintf(peer->name, "%s%s", my_name, peer->recv_only ? "(watch)": "");
 
-    char* watch_name = PEER_ANSWER_SDP_GET(peer, "a=watch=", 0);
+    char* watch_name = PEER_ANSWER_SDP_GET_ICE(peer, "a=watch=", 0);
     if(watch_name) strcpy(peer->watchname, watch_name);
     
     if(!strlen(peer->name)) strcpy(peer->name, peer->stun_ice.ufrag_answer);
     
-    char* room_name = PEER_ANSWER_SDP_GET(peer, "a=roomname=", 0);
+    char* room_name = PEER_ANSWER_SDP_GET_ICE(peer, "a=roomname=", 0);
     sprintf(peer->roomname, "%s", room_name);
 
     if(strcmp(peer->roomname, "mirror") == 0)
@@ -725,6 +633,7 @@ connection_worker(void* p)
                 if(strcmp(peers[si].name, peer->watchname) == 0 &&
                    peer->subscriptionID == PEER_IDX_INVALID)
                 {
+                    printf("incoming peer %d subscribed to peer %s\n", PEER_INDEX(peer), peer->watchname);
                     peer->subscriptionID = peers[si].id;
                     break;
                 }
@@ -733,13 +642,10 @@ connection_worker(void* p)
             {
                 // connect any peers waiting for one matching this name
                 if(!peer->recv_only &&
-                   /*peers[si].subscriptionID == PEER_IDX_INVALID && */
-                   (
-                    strcmp(peers[si].watchname, peer->name) == 0 ||
-                    strcmp(peers[si].watchname, "$SINGLEUSERROOM") == 0
-                   )
-                  )
+                   peers[si].subscriptionID == PEER_IDX_INVALID &&
+                   strcmp(peers[si].watchname, peer->name) == 0)
                 {
+                    printf("idle peer %d subscribed to peer %s\n", PEER_INDEX(peer), peers[si].watchname);
                     // also connect opposing/waiting peer
                     peers[si].subscriptionID = PEER_INDEX(peer);
                 }
@@ -756,7 +662,8 @@ connection_worker(void* p)
     peer->running = 1;
 
     unsigned long backlog_counter = 0;
-    
+ 
+    unsigned long sleep_counter = 1;
     while(peer->alive)
     {
         unsigned int buffer_count;
@@ -797,14 +704,18 @@ connection_worker(void* p)
         if(!buffer_next)
         {
             peer->stats.stat[3] += 1;
+            /*
             if(!peer->in_buffers_underrun && peer->dtls.connected && peer->srtp_inited)
             {
                 peer->in_buffers_underrun = PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY;
             }
+            */
+            if(sleep_counter < udp_recv_timeout_usec_min) sleep_counter += (sleep_counter/5);
             goto peer_again; 
         }
 
         peer->stats.stat[2] += 1;
+        if(sleep_counter >= 2) sleep_counter /= 2;
 
         char *buffer = buffer_next->buf;
         char buffer_last[PEER_BUFFER_NODE_BUFLEN];
@@ -816,8 +727,6 @@ connection_worker(void* p)
         backlog_counter++;
         if(backlog_counter > connection_worker_backlog_highwater) connection_worker_backlog_highwater = backlog_counter;
         
-        buffer_next->consumed = 1;
-
         pkt_type_t type = pktType(buffer, length);
 
         stun_binding_msg_t *bind_check = (stun_binding_msg_t*) buffer;
@@ -990,6 +899,9 @@ connection_worker(void* p)
             }
             goto peer_again;
         }
+
+        // don't process packets until stun completed
+        if(!peer_stun_bound(peer)) goto peer_again;
 
         if(type == PKT_TYPE_SRTP)
         {
@@ -1208,6 +1120,11 @@ connection_worker(void* p)
                             if(srtp_protect(peers[p].srtp[rtp_idx_write].session, rtp_frame_out, &lengthPeer) == srtp_err_status_ok)
                             {
                                 peer_send_block(&peers[p], (char*) rtp_frame_out, lengthPeer);
+                                peers[p].stats.stat[7] += 1;
+                            }
+                            else
+                            {
+                                printf("srtp_protect failed for peer %d\n", p);
                             }
                         }
                     }
@@ -1238,8 +1155,6 @@ connection_worker(void* p)
             }   
             goto peer_again;
         }
-
-        if(!peer->stun_ice.bound || peer->stun_ice.bound_client < 1) goto peer_again;
 
         /* if we got here, STUN is "bound" and can begin DTLS */
         dtls_again:
@@ -1291,10 +1206,20 @@ connection_worker(void* p)
         }
 
         peer_again:
-        
-        if(buffer_next) buffer_next = buffer_next->next;
+
+        if(buffer_next)
+        {
+            peer_buffer_node_t* tmp = buffer_next->next;
+            buffer_next->consumed = 1;
+            buffer_next = tmp;
+        }         
 
         PEER_THREAD_UNLOCK(peer);
+
+        if(!peer->cleanup_in_progress)
+        {
+            usleep(sleep_counter);
+        }
     }
     connection_worker_exit:
     peer->running = 0;
@@ -1323,6 +1248,7 @@ int main( int argc, char* argv[] ) {
     struct sockaddr_in ret;
     unsigned long long select_counter = 0;
     char strbuf[2048];
+    unsigned long sleep_counter = 1;
 
     DTLS_init();
 
@@ -1381,8 +1307,9 @@ int main( int argc, char* argv[] ) {
         unsigned long long time_ms = get_time_ms();
         wall_time = time(NULL);
 
-        peer_buffer_node_t* node = NULL, *tail_prev;
-        peer_buffer_node_t* node_inbuf = buffer_node_alloc();
+        peer_buffer_node_t* node = NULL, *tail_prev, *node_inbuf = NULL;
+
+        if(!node_inbuf) node_inbuf = buffer_node_alloc();
         if(!node_inbuf)
         {
             // out of memory!
@@ -1456,10 +1383,14 @@ int main( int argc, char* argv[] ) {
         if(length <= 0)
         {
             timedout_last = 1;
+            usleep(sleep_counter);
+            if(sleep_counter < 256) sleep_counter += 1;
             goto select_timeout;
         }
         timedout_last = 0;
         node_inbuf->len = length;
+
+        if(sleep_counter >= 2) sleep_counter /= 2;
 
         int inkey = 0;
 
@@ -1479,6 +1410,12 @@ int main( int argc, char* argv[] ) {
             {
                 sidx = i;
                 peers[sidx].time_pkt_last = wall_time;
+
+                // TODO: -- waking the thread immediately when data is ready improves performance, but still dealing with locking        
+                /*
+                if(peers[sidx].in_buffers_underrun > 0) peers[sidx].in_buffers_underrun = 1; // schedule to unlock thread
+                */
+
                 break;
             }
         }
@@ -1504,9 +1441,6 @@ int main( int argc, char* argv[] ) {
                     sidx = p;
                     printf("stun_locate: found peer %s (%s)\n", stun_uname, peers[sidx].name);
 
-                    // clear peer_index_sdp_last
-                    if(p == webserver.peer_index_sdp_last) webserver.peer_index_sdp_last = -1;
-
                     break;
                 }
 
@@ -1523,17 +1457,9 @@ int main( int argc, char* argv[] ) {
 
             if(sidx == -1)
             {
-                if(webserver.peer_index_sdp_last >= 0)
-                {
-                    printf("stun_locate: anonymous peer found: %s\n", stun_uname);
-                    sidx = webserver.peer_index_sdp_last;
-                }
-                else
-                {
-                    stats_printf(counts_log, "ICE binding request: failed to find user-fragment (%s)\n", stun_uname);
-                    printf("ICE binding request: failed to find user-fragment (%s)\n", stun_uname);
-                    goto select_timeout;
-                }
+                stats_printf(counts_log, "ICE binding request: failed to find user-fragment (%s)\n", stun_uname);
+                printf("ICE binding request: failed to find user-fragment (%s)\n", stun_uname);
+                goto select_timeout;
             }
             
             // mark -- init new peer
@@ -1557,6 +1483,7 @@ int main( int argc, char* argv[] ) {
 
             peers[sidx].cleartext.len = 0;
 
+            // TODO: isn't the webserver doing this?
             peers[sidx].alive = 1;
 
             counts[6]++;
@@ -1581,8 +1508,10 @@ int main( int argc, char* argv[] ) {
 
         node_inbuf->recv_time = time_ms;
 
+        PEER_LOCK(sidx);
         tail_prev = peer_buffer_node_list_get_tail(&(peers[sidx].in_buffers_head));
         peer_buffer_node_list_add(&(peers[sidx].in_buffers_head), node_inbuf);
+        PEER_UNLOCK(sidx);
 
         node = node_inbuf;
         node_inbuf = NULL;
@@ -1632,36 +1561,11 @@ int main( int argc, char* argv[] ) {
                     peers[i].in_buffers_underrun -= 1;
                     if(peers[i].in_buffers_underrun == 0) PEER_UNLOCK(i);
                 }
-
-                /*
-                int repeat = 1;
-                    if(peers[i].recv_only)
-                    {
-                        repeat = 1;
-                    }
-                    else
-                    {
-                        if(peers[i].in_buffers_underrun > 0 && peers[i].thread_inited)
-                        {
-                            peers[i].in_buffers_underrun -= 1;
-                            repeat = 0;
-                        }
-                    }
-                
-                while(repeat > 0 && peers[i].thread_inited)
-                {
-                    // signal peer thread to run
-                    PEER_UNLOCK(i);
-                    PEER_LOCK(i);
-
-                    repeat--;
-                }
-                */
             }
 
             if(peers[i].bufs.out_len > 0)
             {
-                int r = sendto( output, peers[i].bufs.out, peers[i].bufs.out_len, 0, (struct sockaddr*)&peers[i].addr, sizeof(peers[i].addr));
+                int r = sendto(output, peers[i].bufs.out, peers[i].bufs.out_len, 0, (struct sockaddr*)&peers[i].addr, sizeof(peers[i].addr));
                 //printf("UDP sent %d bytes (%s:%d)\n", r, inet_ntoa(peers[i].addr.sin_addr), ntohs(peers[i].addr.sin_port));
                 peers[i].bufs.out_len = 0;
             }
@@ -1708,6 +1612,7 @@ int main( int argc, char* argv[] ) {
                     while(cur)
                     {
                         int p;
+
                         for(p = 0; p < MAX_PEERS; p++)
                         {
                             if(peers[p].subscription_ptr[rtp_idx] == cur) { cur = NULL; break; }
@@ -1839,7 +1744,7 @@ int main( int argc, char* argv[] ) {
                 peers[i].subscribed = 0;
                 peers[i].restart_done = 1;
 
-                while(peers[i].restart_needed) sleep_msec(1);
+                while(peers[i].restart_needed) usleep(udp_recv_timeout_usec_min);
                 peers[i].restart_done = 0;
 
                 printf("%s:%d reclaim peer DONE (alive=%d)\n", __func__, __LINE__, peers[i].alive);
