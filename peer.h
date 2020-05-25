@@ -1,6 +1,8 @@
 #ifndef __PEER_H__
 #define __PEER_H__
 
+#include "memdebughack.h"
+
 #define MAX_PEERS 63
 #define PEER_IDX_INVALID (MAX_PEERS+1)
 
@@ -298,7 +300,7 @@ buffer_node_alloc()
     peer_buffer_node_t* n = (peer_buffer_node_t*) malloc(sizeof(peer_buffer_node_t)+PEER_BUFFER_NODE_BUFLEN);
     if(n)
     {
-        memset(n, 0, sizeof(*n)+PEER_BUFFER_NODE_BUFLEN);
+        memset(n, 0, sizeof(*n)/*+PEER_BUFFER_NODE_BUFLEN*/);
     }
     else assert(0, "alloc failure\n");
     return n;

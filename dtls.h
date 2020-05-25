@@ -5,6 +5,8 @@
 #include <openssl/base.h>
 #include <openssl/ssl.h>
 
+#include "memdebughack.h"
+
 #include "peer.h"
 
 #ifdef DTLS_BUILD_WITH_BORINGSSL

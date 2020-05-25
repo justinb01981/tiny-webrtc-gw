@@ -59,7 +59,7 @@
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
-#define PEER_CLEANUP_INTERVAL /*320000*/ /*3560000*/ 1000
+#define PEER_CLEANUP_INTERVAL /*320000*/ /*3560000*/ /*16000*/ 32000
 
 #define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY (0)
 
@@ -530,8 +530,8 @@ connection_worker(void* p)
     
     rtp_frame_t *rtpFrame;
 
-    u32 answer_ssrc[PEER_RTP_CTX_WRITE] = {1, 2};
-    u32 offer_ssrc[PEER_RTP_CTX_WRITE];
+    u32 answer_ssrc[PEER_RTP_CTX_WRITE] = {0, 0};
+    u32 offer_ssrc[PEER_RTP_CTX_WRITE] = {0, 0};
     char str256[256];
     char stackPaddingHack[2048];
 
@@ -557,6 +557,7 @@ connection_worker(void* p)
     if(strstr(peer->sdp.answer, "a=recvonly")) { peer->recv_only = 1; }
     if(strstr(peer->sdp.answer, "a=sendonly")) { peer->send_only = 1; }
 
+    /*
     int ssrc_idx = 0;
     answer_ssrc[0] = strToInt(PEER_ANSWER_SDP_GET_SSRC(peer, "a=ssrc:", ssrc_idx));
     answer_ssrc[1] = answer_ssrc[0];
@@ -566,9 +567,15 @@ connection_worker(void* p)
         answer_ssrc[1] = strToInt(PEER_ANSWER_SDP_GET_SSRC(peer, "a=ssrc:", ssrc_idx));
         ssrc_idx++;
     }
+    */
+    if(!peer->recv_only)
+    {
+        answer_ssrc[0] = strToULong(PEER_ANSWER_SDP_GET_SSRC(peer, "a=ssrc:", 0));
+        answer_ssrc[1] = strToULong(PEER_ANSWER_SDP_GET_SSRC(peer, "a=ssrc:", 1));
+    }
 
-    offer_ssrc[0] = strToInt(PEER_OFFER_SDP_GET_SSRC(peer, "a=ssrc:", 0));
-    offer_ssrc[1] = strToInt(PEER_OFFER_SDP_GET_SSRC(peer, "a=ssrc:", 1));
+    offer_ssrc[0] = strToULong(PEER_OFFER_SDP_GET_SSRC(peer, "a=ssrc:", 0));
+    offer_ssrc[1] = strToULong(PEER_OFFER_SDP_GET_SSRC(peer, "a=ssrc:", 1));
 
     strcpy(peer->stun_ice.ufrag_answer, PEER_ANSWER_SDP_GET_ICE(peer, "a=ice-ufrag:", 0));
     strcpy(peer->stun_ice.answer_pwd, PEER_ANSWER_SDP_GET_ICE(peer, "a=ice-pwd:", 0));
@@ -710,7 +717,7 @@ connection_worker(void* p)
                 peer->in_buffers_underrun = PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY;
             }
             */
-            if(sleep_counter < udp_recv_timeout_usec_min) sleep_counter += (sleep_counter/5);
+            if(sleep_counter <= 2) sleep_counter += (sleep_counter/2);
             goto peer_again; 
         }
 
@@ -744,7 +751,7 @@ connection_worker(void* p)
                 bind_resp->hdr.type = htons(0x0101);
 
                 int spoof_local = 1;
-                u16 resp_port = htons(strToInt(get_stun_local_port())) /* ntohs(peer->addr.sin_port) */;
+                u16 resp_port = htons(strToULong(get_stun_local_port())) /* ntohs(peer->addr.sin_port) */;
                 u32 resp_addr = inet_addr(get_stun_local_addr()) /* peer->addr.sin_addr.s_addr */;
                 if(!spoof_local)
                 {
@@ -1274,9 +1281,9 @@ int main( int argc, char* argv[] ) {
 
     //strcpy(udpserver.inip, get_config("udpserver_addr="));
     strcpy(udpserver.inip, "0.0.0.0"); // for now bind to all interfaces
-    udpserver.inport = strToInt(get_config("udpserver_port="));
-    udpserver.sock_buffer_size = strToInt(get_config("udpserver_sock_buffer_size="));
-    block_srtp_recv_report = strToInt(get_config("block_srtp_recv_report"));
+    udpserver.inport = strToULong(get_config("udpserver_port="));
+    udpserver.sock_buffer_size = strToULong(get_config("udpserver_sock_buffer_size="));
+    block_srtp_recv_report = strToULong(get_config("block_srtp_recv_report"));
 
     strcpy(webserver.inip, udpserver.inip);
      
@@ -1383,14 +1390,14 @@ int main( int argc, char* argv[] ) {
         if(length <= 0)
         {
             timedout_last = 1;
-            usleep(sleep_counter);
-            if(sleep_counter < 256) sleep_counter += 1;
+            if(sleep_counter > 0) usleep(sleep_counter);
+            if(sleep_counter < 64) sleep_counter += 1;
             goto select_timeout;
         }
         timedout_last = 0;
         node_inbuf->len = length;
 
-        if(sleep_counter >= 2) sleep_counter /= 2;
+        sleep_counter = 0; //if(sleep_counter >= 2) sleep_counter /= 2;
 
         int inkey = 0;
 

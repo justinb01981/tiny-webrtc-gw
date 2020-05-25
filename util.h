@@ -1,6 +1,7 @@
 #ifndef __util_h__
 #define __util_h__
 
+#include "memdebughack.h"
 #include <assert.h>
 #include "peer.h"
 

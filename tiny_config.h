@@ -1,11 +1,14 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+#include "memdebughack.h"
 #include "filecache.h"
 
 #define SRTP_MASTER_KEY_KEY_LEN 16
 #define SRTP_MASTER_KEY_SALT_LEN 14
 #define FILENAME_SDP_ANSWER "sdp_answer.txt"
+
+const unsigned int padding_hack_size = 1024;
 
 char *file_read(char* path, unsigned int* len_out)
 {
@@ -30,14 +33,14 @@ char *file_read(char* path, unsigned int* len_out)
 
         if(len > 0 && len < max_len)
         {
-            buf = malloc(len+1);
+            buf = malloc(len + padding_hack_size);
             buf[len] = '\0';
             fseek(fp, 0, SEEK_SET);
             len = fread(buf, 1, len, fp);
         }
         fclose(fp);
     }
-    if(len == 0) { free(buf); return NULL; }
+    if(len == 0 && buf != NULL) { free(buf); return NULL; }
     if(len_out) *len_out = len;
     return buf;
 }
@@ -106,7 +109,7 @@ char* get_sdp_idx_file(const char* fileprefix, const char* filepath, const char*
             char* e = p;
             while(*e != '\0' && *e != '\n' && *e != '\r' && *e != ' ' && *e != '\t') e++;
 
-            char *tmp = (char*) malloc((e - p) + 1);
+            char *tmp = (char*) malloc((e - p) + 1 + padding_hack_size);
             if(tmp)
             {
                 strncpy(tmp, p, e-p);
@@ -150,11 +153,11 @@ char* get_stun_local_port()
     return get_config("udpserver_port=");
 }
 
-int
-strToInt(char* str)
+unsigned long
+strToULong(char* str)
 {
     if(!str || strlen(str) == 0) return -1;
-    return atoi(str);
+    return strtoul(str, NULL, 10);
 }
 
 #endif

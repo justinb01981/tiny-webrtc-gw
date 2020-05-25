@@ -1,6 +1,7 @@
 #ifndef __webserver_h__
 #define __webserver_h__
 
+#include "memdebughack.h"
 #include "peer.h"
 #include "thread.h"
 #include <sys/errno.h>
@@ -51,6 +52,7 @@ typedef struct {
     char websocket_accept_response[512];
     char* pbody;
     char roomname[256];
+    char paddinghack[1024];
 } webserver_worker_args;
 
 static char *tag_icecandidate = "%$RTCICECANDIDATE$%";
@@ -448,7 +450,7 @@ webserver_worker(void* p)
     char *tag_logout = "logout.html";
     char *tag_sdp = "%$SDP_OFFER$%";
     char *tag_authcookie = "%$AUTHCOOKIE$%";
-    const size_t buf_size = 8024;
+    const size_t buf_size = 4096;
     int use_user_fragment_prefix = 1;
     webserver_worker_args* args = (webserver_worker_args*) p;
     unsigned int content_len = 0;
@@ -457,6 +459,7 @@ webserver_worker(void* p)
     char ws_header_buf[256];
     peer_session_t* peer_found_via_cookie = NULL;
     int peer_broadcast_from_cookie = PEER_IDX_INVALID;
+    char stackPaddingHack[2048];
 
     memset(cookie, 0, sizeof(cookie));
 
@@ -973,7 +976,9 @@ webserver_worker(void* p)
                         sdp = NULL;
 
                         free(response);
-                        response = strdup(page_buf_sdp_uploaded);
+                        //response = strdup(page_buf_sdp_uploaded);
+                        response = malloc(strlen(page_buf_sdp_uploaded) + 2048);
+                        response[0] = '\0'; strcat(response, page_buf_sdp_uploaded);
                         content_type = content_type_html;
 
                         goto response_override;
@@ -1067,8 +1072,7 @@ webserver_accept_worker(void* p)
 
     thread_init();
 
-    int sock_web = bindsocket(webserver.inip, strToInt(get_config("webserver_port=")), 1);
-
+    int sock_web = bindsocket(webserver.inip, strToULong(get_config("webserver_port=")), 1);
 
     if(sock_web >= 0)
     {
@@ -1092,7 +1096,7 @@ webserver_accept_worker(void* p)
         sock = accept(sock_web, (struct sockaddr*) &sa, &sa_len);
         if(sock >= 0)
         {
-            webserver_worker_args* args = (webserver_worker_args*) malloc(sizeof(webserver_worker_args));
+            webserver_worker_args* args = (webserver_worker_args*) malloc(sizeof(webserver_worker_args) + 128);
             if(args)
             {
                 args->ws_thread = 0;
