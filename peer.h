@@ -312,6 +312,7 @@ peer_buffer_node_list_init(peer_buffer_node_t* head)
     memset(head, 0, sizeof(*head));
     head->tail = head;
     head->head_inited = 1;
+    head->consumed = 1;
 }
 
 void

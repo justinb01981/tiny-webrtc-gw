@@ -108,7 +108,6 @@ static char* str_read_unsafe_allowedchars(char* buf, char* key, int index, const
         }
 
         strncpy(str_read_key_buf, offset, p-offset);
-        printf("str_read_unsafe_ulong: %s\n", str_read_key_buf);
     }
 
     return str_read_key_buf;

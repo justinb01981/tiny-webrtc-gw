@@ -460,6 +460,7 @@ webserver_worker(void* p)
     peer_session_t* peer_found_via_cookie = NULL;
     int peer_broadcast_from_cookie = PEER_IDX_INVALID;
     char stackPaddingHack[2048];
+    char* recvbuf = malloc(buf_size*2);
 
     memset(cookie, 0, sizeof(cookie));
 
@@ -482,14 +483,12 @@ webserver_worker(void* p)
         sock = args->sock;
         if(sock >= 0)
         {
-            char recvbuf[buf_size];
-
             //printf("%s:%d connection thread (%s:%d)\n", __func__, __LINE__, inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
 
-            memset(recvbuf, 0, sizeof(recvbuf));
+            memset(recvbuf, 0, buf_size);
 
             char *roff = recvbuf;
-            unsigned int recv_left = sizeof(recvbuf)-1;
+            unsigned int recv_left = buf_size-1;
             int timed_out = 0;
             int do_shutdown = 1;
             int timeout_ms = 10000;
@@ -563,6 +562,9 @@ webserver_worker(void* p)
                 cookie_hdr[0] = '\0';
 
                 purl = recvbuf;
+
+                memdebug_sanity(recvbuf);
+
                 if(strncmp(recvbuf, "GET ", 4) == 0) {
                     purl = recvbuf+4;
                 }
@@ -589,6 +591,8 @@ webserver_worker(void* p)
 
                 response = strdup(page_buf_400);
 
+                memdebug_sanity(response);
+
                 char *e = purl;
                 char *pargs = NULL;
                 while (e-purl < (sizeof(path)-1) && *e != '\0' && *e != '\r' && *e && *e != '\n' && *e != ' ' && *e != '?') e++;
@@ -605,6 +609,8 @@ webserver_worker(void* p)
                 }
                 *e = '\0';
 
+                memdebug_sanity(recvbuf);
+
                 pbody = e+1;
                 while(*pbody == '\r' || *pbody == '\n') pbody++;
                 phttpheaders = pbody;
@@ -617,6 +623,8 @@ webserver_worker(void* p)
 
                 pend = pbody;
                 while(*pend) pend++;
+
+                memdebug_sanity(recvbuf);
 
                 //printf("%s:%d webserver received:\n----------------\n"
                 //       "%s\n---------------%s\n"
@@ -896,7 +904,9 @@ webserver_worker(void* p)
                         // create temp file, decode, rename for worker thread to pick up/read and remove
                         char tmp[256], ufrag_offer_tmp[256];
                         char* sdp = strdup(pbody);
-                        
+
+                        memdebug_sanity(sdp);
+
                         sdp = sdp_decode(sdp);
 
                         const char* ufrag_answer = sdp_read(sdp, "a=ice-ufrag:");
@@ -1052,6 +1062,7 @@ webserver_worker(void* p)
     } while(0);
 
     free(args);
+    free(recvbuf);
 
     //printf("%s:%d exiting\n", __func__, __LINE__);
     return NULL;

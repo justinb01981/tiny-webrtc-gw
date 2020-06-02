@@ -59,7 +59,8 @@
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
-#define PEER_CLEANUP_INTERVAL /*320000*/ /*3560000*/ /*16000*/ 32000
+#define PEER_CLEANUP_INTERVAL (102400)
+#define PEER_SLEEP_INTERVAL_MAX (64)
 
 #define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY (0)
 
@@ -541,7 +542,6 @@ connection_worker(void* p)
     {
         PEER_THREAD_LOCK(peer);
 
-        //if((strlen(peer->sdp.offer) > 0 && strlen(peer->sdp.answer) > 0) || !peer->alive)
         if(peer->stunID32 != 0 || !peer->alive)
         {
             PEER_THREAD_UNLOCK(peer);
@@ -557,17 +557,6 @@ connection_worker(void* p)
     if(strstr(peer->sdp.answer, "a=recvonly")) { peer->recv_only = 1; }
     if(strstr(peer->sdp.answer, "a=sendonly")) { peer->send_only = 1; }
 
-    /*
-    int ssrc_idx = 0;
-    answer_ssrc[0] = strToInt(PEER_ANSWER_SDP_GET_SSRC(peer, "a=ssrc:", ssrc_idx));
-    answer_ssrc[1] = answer_ssrc[0];
-    while(!peer->recv_only && peer->alive &&
-          answer_ssrc[0] == answer_ssrc[1])
-    {
-        answer_ssrc[1] = strToInt(PEER_ANSWER_SDP_GET_SSRC(peer, "a=ssrc:", ssrc_idx));
-        ssrc_idx++;
-    }
-    */
     if(!peer->recv_only)
     {
         answer_ssrc[0] = strToULong(PEER_ANSWER_SDP_GET_SSRC(peer, "a=ssrc:", 0));
@@ -616,16 +605,6 @@ connection_worker(void* p)
         peer->send_only ? "(broadcasting)" : "(watching)");
     chatlog_append(str256);
 
-    /*
-    chatlog_append("\n$SUBSCRIBELINK");
-    chatlog_append(peer->roomname);
-    chatlog_append("\n");
-    */
-    /*
-    sprintf(str256, "\n$SUBSCRIBEBUTTON_%s/%s\n", peer->roomname, peer->name);
-    chatlog_append(str256);
-    */
-
     for(incoming = 1; incoming >= 0; incoming--)
     for(si = 0; si < MAX_PEERS; si++)
     {
@@ -655,7 +634,7 @@ connection_worker(void* p)
                     printf("idle peer %d subscribed to peer %s\n", PEER_INDEX(peer), peers[si].watchname);
                     // also connect opposing/waiting peer
                     peers[si].subscriptionID = PEER_INDEX(peer);
-                }
+              }
             }
         }
     }
@@ -669,8 +648,8 @@ connection_worker(void* p)
     peer->running = 1;
 
     unsigned long backlog_counter = 0;
- 
     unsigned long sleep_counter = 1;
+
     while(peer->alive)
     {
         unsigned int buffer_count;
@@ -679,7 +658,6 @@ connection_worker(void* p)
         time_t time_sec;
 
         PEER_THREAD_LOCK(peer);
-
         if(peer->cleanup_in_progress == 1 && peer->alive)
         {
             peer->thread_paused = 1;
@@ -717,12 +695,12 @@ connection_worker(void* p)
                 peer->in_buffers_underrun = PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY;
             }
             */
-            if(sleep_counter <= 2) sleep_counter += (sleep_counter/2);
+            if(sleep_counter < PEER_SLEEP_INTERVAL_MAX) sleep_counter += 1;
             goto peer_again; 
         }
 
         peer->stats.stat[2] += 1;
-        if(sleep_counter >= 2) sleep_counter /= 2;
+        if(sleep_counter > 0) sleep_counter -= 1;
 
         char *buffer = buffer_next->buf;
         char buffer_last[PEER_BUFFER_NODE_BUFLEN];
@@ -1111,7 +1089,7 @@ connection_worker(void* p)
                            
                     for(p = 0; p < MAX_PEERS; p++)
                     {
-                        if(peers[p].alive &&
+                        if(peers[p].alive && !peers[p].send_only &&
                            peers[p].subscriptionID == peer->id &&
                            peers[p].srtp[rtp_idx].inited)
                         {
@@ -1131,7 +1109,8 @@ connection_worker(void* p)
                             }
                             else
                             {
-                                printf("srtp_protect failed for peer %d\n", p);
+                                printf("srtp_protect failed for peer %d, resetting subscriptionID\n", p);
+                                //peers[p].subscriptionID = PEER_IDX_INVALID;
                             }
                         }
                     }
@@ -1391,13 +1370,13 @@ int main( int argc, char* argv[] ) {
         {
             timedout_last = 1;
             if(sleep_counter > 0) usleep(sleep_counter);
-            if(sleep_counter < 64) sleep_counter += 1;
+            if(sleep_counter < 16) sleep_counter += 1;
             goto select_timeout;
         }
         timedout_last = 0;
         node_inbuf->len = length;
 
-        sleep_counter = 0; //if(sleep_counter >= 2) sleep_counter /= 2;
+        if(sleep_counter > 0) sleep_counter -= 1; //if(sleep_counter >= 2) sleep_counter /= 2;
 
         int inkey = 0;
 
@@ -1515,10 +1494,10 @@ int main( int argc, char* argv[] ) {
 
         node_inbuf->recv_time = time_ms;
 
-        PEER_LOCK(sidx);
+        //PEER_LOCK(sidx);
         tail_prev = peer_buffer_node_list_get_tail(&(peers[sidx].in_buffers_head));
         peer_buffer_node_list_add(&(peers[sidx].in_buffers_head), node_inbuf);
-        PEER_UNLOCK(sidx);
+        //PEER_UNLOCK(sidx);
 
         node = node_inbuf;
         node_inbuf = NULL;
@@ -1604,12 +1583,13 @@ int main( int argc, char* argv[] ) {
                 {
                     peer_buffer_node_t *curfree = peers[i].in_buffers_head.next;
                     if(!curfree || !curfree->consumed) break;
-
+ 
                     peer_buffer_node_list_remove(&peers[i].in_buffers_head, curfree);
                     free(curfree);
-                    counts[12]++;
                 }
 
+
+                /*
                 int rtp_idx;
                 for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_COUNT; rtp_idx++)
                 {
@@ -1638,6 +1618,7 @@ int main( int argc, char* argv[] ) {
                         cur = next;
                     }
                 }
+                */
 
                 // done cleaning up this peer
                 peers[i].cleanup_in_progress = 0;
@@ -1764,6 +1745,7 @@ int main( int argc, char* argv[] ) {
         }
 
         if(node_inbuf) free(node_inbuf);
+        node_inbuf = NULL;
     }
 
     printf("main loop exiting..\n");

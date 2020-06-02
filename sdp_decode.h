@@ -8,7 +8,12 @@ sdp_decode(char* buf)
 {
     const char charEsc = '%';
     char *p = buf;
-    char* pNew = (char*) malloc(strlen(buf) * 2); // HACK (based on debugging)
+    size_t len = strlen(buf) * 2;
+    char* pNew = (char*) malloc(len); // HACK (based on debugging)
+    memset(pNew, 0, len);
+
+memdebug_sanity(buf);
+
     if(pNew)
     {
         char *pOut = pNew;
@@ -31,6 +36,7 @@ sdp_decode(char* buf)
         }
         *pOut = '\0';
     }
+    
     free(buf);
     return pNew;
 }
@@ -40,9 +46,12 @@ sdp_decode_nested(char* buf, int inc)
 {
     const char charEsc = '\\';
     char *p = buf;
-    char* pNew = (char*) malloc(strlen(buf) * 2); // HACK (based on debugging)
+    size_t len = strlen(buf) * 2;
+    char* pNew = (char*) malloc(len); // HACK (based on debugging)
     char* advanceKey = "v=0";
     char endChar = '}';
+
+    memset(pNew, 0, len);
 
     p = strstr(buf, advanceKey);
     if(pNew && p)
