@@ -297,7 +297,7 @@ peer_subscription(peer_session_t* peers, int id, int stream_id, peer_buffer_node
 peer_buffer_node_t*
 buffer_node_alloc()
 {
-    peer_buffer_node_t* n = (peer_buffer_node_t*) malloc(sizeof(peer_buffer_node_t)+PEER_BUFFER_NODE_BUFLEN);
+    peer_buffer_node_t* n = (peer_buffer_node_t*) malloc(sizeof(peer_buffer_node_t)+PEER_BUFFER_NODE_BUFLEN+64);
     if(n)
     {
         memset(n, 0, sizeof(*n)/*+PEER_BUFFER_NODE_BUFLEN*/);

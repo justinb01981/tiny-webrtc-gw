@@ -59,8 +59,9 @@
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
-#define PEER_CLEANUP_INTERVAL (102400)
-#define PEER_SLEEP_INTERVAL_MAX (64)
+#define PEER_CLEANUP_INTERVAL (64000)
+//#define PEER_SLEEP_INTERVAL_MAX (1600000)
+#define PEER_SLEEP_INTERVAL_MAX (6400000)
 
 #define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY (0)
 
@@ -695,12 +696,14 @@ connection_worker(void* p)
                 peer->in_buffers_underrun = PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY;
             }
             */
+            //if(sleep_counter < PEER_SLEEP_INTERVAL_MAX) sleep_counter *= 2;
             if(sleep_counter < PEER_SLEEP_INTERVAL_MAX) sleep_counter += 1;
             goto peer_again; 
         }
 
         peer->stats.stat[2] += 1;
-        if(sleep_counter > 0) sleep_counter -= 1;
+        
+        sleep_counter = sleep_counter / 10;
 
         char *buffer = buffer_next->buf;
         char buffer_last[PEER_BUFFER_NODE_BUFLEN];
@@ -1098,6 +1101,8 @@ connection_worker(void* p)
                             rtp_frame_t *rtp_frame_out = (rtp_frame_t*) buf;
 
                             lengthPeer = srtp_len;
+                            if(lengthPeer > sizeof(buf)) continue;
+
                             memcpy(rtp_frame_out, rtpFrame, lengthPeer);
 
                             rtp_frame_out->hdr.seq_src_id = htonl(peers[p].srtp[rtp_idx_write].ssrc);
@@ -1204,7 +1209,7 @@ connection_worker(void* p)
 
         if(!peer->cleanup_in_progress)
         {
-            usleep(sleep_counter);
+            if(sleep_counter > 0) usleep(sleep_counter);
         }
     }
     connection_worker_exit:
@@ -1235,6 +1240,7 @@ int main( int argc, char* argv[] ) {
     unsigned long long select_counter = 0;
     char strbuf[2048];
     unsigned long sleep_counter = 1;
+    peer_buffer_node_t* node = NULL, *tail_prev, *node_inbuf = NULL;
 
     DTLS_init();
 
@@ -1252,6 +1258,8 @@ int main( int argc, char* argv[] ) {
     memset(peers, 0, sizeof(peers));
 
     FILECACHE_INIT();
+
+    get_sdp_idx_init();
 
     srtp_init();
     srtp_install_event_handler(bogus_srtp_event_handler);
@@ -1292,8 +1300,6 @@ int main( int argc, char* argv[] ) {
         //struct timeval te;
         unsigned long long time_ms = get_time_ms();
         wall_time = time(NULL);
-
-        peer_buffer_node_t* node = NULL, *tail_prev, *node_inbuf = NULL;
 
         if(!node_inbuf) node_inbuf = buffer_node_alloc();
         if(!node_inbuf)
@@ -1363,20 +1369,32 @@ int main( int argc, char* argv[] ) {
         
         // HACK: cap cpu usage here by limiting run-interval
         //usleep(udp_recv_timeout_usec);
+
+        fd_set rFd;
+        FD_ZERO(&rFd);
+        FD_SET(listen, &rFd);
+        struct timeval tm = {0, 0};
+
+        int sResult = select(listen+1, &rFd, NULL, NULL, &tm);
+        if (sResult <= 0)
+        {
+            timedout_last = 1;
+            if(sleep_counter > 0) usleep(sleep_counter);
+            if(sleep_counter < PEER_SLEEP_INTERVAL_MAX) sleep_counter += 1;
+            goto select_timeout;
+        }
     
         size = sizeof(src);
         int length = recvfrom(listen, buffer, PEER_BUFFER_NODE_BUFLEN, recv_flags, (struct sockaddr*)&src, &size);
         if(length <= 0)
         {
-            timedout_last = 1;
-            if(sleep_counter > 0) usleep(sleep_counter);
-            if(sleep_counter < 16) sleep_counter += 1;
             goto select_timeout;
         }
+        
         timedout_last = 0;
         node_inbuf->len = length;
 
-        if(sleep_counter > 0) sleep_counter -= 1; //if(sleep_counter >= 2) sleep_counter /= 2;
+        if(sleep_counter > 0) sleep_counter /= 10; 
 
         int inkey = 0;
 
@@ -1623,13 +1641,8 @@ int main( int argc, char* argv[] ) {
                 // done cleaning up this peer
                 peers[i].cleanup_in_progress = 0;
                 PEER_UNLOCK(i);
-                /*
-                while(peers[i].thread_paused)
-                {
-                    PEER_UNLOCK(i);
-                    PEER_LOCK(i);
-                }
-                */
+
+                break;; 
 
                 // send a keepalive packet to keep UDP ports open
                 //char keepalive[] = {0};
@@ -1739,14 +1752,15 @@ int main( int argc, char* argv[] ) {
                 
                 sprintf(strbuf, "(peer[%d]) has left\n(timed out)\n", i);
                 chatlog_append(strbuf);
+                
+                break;
             }
 
             i++;
         }
-
-        if(node_inbuf) free(node_inbuf);
-        node_inbuf = NULL;
     }
+
+    if(node_inbuf) free(node_inbuf);
 
     printf("main loop exiting..\n");
 

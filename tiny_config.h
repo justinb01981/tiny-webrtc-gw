@@ -8,7 +8,10 @@
 #define SRTP_MASTER_KEY_SALT_LEN 14
 #define FILENAME_SDP_ANSWER "sdp_answer.txt"
 
-const unsigned int padding_hack_size = 1024;
+extern char g_file_read_buf[4096];
+extern volatile char* get_sdp_idx_file_r;
+
+extern pthread_mutex_t get_sdp_idx_file_mutex;
 
 char *file_read(char* path, unsigned int* len_out)
 {
@@ -33,8 +36,9 @@ char *file_read(char* path, unsigned int* len_out)
 
         if(len > 0 && len < max_len)
         {
-            buf = malloc(len + padding_hack_size);
-            buf[len] = '\0';
+            buf = malloc(len+1);
+            memset(buf, 0, len+1);
+     
             fseek(fp, 0, SEEK_SET);
             len = fread(buf, 1, len, fp);
         }
@@ -73,7 +77,10 @@ void file_remove(char* path)
     filecache_list_remove(&filecache_head, path);
 }
 
-extern volatile char* get_sdp_idx_file_r;
+void get_sdp_idx_init()
+{
+    pthread_mutex_init(&get_sdp_idx_file_mutex, NULL);
+}
 
 char* get_sdp_idx_file(const char* fileprefix, const char* filepath, const char* key, unsigned int idx, const char* key_begin)
 {
@@ -82,6 +89,8 @@ char* get_sdp_idx_file(const char* fileprefix, const char* filepath, const char*
 
     sprintf(filename, "%s%s", fileprefix, filepath);
     int idx_s = idx;
+
+    pthread_mutex_lock(&get_sdp_idx_file_mutex);
 
     char* buf = file_read((char*) filename, NULL);
     if(buf)
@@ -109,13 +118,14 @@ char* get_sdp_idx_file(const char* fileprefix, const char* filepath, const char*
             char* e = p;
             while(*e != '\0' && *e != '\n' && *e != '\r' && *e != ' ' && *e != '\t') e++;
 
-            char *tmp = (char*) malloc((e - p) + 1 + padding_hack_size);
+            char *tmp = (char*) malloc((e - p) + 1);
             if(tmp)
             {
                 strncpy(tmp, p, e-p);
                 tmp[e-p] = '\0';
                 char* prev = get_sdp_idx_file_r;
                 get_sdp_idx_file_r = tmp;
+                memdebug_sanity(prev);
                 if(prev) free(prev);
                 ret = tmp;
             }
@@ -127,6 +137,8 @@ char* get_sdp_idx_file(const char* fileprefix, const char* filepath, const char*
     }
 
     if(!ret) printf("%s:%d config_read failed (key=%s)\n", __func__, __LINE__, key);
+
+    pthread_mutex_unlock(&get_sdp_idx_file_mutex);
 
     return ret;
 }
