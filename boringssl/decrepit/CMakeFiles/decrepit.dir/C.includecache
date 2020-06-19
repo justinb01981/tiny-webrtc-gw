@@ -6,21 +6,21 @@
 
 #IncludeRegexTransform: 
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/des/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/des/internal.h
 openssl/base.h
 -
 ../../internal.h
-/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/digest/md32_common.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/digest/md32_common.h
 openssl/base.h
 -
 assert.h
 -
 ../../internal.h
-/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 openssl/ex_data.h
 -
 openssl/stack.h
@@ -42,7 +42,7 @@ windows.h
 stdlib.h
 -
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/bio/base64_bio.c
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/bio/base64_bio.c
 assert.h
 -
 errno.h
@@ -62,9 +62,9 @@ openssl/evp.h
 openssl/mem.h
 -
 ../../crypto/internal.h
-/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/blowfish/blowfish.c
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/blowfish/blowfish.c
 openssl/blowfish.h
 -
 openssl/cipher.h
@@ -76,11 +76,11 @@ assert.h
 string.h
 -
 ../../crypto/internal.h
-/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 ../macros.h
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/macros.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/macros.h
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/cast/cast.c
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/cast/cast.c
 openssl/cast.h
 -
 openssl/cipher.h
@@ -90,23 +90,23 @@ openssl/obj.h
 intrin.h
 -
 ../../crypto/internal.h
-/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 internal.h
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/cast/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/cast/internal.h
 ../macros.h
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/macros.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/macros.h
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/cast/cast_tables.c
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/cast/cast_tables.c
 openssl/base.h
 -
 internal.h
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/cast/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/cast/internal.h
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/cast/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/cast/internal.h
 openssl/base.h
 -
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/cfb/cfb.c
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/cfb/cfb.c
 openssl/cipher.h
 -
 string.h
@@ -116,43 +116,43 @@ openssl/aes.h
 openssl/obj.h
 -
 ../../crypto/internal.h
-/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/des/cfb64ede.c
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/des/cfb64ede.c
 string.h
 -
 openssl/des.h
 -
 ../../crypto/fipsmodule/des/internal.h
-/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/des/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/des/internal.h
 ../../crypto/internal.h
-/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/dh/dh_decrepit.c
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/dh/dh_decrepit.c
 openssl/bn.h
 -
 openssl/dh.h
 -
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/dsa/dsa_decrepit.c
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/dsa/dsa_decrepit.c
 openssl/bn.h
 -
 openssl/dsa.h
 -
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/evp/dss1.c
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/evp/dss1.c
 openssl/digest.h
 -
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/evp/evp_do_all.c
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/evp/evp_do_all.c
 openssl/evp.h
 -
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/macros.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/macros.h
 ../crypto/internal.h
-/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/obj/obj_decrepit.c
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/obj/obj_decrepit.c
 openssl/obj.h
 -
 assert.h
@@ -162,27 +162,27 @@ string.h
 openssl/evp.h
 -
 ../../crypto/internal.h
-/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/rc4/rc4_decrepit.c
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/rc4/rc4_decrepit.c
 openssl/rc4.h
 -
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/ripemd/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/ripemd/internal.h
 openssl/base.h
 -
 ../../crypto/fipsmodule/digest/md32_common.h
-/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/fipsmodule/digest/md32_common.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/digest/md32_common.h
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/ripemd/ripemd.c
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/ripemd/ripemd.c
 openssl/ripemd.h
 -
 string.h
 -
 internal.h
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/ripemd/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/ripemd/internal.h
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/rsa/rsa_decrepit.c
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/rsa/rsa_decrepit.c
 openssl/rsa.h
 -
 assert.h
@@ -190,7 +190,7 @@ assert.h
 openssl/bn.h
 -
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/ssl/ssl_decrepit.c
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/ssl/ssl_decrepit.c
 openssl/ssl.h
 -
 dirent.h
@@ -204,7 +204,7 @@ openssl/err.h
 openssl/mem.h
 -
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/x509/x509_decrepit.c
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/x509/x509_decrepit.c
 openssl/x509v3.h
 -
 assert.h
@@ -212,7 +212,7 @@ assert.h
 openssl/conf.h
 -
 
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/xts/xts.c
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/xts/xts.c
 openssl/evp.h
 -
 string.h
@@ -222,7 +222,7 @@ openssl/aes.h
 openssl/cipher.h
 -
 ../crypto/fipsmodule/modes/internal.h
-/home/ubuntu/tiny-webrtc-gw/boringssl/decrepit/crypto/fipsmodule/modes/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/crypto/fipsmodule/modes/internal.h
 
 decrepit/../crypto/fipsmodule/modes/internal.h
 openssl/base.h

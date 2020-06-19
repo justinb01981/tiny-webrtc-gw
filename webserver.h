@@ -1,6 +1,7 @@
 #ifndef __webserver_h__
 #define __webserver_h__
 
+#include "memdebughack.h"
 #include "peer.h"
 #include "thread.h"
 #include <sys/errno.h>
@@ -29,7 +30,7 @@ extern int sdp_prefix_set(const char*);
 struct webserver_state {
     char inip[64];
     int running;
-    int peer_index_sdp_last;
+    unsigned int peer_idx_next;
 };
 extern struct webserver_state webserver;
 
@@ -51,6 +52,7 @@ typedef struct {
     char websocket_accept_response[512];
     char* pbody;
     char roomname[256];
+    char paddinghack[1024];
 } webserver_worker_args;
 
 static char *tag_icecandidate = "%$RTCICECANDIDATE$%";
@@ -327,8 +329,8 @@ websocket_worker(void* p)
                         peer->restart_needed = 1;
 
                         while(!peer->restart_done) usleep(SPIN_WAIT_USEC);
-                        peer->alive = 1;
                         peer->time_pkt_last = time(NULL);
+                        peer->alive = 1;
 
                         peer->restart_needed = 0;
                     }
@@ -457,6 +459,8 @@ webserver_worker(void* p)
     char ws_header_buf[256];
     peer_session_t* peer_found_via_cookie = NULL;
     int peer_broadcast_from_cookie = PEER_IDX_INVALID;
+    char stackPaddingHack[2048];
+    char* recvbuf = malloc(buf_size*2);
 
     memset(cookie, 0, sizeof(cookie));
 
@@ -479,14 +483,12 @@ webserver_worker(void* p)
         sock = args->sock;
         if(sock >= 0)
         {
-            char recvbuf[buf_size];
-
             //printf("%s:%d connection thread (%s:%d)\n", __func__, __LINE__, inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
 
-            memset(recvbuf, 0, sizeof(recvbuf));
+            memset(recvbuf, 0, buf_size);
 
             char *roff = recvbuf;
-            unsigned int recv_left = sizeof(recvbuf)-1;
+            unsigned int recv_left = buf_size-1;
             int timed_out = 0;
             int do_shutdown = 1;
             int timeout_ms = 10000;
@@ -560,6 +562,9 @@ webserver_worker(void* p)
                 cookie_hdr[0] = '\0';
 
                 purl = recvbuf;
+
+                memdebug_sanity(recvbuf);
+
                 if(strncmp(recvbuf, "GET ", 4) == 0) {
                     purl = recvbuf+4;
                 }
@@ -586,6 +591,8 @@ webserver_worker(void* p)
 
                 response = strdup(page_buf_400);
 
+                memdebug_sanity(response);
+
                 char *e = purl;
                 char *pargs = NULL;
                 while (e-purl < (sizeof(path)-1) && *e != '\0' && *e != '\r' && *e && *e != '\n' && *e != ' ' && *e != '?') e++;
@@ -602,6 +609,8 @@ webserver_worker(void* p)
                 }
                 *e = '\0';
 
+                memdebug_sanity(recvbuf);
+
                 pbody = e+1;
                 while(*pbody == '\r' || *pbody == '\n') pbody++;
                 phttpheaders = pbody;
@@ -614,6 +623,8 @@ webserver_worker(void* p)
 
                 pend = pbody;
                 while(*pend) pend++;
+
+                memdebug_sanity(recvbuf);
 
                 //printf("%s:%d webserver received:\n----------------\n"
                 //       "%s\n---------------%s\n"
@@ -680,25 +691,25 @@ webserver_worker(void* p)
                     if(strstr(purl, tag_login) && strlen(url_args) > 0)
                     {
                         printf("cookie=%s\n", cookie);
-                        
-                        for(sidx = 0; sidx < MAX_PEERS && !peer_found_via_cookie; sidx++) {
-                            if(!peers[sidx].alive) {
-                                printf("peer[%d] logging in\n", sidx);
+                       
+                        sidx = webserver.peer_idx_next % MAX_PEERS;
+                        webserver.peer_idx_next += 1;
 
-                                peer_init(&peers[sidx], sidx);
+                        if(peers[sidx].alive) break;
 
-                                peers[sidx].time_pkt_last = time(NULL);
-                                peers[sidx].alive = 1;
+                        printf("peer[%d] logging in\n", sidx);
 
-                                peer_cookie_init(&peers[sidx], cookie);
-                                strcpy((char*) &peers[sidx].name, str_read_unsafe(url_args, "name=", 0));
-                                chatlog_append("login:"); chatlog_append(peers[sidx].name); chatlog_append("\n");
-                                strcat(peers[sidx].http.dynamic_js, "myUsername = '");
-                                strcat(peers[sidx].http.dynamic_js, peers[sidx].name);
-                                strcat(peers[sidx].http.dynamic_js, "';\n");
-                                break;
-                            }
-                        }
+                        peer_init(&peers[sidx], sidx);
+
+                        peers[sidx].time_pkt_last = time(NULL);
+                        peers[sidx].alive = 1;
+
+                        peer_cookie_init(&peers[sidx], cookie);
+                        strcpy((char*) &peers[sidx].name, str_read_unsafe(url_args, "name=", 0));
+                        chatlog_append("login:"); chatlog_append(peers[sidx].name); chatlog_append("\n");
+                        strcat(peers[sidx].http.dynamic_js, "myUsername = '");
+                        strcat(peers[sidx].http.dynamic_js, peers[sidx].name);
+                        strcat(peers[sidx].http.dynamic_js, "';\n");
                     }
 
                     if(strstr(purl, tag_logout))
@@ -709,9 +720,9 @@ webserver_worker(void* p)
 
                             chatlog_append("logged out:"); chatlog_append(peer_found_via_cookie->name); chatlog_append("\n");
 
-			    peer_logout->restart_done = 0;
+                            peer_logout->restart_done = 0;
                             peer_logout->restart_needed = 1;
-                            while(!peer_logout->restart_done) usleep(SPIN_WAIT_USEC); // TODO: bug here
+                            while(!peer_logout->restart_done) usleep(SPIN_WAIT_USEC);
                             peer_logout->alive = 0;
                             peer_logout->restart_needed = 0;
                             peer_init(peer_logout, PEER_INDEX(peer_logout));
@@ -893,9 +904,11 @@ webserver_worker(void* p)
                         // create temp file, decode, rename for worker thread to pick up/read and remove
                         char tmp[256], ufrag_offer_tmp[256];
                         char* sdp = strdup(pbody);
-                        
+
+                        memdebug_sanity(sdp);
+
                         sdp = sdp_decode(sdp);
-                        
+
                         const char* ufrag_answer = sdp_read(sdp, "a=ice-ufrag:");
                         
                         // anonymous+watching-only peers use new slot
@@ -922,25 +935,25 @@ webserver_worker(void* p)
                         }
                         else
                         {
-                            sidx = 0;
-                            while(sidx < MAX_PEERS)
-                            {
-                                if(!peers[sidx].alive) break;
-                                sidx++;
-                            }
                             
-                            if(sidx >= MAX_PEERS)
+                            sidx = webserver.peer_idx_next % MAX_PEERS;
+                            webserver.peer_idx_next += 1;
+
+                            if(peers[sidx].alive)
                             {
                                 free(sdp);
+                                sdp = NULL;
 
                                 goto response_override;
                             }
-                            
+
                             peer_init(&peers[sidx], sidx);
                             peers[sidx].broadcastingID = peer_broadcast_from_cookie;
                             
                             strcpy(ufrag_offer_tmp, sdp_offer_table.t[(sdp_offer_table.next-1) % MAX_PEERS].iceufrag);
                         }
+
+                        printf("webserver got SDP:\n%s\n", sdp);
 
                         sprintf(tmp, "webserver: new SDP answer for peer %d\n", sidx);
                         chatlog_append(tmp);
@@ -960,22 +973,22 @@ webserver_worker(void* p)
 
                         // mark -- signal/wait for peer to be initialized
                         peers[sidx].time_pkt_last = time(NULL);
-                        peers[sidx].alive = 1;
                           
-                        peers[sidx].restart_needed = 0;                       
-                        
                         strcpy(peers[sidx].name, str_read_unsafe(sdp, "a=myname=", 0));
                         strcpy(peers[sidx].roomname, str_read_unsafe(sdp, "a=room=", 0));
 
-                        while(webserver.peer_index_sdp_last >= 0) sleep_msec(1);    
-                        webserver.peer_index_sdp_last = sidx;
+                        peers[sidx].restart_needed = 0;                       
+
+                        peers[sidx].alive = 1;
 
                         printf("peer restarted (stun_ice.user-name answer/offer: %s:%s)\n", peers[sidx].stun_ice.ufrag_answer, peers[sidx].stun_ice.ufrag_offer);
-                        
                         free(sdp);
+                        sdp = NULL;
 
                         free(response);
-                        response = strdup(page_buf_sdp_uploaded);
+                        //response = strdup(page_buf_sdp_uploaded);
+                        response = malloc(strlen(page_buf_sdp_uploaded) + 2048);
+                        response[0] = '\0'; strcat(response, page_buf_sdp_uploaded);
                         content_type = content_type_html;
 
                         goto response_override;
@@ -1049,6 +1062,7 @@ webserver_worker(void* p)
     } while(0);
 
     free(args);
+    free(recvbuf);
 
     //printf("%s:%d exiting\n", __func__, __LINE__);
     return NULL;
@@ -1056,8 +1070,8 @@ webserver_worker(void* p)
 
 void webserver_init()
 {
-    webserver.peer_index_sdp_last = -1;
     webserver.running = 1;
+    webserver.peer_idx_next = 0;
 }
 
 void*
@@ -1069,8 +1083,7 @@ webserver_accept_worker(void* p)
 
     thread_init();
 
-    int sock_web = bindsocket(webserver.inip, strToInt(get_config("webserver_port=")), 1);
-
+    int sock_web = bindsocket(webserver.inip, strToULong(get_config("webserver_port=")), 1);
 
     if(sock_web >= 0)
     {
@@ -1094,7 +1107,7 @@ webserver_accept_worker(void* p)
         sock = accept(sock_web, (struct sockaddr*) &sa, &sa_len);
         if(sock >= 0)
         {
-            webserver_worker_args* args = (webserver_worker_args*) malloc(sizeof(webserver_worker_args));
+            webserver_worker_args* args = (webserver_worker_args*) malloc(sizeof(webserver_worker_args) + 128);
             if(args)
             {
                 args->ws_thread = 0;

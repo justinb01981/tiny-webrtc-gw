@@ -1,6 +1,8 @@
 #ifndef __FILECACHE_H__
 #define __FILECACHE_H__
 
+#include "memdebughack.h"
+
 typedef struct file_buffer_entry
 {
     struct file_buffer_entry* next;

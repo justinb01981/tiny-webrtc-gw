@@ -1,6 +1,8 @@
 #ifndef __PEER_H__
 #define __PEER_H__
 
+#include "memdebughack.h"
+
 #define MAX_PEERS 63
 #define PEER_IDX_INVALID (MAX_PEERS+1)
 
@@ -20,6 +22,20 @@
 #define PEER_BUFFER_NODE_BUFLEN 2048
 #define OFFER_SDP_SIZE 4096
 
+#ifdef assert
+#undef assert
+#endif 
+
+#define assert(x, msg)        \
+{                             \
+    if(!x)                    \
+    {                         \
+        while(1){             \
+            printf("%s", msg);\
+        };                    \
+    }                         \
+}
+
 const char* PEER_DYNAMIC_JS_EMPTY = "/* dynamic js */\n"
 "function doPeerDynamicOnLoad() { return; }\n";
 
@@ -27,7 +43,6 @@ typedef struct peer_buffer_node
 {
     volatile struct peer_buffer_node* next, *tail;
 
-    char buf[PEER_BUFFER_NODE_BUFLEN];
     unsigned int len;
     unsigned int id;
     unsigned long seq;
@@ -42,6 +57,7 @@ typedef struct peer_buffer_node
     volatile int consumed;
     int head_inited;
     int reclaimable;
+    char buf[1];
 } peer_buffer_node_t;
 
 typedef struct
@@ -278,6 +294,84 @@ peer_subscription(peer_session_t* peers, int id, int stream_id, peer_buffer_node
     return (*pos);
 }
 
+peer_buffer_node_t*
+buffer_node_alloc()
+{
+    peer_buffer_node_t* n = (peer_buffer_node_t*) malloc(sizeof(peer_buffer_node_t)+PEER_BUFFER_NODE_BUFLEN+64);
+    if(n)
+    {
+        memset(n, 0, sizeof(*n)/*+PEER_BUFFER_NODE_BUFLEN*/);
+    }
+    else assert(0, "alloc failure\n");
+    return n;
+}
+
+void
+peer_buffer_node_list_init(peer_buffer_node_t* head)
+{
+    memset(head, 0, sizeof(*head));
+    head->tail = head;
+    head->head_inited = 1;
+    head->consumed = 1;
+}
+
+void
+peer_buffer_node_list_add(peer_buffer_node_t* head, peer_buffer_node_t* tail_new)
+{
+    //assert(head->head_inited, "UNINITED HEAD NODE\n");
+    //assert((tail_new->next == (peer_buffer_node_t*) NULL), "ADDING non-NULL tail\n");
+    peer_buffer_node_t* tmp = head->tail;
+    head->tail = tail_new;
+    tmp->next = tail_new;
+}
+
+peer_buffer_node_t*
+peer_buffer_node_list_get_tail(peer_buffer_node_t* head)
+{
+    //assert(head->head_inited, "UNINITED HEAD NODE\n");
+    return head->tail;
+}
+
+int
+peer_buffer_node_list_remove(peer_buffer_node_t* head, peer_buffer_node_t* node)
+{
+    int removed = 0;
+    peer_buffer_node_t* cur = head, *tmp;
+
+    //assert(head->head_inited, "UNINITED HEAD NODE\n");
+
+    while(cur)
+    {
+        if(cur->next == node)
+        {
+            tmp = node;
+            cur->next = cur->next->next;
+            removed++;
+            if(!cur->next) head->tail = cur;
+            break;
+        }
+        else
+        {
+            cur = cur->next;
+        }
+    }
+    return removed;
+}
+
+int
+peer_buffer_node_list_free_all(peer_buffer_node_t* head)
+{
+    unsigned int total = 0;
+    peer_buffer_node_t* node = head->next;
+    while(node)
+    {
+        total += peer_buffer_node_list_remove(head, node);
+        free(node);
+        node = head->next;
+    }
+    return total;
+}
+
 int peer_cleanup_in_progress(peer_session_t* peers, int id) {
     return peers[id].cleanup_in_progress;
 }
@@ -293,6 +387,11 @@ int peer_rtp_buffer_reclaimable(peer_session_t* peer, int rtp_idx) {
 int peer_stun_init(peer_session_t* peer)
 {
     peer->stun_ice.controller = peer->stun_ice.bound = 0;
+}
+
+int peer_stun_bound(peer_session_t* peer)
+{
+    return (peer->stun_ice.bound && peer->stun_ice.bound_client);
 }
 
 const char* sdp_offer_create(peer_session_t* peer)

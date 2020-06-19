@@ -4,11 +4,11 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/test/abi_test.cc" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o"
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/test/file_test.cc" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/test/CMakeFiles/test_support_lib.dir/file_test.cc.o"
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/test/malloc.cc" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/test/CMakeFiles/test_support_lib.dir/malloc.cc.o"
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/test/test_util.cc" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.o"
-  "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/test/wycheproof_util.cc" "/home/ubuntu/tiny-webrtc-gw/boringssl/crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o"
+  "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/abi_test.cc" "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o"
+  "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/file_test.cc" "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/CMakeFiles/test_support_lib.dir/file_test.cc.o"
+  "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/malloc.cc" "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/CMakeFiles/test_support_lib.dir/malloc.cc.o"
+  "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/test_util.cc" "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.o"
+  "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/wycheproof_util.cc" "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 

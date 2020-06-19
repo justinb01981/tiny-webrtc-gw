@@ -28,7 +28,7 @@
 /* #undef CPU_RISC */
 
 /* Define to use X86 inlined assembly code */
-#define HAVE_X86 1
+/* #undef HAVE_X86 */
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
  significant byte first (like Motorola and SPARC, unlike Intel). */
@@ -38,13 +38,13 @@
 #define HAVE_ARPA_INET_H 1
 
 /* Define to 1 if you have the <byteswap.h> header file. */
-/* #undef HAVE_BYTESWAP_H */
+#define HAVE_BYTESWAP_H 1
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
 /* Define to 1 if you have the <machine/types.h> header file. */
-#define HAVE_MACHINE_TYPES_H 1
+/* #undef HAVE_MACHINE_TYPES_H */
 
 /* Define to 1 if you have the <netinet/in.h> header file. */
 #define HAVE_NETINET_IN_H 1
@@ -98,7 +98,7 @@
 #define HAVE_INT32_T 1
 
 /* The size of `unsigned long', as computed by sizeof. */
-#define SIZEOF_UNSIGNED_LONG 8
+#define SIZEOF_UNSIGNED_LONG 4
 
 /* The size of `unsigned long long', as computed by sizeof. */
 #define SIZEOF_UNSIGNED_LONG_LONG 8
