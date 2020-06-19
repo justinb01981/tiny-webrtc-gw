@@ -59,9 +59,9 @@
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
-#define PEER_CLEANUP_INTERVAL (64000)
-//#define PEER_SLEEP_INTERVAL_MAX (1600000)
-#define PEER_SLEEP_INTERVAL_MAX (6400000)
+#define SELECT_INTERVAL_USEC (100000)
+#define PEER_CLEANUP_INTERVAL (2)
+#define PEER_SLEEP_INTERVAL_MAX (640000)
 
 #define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY (0)
 
@@ -690,13 +690,7 @@ connection_worker(void* p)
         if(!buffer_next)
         {
             peer->stats.stat[3] += 1;
-            /*
-            if(!peer->in_buffers_underrun && peer->dtls.connected && peer->srtp_inited)
-            {
-                peer->in_buffers_underrun = PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY;
-            }
-            */
-            //if(sleep_counter < PEER_SLEEP_INTERVAL_MAX) sleep_counter *= 2;
+
             if(sleep_counter < PEER_SLEEP_INTERVAL_MAX) sleep_counter += 1;
             goto peer_again; 
         }
@@ -1237,9 +1231,7 @@ int main( int argc, char* argv[] ) {
     struct sockaddr_in src;
     struct sockaddr_in dst;
     struct sockaddr_in ret;
-    unsigned long long select_counter = 0;
     char strbuf[2048];
-    unsigned long sleep_counter = 1;
     peer_buffer_node_t* node = NULL, *tail_prev, *node_inbuf = NULL;
 
     DTLS_init();
@@ -1278,7 +1270,7 @@ int main( int argc, char* argv[] ) {
     output = listen;
     
     // make socket non-blocking
-    blockingsocket(listen, 0);
+    //blockingsocket(listen, 0);
 
     listen_port = udpserver.inport;
  
@@ -1292,7 +1284,6 @@ int main( int argc, char* argv[] ) {
     webserver_init();
     pthread_create(&thread_webserver, NULL, webserver_accept_worker, NULL);
 
-    int timedout_last = 0;
     while(!terminated)
     {
         unsigned int size;
@@ -1366,21 +1357,17 @@ int main( int argc, char* argv[] ) {
             connection_worker_backlog_highwater = 0;
             counts[17] = udp_recv_timeout_usec;
         }
-        
-        // HACK: cap cpu usage here by limiting run-interval
-        //usleep(udp_recv_timeout_usec);
 
+        // check socket for new data
+        
         fd_set rFd;
         FD_ZERO(&rFd);
         FD_SET(listen, &rFd);
-        struct timeval tm = {0, 0};
+        struct timeval tm = {0, SELECT_INTERVAL_USEC};
 
         int sResult = select(listen+1, &rFd, NULL, NULL, &tm);
         if (sResult <= 0)
         {
-            timedout_last = 1;
-            if(sleep_counter > 0) usleep(sleep_counter);
-            if(sleep_counter < PEER_SLEEP_INTERVAL_MAX) sleep_counter += 1;
             goto select_timeout;
         }
     
@@ -1391,12 +1378,7 @@ int main( int argc, char* argv[] ) {
             goto select_timeout;
         }
         
-        timedout_last = 0;
         node_inbuf->len = length;
-
-        if(sleep_counter > 0) sleep_counter /= 10; 
-
-        int inkey = 0;
 
         pkt_type_t type = pktType(buffer, length);
 
@@ -1414,11 +1396,6 @@ int main( int argc, char* argv[] ) {
             {
                 sidx = i;
                 peers[sidx].time_pkt_last = wall_time;
-
-                // TODO: -- waking the thread immediately when data is ready improves performance, but still dealing with locking        
-                /*
-                if(peers[sidx].in_buffers_underrun > 0) peers[sidx].in_buffers_underrun = 1; // schedule to unlock thread
-                */
 
                 break;
             }
@@ -1526,8 +1503,6 @@ int main( int argc, char* argv[] ) {
         // -- run every loop, not just when packets received
         select_timeout:
 
-        select_counter += 1;
-
         i = 0;
         while(i < MAX_PEERS)
         {
@@ -1556,15 +1531,6 @@ int main( int argc, char* argv[] ) {
 
                     PEER_UNLOCK(i);
                 }
-
-                // jbrady: 4-24-2020 - trying to remove as much locking as possible so connection_worker threads can run in parallel
-                if(peers[i].in_buffers_underrun > 0)
-                {
-                    // lock thread for a bit
-                    if(peers[i].in_buffers_underrun == PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY) PEER_LOCK(i);
-                    peers[i].in_buffers_underrun -= 1;
-                    if(peers[i].in_buffers_underrun == 0) PEER_UNLOCK(i);
-                }
             }
 
             if(peers[i].bufs.out_len > 0)
@@ -1574,16 +1540,9 @@ int main( int argc, char* argv[] ) {
                 peers[i].bufs.out_len = 0;
             }
 
-            if(select_counter - peers[i].time_cleanup_last >= PEER_CLEANUP_INTERVAL && peers[i].alive)
+            if(wall_time - peers[i].time_cleanup_last >= PEER_CLEANUP_INTERVAL && peers[i].alive)
             {
                 peers[i].stats.stat[5] += 1;
-
-                /* if the thread is locked because of in_buffers_underrun throttling we are holding the lock */
-                if(peers[i].in_buffers_underrun && peers[i].in_buffers_underrun != PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY)
-                {
-                    peers[i].in_buffers_underrun = 0;
-                    PEER_UNLOCK(i);
-                }
 
                 /* HACK: lock out all reader-threads */
                 peers[i].cleanup_in_progress = 1;
@@ -1595,7 +1554,7 @@ int main( int argc, char* argv[] ) {
 
                 PEER_LOCK(i);
 
-                peers[i].time_cleanup_last = select_counter;
+                peers[i].time_cleanup_last = wall_time;
 
                 while(1)
                 {
@@ -1642,11 +1601,7 @@ int main( int argc, char* argv[] ) {
                 peers[i].cleanup_in_progress = 0;
                 PEER_UNLOCK(i);
 
-                break;; 
-
-                // send a keepalive packet to keep UDP ports open
-                //char keepalive[] = {0};
-                //int r = sendto(peers[i].sock, keepalive, 1, 0, (struct sockaddr*)&peers[i].addr, sizeof(peers[i].addr));
+                break; 
             }
 
             if(peers[i].restart_needed ||
@@ -1657,13 +1612,6 @@ int main( int argc, char* argv[] ) {
 
                 sprintf(strbuf, "%s ", peers[i].name);
                 chatlog_append(strbuf);
-
-                /* if the thread is locked because of in_buffers_underrun throttling we are holding the lock */
-                if(peers[i].in_buffers_underrun && peers[i].in_buffers_underrun != PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY)
-                {
-                    peers[i].in_buffers_underrun = 0;
-                    PEER_UNLOCK(i);
-                }
 
                 // HACK: lock out all reader-threads
                 peers[i].cleanup_in_progress = 1;
