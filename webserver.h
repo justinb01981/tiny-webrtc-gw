@@ -706,7 +706,9 @@ webserver_worker(void* p)
 
                         peer_cookie_init(&peers[sidx], cookie);
                         strcpy((char*) &peers[sidx].name, str_read_unsafe(url_args, "name=", 0));
+                        /*
                         chatlog_append("login:"); chatlog_append(peers[sidx].name); chatlog_append("\n");
+                        */
                         strcat(peers[sidx].http.dynamic_js, "myUsername = '");
                         strcat(peers[sidx].http.dynamic_js, peers[sidx].name);
                         strcat(peers[sidx].http.dynamic_js, "';\n");
@@ -718,7 +720,9 @@ webserver_worker(void* p)
                         {
                             peer_session_t* peer_logout = peer_found_via_cookie;
 
+                            /*
                             chatlog_append("logged out:"); chatlog_append(peer_found_via_cookie->name); chatlog_append("\n");
+                            */
 
                             peer_logout->restart_done = 0;
                             peer_logout->restart_needed = 1;
@@ -954,9 +958,6 @@ webserver_worker(void* p)
                         }
 
                         printf("webserver got SDP:\n%s\n", sdp);
-
-                        sprintf(tmp, "webserver: new SDP answer for peer %d\n", sidx);
-                        chatlog_append(tmp);
 
                         // moved setting .alive to below to avoid a race
                         //peers[sidx].alive = 1;

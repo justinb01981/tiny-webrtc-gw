@@ -245,8 +245,8 @@ function prepareVideo(containerTable, labelText)
     var paraToAdd = window.parent.document.createElement('p');
 
     paraToAdd.appendChild(labelToAdd);
-    //paraToAdd.className = 'videoLabel';
-    paraToAdd.style.cssText = 'z-index:1; position:relative; top:40px; left:120px; width:100px; color:green; background-color:white;';
+    paraToAdd.style.cssText = 'z-index:1; position:relative; top:20px; left:0px; width:100px; background-color:black;';
+
     
     col.appendChild(paraToAdd);
     col.appendChild(videoElemToAdd);

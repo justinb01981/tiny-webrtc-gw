@@ -5,14 +5,20 @@
 
 <body onLoad="broadcastOnLoad()">
 <div id="mainDiv">
-    <table border=1 id="mainDivTable">
+    <table id="mainDivTable">
         <tr style='height:5%;'>
-            <th colspan=2>gitHub:<a href='https://github.com/justinb01981/tiny-webrtc-gw/wiki'>https://github.com/justinb01981/tiny-webrtc-gw/wiki</a></th>
+            <th colspan=2>gitHub:<a href='https://github.com/justinb01981/tiny-webrtc-gw'>https://github.com/justinb01981/tiny-webrtc-gw</a></th>
         </tr>
 
         <tr id='rowChat' style='height:5%'>
-            <td colspan=2 align='center'>
-                username:<textarea rows=1 cols=16 id='userName'>user123</textarea>
+            <td align='center'>
+                video/audio sources:<br>
+                <select id='selectCamInput'></select>
+                <select id='selectMicInput'></select>
+            </td>
+            <td align='center'>
+                username:<br>
+                <textarea rows=1 cols=16 id='userName'>user123</textarea>
                 <button onclick='location="login.html"' id='login'>login</button>
                 <button onclick='logout();' id='logout'>logout</button>
            </td>
@@ -25,7 +31,7 @@
                 <input type='button' value='+' onClick='onAdvanced(this)' style='display:none;'>
                 </input>
             </td>
-            <td style='border-width:0px;' align='left'>
+            <td style='border-width:0px;'>
                 <iframe style='width:100%; height:50px; border-width:0px; -webkit-overflow-scrolling:touch; overflow:scroll;' name='connectIframe' src='connect_iframe.html' id='connect_iframe'>
                 </iframe>
 
@@ -41,18 +47,23 @@
             <th colspan=1>Meeting Room</th><th colspan=1>Chat</th>
         </tr>
         <tr style="height:80%;">
-            <td id="thPresenter" align="center">
+            <td id="thPresenter">
                 <div id="localPreviewDiv">
-                    <p class="videoLabel">Me:</p>
+                    <p class="videoLabel">me</p>
                     <video class="videoLocal" id="localVideo" muted autoplay muted loop playsinline controls="true" ></video>
                 </div>
+            </td>
+
+            <td rowspan=2 align="center">
+                <iframe name='chatFrame' src='chat.html' style='width:100%; height:480px; -webkit-overflow-scrolling:touch;'>
+                </iframe>
+            </td>
+        </tr>
+        <tr>
+             <td>
                 <table id="videoMainContainer" class="table">
                     <!-- new video elements will appear here (see popup.js) -->
                 </table>
-            </td>
-            <td>
-                <iframe name='chatFrame' src='chat.html' style='width:100%; height:300px; -webkit-overflow-scrolling:touch;'>
-                </iframe>
             </td>
         </tr>
     </table>
@@ -141,6 +152,8 @@ function onLoadDone() {
         urlArgRoom = '%$URLARGUMENTSROOM$%';
         connectIframe.location = connectIframe.location;
     }
+
+    enumerateMedia();
 }
 
 function getConnectIframe() {
@@ -164,6 +177,13 @@ function onAdvanced(button) {
     }
 }
 
+function getSelectAudioDevice() {
+    return document.getElementById('selectMicInput');
+}
+
+function getSelectVideoDevice() {
+    return document.getElementById('selectCamInput');
+}
 // don't add things here, do that in broadcast.js
 </script>
 

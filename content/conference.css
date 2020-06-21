@@ -1,5 +1,6 @@
 body {
     background-color: white;
+    color:green;
 }
 
 h1 {
@@ -17,39 +18,42 @@ td {
 
 tr {
     overflow:hidden;
+    height:240;
 }
 
 table {
     margin:0;
     padding:0;
+    border:1;
     border-collapse: collapse;
     display:inline-block;
     overflow:hidden;
     table-layout:fixed;
-    border:1px solid black;
+    background-color:black;
+    border-color:white;
 }
 
 video {
-    width:320;
     height:240;
     controls:true;
-    background-color:transparent;
 }
 
 video.videoMain {
-    width:320;
     height:240;
     z-index:-1;
-    background-color:transparent;
 }
 
 p.videoLabel {
     z-index:1;
     position:relative;
-    top:40px;
-    background-color:white;
+    top:20px;
+    background-color:black;
     color:green;
     width:100px;
+}
+
+p {
+    color:green;
 }
 
 button.playButton {

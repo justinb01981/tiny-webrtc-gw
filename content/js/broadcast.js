@@ -93,6 +93,26 @@ function vidChildInit() {
     vidChildY = mainDivY + mainDivH;
 }
 
+function enumerateMedia() {
+    navigator.mediaDevices.enumerateDevices().then(
+        function(sourceInfos) {
+            for(var i = 0; i < sourceInfos.length; i++) {
+                console.log('mediaDevices('+sourceInfos[i].kind+')['+i+']: ' + sourceInfos[i].label);
+
+                var opt = document.createElement('option');
+                opt.text = sourceInfos[i].label;
+                opt.value = i;
+
+                if(sourceInfos[i].kind == 'audio' || sourceInfos[i].kind == 'audioinput') {
+                    document.getElementById('selectMicInput').add(opt);
+                }
+                else if(sourceInfos[i].kind == 'video' || sourceInfos[i].kind == 'videoinput') {
+                    document.getElementById('selectCamInput').add(opt);
+                }
+            }
+        });
+}
+
 function getMedia() {
     getMediaPromise = new Promise(function(resolve, reject) {
 
@@ -103,8 +123,14 @@ function getMedia() {
 
     navigator.mediaDevices.enumerateDevices().then(
         function(sourceInfos) {
-            var ai = 0;
-            var vi = 0;
+            var ai = getSelectAudioDevice().options[getSelectAudioDevice().selectedIndex].value;
+            var vi = getSelectVideoDevice().options[getSelectVideoDevice().selectedIndex].value;
+
+            getSelectAudioDevice().disabled = true;
+            getSelectVideoDevice().disabled = true;
+
+            console.debug('ai='+ai+'vi='+vi);
+/*
             for(var i = 0; i < sourceInfos.length; i++) {
                 console.log('mediaDevices('+sourceInfos[i].kind+')['+i+']: ' + sourceInfos[i].label);
                 if(sourceInfos[i].kind == 'audio' || sourceInfos[i].kind == 'audioinput') {
@@ -122,13 +148,18 @@ function getMedia() {
                     vi++;
                 }
             }
-
+*/
+            audioSource = sourceInfos[ai].deviceId;
+            audioSourceLabel = sourceInfos[ai].label;
+            videoSource = sourceInfos[vi].deviceId;
+            videoSourceLabel = sourceInfos[vi].label;           
+            
             var constraints = {
                 audio: {
-                    optional: [{sourceId: audioSource}]
+                    deviceId: audioSource
                 },
                 video: {
-                    sourceId: {videoSource},
+                    deviceId: videoSource,
                     width: { min: 640, ideal: 1920 },
                     height: { min: 480, ideal: 1080 } 
                 }
