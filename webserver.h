@@ -977,9 +977,9 @@ webserver_worker(void* p)
                         strcpy(peers[sidx].name, str_read_unsafe(sdp, "a=myname=", 0));
                         strcpy(peers[sidx].roomname, str_read_unsafe(sdp, "a=room=", 0));
 
+                        peers[sidx].alive = 1;
                         peers[sidx].restart_needed = 0;                       
 
-                        peers[sidx].alive = 1;
 
                         printf("peer restarted (stun_ice.user-name answer/offer: %s:%s)\n", peers[sidx].stun_ice.ufrag_answer, peers[sidx].stun_ice.ufrag_offer);
                         free(sdp);
