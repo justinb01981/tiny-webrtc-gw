@@ -599,14 +599,15 @@ connection_worker(void* p)
         peer->subscriptionID = peer->id;
     }
 
-    /*
-    snprintf(str256, sizeof(str256)-1,
-        "\"%s\" joined \"%s\" %s\n",
-        peer->name,
-        peer->roomname,
-        peer->send_only ? "(broadcasting)" : "(watching)");
-    chatlog_append(str256);
-    */
+    if(peer->send_only)
+    {
+        snprintf(str256, sizeof(str256)-1,
+            "\"%s\" joined \"%s\" %s\n",
+            peer->name,
+            peer->roomname,
+            peer->send_only ? "(broadcasting)" : "(watching)");
+        chatlog_append(str256);
+    }
 
     for(incoming = 1; incoming >= 0; incoming--)
     for(si = 0; si < MAX_PEERS; si++)
@@ -1702,10 +1703,8 @@ int main( int argc, char* argv[] ) {
 
                 printf("%s:%d reclaim peer DONE (alive=%d)\n", __func__, __LINE__, peers[i].alive);
                 
-                /*
                 sprintf(strbuf, "(peer[%d]) has left\n(timed out)\n", i);
                 chatlog_append(strbuf);
-                */
                 
                 break;
             }
