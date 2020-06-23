@@ -35,3 +35,8 @@ git submodule init ws && git submodule update ws
 
 from the base directory just run 'make all'.
 
+You will need to edit at least one line in config.txt so the built-in STUN server
+knows its own IP address (relative to the clients connecting, if you're using NAT).
+Go to whatismyipaddress.com and replace the udpserver_addr=x.x.x.x line with
+your own IP address.
+

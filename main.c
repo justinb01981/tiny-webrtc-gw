@@ -1261,11 +1261,13 @@ int main( int argc, char* argv[] ) {
     
     sdp_offer_table.next = 0;
 
-    //strcpy(udpserver.inip, get_config("udpserver_addr="));
     strcpy(udpserver.inip, "0.0.0.0"); // for now bind to all interfaces
     udpserver.inport = strToULong(get_config("udpserver_port="));
     udpserver.sock_buffer_size = strToULong(get_config("udpserver_sock_buffer_size="));
     block_srtp_recv_report = strToULong(get_config("block_srtp_recv_report"));
+
+    strcpy(strbuf, get_config("udpserver_addr="));
+    printf("advertising STUN server at IP %s:%u (verify this is really your IP address!)\n", strbuf, udpserver.inport);
 
     strcpy(webserver.inip, udpserver.inip);
      
