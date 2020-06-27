@@ -431,7 +431,7 @@ const char* sdp_offer_create(peer_session_t* peer)
     "\"a=rtcp-fb:127 ccm fir\\n\" + \n"
     "\"a=rtcp-fb:127 nack\\n\" + \n"
     "\"a=rtcp-fb:127 nack pli\\n\" + \n"
-    "\"a=fmtp:127 profile-id=0\\n\" + \n"
+    "\"a=fmtp:127 profile-id=3\\n\" + \n"
     "\"a=ice-pwd:230r89wef32jsdsjJlkj23rndasf23rlknas\\n\" + \n"
     "\"a=ice-ufrag:%s\\n\" + \n"
     "\"a=mid:sdparta_1\\n\" + \n"
@@ -493,7 +493,7 @@ const char* sdp_offer_create(peer_session_t* peer)
     "a=rtcp-fb:127 ccm fir\n"
     "a=rtcp-fb:127 nack\n"
     "a=rtcp-fb:127 nack pli\n"
-    "a=fmtp:127 profile-id=0\n"
+    "a=fmtp:127 profile-id=3\n"
     "a=setup:actpass\n"
     "a=ssrc:%d cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\n";
     

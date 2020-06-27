@@ -55,13 +55,13 @@
 
 #define CONNECTION_DELAY_MS 2000
 
-#define RTP_PICT_LOSS_INDICATOR_INTERVAL 10
+#define RTP_PICT_LOSS_INDICATOR_INTERVAL 30
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
-#define SELECT_INTERVAL_USEC (100000)
-#define PEER_CLEANUP_INTERVAL (2)
-#define PEER_SLEEP_INTERVAL_MAX (640000)
+#define SELECT_INTERVAL_USEC (10000)
+#define PEER_CLEANUP_INTERVAL (6)
+#define PEER_SLEEP_INTERVAL_MAX (6400)
 
 #define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY (0)
 
@@ -700,7 +700,7 @@ connection_worker(void* p)
 
         peer->stats.stat[2] += 1;
         
-        sleep_counter = sleep_counter / 10;
+        sleep_counter = sleep_counter-1;
 
         char *buffer = buffer_next->buf;
         char buffer_last[PEER_BUFFER_NODE_BUFLEN];
