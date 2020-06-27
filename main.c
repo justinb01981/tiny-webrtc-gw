@@ -76,8 +76,8 @@ void chatlog_append(const char* msg);
 int listen_port = 0;
 
 char* counts_names[] = {"in_STUN", "in_SRTP", "in_UNK", "DROP", "BYTES_FWD", "", "USER_ID", "master", "rtp_underrun", "rtp_ok", "unknown_srtp_ssrc", "srtp_unprotect_fail", "buf_reclaimed_pkt", "buf_reclaimed_rtp", "snd_rpt_fix", "rcv_rpt_fix", "subscription_resume", "recv_timeout"};
-char* peer_stat_names[] = {"stun-RTTmsec", "uptimesec", "#subscribeforwarded", "#worker_underrun", "#subscribe_buffer_search", "#cleanup", "#subscribe_buffer_resume", "srtpreceived"};
-int counts[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+char* peer_stat_names[] = {"stun-RTTmsec", "uptimesec", "#subscribeforwarded", "#worker_underrun", "#subscribe_buffer_search", "#cleanup", "#subscribe_buffer_resume", "srtpreceived", "rtpcodec"};
+int counts[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 char counts_log[255] = {0};
 int stun_binding_response_count = 0;
 
@@ -1075,6 +1075,8 @@ connection_worker(void* p)
                     peer_buffer_node_t* cur = NULL;
 
                     peer->srtp[rtp_idx].ts_last_unprotect = ntohl(rtpFrame->hdr.timestamp);
+
+                    peer->stats.stat[8] = rtpFrame->hdr.payload_type;
 
                     if(peer->rtp_timestamp_initial[rtp_idx] == 0)
                     {

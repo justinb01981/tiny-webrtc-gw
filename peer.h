@@ -187,7 +187,7 @@ typedef struct
     unsigned long in_rate_ms;
 
     struct {
-        unsigned long stat[8];
+        unsigned long stat[9];
     } stats;
 
     char name[64];
@@ -419,12 +419,19 @@ const char* sdp_offer_create(peer_session_t* peer)
     "\"a=rtpmap:8 PCMA/8000\\n\" + \n"
     "\"a=setup:actpass\\n\" + \n"
     "\"a=ssrc:%d cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\\n\" + \n"
-    "\"m=video 9 RTP/SAVPF 120 126 97\\n\" + \n"
+    "\"m=video 9 RTP/SAVPF 127 120 126 97\\n\" + \n"
     "\"c=IN IP4 0.0.0.0\\n\" + \n"
     "\"a=sendrecv\\n\" + \n"
-    "\"a=fmtp:120 max-fs=450;max-fr=60\\n\" + \n"
+    "\"a=fmtp:120 max-fr=60; max-fs=14400;\\n\" + \n"
     "\"a=fmtp:126 profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1\\n\" + \n"
     "\"a=fmtp:97 profile-level-id=42e01f;level-asymmetry-allowed=1\\n\" + \n"
+    "\"a=rtpmap:127 VP9/90000\\n\" + \n"
+    "\"a=rtcp-fb:127 goog-remb\\n\" + \n"
+    "\"a=rtcp-fb:127 transport-cc\\n\" + \n"
+    "\"a=rtcp-fb:127 ccm fir\\n\" + \n"
+    "\"a=rtcp-fb:127 nack\\n\" + \n"
+    "\"a=rtcp-fb:127 nack pli\\n\" + \n"
+    "\"a=fmtp:127 profile-id=0\\n\" + \n"
     "\"a=ice-pwd:230r89wef32jsdsjJlkj23rndasf23rlknas\\n\" + \n"
     "\"a=ice-ufrag:%s\\n\" + \n"
     "\"a=mid:sdparta_1\\n\" + \n"
@@ -463,10 +470,10 @@ const char* sdp_offer_create(peer_session_t* peer)
     "a=rtpmap:8 PCMA/8000\n"
     "a=setup:actpass\n"
     "a=ssrc:%d cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\n"
-    "m=video 9 RTP/SAVPF 120 126 97\n"
+    "m=video 9 RTP/SAVPF 127 120 126 97\n"
     "c=IN IP4 0.0.0.0\n"
     "a=sendrecv\n"
-    "a=fmtp:120 max-fs=450;max-fr=60\n"
+    "a=fmtp:120 max-fr=60; max-fs=14400;\n"
     "a=fmtp:126 profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1\n"
     "a=fmtp:97 profile-level-id=42e01f;level-asymmetry-allowed=1\n"
     "a=ice-pwd:230r89wef32jsdsjJlkj23rndasf23rlknas\n"
@@ -480,6 +487,13 @@ const char* sdp_offer_create(peer_session_t* peer)
     "a=rtpmap:120 VP8/90000\n"
     "a=rtpmap:126 H264/90000\n"
     "a=rtpmap:97 H264/90000\n"
+    "a=rtpmap:127 VP9/90000\n"
+    "a=rtcp-fb:127 goog-remb\n"
+    "a=rtcp-fb:127 transport-cc\n"
+    "a=rtcp-fb:127 ccm fir\n"
+    "a=rtcp-fb:127 nack\n"
+    "a=rtcp-fb:127 nack pli\n"
+    "a=fmtp:127 profile-id=0\n"
     "a=setup:actpass\n"
     "a=ssrc:%d cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\n";
     
