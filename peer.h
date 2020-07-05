@@ -12,12 +12,21 @@
 //#define PEER_RTP_SEQ_MIN_RECLAIMABLE 128
 #define PEER_RTP_SEQ_MIN_RECLAIMABLE 0
 
-#define PEER_LOCK(x) pthread_mutex_lock(&peers[(x)].mutex)
-#define PEER_UNLOCK(x) pthread_mutex_unlock(&peers[(x)].mutex)
+#define VP9PROFILEID "0"
+
+typedef enum {
+  LOCK_UNHELD,
+  LOCK_WORKER_HELD,
+  LOCK_MAIN_HELD
+} peer_lock_state_t;
+
+#define PEER_LOCK(x) if(peers[(x)].worker_lock_st != LOCK_MAIN_HELD){ pthread_mutex_lock(&peers[(x)].mutex); peers[(x)].worker_lock_st = LOCK_MAIN_HELD; }
+#define PEER_UNLOCK(x) if(peers[(x)].worker_lock_st == LOCK_MAIN_HELD) { peers[(x)].worker_lock_st = LOCK_UNHELD; pthread_mutex_unlock(&peers[(x)].mutex); }
+
 #define PEER_SIGNAL(x) pthread_cond_signal(&peers[(x)].mcond)
 
-#define PEER_THREAD_LOCK(x) pthread_mutex_lock(&((x)->mutex))
-#define PEER_THREAD_UNLOCK(x) pthread_mutex_unlock(&((x)->mutex))
+#define PEER_THREAD_LOCK(x) { pthread_mutex_lock(&((x)->mutex)); (x)->worker_lock_st = LOCK_WORKER_HELD; }
+#define PEER_THREAD_UNLOCK(x) { (x)->worker_lock_st = LOCK_UNHELD; pthread_mutex_unlock(&((x)->mutex)); }
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&((x)->mcond), &((x->mutex)))
 #define PEER_BUFFER_NODE_BUFLEN 2048
 #define OFFER_SDP_SIZE 4096
@@ -102,7 +111,8 @@ typedef struct
         srtp_ctx_t ctx;
         srtp_t session;
         char keybuf[64];
-        unsigned long ssrc;
+        u32 ssrc_offer;
+        u32 ssrc_answer;
         int idx_write;
         int offset_subscription;
         unsigned long timestamp_subscription;
@@ -154,8 +164,12 @@ typedef struct
 
     peer_buffer_node_t in_buffers_head;
     peer_buffer_node_t rtp_buffers_head[PEER_RTP_CTX_COUNT];
-    peer_buffer_node_t *rtp_buffers_tailcache[PEER_RTP_CTX_COUNT];
+    peer_buffer_node_t out_buffers_head;
+
     unsigned int rtp_buffered_total;
+    unsigned long buffer_count;
+    unsigned long out_buffer_next;
+    unsigned long in_buffer_next;
     u32 rtp_timestamp_initial[PEER_RTP_CTX_COUNT];
     u16 rtp_seq_initial[PEER_RTP_CTX_COUNT];
 
@@ -179,12 +193,10 @@ typedef struct
     int srtp_inited;
 
     volatile int cleanup_in_progress;
-    volatile int thread_paused;
 
     int id;
 
     unsigned long time_last_run;
-    unsigned long in_rate_ms;
 
     struct {
         unsigned long stat[9];
@@ -211,6 +223,8 @@ typedef struct
 
     int restart_needed;
     int restart_done;
+    int underrun_signal;
+    peer_lock_state_t worker_lock_st;
 
 } peer_session_t;
 
@@ -244,14 +258,45 @@ int peer_cookie_init(peer_session_t* peer, const char* cookie)
     return 0;
 }
 
+peer_buffer_node_t*
+buffer_node_alloc()
+{
+    peer_buffer_node_t* n = (peer_buffer_node_t*) malloc(sizeof(peer_buffer_node_t)+PEER_BUFFER_NODE_BUFLEN+64);
+    if(n)
+    {
+        memset(n, 0, sizeof(*n));
+    }
+    else assert(0, "alloc failure\n");
+    return n;
+}
+
+
 void peer_buffers_init(peer_session_t* peer)
 {
     int i;
+    unsigned int buffer_count = 256;
     
     for(i = 0; i < PEER_RTP_CTX_COUNT; i++) {
         peer_buffer_node_list_init(&peer->rtp_buffers_head[i]);
     }
     peer_buffer_node_list_init(&peer->in_buffers_head);
+    peer_buffer_node_list_init(&peer->out_buffers_head);
+
+    peer->buffer_count = buffer_count;
+    while(buffer_count > 0)
+    {
+        peer_buffer_node_list_add(&peer->out_buffers_head, buffer_node_alloc());
+
+        peer_buffer_node_list_add(&peer->in_buffers_head, buffer_node_alloc());
+
+        buffer_count -= 1;
+    }
+}
+
+void peer_buffers_uninit(peer_session_t* peer)
+{
+    peer_buffer_node_list_free_all(&peer->in_buffers_head);
+    peer_buffer_node_list_free_all(&peer->out_buffers_head);
 }
 
 void peer_init(peer_session_t* peer, int id)
@@ -264,8 +309,6 @@ void peer_init(peer_session_t* peer, int id)
 
     peer->time_start = time(NULL);
     
-    peer_buffers_init(peer);
-
     peer_cookie_init(peer, "");
 
     sprintf(peer->http.dynamic_js, "%s", PEER_DYNAMIC_JS_EMPTY);
@@ -291,18 +334,6 @@ peer_subscription(peer_session_t* peers, int id, int stream_id, peer_buffer_node
     else *pos = (*pos)->next;
 
     return (*pos);
-}
-
-peer_buffer_node_t*
-buffer_node_alloc()
-{
-    peer_buffer_node_t* n = (peer_buffer_node_t*) malloc(sizeof(peer_buffer_node_t)+PEER_BUFFER_NODE_BUFLEN+64);
-    if(n)
-    {
-        memset(n, 0, sizeof(*n)/*+PEER_BUFFER_NODE_BUFLEN*/);
-    }
-    else assert(0, "alloc failure\n");
-    return n;
 }
 
 void
@@ -383,6 +414,11 @@ int peer_rtp_buffer_reclaimable(peer_session_t* peer, int rtp_idx) {
     return 1;
 }
 
+u32 peer_offer_ssrc(unsigned int idx_peer, unsigned int sdp_idx)
+{
+    
+}
+
 int peer_stun_init(peer_session_t* peer)
 {
     peer->stun_ice.controller = peer->stun_ice.bound = 0;
@@ -431,7 +467,7 @@ const char* sdp_offer_create(peer_session_t* peer)
     "\"a=rtcp-fb:127 ccm fir\\n\" + \n"
     "\"a=rtcp-fb:127 nack\\n\" + \n"
     "\"a=rtcp-fb:127 nack pli\\n\" + \n"
-    "\"a=fmtp:127 profile-id=3\\n\" + \n"
+    "\"a=fmtp:127 profile-id="VP9PROFILEID"\\n\" + \n"
     "\"a=ice-pwd:230r89wef32jsdsjJlkj23rndasf23rlknas\\n\" + \n"
     "\"a=ice-ufrag:%s\\n\" + \n"
     "\"a=mid:sdparta_1\\n\" + \n"
@@ -493,7 +529,7 @@ const char* sdp_offer_create(peer_session_t* peer)
     "a=rtcp-fb:127 ccm fir\n"
     "a=rtcp-fb:127 nack\n"
     "a=rtcp-fb:127 nack pli\n"
-    "a=fmtp:127 profile-id=3\n"
+    "a=fmtp:127 profile-id="VP9PROFILEID"\n"
     "a=setup:actpass\n"
     "a=ssrc:%d cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\n";
     
@@ -516,7 +552,12 @@ const char* sdp_offer_create(peer_session_t* peer)
             sdp_offer_table.t[sdp_offer_table.next % MAX_PEERS].iceufrag,
             ssrc2);
     
-    if(peer) strcpy(peer->stun_ice.ufrag_offer, sdp_offer_table.t[sdp_offer_table.next % MAX_PEERS].iceufrag);
+    if(peer)
+    {
+        strcpy(peer->stun_ice.ufrag_offer, sdp_offer_table.t[sdp_offer_table.next % MAX_PEERS].iceufrag);
+        peer->srtp[0].ssrc_offer = ssrc1;
+        peer->srtp[1].ssrc_offer = ssrc2;
+    }
     
     sdp_offer_table.next++;
     
