@@ -54,7 +54,7 @@
 
 #define CONNECTION_DELAY_MS 2000
 
-#define RTP_PICT_LOSS_INDICATOR_INTERVAL 30
+#define RTP_PICT_LOSS_INDICATOR_INTERVAL 10
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
@@ -944,6 +944,7 @@ connection_worker(void* p)
                     int i, p, reportsize, stat_idx = is_sender_report ? 14 : 15;
                     rtp_report_receiver_block_t *repblocks;
                     int nrep = report->hdr.ver & 0x1F;
+                    unsigned long send_ts_delta =  ntohl(sendreport->timestamp_rtp) - peer->rtp_timestamp_initial[rtp_idx];
 
                     counts[stat_idx]++;
 
@@ -1032,7 +1033,9 @@ connection_worker(void* p)
                                 }
                                 peer->out_buffer_next++;
 
-                                outbuf->timestamp = time_ms;
+                                unsigned long clock_delta = time_ms - peer->clock_timestamp_ms_initial[rtp_idx];
+                                if(!clock_delta) clock_delta = 1;
+                                outbuf->timestamp = time_ms + (send_ts_delta / (clock_delta));
                                 memcpy(outbuf->buf, reportPeer, protect_len);
                                 outbuf->id = p;
                                 outbuf->len = protect_len;
@@ -1065,9 +1068,9 @@ connection_worker(void* p)
                 else
                 {
                     peer_buffer_node_t* cur = NULL;
-                    unsigned long ts_delta = buffer_next->timestamp - peer->srtp[rtp_idx].ts_last;
+                    unsigned long ts_delta = timestamp_in - peer->rtp_timestamp_initial[rtp_idx];
                     peer->srtp[rtp_idx].ts_last_unprotect = ntohl(rtpFrame->hdr.timestamp);
-                    peer->srtp[rtp_idx].ts_last = buffer_next->timestamp;
+                    peer->srtp[rtp_idx].ts_last = timestamp_in;
                     peer->srtp[rtp_idx].recv_time_avg = (peer->srtp[rtp_idx].recv_time_avg + ts_delta) / 2;
 
                     //printf("ts_last delta %lu (stream:%d) (average:%lu)\n", ts_delta, rtp_idx, peer->srtp[rtp_idx].recv_time_avg);
@@ -1078,9 +1081,7 @@ connection_worker(void* p)
                     {
                         peer->rtp_timestamp_initial[rtp_idx] = ntohl(rtpFrame->hdr.timestamp);
                         peer->rtp_seq_initial[rtp_idx] = ntohs(rtpFrame->hdr.sequence);
-
-                        /* HACK: to make timestamp-delta calc work */
-                        peer->rtp_buffers_head[rtp_idx].timestamp = timestamp_in;
+                        peer->clock_timestamp_ms_initial[rtp_idx] = get_time_ms();
                     }
 
                     int p, lengthPeer;
@@ -1114,7 +1115,9 @@ connection_worker(void* p)
                                 }
                                 peer->out_buffer_next++;
 
-                                outbuf->timestamp = time_ms + ts_delta;
+                                unsigned long clock_ts_delta = time_ms - peer->clock_timestamp_ms_initial[rtp_idx];
+                                if(!clock_ts_delta) clock_ts_delta = ts_delta;
+                                outbuf->timestamp = time_ms + (ts_delta / (clock_ts_delta));
                                 memcpy(outbuf->buf, rtp_frame_out, lengthPeer);
                                 outbuf->id = p;
                                 outbuf->len = lengthPeer;

@@ -171,6 +171,7 @@ typedef struct
     unsigned long out_buffer_next;
     unsigned long in_buffer_next;
     u32 rtp_timestamp_initial[PEER_RTP_CTX_COUNT];
+    unsigned long clock_timestamp_ms_initial[PEER_RTP_CTX_COUNT];
     u16 rtp_seq_initial[PEER_RTP_CTX_COUNT];
 
     int sock;
