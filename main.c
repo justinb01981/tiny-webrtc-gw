@@ -58,11 +58,8 @@
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
-#define SELECT_INTERVAL_USEC (1000)
+#define SELECT_INTERVAL_USEC (100)
 //#define PEER_CLEANUP_INTERVAL (1)
-#define PEER_SLEEP_INTERVAL_MAX (6400)
-
-#define PEER_WORKER_UNDERRUN_SCHEDULE_PENALTY (0)
 
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS+1];
@@ -651,7 +648,7 @@ connection_worker(void* p)
     // schedule full-frame-refresh 10 seconds from now (for the peer we're subscribing to)
     // TODO:ideally the client will send this, and we'll pass it along to the sender, assuming
     // we are honoring send/receive reports...
-    peers[peer->subscriptionID].srtp[0].pli_last = (wall_time - RTP_PICT_LOSS_INDICATOR_INTERVAL)+10;
+    peers[peer->subscriptionID].srtp[0].pli_last = (wall_time - RTP_PICT_LOSS_INDICATOR_INTERVAL/2);
     peers[peer->subscriptionID].srtp[1].pli_last = peers[peer->subscriptionID].srtp[0].pli_last;
 
     peer->running = 1;
@@ -1075,7 +1072,7 @@ connection_worker(void* p)
 
                     //printf("ts_last delta %lu (stream:%d) (average:%lu)\n", ts_delta, rtp_idx, peer->srtp[rtp_idx].recv_time_avg);
 
-                    peer->stats.stat[8] = rtpFrame->hdr.payload_type;
+                    peer->stats.stat[8] = rtpFrame->hdr.payload_type & 0x7f;
 
                     if(peer->rtp_timestamp_initial[rtp_idx] == 0)
                     {
@@ -1257,7 +1254,7 @@ connection_paced_streamer(void* p)
             cur = cur->next;
         }
 
-        sleep_msec(1);
+        sleep_msec(5);
     }
 }
 
@@ -1611,65 +1608,6 @@ int main( int argc, char* argv[] ) {
                 peers[i].bufs.out_len = 0;
             }
 
-#if 0
-            if(wall_time - peers[i].time_cleanup_last >= PEER_CLEANUP_INTERVAL && peers[i].alive)
-            {
-                peers[i].stats.stat[5] += 1;
-
-                // HACK: lock out all reader-threads
-                peers[i].cleanup_in_progress = 1;
-                PEER_UNLOCK(i);
-                PEER_LOCK(i);
-
-                peers[i].time_cleanup_last = wall_time;
-
-                while(1)
-                {
-                    peer_buffer_node_t *curfree = peers[i].in_buffers_head.next;
-                    if(!curfree || !curfree->consumed) break;
- 
-                    peer_buffer_node_list_remove(&peers[i].in_buffers_head, curfree);
-                    free(curfree);
-                }
-
-
-                /*
-                int rtp_idx;
-                for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_COUNT; rtp_idx++)
-                {
-                    peer_buffer_node_t* head = &(peers[i].rtp_buffers_head[rtp_idx]);
-
-                    peer_buffer_node_t* cur = head->next;
-                    while(cur)
-                    {
-                        int p;
-
-                        for(p = 0; p < MAX_PEERS; p++)
-                        {
-                            if(peers[p].subscription_ptr[rtp_idx] == cur) { cur = NULL; break; }
-                        }
-
-                        if(!cur) break;
-
-                        peer_buffer_node_t* next = cur->next;
-
-                        if(cur->reclaimable)
-                        {
-                            peer_buffer_node_list_remove(head, cur);
-                            free(cur);
-                            counts[13]++;
-                        }
-                        cur = next;
-                    }
-                }
-                */
-
-                // done cleaning up this peer
-                peers[i].cleanup_in_progress = 0;
-                PEER_UNLOCK(i);
-            }
-#endif
-
             // check whether to remove this peer
             if(peers[i].restart_needed ||
                (peers[i].alive &&
@@ -1752,6 +1690,8 @@ int main( int argc, char* argv[] ) {
                 memset(&peers[i].addr, 0, sizeof(peers[i].addr));
                 memset(&peers[i].addr_listen, 0, sizeof(peers[i].addr_listen));
 
+                if(strlen(peers[i].name) > 0) sprintf(strbuf, "(%s) has left\n", peers[i].name);
+
                 peers[i].name[0] = '\0';
                 peers[i].cleanup_in_progress = 0;
                 peers[i].subscribed = 0;
@@ -1762,7 +1702,6 @@ int main( int argc, char* argv[] ) {
 
                 printf("%s:%d reclaim peer DONE (alive=%d)\n", __func__, __LINE__, peers[i].alive);
                 
-                sprintf(strbuf, "(peer[%d]) has left\n(timed out)\n", i);
                 chatlog_append(strbuf);
                 
                 break;
