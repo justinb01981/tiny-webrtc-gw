@@ -1310,6 +1310,11 @@ int main( int argc, char* argv[] ) {
     udpserver.sock_buffer_size = strToULong(get_config("udpserver_sock_buffer_size="));
     block_srtp_recv_report = strToULong(get_config("block_srtp_recv_report"));
 
+    if(strlen(get_config("udpserver_addr=")) <= 0)
+    {
+        printf("udpsever_addr unconfigured (edit config.txt with this servers public IP address and port!)\n");
+        exit(1);
+    }
     strcpy(strbuf, get_config("udpserver_addr="));
     printf("advertising STUN server at IP %s:%u (verify this is really your IP address!)\n", strbuf, udpserver.inport);
 
