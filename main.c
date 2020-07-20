@@ -96,6 +96,12 @@ struct {
     unsigned int sock_buffer_size;
 } udpserver;
 
+typedef struct {
+    peer_session_t* peer;
+    int rtp_idx;
+} peer_rtp_send_worker_args_t;
+
+
 int bindsocket( char* ip, int port , int tcp);
 int main( int argc, char* argv[] );
 
@@ -251,156 +257,6 @@ void peer_send_block(peer_session_t* peer, char* buf, int len)
 {
     int r = sendto(peer->sock, buf, len, 0, (struct sockaddr*)&(peer->addr), sizeof(peer->addr));
 }
-
-
-
-typedef struct {
-    peer_session_t* peer;
-    int rtp_idx;
-} peer_rtp_send_worker_args_t;
-
-const unsigned int peer_rtp_send_worker_delay_max = 50;
-
-#if 0
-void *
-peer_rtp_send_worker(void* p)
-{
-    peer_rtp_send_worker_args_t* args = (peer_rtp_send_worker_args_t*) p;
-    peer_session_t* peer = args->peer;
-    int rtp_idx;
-    u32 offer_ssrc[2];
-
-    thread_init();
-
-    /* wait for file to be created */
-    sleep_msec(CONNECTION_DELAY_MS + 1000);
-
-    if(get_offer_sdp_idx("a=ssrc:", 0) == NULL)
-    {
-        printf("%s:%d failed reading offer SSRC\n", __func__, __LINE__);
-        return NULL;
-    }
-
-    offer_ssrc[0] = strToInt(get_offer_sdp_idx("a=ssrc:", 0));
-    offer_ssrc[1] = strToInt(get_offer_sdp_idx2("a=ssrc:", 0, "m=video"));
-
-    const unsigned int delay_ms_min = 1, delay_ms_max = peer_rtp_send_worker_delay_max;
-    unsigned int delay_ms = 1;
-
-    u32 ts_start = 0, ts_last = 0;
-    float ts_m = 0;
-    u32 ts_start_time = 0;
-    u32 ts_delta_min = 10;
-    u32 ts_counter = 0;
-    int peer_send_rewrite_seq = 0, peer_send_rewrite_ts = 0;
-
-    rtp_idx = args->rtp_idx;
-    while(peer->alive && !peer->srtp_inited)
-    {
-        sleep_msec(10);
-    }
-
-    printf("%s:%d (peer rtp_worker %d started)\n", __func__, __LINE__, rtp_idx);
-
-    peer->srtp[rtp_idx].seq_counter = peers[peer->subscriptionID].rtp_seq_initial[rtp_idx];
-
-    int need_ffwd = 0;
-    while(peer->alive)
-    {
-        while(peer->alive && (peer->cleanup_in_progress || peer_cleanup_in_progress(peers, peer->subscriptionID)))
-        {
-            sleep_msec(10);
-        }
-        if(!peer->alive) break;
-
-        /* wait for subscription to come back online */
-        if(peer->subscription_reset[rtp_idx])
-        {
-            if(peers[peer->subscriptionID].rtp_buffers_head[rtp_idx].next != NULL)
-            {
-                peer->subscription_ptr[rtp_idx] = peers[peer->subscriptionID].rtp_buffers_head[rtp_idx].next;
-                peer->subscription_reset[rtp_idx] = 0;
-            }
-            sleep_msec(10);
-            continue;
-        }
-
-        /* perform FFWD */
-        if(need_ffwd)
-        {
-            peer->subscription_reset[rtp_idx] = 0;
-            peer_buffer_node_t* cur = &peers[peer->subscriptionID].rtp_buffers_head[rtp_idx];
-            while(cur->next) cur = cur->next;
-            peer->subscription_ptr[rtp_idx] = cur;
-            need_ffwd = 0;
-        }
-
-        for(rtp_idx = args->rtp_idx; rtp_idx == args->rtp_idx; rtp_idx++)
-        {
-            int rtp_idx_write = rtp_idx + PEER_RTP_CTX_WRITE;
-
-            if(peer->srtp[rtp_idx].inited)
-            {
-                peer_buffer_node_t* cur;
-                char buf_send[PEER_BUFFER_NODE_BUFLEN];
-                u32 ts_initial = peer_subscription_ts_initial(peers, peer->subscriptionID, rtp_idx);
-                cur = peer_subscription(peers, peer->subscriptionID, rtp_idx, &(peer->subscription_ptr[rtp_idx]));
-
-                if(!cur)
-                {
-                    counts[8]++;
-                    if(delay_ms < delay_ms_max) delay_ms += 10;
-                    /* develop backlog */
-                    sleep_msec(100);
-                    break;
-                }
-                else if(delay_ms > delay_ms_min)
-                {
-                    delay_ms--;
-                }
-
-                counts[9]++;
-
-                rtp_frame_t* rtpframe_send = (rtp_frame_t*) buf_send;
-                /* TODO: crash seen here with cur=0x110 */
-                int srtp_len = cur->len;
-
-                /* TODO: crash seen in peer_rtp_send_worker() : memcpy */
-                memcpy(rtpframe_send, cur->buf, cur->len);
-                rtpframe_send->hdr.seq_src_id = htonl(offer_ssrc[rtp_idx]);
-
-                u32 time_delt = cur->recv_time - ts_start_time;
-                u32 ts_delt = ntohl(rtpframe_send->hdr.timestamp) - ts_start;
-                
-                if(/*ts_m > 0*/ 1)
-                {
-                    if(peer_send_rewrite_seq)
-                        rtpframe_send->hdr.sequence = htons(peer->srtp[rtp_idx].seq_counter);
-                    peer->srtp[rtp_idx].seq_counter++;
-
-                    ts_counter += cur->timestamp_delta;
-                    if(peer_send_rewrite_ts)
-                        rtpframe_send->hdr.timestamp = htonl(ts_initial + ts_counter);
-
-                    if(srtp_protect(peer->srtp[rtp_idx_write].session, rtpframe_send, &srtp_len) == srtp_err_status_ok)
-                    {
-                        peer_send_block(peer, (char*) rtpframe_send, srtp_len);
-                    }
-                    else
-                    {
-                    }
-                }
-            }
-        }
-
-        sleep_msec(delay_ms);
-    }
-
-    free(args);
-
-    return NULL;
-}
-#endif /*0*/
 
 void
 connection_srtp_init(peer_session_t* peer, int rtp_idx, u32 ssid, u32 write_ssrc)
@@ -658,7 +514,7 @@ connection_worker(void* p)
     while(peer->alive)
     {
         unsigned int buffer_count;
-        unsigned long time_ms = get_time_ms();
+        unsigned long time_ms = get_time_ms(), time_ms_last = 0;
         
         time_t time_sec;
 
@@ -1022,13 +878,13 @@ connection_worker(void* p)
                             {  
                                 // queue for later send
                                 peer_buffer_node_t *outbuf = peer->out_buffers_head.next;
-                                unsigned long next = peer->out_buffer_next % peer->buffer_count;
-                                while(next > 0)
+                                while(outbuf && outbuf->len != 0) outbuf = outbuf->next;
+
+                                if(!outbuf)
                                 {
-                                    outbuf = outbuf->next;
-                                    next--;
+                                    printf("rtp send_queue overrun!\n");
+                                    continue;
                                 }
-                                peer->out_buffer_next++;
 
                                 unsigned long clock_delta = time_ms - peer->clock_timestamp_ms_initial[rtp_idx];
                                 if(!clock_delta) clock_delta = 1;
@@ -1090,32 +946,29 @@ connection_worker(void* p)
                            peers[p].srtp[rtp_idx].inited)
                         {
                             int rtp_idx_write = rtp_idx + PEER_RTP_CTX_WRITE;
-                            char buf[PEER_BUFFER_NODE_BUFLEN];
-                            rtp_frame_t *rtp_frame_out = (rtp_frame_t*) buf;
 
                             lengthPeer = srtp_len;
-                            if(lengthPeer > sizeof(buf)) continue;
 
+                            // queue for later send
+                            peer_buffer_node_t *outbuf = peer->out_buffers_head.next;
+                            while(outbuf && outbuf->len != 0) outbuf = outbuf->next;
+
+                            if(!outbuf)
+                            {
+                                printf("rtp send_queue overrun!\n");
+                                continue;
+                            }
+
+                            rtp_frame_t *rtp_frame_out = (rtp_frame_t*) outbuf->buf;
                             memcpy(rtp_frame_out, rtpFrame, lengthPeer);
 
                             rtp_frame_out->hdr.seq_src_id = htonl(peers[p].srtp[rtp_idx_write].ssrc_offer);
 
                             if(srtp_protect(peers[p].srtp[rtp_idx_write].session, rtp_frame_out, &lengthPeer) == srtp_err_status_ok)
                             {
-                                // queue for later send
-                                peer_buffer_node_t *outbuf = peer->out_buffers_head.next;
-                                unsigned long next = peer->out_buffer_next % peer->buffer_count;
-                                while(next > 0)
-                                {
-                                    outbuf = outbuf->next;
-                                    next--;
-                                }
-                                peer->out_buffer_next++;
-
                                 unsigned long clock_ts_delta = time_ms - peer->clock_timestamp_ms_initial[rtp_idx];
                                 if(!clock_ts_delta) clock_ts_delta = ts_delta;
                                 outbuf->timestamp = time_ms + (ts_delta / (clock_ts_delta));
-                                memcpy(outbuf->buf, rtp_frame_out, lengthPeer);
                                 outbuf->id = p;
                                 outbuf->len = lengthPeer;
 
@@ -1229,6 +1082,8 @@ connection_paced_streamer(void* p)
 
     while(peer->alive)
     {
+        PEER_SENDER_THREAD_LOCK(peer);
+
         unsigned long error_margin = 20;
         unsigned long time_ms = get_time_ms();
         unsigned long sent_count = 0;
@@ -1254,7 +1109,8 @@ connection_paced_streamer(void* p)
             cur = cur->next;
         }
 
-        sleep_msec(5);
+        PEER_SENDER_THREAD_UNLOCK(peer);
+        sleep_msec(1);
     }
 }
 
@@ -1584,6 +1440,7 @@ int main( int argc, char* argv[] ) {
                 {
                     printf("initializing thread\n");
                     pthread_mutex_init(&peers[i].mutex, NULL);
+                    pthread_mutex_init(&peers[i].mutex_sender, NULL);
                     pthread_cond_init(&peers[i].mcond, NULL);
                     PEER_LOCK(i);
                     
@@ -1661,6 +1518,7 @@ int main( int argc, char* argv[] ) {
                     pthread_join(peers[i].thread_rtp_send, NULL);
                     pthread_cond_destroy(&peers[i].mcond);
                     pthread_mutex_destroy(&peers[i].mutex);
+                    pthread_mutex_destroy(&peers[i].mutex_sender);
                     peers[i].thread_rtp_send = 0;
                     peers[i].thread = 0;
                     peers[i].thread_inited = 0;

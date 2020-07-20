@@ -27,6 +27,8 @@ typedef enum {
 
 #define PEER_THREAD_LOCK(x) { pthread_mutex_lock(&((x)->mutex)); (x)->worker_lock_st = LOCK_WORKER_HELD; }
 #define PEER_THREAD_UNLOCK(x) { (x)->worker_lock_st = LOCK_UNHELD; pthread_mutex_unlock(&((x)->mutex)); }
+#define PEER_SENDER_THREAD_LOCK(x) { pthread_mutex_lock(&((x)->mutex_sender)); }
+#define PEER_SENDER_THREAD_UNLOCK(x) { pthread_mutex_unlock(&((x)->mutex_sender)); }
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&((x)->mcond), &((x->mutex)))
 #define PEER_BUFFER_NODE_BUFLEN 2048
 #define OFFER_SDP_SIZE 4096
@@ -52,7 +54,7 @@ typedef struct peer_buffer_node
 {
     volatile struct peer_buffer_node* next, *tail;
 
-    unsigned int len;
+    volatile unsigned int len;
     unsigned int id;
     unsigned long seq;
     unsigned long timestamp;
@@ -168,7 +170,7 @@ typedef struct
 
     unsigned int rtp_buffered_total;
     unsigned long buffer_count;
-    unsigned long out_buffer_next;
+    //unsigned long out_buffer_next;
     unsigned long in_buffer_next;
     u32 rtp_timestamp_initial[PEER_RTP_CTX_COUNT];
     unsigned long clock_timestamp_ms_initial[PEER_RTP_CTX_COUNT];
@@ -184,6 +186,7 @@ typedef struct
     pthread_t thread;
     pthread_t thread_rtp_send;
     pthread_mutex_t mutex;
+    pthread_mutex_t mutex_sender;
     pthread_cond_t mcond;
     int thread_inited;
 
@@ -275,7 +278,7 @@ buffer_node_alloc()
 void peer_buffers_init(peer_session_t* peer)
 {
     int i;
-    unsigned int buffer_count = 256;
+    unsigned int buffer_count = 512;
     
     for(i = 0; i < PEER_RTP_CTX_COUNT; i++) {
         peer_buffer_node_list_init(&peer->rtp_buffers_head[i]);
