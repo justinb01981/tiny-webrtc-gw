@@ -314,9 +314,12 @@ function joinPopupOnLoadBroadcast() {
 }
 
 function joinPopupOnLoadRecvOnly() {
+    console.debug('joinPopupOnLoadRecvOnly');
+
     var user = 'watch' + Math.floor((Math.random() * 1000));
     winPopup.document.theform.my_name.value = user;
     winPopup.document.theform.peerstream_recv.value = user;
+    winPopup.document.theform.recvonly.checked = true;
     joinPopupOnLoad2(winPopup, window);
 }
 

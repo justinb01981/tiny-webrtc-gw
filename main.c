@@ -1475,6 +1475,8 @@ int main( int argc, char* argv[] ) {
                (peers[i].alive &&
                 wall_time - peers[i].time_pkt_last > peers[i].timeout_sec))
             {
+                int log_user_exit = !peers[i].restart_needed;
+
                 printf("%s:%d timeout/reclaim peer %d/n", __func__, __LINE__, i);
 
                 /*
@@ -1553,7 +1555,7 @@ int main( int argc, char* argv[] ) {
                 memset(&peers[i].addr, 0, sizeof(peers[i].addr));
                 memset(&peers[i].addr_listen, 0, sizeof(peers[i].addr_listen));
 
-                if(strlen(peers[i].name) > 0) sprintf(strbuf, "(%s) has left\n", peers[i].name);
+                if(log_user_exit && strlen(peers[i].name) > 0) sprintf(strbuf, "(%s) has left\n", peers[i].name);
 
                 peers[i].name[0] = '\0';
                 peers[i].cleanup_in_progress = 0;

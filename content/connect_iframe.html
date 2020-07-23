@@ -178,7 +178,7 @@ function onJoin() {
   }).catch(function(e) {
 
     var roomElem = parentDoc.getElementById('roomName');
-    var vidElem = window.parent.iframeConnectState.vidElem;
+    var vidElem = window.parent.iframeConnectState.videoElem;
 
     console.debug('failed to get local video-source with exception: ' + e);
     window.parent.iframeConnectState.selectedRoom = roomElem.value;
