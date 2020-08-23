@@ -3,7 +3,7 @@
 
 #include "memdebughack.h"
 
-#define MAX_PEERS 63
+#define MAX_PEERS 15
 #define PEER_IDX_INVALID (MAX_PEERS+1)
 
 #define PEER_RTP_CTX_COUNT 8
@@ -30,7 +30,7 @@ typedef enum {
 #define PEER_SENDER_THREAD_LOCK(x) { pthread_mutex_lock(&((x)->mutex_sender)); }
 #define PEER_SENDER_THREAD_UNLOCK(x) { pthread_mutex_unlock(&((x)->mutex_sender)); }
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&((x)->mcond), &((x->mutex)))
-#define PEER_BUFFER_NODE_BUFLEN 2048
+#define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 4096
 
 #ifdef assert
@@ -171,10 +171,11 @@ typedef struct
     unsigned int rtp_buffered_total;
     unsigned long buffer_count;
     //unsigned long out_buffer_next;
-    unsigned long in_buffer_next;
+    peer_buffer_node_t* in_buffer_next;
     u32 rtp_timestamp_initial[PEER_RTP_CTX_COUNT];
     unsigned long clock_timestamp_ms_initial[PEER_RTP_CTX_COUNT];
     u16 rtp_seq_initial[PEER_RTP_CTX_COUNT];
+    unsigned long pace_offset_ms;
 
     int sock;
 
@@ -278,7 +279,7 @@ buffer_node_alloc()
 void peer_buffers_init(peer_session_t* peer)
 {
     int i;
-    unsigned int buffer_count = 512;
+    unsigned int buffer_count = 128;
     
     for(i = 0; i < PEER_RTP_CTX_COUNT; i++) {
         peer_buffer_node_list_init(&peer->rtp_buffers_head[i]);

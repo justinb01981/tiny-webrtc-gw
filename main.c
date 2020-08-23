@@ -5,7 +5,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#define __USE_GNU
 #include <sys/socket.h>
+#include <netinet/ip.h>
 #include <signal.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -58,8 +60,9 @@
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
-#define SELECT_INTERVAL_USEC (100)
+#define SELECT_INTERVAL_USEC (1000)
 //#define PEER_CLEANUP_INTERVAL (1)
+#define RECVMSG_NUM (128)
 
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS+1];
@@ -883,12 +886,14 @@ connection_worker(void* p)
                                 if(!outbuf)
                                 {
                                     printf("rtp send_queue overrun!\n");
-                                    continue;
+                                    outbuf = peer->out_buffers_head.next;
                                 }
 
-                                unsigned long clock_delta = time_ms - peer->clock_timestamp_ms_initial[rtp_idx];
-                                if(!clock_delta) clock_delta = 1;
-                                outbuf->timestamp = time_ms + (send_ts_delta / (clock_delta));
+                                unsigned long clock_ts_delta = time_ms - peer->clock_timestamp_ms_initial[rtp_idx];
+                                if(!clock_ts_delta) clock_ts_delta = 1;
+                                float ts_delta = timestamp_in - peer->rtp_timestamp_initial[rtp_idx];
+                                float m = ts_delta / clock_ts_delta;
+                                outbuf->timestamp = peer->clock_timestamp_ms_initial[rtp_idx] + (ts_delta / m) + peer->pace_offset_ms;
                                 memcpy(outbuf->buf, reportPeer, protect_len);
                                 outbuf->id = p;
                                 outbuf->len = protect_len;
@@ -956,7 +961,7 @@ connection_worker(void* p)
                             if(!outbuf)
                             {
                                 printf("rtp send_queue overrun!\n");
-                                continue;
+                                outbuf = peer->out_buffers_head.next;
                             }
 
                             rtp_frame_t *rtp_frame_out = (rtp_frame_t*) outbuf->buf;
@@ -967,8 +972,10 @@ connection_worker(void* p)
                             if(srtp_protect(peers[p].srtp[rtp_idx_write].session, rtp_frame_out, &lengthPeer) == srtp_err_status_ok)
                             {
                                 unsigned long clock_ts_delta = time_ms - peer->clock_timestamp_ms_initial[rtp_idx];
-                                if(!clock_ts_delta) clock_ts_delta = ts_delta;
-                                outbuf->timestamp = time_ms + (ts_delta / (clock_ts_delta));
+                                if(!clock_ts_delta) clock_ts_delta = 1;
+                                float ts_delta = timestamp_in - peer->rtp_timestamp_initial[rtp_idx];
+                                float m = ts_delta / clock_ts_delta;
+                                outbuf->timestamp = peer->clock_timestamp_ms_initial[rtp_idx] + (ts_delta / m) + peer->pace_offset_ms;
                                 outbuf->id = p;
                                 outbuf->len = lengthPeer;
 
@@ -1084,9 +1091,10 @@ connection_paced_streamer(void* p)
     {
         PEER_SENDER_THREAD_LOCK(peer);
 
-        unsigned long error_margin = 20;
+        unsigned long error_margin = 10;
         unsigned long time_ms = get_time_ms();
         unsigned long sent_count = 0;
+        int pacing_failed = 0;
 
          // check outgoing buffer queues for scheduled sends
         peer_buffer_node_t *cur = peer->out_buffers_head.next;
@@ -1095,9 +1103,10 @@ connection_paced_streamer(void* p)
         {
             if(cur->len > 0 && time_ms >= cur->timestamp)
             {
-                if(time_ms - cur->timestamp > error_margin) 
+                if(time_ms - cur->timestamp >= error_margin) 
                 {
-                    printf("warning: paced send: (len=%u) (error_ms:%lu)\n", cur->len, time_ms - cur->timestamp);
+                    //printf("warning: paced send: (len=%u) (error_ms:%lu)\n", cur->len, time_ms - cur->timestamp);
+                    pacing_failed = 1;
                 }
 
                 peer_send_block(&peers[cur->id], cur->buf, cur->len);
@@ -1107,6 +1116,15 @@ connection_paced_streamer(void* p)
             }
 
             cur = cur->next;
+        }
+
+        if(pacing_failed)
+        {
+            peer->pace_offset_ms += 20;
+        }
+        else
+        {
+            if(peer->pace_offset_ms > 0) peer->pace_offset_ms -= 1;
         }
 
         PEER_SENDER_THREAD_UNLOCK(peer);
@@ -1136,6 +1154,13 @@ int main( int argc, char* argv[] ) {
     char strbuf[2048];
     peer_buffer_node_t* node = NULL;
     unsigned long time_ms_peer_maintain_last = 0;
+    struct sockaddr_in addr;
+    struct mmsghdr msgs[RECVMSG_NUM];
+    struct iovec iovecs[RECVMSG_NUM];
+    char bufs[RECVMSG_NUM][PEER_BUFFER_NODE_BUFLEN];
+    struct sockaddr_in msg_name[RECVMSG_NUM];
+    int msg_recv_count = 0;
+    int msg_recv_offset = 0;
 
     DTLS_init();
 
@@ -1194,6 +1219,18 @@ int main( int argc, char* argv[] ) {
     webserver_init();
     pthread_create(&thread_webserver, NULL, webserver_accept_worker, NULL);
 
+    // prepare iovecs
+    memset(msgs, 0, sizeof(msgs));
+    for (i = 0; i < RECVMSG_NUM; i++) 
+    {
+        iovecs[i].iov_base         = bufs[i];
+        iovecs[i].iov_len          = PEER_BUFFER_NODE_BUFLEN;
+        msgs[i].msg_hdr.msg_iov    = &iovecs[i];
+        msgs[i].msg_hdr.msg_iovlen = 1;
+        msgs[i].msg_hdr.msg_name   = &msg_name[i];
+        msgs[i].msg_hdr.msg_namelen= sizeof(struct sockaddr_in);
+    }
+
     while(!terminated)
     {
         unsigned int size;
@@ -1201,7 +1238,7 @@ int main( int argc, char* argv[] ) {
         //struct timeval te;
         unsigned long time_ms = get_time_ms();
         wall_time = time(NULL);
-        char buffer[PEER_BUFFER_NODE_BUFLEN];
+        char *buffer;
 
         //gettimeofday(&te, NULL); // get current time
         
@@ -1261,10 +1298,11 @@ int main( int argc, char* argv[] ) {
 
         // check socket for new data
         
+        /*
+        struct timeval tm = {0, SELECT_INTERVAL_USEC};
         fd_set rFd;
         FD_ZERO(&rFd);
         FD_SET(listen, &rFd);
-        struct timeval tm = {0, SELECT_INTERVAL_USEC};
 
         int sResult = select(listen+1, &rFd, NULL, NULL, &tm);
         if (sResult <= 0)
@@ -1278,12 +1316,54 @@ int main( int argc, char* argv[] ) {
         {
             goto select_timeout;
         }
-        
+        */
+
+        int length = 0;
+        if(msg_recv_count == 0)
+        {
+            {
+                struct timeval tm = {0, SELECT_INTERVAL_USEC};
+                fd_set rFd;
+                FD_ZERO(&rFd);
+                FD_SET(listen, &rFd);
+
+                int sResult = select(listen+1, &rFd, NULL, NULL, &tm);
+                if (sResult <= 0)
+                {
+                    goto select_timeout;
+                }
+            }
+
+            struct timespec tm;
+            msg_recv_offset = 0;
+            tm.tv_sec = 0;
+            tm.tv_nsec = 100000;
+            msg_recv_count = recvmmsg(listen, msgs, RECVMSG_NUM, 0, &tm);
+            if(msg_recv_count < 0)
+            {
+                printf("recvmmsg returned error: %d\n", errno);
+            }
+            goto select_timeout;
+        }
+        else
+        {
+            length = msgs[msg_recv_offset].msg_len;
+            buffer = bufs[msg_recv_offset];
+            memcpy(&src, msgs[msg_recv_offset].msg_hdr.msg_name, msgs[msg_recv_offset].msg_hdr.msg_namelen);
+
+            msg_recv_offset++;
+            msg_recv_count--;
+        }
+       
+        if(msg_recv_count > 1) printf("recvmmsg got packets: %d\n", msg_recv_count);
+
+        /*
         pkt_type_t type = pktType(buffer, length);
 
         if(type == PKT_TYPE_STUN) counts[0]++;
         else if(type == PKT_TYPE_SRTP) counts[1]++;
         else counts[2]++;
+        */
 
         int i;
         int sidx = -1;
@@ -1389,17 +1469,12 @@ int main( int argc, char* argv[] ) {
         // now sending peer is known, enqueue it for that peers connection_worker thready        
         if(!peers[sidx].in_buffers_head.next) goto select_timeout;
 
-        peer_buffer_node_t* node = peers[sidx].in_buffers_head.next;
+        peer_buffer_node_t* node = peers[sidx].in_buffer_next;
+        if(!node) node = peers[sidx].in_buffers_head.next;
 
         PEER_LOCK(sidx);
 
-        unsigned long idx = peers[sidx].in_buffer_next % peers[sidx].buffer_count;
-        while(idx > 0)
-        {
-            node = node->next;
-            idx--;
-        }
-        peers[sidx].in_buffer_next++;
+        peers[sidx].in_buffer_next = node->next;
 
         if(node->len != 0)
         {
@@ -1414,6 +1489,8 @@ int main( int argc, char* argv[] ) {
         node->len = length;
 
         PEER_UNLOCK(sidx);
+
+        if(msg_recv_count > 0) continue;
 
         select_timeout:
 
