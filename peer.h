@@ -29,6 +29,8 @@ typedef enum {
 #define PEER_THREAD_UNLOCK(x) { (x)->worker_lock_st = LOCK_UNHELD; pthread_mutex_unlock(&((x)->mutex)); }
 #define PEER_SENDER_THREAD_LOCK(x) { pthread_mutex_lock(&((x)->mutex_sender)); }
 #define PEER_SENDER_THREAD_UNLOCK(x) { pthread_mutex_unlock(&((x)->mutex_sender)); }
+#define PEERS_SOCKETS_LOCK() { pthread_mutex_lock(&peers_sockets_lock); }
+#define PEERS_SOCKETS_UNLOCK() { pthread_mutex_unlock(&peers_sockets_lock); }
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&((x)->mcond), &((x->mutex)))
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 4096
@@ -178,6 +180,7 @@ typedef struct
     unsigned long pace_offset_ms;
 
     int sock;
+    int port;
 
     time_t time_pkt_last;
     time_t time_cleanup_last;
@@ -246,7 +249,10 @@ typedef struct {
     
     unsigned int next;
 } sdp_offer_table_t;
+
 extern sdp_offer_table_t sdp_offer_table;
+
+extern pthread_mutex_t peers_sockets_lock;
 
 extern unsigned long get_time_ms();
 
@@ -274,7 +280,6 @@ buffer_node_alloc()
     else assert(0, "alloc failure\n");
     return n;
 }
-
 
 void peer_buffers_init(peer_session_t* peer)
 {
@@ -306,7 +311,17 @@ void peer_buffers_uninit(peer_session_t* peer)
 
 void peer_init(peer_session_t* peer, int id)
 {
+    /* preserve some fields across init */
+
+    PEERS_SOCKETS_LOCK();
+
+    int sock = peer->sock;
+    int port = peer->port;
     memset(peer, 0, sizeof(*peer));
+
+    /* restore */
+    peer->sock = sock;
+    peer->port = port;
 
     peer->id = id;
     peer->subscriptionID = PEER_IDX_INVALID;
@@ -317,6 +332,8 @@ void peer_init(peer_session_t* peer, int id)
     peer_cookie_init(peer, "");
 
     sprintf(peer->http.dynamic_js, "%s", PEER_DYNAMIC_JS_EMPTY);
+
+    PEERS_SOCKETS_UNLOCK();
 }
 
 static unsigned long
@@ -487,15 +504,17 @@ const char* sdp_offer_create(peer_session_t* peer)
     "\"a=setup:actpass\\n\" + \n"
     "\"a=ssrc:%d cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\\n\"\n";
 
-    sprintf(sdp_offer_table.t[sdp_offer_table.next % MAX_PEERS].iceufrag, "%02x%02x", rand() % 0xff, rand() % 0xff);
+    int idx = sdp_offer_table.next;
+    sdp_offer_table.next++;
+    sprintf(sdp_offer_table.t[idx % MAX_PEERS].iceufrag, "%02x%02x", rand() % 0xff, rand() % 0xff);
     
     unsigned long ssrc1 = rand(), ssrc2 = rand();
-    sprintf(sdp_offer_table.t[sdp_offer_table.next % MAX_PEERS].offer_js,
+    sprintf(sdp_offer_table.t[idx % MAX_PEERS].offer_js,
             // ufrag, ssrc1, ufrag, ssrc2
             offer_template,
-            sdp_offer_table.t[sdp_offer_table.next % MAX_PEERS].iceufrag,
+            sdp_offer_table.t[idx % MAX_PEERS].iceufrag,
             ssrc1,
-            sdp_offer_table.t[sdp_offer_table.next % MAX_PEERS].iceufrag,
+            sdp_offer_table.t[idx % MAX_PEERS].iceufrag,
              ssrc2);
 
     char offer_template_clean[OFFER_SDP_SIZE], *p_read = offer_template, *p_write = offer_template_clean;
@@ -525,24 +544,23 @@ const char* sdp_offer_create(peer_session_t* peer)
         p_write++;
     }
 
-    sprintf(sdp_offer_table.t[sdp_offer_table.next % MAX_PEERS].offer,
+    sprintf(sdp_offer_table.t[idx % MAX_PEERS].offer,
             // ufrag, ssrc1, ufrag, ssrc2
             offer_template_clean,
-            sdp_offer_table.t[sdp_offer_table.next % MAX_PEERS].iceufrag,
+            sdp_offer_table.t[idx % MAX_PEERS].iceufrag,
             ssrc1,
-            sdp_offer_table.t[sdp_offer_table.next % MAX_PEERS].iceufrag,
+            sdp_offer_table.t[idx % MAX_PEERS].iceufrag,
             ssrc2);
     
     if(peer)
     {
-        strcpy(peer->stun_ice.ufrag_offer, sdp_offer_table.t[sdp_offer_table.next % MAX_PEERS].iceufrag);
+        strcpy(peer->stun_ice.ufrag_offer, sdp_offer_table.t[idx % MAX_PEERS].iceufrag);
         peer->srtp[0].ssrc_offer = ssrc1;
         peer->srtp[1].ssrc_offer = ssrc2;
     }
     
-    sdp_offer_table.next++;
     
-    return sdp_offer_table.t[(sdp_offer_table.next-1) % MAX_PEERS].offer_js;
+    return sdp_offer_table.t[idx % MAX_PEERS].offer_js;
 }
 
 const char* sdp_offer_create_apprtc(peer_session_t* peer)

@@ -15,7 +15,7 @@
 
 #define CHATLOG_SIZE 16384
 
-extern int listen_port;
+extern int listen_port_base;
 extern peer_session_t peers[];
 extern int stun_binding_response_count;
 
@@ -356,7 +356,7 @@ websocket_worker(void* p)
                             char* response = strdup(file_buf);
                             sprintf(stuncandidate_js, "candidate:1 1 UDP 1234 %s "
                                 "%d typ host",
-                                get_config("udpserver_addr="), listen_port);
+                                get_config("udpserver_addr="), listen_port_base);
                             response = macro_str_expand(response,
                                     tag_icecandidate, stuncandidate_js);
 
@@ -468,7 +468,9 @@ webserver_worker(void* p)
 
     thread_init();
 
-    sprintf(listen_port_str, "%d", listen_port);
+    int peer_idx_next = webserver.peer_idx_next % MAX_PEERS; // incremented later
+
+    sprintf(listen_port_str, "%d", peers[peer_idx_next].port);
 
     do
     {
@@ -852,9 +854,14 @@ webserver_worker(void* p)
                 
                     response = macro_str_expand(response, tag_chatlogvalue, chatlog_read());
 
+                    int print = 0;
                     if(strstr(response, tag_sdp))
                     {
-                        response = macro_str_expand(response, tag_sdp, sdp_offer_create(peer_found_via_cookie));
+                        char* offer = sdp_offer_create(peer_found_via_cookie);
+                        printf("webserver.h offer response:%s\n", offer);
+                        response = macro_str_expand(response, tag_sdp, offer);
+                        printf("webserver.h offer response macro:%s\n", offer);
+                        print = 1;
                     }
 
                     if(strstr(response, tag_chatlogjs))
@@ -895,6 +902,10 @@ webserver_worker(void* p)
                     response = macro_str_expand(response, tag_chatlogtsvalue, tmp);
 
                     response = macro_str_expand(response, tag_authcookie, cookieset);
+                    if(print)
+                    {
+                        printf("webserver.h offer response macro:%s\n", response);
+                    }
                 }
                 else
                 {
