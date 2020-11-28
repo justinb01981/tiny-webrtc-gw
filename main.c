@@ -84,7 +84,7 @@ sdp_offer_table_t sdp_offer_table;
 unsigned long connection_worker_backlog_highwater = 0;
 
 volatile time_t wall_time = 0;
-pthread_mutex_t peers_sockets_lock;
+pthread_mutex_t peers_sockets_lock, webserver_worker_mutex;
 const static udp_recv_timeout_usec_min = 20;
 const static udp_recv_timeout_usec_max = 100000;
 
@@ -1211,6 +1211,7 @@ int main( int argc, char* argv[] ) {
     listen_port_base = udpserver.inport;
     
     pthread_mutex_init(&peers_sockets_lock, NULL);
+    pthread_mutex_init(&webserver_worker_mutex, NULL);
 
     for(i = 0; i < MAX_PEERS; i++)
     {

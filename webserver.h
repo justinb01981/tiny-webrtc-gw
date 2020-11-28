@@ -34,6 +34,8 @@ struct webserver_state {
 };
 extern struct webserver_state webserver;
 
+extern pthread_mutex_t webserver_worker_mutex;
+
 enum websocket_state {
     WS_STATE_INITIAL = 1,
     WS_STATE_INITPEER = 2,
@@ -468,6 +470,8 @@ webserver_worker(void* p)
 
     thread_init();
 
+    pthread_mutex_lock(&webserver_worker_mutex);
+
     int peer_idx_next = webserver.peer_idx_next % MAX_PEERS; // incremented later
 
     sprintf(listen_port_str, "%d", peers[peer_idx_next].port);
@@ -854,14 +858,10 @@ webserver_worker(void* p)
                 
                     response = macro_str_expand(response, tag_chatlogvalue, chatlog_read());
 
-                    int print = 0;
                     if(strstr(response, tag_sdp))
                     {
                         char* offer = sdp_offer_create(peer_found_via_cookie);
-                        printf("webserver.h offer response:%s\n", offer);
                         response = macro_str_expand(response, tag_sdp, offer);
-                        printf("webserver.h offer response macro:%s\n", offer);
-                        print = 1;
                     }
 
                     if(strstr(response, tag_chatlogjs))
@@ -902,10 +902,6 @@ webserver_worker(void* p)
                     response = macro_str_expand(response, tag_chatlogtsvalue, tmp);
 
                     response = macro_str_expand(response, tag_authcookie, cookieset);
-                    if(print)
-                    {
-                        printf("webserver.h offer response macro:%s\n", response);
-                    }
                 }
                 else
                 {
@@ -1072,6 +1068,8 @@ webserver_worker(void* p)
             close(sock);
         }
     } while(0);
+
+    pthread_mutex_unlock(&webserver_worker_mutex);
 
     free(args);
     free(recvbuf);
