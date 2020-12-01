@@ -34,8 +34,6 @@ struct webserver_state {
 };
 extern struct webserver_state webserver;
 
-extern pthread_mutex_t webserver_worker_mutex;
-
 enum websocket_state {
     WS_STATE_INITIAL = 1,
     WS_STATE_INITPEER = 2,
@@ -469,8 +467,6 @@ webserver_worker(void* p)
     sprintf(cookieset, "%02x%02x%02x%02x", rand() % 0xff, rand() % 0xff, rand() % 0xff, rand() % 0xff);
 
     thread_init();
-
-    pthread_mutex_lock(&webserver_worker_mutex);
 
     int peer_idx_next = webserver.peer_idx_next % MAX_PEERS; // incremented later
 
@@ -943,10 +939,11 @@ webserver_worker(void* p)
                             strcpy(ufrag_offer_tmp, peer_found_via_cookie->stun_ice.ufrag_offer);
                             
                             sidx = PEER_INDEX(peer_found_via_cookie);
+
+                            if(sidx == webserver.peer_idx_next) webserver.peer_idx_next += 1;
                         }
                         else
                         {
-                            
                             sidx = webserver.peer_idx_next % MAX_PEERS;
                             webserver.peer_idx_next += 1;
 
@@ -961,7 +958,7 @@ webserver_worker(void* p)
                             peer_init(&peers[sidx], sidx);
                             peers[sidx].broadcastingID = peer_broadcast_from_cookie;
                             
-                            strcpy(ufrag_offer_tmp, sdp_offer_table.t[(sdp_offer_table.next-1) % MAX_PEERS].iceufrag);
+                            strcpy(ufrag_offer_tmp, sdp_offer_table.t.iceufrag);
                         }
 
                         printf("webserver got SDP:\n%s\n", sdp);
@@ -1068,8 +1065,6 @@ webserver_worker(void* p)
             close(sock);
         }
     } while(0);
-
-    pthread_mutex_unlock(&webserver_worker_mutex);
 
     free(args);
     free(recvbuf);

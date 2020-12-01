@@ -34,6 +34,7 @@ typedef enum {
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&((x)->mcond), &((x->mutex)))
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 4096
+#define PEER_RECV_BUFFER_COUNT 64
 
 #ifdef assert
 #undef assert
@@ -245,9 +246,7 @@ typedef struct {
         char offer_js[OFFER_SDP_SIZE];
         char iceufrag[OFFER_SDP_SIZE];
         char iceufrag_answer[OFFER_SDP_SIZE];
-    } t[MAX_PEERS];
-    
-    unsigned int next;
+    } t;
 } sdp_offer_table_t;
 
 extern sdp_offer_table_t sdp_offer_table;
@@ -284,7 +283,7 @@ buffer_node_alloc()
 void peer_buffers_init(peer_session_t* peer)
 {
     int i;
-    unsigned int buffer_count = 128;
+    unsigned int buffer_count = PEER_RECV_BUFFER_COUNT;
     
     for(i = 0; i < PEER_RTP_CTX_COUNT; i++) {
         peer_buffer_node_list_init(&peer->rtp_buffers_head[i]);
@@ -504,17 +503,15 @@ const char* sdp_offer_create(peer_session_t* peer)
     "\"a=setup:actpass\\n\" + \n"
     "\"a=ssrc:%d cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\\n\"\n";
 
-    int idx = sdp_offer_table.next;
-    sdp_offer_table.next++;
-    sprintf(sdp_offer_table.t[idx % MAX_PEERS].iceufrag, "%02x%02x", rand() % 0xff, rand() % 0xff);
+    sprintf(sdp_offer_table.t.iceufrag, "%02x%02x", rand() % 0xff, rand() % 0xff);
     
     unsigned long ssrc1 = rand(), ssrc2 = rand();
-    sprintf(sdp_offer_table.t[idx % MAX_PEERS].offer_js,
+    sprintf(sdp_offer_table.t.offer_js,
             // ufrag, ssrc1, ufrag, ssrc2
             offer_template,
-            sdp_offer_table.t[idx % MAX_PEERS].iceufrag,
+            sdp_offer_table.t.iceufrag,
             ssrc1,
-            sdp_offer_table.t[idx % MAX_PEERS].iceufrag,
+            sdp_offer_table.t.iceufrag,
              ssrc2);
 
     char offer_template_clean[OFFER_SDP_SIZE], *p_read = offer_template, *p_write = offer_template_clean;
@@ -544,23 +541,23 @@ const char* sdp_offer_create(peer_session_t* peer)
         p_write++;
     }
 
-    sprintf(sdp_offer_table.t[idx % MAX_PEERS].offer,
+    sprintf(sdp_offer_table.t.offer,
             // ufrag, ssrc1, ufrag, ssrc2
             offer_template_clean,
-            sdp_offer_table.t[idx % MAX_PEERS].iceufrag,
+            sdp_offer_table.t.iceufrag,
             ssrc1,
-            sdp_offer_table.t[idx % MAX_PEERS].iceufrag,
+            sdp_offer_table.t.iceufrag,
             ssrc2);
     
     if(peer)
     {
-        strcpy(peer->stun_ice.ufrag_offer, sdp_offer_table.t[idx % MAX_PEERS].iceufrag);
+        strcpy(peer->stun_ice.ufrag_offer, sdp_offer_table.t.iceufrag);
         peer->srtp[0].ssrc_offer = ssrc1;
         peer->srtp[1].ssrc_offer = ssrc2;
     }
     
     
-    return sdp_offer_table.t[idx % MAX_PEERS].offer_js;
+    return sdp_offer_table.t.offer_js;
 }
 
 const char* sdp_offer_create_apprtc(peer_session_t* peer)
@@ -569,21 +566,19 @@ const char* sdp_offer_create_apprtc(peer_session_t* peer)
     char roomname[256];
     char ice_ufrag[256];
     
-    sprintf(sdp_offer_table.t[sdp_offer_table.next % MAX_PEERS].iceufrag, "%02x%02x", rand() % 0xff, rand() % 0xff);
+    sprintf(sdp_offer_table.t.iceufrag, "%02x%02x", rand() % 0xff, rand() % 0xff);
     
-    sprintf(sdp_offer_table.t[sdp_offer_table.next % MAX_PEERS].offer,
+    sprintf(sdp_offer_table.t.offer,
             // ufrag, ssrc1, ufrag, ssrc2
             offer_template,
-            sdp_offer_table.t[sdp_offer_table.next % MAX_PEERS].iceufrag,
+            sdp_offer_table.t.iceufrag,
             rand(),
-            sdp_offer_table.t[sdp_offer_table.next % MAX_PEERS].iceufrag,
+            sdp_offer_table.t.iceufrag,
             rand());
     
-    if(peer) strcpy(peer->stun_ice.ufrag_offer, sdp_offer_table.t[sdp_offer_table.next % MAX_PEERS].iceufrag);
+    if(peer) strcpy(peer->stun_ice.ufrag_offer, sdp_offer_table.t.iceufrag);
     
-    sdp_offer_table.next++;
-    
-    return sdp_offer_table.t[(sdp_offer_table.next-1) % MAX_PEERS].offer;
+    return sdp_offer_table.t.offer;
 }
 
 const char* sdp_offer_find(const char* ufrag, const char* ufrag_answer)
@@ -593,11 +588,11 @@ const char* sdp_offer_find(const char* ufrag, const char* ufrag_answer)
     
     for(i = 0; i < MAX_PEERS; i++)
     {
-        if(strcmp(sdp_offer_table.t[i].iceufrag, ufrag) == 0)
+        if(strcmp(sdp_offer_table.t.iceufrag, ufrag) == 0)
         {
-            strcpy(sdp_offer_table.t[i].iceufrag_answer, ufrag_answer);
-            sdp_offer_table.t[i].iceufrag[0] = '\0';
-            return sdp_offer_table.t[i].offer;
+            strcpy(sdp_offer_table.t.iceufrag_answer, ufrag_answer);
+            sdp_offer_table.t.iceufrag[0] = '\0';
+            return sdp_offer_table.t.offer;
         }
     }
     sprintf(sdp_offer_find_buf, "no offer found for user_fragment: %s\n", ufrag);

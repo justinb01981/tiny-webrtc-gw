@@ -58,9 +58,9 @@
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
-#define SELECT_INTERVAL_USEC (1000)
+#define SELECT_INTERVAL_USEC (100)
 //#define PEER_CLEANUP_INTERVAL (1)
-#define RECVMSG_NUM (128)
+#define RECVMSG_NUM (PEER_RECV_BUFFER_COUNT)
 
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS+1];
@@ -84,7 +84,7 @@ sdp_offer_table_t sdp_offer_table;
 unsigned long connection_worker_backlog_highwater = 0;
 
 volatile time_t wall_time = 0;
-pthread_mutex_t peers_sockets_lock, webserver_worker_mutex;
+pthread_mutex_t peers_sockets_lock;
 const static udp_recv_timeout_usec_min = 20;
 const static udp_recv_timeout_usec_max = 100000;
 
@@ -405,11 +405,12 @@ connection_worker(void* p)
             break;
         }
         PEER_THREAD_UNLOCK(peer);
+        usleep(10000);
     }
     
     if(!peer->alive) return NULL;
     
-    printf("%s:%d sdp answer:\n %s\nsdp offer:\n%s\n", __func__, __LINE__, peer->sdp.answer, peer->sdp.offer);
+    printf("%s:%d stunID32: %lu\nsdp answer:\n %s\nsdp offer:\n%s\n", __func__, __LINE__, peer->stunID32, peer->sdp.answer, peer->sdp.offer);
 
     if(strstr(peer->sdp.answer, "a=recvonly")) { peer->recv_only = 1; }
     if(strstr(peer->sdp.answer, "a=sendonly")) { peer->send_only = 1; }
@@ -544,7 +545,7 @@ connection_worker(void* p)
             {
                 buffer_next = buffer_next->next;
                 l += 1;
-                assert(l < 129);
+                assert(l <= PEER_RECV_BUFFER_COUNT);
             }
         }
 
@@ -1096,7 +1097,7 @@ connection_paced_streamer(void* p)
     {
         PEER_SENDER_THREAD_LOCK(peer);
 
-        unsigned long error_margin = 10;
+        unsigned long error_margin = 20;
         unsigned long time_ms = get_time_ms();
         unsigned long sent_count = 0;
         int pacing_failed = 0;
@@ -1110,7 +1111,7 @@ connection_paced_streamer(void* p)
             {
                 if(time_ms - cur->timestamp >= error_margin) 
                 {
-                    //printf("warning: paced send: (len=%u) (error_ms:%lu)\n", cur->len, time_ms - cur->timestamp);
+                    printf("warning: paced send: (len=%u) (error_ms:%lu)\n", cur->len, time_ms - cur->timestamp);
                     pacing_failed = 1;
                 }
 
@@ -1190,7 +1191,7 @@ int main( int argc, char* argv[] ) {
     srtp_init();
     srtp_install_event_handler(bogus_srtp_event_handler);
     
-    sdp_offer_table.next = 0;
+    memset(&sdp_offer_table, 0, sizeof(sdp_offer_table));
 
     strcpy(udpserver.inip, "0.0.0.0"); // for now bind to all interfaces
     udpserver.inport = strToULong(get_config("udpserver_port="));
@@ -1211,7 +1212,6 @@ int main( int argc, char* argv[] ) {
     listen_port_base = udpserver.inport;
     
     pthread_mutex_init(&peers_sockets_lock, NULL);
-    pthread_mutex_init(&webserver_worker_mutex, NULL);
 
     for(i = 0; i < MAX_PEERS; i++)
     {
@@ -1351,13 +1351,10 @@ int main( int argc, char* argv[] ) {
                 int maxfd = 0;
                 for(i = 0; i < MAX_PEERS; i++)
                 {
-                    if(peers[i].alive)
-                    {
-                       int sock = peers[i].sock;
-                    
-                       FD_SET(sock, &rFd);
-                       if(sock > maxfd) maxfd = sock;
-                    }
+                   int sock = peers[i].sock;
+                
+                   FD_SET(sock, &rFd);
+                   if(sock > maxfd) maxfd = sock;
                 }
 
                 int sResult = select(maxfd+1, &rFd, NULL, NULL, &tm);
@@ -1377,7 +1374,7 @@ int main( int argc, char* argv[] ) {
                 {
                     struct timespec tm;
                     tm.tv_sec = 0;
-                    tm.tv_nsec = 100000;
+                    tm.tv_nsec = 10000;
                     diagnostics.recv_count = RECVMSG_NUM-msg_recv_count;
                     int result = recvmmsg(sck, msgs+msg_recv_count, RECVMSG_NUM-msg_recv_count, MSG_DONTWAIT, &tm);
                     if(result < 0)
@@ -1436,10 +1433,10 @@ int main( int argc, char* argv[] ) {
             /* webserver has created a "pending" peer with stun fields set based on SDP */
             for(p = 0; strlen(stun_uname) > 1 && p < MAX_PEERS; p++)
             {
-                if(!peers[p].alive) continue;
-                
-                /* only bind the first ICE attempt */
-                //if(peers[p].addr.sin_port != 0) { continue; }
+                if(!peers[p].alive)
+                {
+                    continue;
+                }
 
                 sprintf(stun_uname_expected, "%s:%s", peers[p].stun_ice.ufrag_offer, peers[p].stun_ice.ufrag_answer);
 
@@ -1447,7 +1444,6 @@ int main( int argc, char* argv[] ) {
                 {
                     sidx = p;
                     printf("stun_locate: found peer %s (%s)\n", stun_uname, peers[sidx].name);
-
                     break;
                 }
 
@@ -1502,13 +1498,13 @@ int main( int argc, char* argv[] ) {
         }
         */
 
+        PEER_LOCK(sidx);
+
         // now sending peer is known, enqueue it for that peers connection_worker thready        
-        if(!peers[sidx].in_buffers_head.next) goto select_timeout;
+        //if(!peers[sidx].in_buffers_head.next) goto select_timeout;
 
         peer_buffer_node_t* node = peers[sidx].in_buffer_next;
         if(!node) node = peers[sidx].in_buffers_head.next;
-
-        PEER_LOCK(sidx);
 
         peers[sidx].in_buffer_next = node->next;
 
@@ -1536,7 +1532,6 @@ int main( int argc, char* argv[] ) {
         i = 0;
         while(i < MAX_PEERS)
         {
-
             // check if peer underrun has happened
             if(peers[i].underrun_signal)
             {
@@ -1549,7 +1544,7 @@ int main( int argc, char* argv[] ) {
             {
                 if(!peers[i].thread_inited)
                 {
-                    printf("initializing thread\n");
+                    printf("initializing thread...");
                     pthread_mutex_init(&peers[i].mutex, NULL);
                     pthread_mutex_init(&peers[i].mutex_sender, NULL);
                     pthread_cond_init(&peers[i].mcond, NULL);
@@ -1571,6 +1566,7 @@ int main( int argc, char* argv[] ) {
                     udp_recv_timeout_usec = udp_recv_timeout_usec_min;
 
                     PEER_UNLOCK(i);
+                    printf("...done\n");
                 }
             }
 
