@@ -4,7 +4,7 @@ INC_LIBSRTP=./libsrtp/include
 INC_LIBSRTP_CFG=./libsrtp
 INC_LIBSRTP_CRYPTO=./libsrtp/crypto/include
 INC_LIBWS=./ws/cwebsocket/lib
-LDARGS=-static -pthread -lcrypto -lssl -lcrypto -lpthread -lcrypto -lsrtp2 -lm
+LDARGS=-static -pthread -lcrypto -lssl -lcrypto -lpthread -lcrypto -lsrtp2 -lm -lrt
 #LDARGS=-lcrypto -lssl -lcrypto -lpthread -lc -lcrypto -lsrtp2 -lm -lpthread -lssl
 
 all: lib/libcrypto.a lib/libsrtp2.a lib/libssl.a

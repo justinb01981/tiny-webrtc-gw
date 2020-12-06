@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/epoll.h>
 #include <time.h>
 #include <math.h>
 #include <fcntl.h>
@@ -58,7 +59,7 @@
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
-#define SELECT_INTERVAL_USEC (100)
+#define EPOLL_TIMEOUT_MS (100)
 //#define PEER_CLEANUP_INTERVAL (1)
 #define RECVMSG_NUM (PEER_RECV_BUFFER_COUNT)
 
@@ -899,7 +900,7 @@ connection_worker(void* p)
                                 if(!clock_ts_delta) clock_ts_delta = 1;
                                 float ts_delta = timestamp_in - peer->rtp_timestamp_initial[rtp_idx];
                                 float m = ts_delta / clock_ts_delta;
-                                outbuf->timestamp = peer->clock_timestamp_ms_initial[rtp_idx] + (ts_delta / m) + peer->pace_offset_ms;
+                                outbuf->timestamp = peer->clock_timestamp_ms_initial[rtp_idx] + (ts_delta / m);
                                 memcpy(outbuf->buf, reportPeer, protect_len);
                                 outbuf->id = p;
                                 outbuf->len = protect_len;
@@ -981,7 +982,7 @@ connection_worker(void* p)
                                 if(!clock_ts_delta) clock_ts_delta = 1;
                                 float ts_delta = timestamp_in - peer->rtp_timestamp_initial[rtp_idx];
                                 float m = ts_delta / clock_ts_delta;
-                                outbuf->timestamp = peer->clock_timestamp_ms_initial[rtp_idx] + (ts_delta / m) + peer->pace_offset_ms;
+                                outbuf->timestamp = peer->clock_timestamp_ms_initial[rtp_idx] + (ts_delta / m);
                                 outbuf->id = p;
                                 outbuf->len = lengthPeer;
 
@@ -1097,21 +1098,21 @@ connection_paced_streamer(void* p)
     {
         PEER_SENDER_THREAD_LOCK(peer);
 
-        unsigned long error_margin = 20;
+        unsigned long error_margin = 100;
         unsigned long time_ms = get_time_ms();
         unsigned long sent_count = 0;
         int pacing_failed = 0;
-
-         // check outgoing buffer queues for scheduled sends
+        
+        // check outgoing buffer queues for scheduled sends
         peer_buffer_node_t *cur = peer->out_buffers_head.next;
 
         while(cur)
         {
-            if(cur->len > 0 && time_ms >= cur->timestamp)
+            if(cur->len > 0 /*&& time_ms >= cur->timestamp*/)
             {
                 if(time_ms - cur->timestamp >= error_margin) 
                 {
-                    printf("warning: paced send: (len=%u) (error_ms:%lu)\n", cur->len, time_ms - cur->timestamp);
+                    //printf("warning: paced send: (len=%u) (error_ms:%lu)\n", cur->len, time_ms - cur->timestamp);
                     pacing_failed = 1;
                 }
 
@@ -1122,15 +1123,6 @@ connection_paced_streamer(void* p)
             }
 
             cur = cur->next;
-        }
-
-        if(pacing_failed)
-        {
-            peer->pace_offset_ms += 20;
-        }
-        else
-        {
-            if(peer->pace_offset_ms > 0) peer->pace_offset_ms -= 1;
         }
 
         PEER_SENDER_THREAD_UNLOCK(peer);
@@ -1168,13 +1160,15 @@ int main( int argc, char* argv[] ) {
     struct sockaddr_in msg_name[RECVMSG_NUM];
     int msg_recv_count = 0;
     int msg_recv_offset = 0;
+    int epoll_fd = -1;
+    struct epoll_event ep_events[PEER_RECV_BUFFER_COUNT];
 
     DTLS_init();
 
     thread_init();
 
     int peersLen = 0;
-    pthread_t thread_webserver, thread_watchdog;
+    pthread_t thread_webserver;
 
     signal(SIGINT, sigint_handler);
 
@@ -1213,12 +1207,25 @@ int main( int argc, char* argv[] ) {
     
     pthread_mutex_init(&peers_sockets_lock, NULL);
 
+    epoll_fd = epoll_create1(0);
+    if(epoll_fd == -1) return;
+
     for(i = 0; i < MAX_PEERS; i++)
     {
+        struct epoll_event ep_event;
+
         peers[i].sock = bindsocket( udpserver.inip, listen_port_base+i, 0 );
         peers[i].port = listen_port_base+i;
+        ep_event.events = EPOLLIN;
+        ep_event.data.fd = peers[i].sock;
+        printf("epoll_add:%d\n", ep_event.data.fd);
+        if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, peers[i].sock, &ep_event) != 0)
+        {
+            printf("epoll_ctl got error %s\n", strerror(errno));
+            exit(0);
+        }
     }
-    
+
     // make socket non-blocking
     //blockingsocket(listen, 0);
  
@@ -1232,7 +1239,7 @@ int main( int argc, char* argv[] ) {
     webserver_init();
     pthread_create(&thread_webserver, NULL, webserver_accept_worker, NULL);
 
-    pthread_create(&thread_watchdog, NULL, watchdog_worker, NULL);
+    DEBUG_INIT();
 
     // prepare iovecs
     memset(msgs, 0, sizeof(msgs));
@@ -1249,6 +1256,8 @@ int main( int argc, char* argv[] ) {
     /* the main thread loop processing data from peer sockets and enqueueing for connection_worker threads */
     while(!terminated)
     {
+        PERFTIME_BEGIN(PERFTIMER_MAIN_LOOP);
+
         unsigned int size;
         int recv_flags = 0;
         //struct timeval te;
@@ -1314,85 +1323,67 @@ int main( int argc, char* argv[] ) {
         }
 
         // check socket for new data
-        
-        /*
-        struct timeval tm = {0, SELECT_INTERVAL_USEC};
-        fd_set rFd;
-        FD_ZERO(&rFd);
-        FD_SET(listen, &rFd);
-
-        int sResult = select(listen+1, &rFd, NULL, NULL, &tm);
-        if (sResult <= 0)
-        {
-            goto select_timeout;
-        }
-    
-        size = sizeof(src);
-        int length = recvfrom(listen, buffer, PEER_BUFFER_NODE_BUFLEN, recv_flags, (struct sockaddr*)&src, &size);
-        if(length <= 0)
-        {
-            goto select_timeout;
-        }
-        */
-
         int length = 0;
         if(msg_recv_count == 0)
         {
+            PERFTIME_BEGIN(PERFTIMER_SELECT);
+
             PEERS_SOCKETS_LOCK();
 
             msg_recv_offset = 0;
 
-            fd_set rFd;
-
+            int event_count = epoll_wait(epoll_fd, ep_events, PEER_RECV_BUFFER_COUNT, EPOLL_TIMEOUT_MS);
+            if(event_count <= 0)
             {
-                struct timeval tm = {0, SELECT_INTERVAL_USEC};
-                FD_ZERO(&rFd);
-                
-                int maxfd = 0;
-                for(i = 0; i < MAX_PEERS; i++)
-                {
-                   int sock = peers[i].sock;
-                
-                   FD_SET(sock, &rFd);
-                   if(sock > maxfd) maxfd = sock;
-                }
-
-                int sResult = select(maxfd+1, &rFd, NULL, NULL, &tm);
-                if (sResult <= 0)
-                {
-                    PEERS_SOCKETS_UNLOCK();
-                    goto select_timeout;
-                }
+                PEERS_SOCKETS_UNLOCK();
+                PERFTIME_END(PERFTIMER_SELECT);
+                if(event_count < 0) printf("epoll_wait got error: %s\n", strerror(errno));
+                goto select_timeout;
             }
 
-            diagnostics.recv_state = 1;
-            for(i = 0; msg_recv_count < RECVMSG_NUM && i < MAX_PEERS; i++)
+            PEERS_SOCKETS_UNLOCK();
+
+            PERFTIME_END(PERFTIMER_SELECT);
+
+            PERFTIME_BEGIN(PERFTIMER_RECV);
+
+            /* HACK: need to refactor this to work with epoll more efficiently */
+            for(i = 0; i < event_count; i++)
             {
-                int sck = peers[i].sock;
-                diagnostics.recv_sock = sck;
-                if(FD_ISSET(peers[i].sock, &rFd) && sck > 0)
+                int p;
+                int sck = -1;
+
+                for(p = 0; p < MAX_PEERS; p++)
                 {
-                    struct timespec tm;
-                    tm.tv_sec = 0;
-                    tm.tv_nsec = 10000;
-                    diagnostics.recv_count = RECVMSG_NUM-msg_recv_count;
-                    int result = recvmmsg(sck, msgs+msg_recv_count, RECVMSG_NUM-msg_recv_count, MSG_DONTWAIT, &tm);
-                    if(result < 0)
+                    if(peers[p].sock == ep_events[i].data.fd)
                     {
-                        printf("recvmmsg returned error: %d\n", errno);
-                        msg_recv_count = 0;
+                        sck = peers[p].sock;
                         break;
                     }
-
-                    int offset = msg_recv_count;
-                    msg_recv_count += result;
-
-                    for(int j = offset; j < msg_recv_count; j++) msg_peeridx[j] = i;
-
-                    //if(msg_recv_count > 1) printf("recvmmsg got packets: %d\n", msg_recv_count);
                 }
+
+                if(sck < 0) continue;
+
+                diagnostics.recv_sock = sck;
+
+                diagnostics.recv_count = RECVMSG_NUM-msg_recv_count;
+                int result = recvmmsg(sck, msgs+msg_recv_count, 1, MSG_DONTWAIT, NULL);
+                if(result < 0)
+                {
+                    printf("recvmmsg returned error: %d\n", errno);
+                    msg_recv_count = 0;
+                    break;
+                }
+
+                int offset = msg_recv_count;
+                msg_recv_count += result;
+
+                msg_peeridx[i] = p;
+
+                //if(msg_recv_count > 1) printf("recvmmsg got packets: %d\n", msg_recv_count);
             }
-            diagnostics.recv_state = 0;
+
+            PERFTIME_END(PERFTIMER_RECV);
 
             PEERS_SOCKETS_UNLOCK();
 
@@ -1400,6 +1391,8 @@ int main( int argc, char* argv[] ) {
         }
         else
         {
+            PERFTIME_BEGIN(PERFTIMER_PROCESS_BUFFER);
+
             length = msgs[msg_recv_offset].msg_len;
             buffer = bufs[msg_recv_offset];
             memcpy(&src, msgs[msg_recv_offset].msg_hdr.msg_name, msgs[msg_recv_offset].msg_hdr.msg_namelen);
@@ -1523,7 +1516,11 @@ int main( int argc, char* argv[] ) {
 
         PEER_UNLOCK(sidx);
 
-        if(msg_recv_count > 0) continue;
+        if(msg_recv_count > 0)
+        {
+            PERFTIME_END(PERFTIMER_PROCESS_BUFFER);
+            continue;
+        }
 
         select_timeout:
 
@@ -1681,6 +1678,8 @@ int main( int argc, char* argv[] ) {
 
             i++;
         }
+
+        PERFTIME_END(PERFTIMER_MAIN_LOOP);
     }
 
     printf("main loop exiting..\n");
@@ -1690,4 +1689,6 @@ int main( int argc, char* argv[] ) {
         webserver.running = 0;
         pthread_join(thread_webserver, NULL);
     }
+
+    DEBUG_DEINIT();
 }
