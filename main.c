@@ -104,7 +104,6 @@ typedef struct {
     int rtp_idx;
 } peer_rtp_send_worker_args_t;
 
-
 int bindsocket( char* ip, int port , int tcp);
 int main( int argc, char* argv[] );
 
@@ -815,16 +814,30 @@ connection_worker(void* p)
                     {
                         int issrc = 0;
                         rtp_report_receiver_t* preport = report;
+                        u32 jitter = 0; 
 
-                        //while(issrc < nrep || (nrep == 0 && issrc == 0))
-                        //{
-                            //printf("receiver report hdr repcount: %d ssrc: %u block1ssrc %u jitter:%u (decrypt_len:%u)\n",
-                            //       nrep, in_ssrc, 
-                            //       ntohl(report->blocks[issrc].ssrc_block1),
-                            //       ntohl(report->blocks[issrc].interarrival_jitter),
-                            //       unprotect_len);
-                            //issrc ++;
-                        //}
+                        while(issrc < nrep || (nrep == 0 && issrc == 0))
+                        {
+                            jitter = ntohl(report->blocks[issrc].interarrival_jitter);
+                            
+                            if(jitter > diagnostics.jitter_max) diagnostics.jitter_max = jitter;
+                            if(jitter < diagnostics.jitter_min) diagnostics.jitter_min = jitter;
+
+                            printf("receiver report hdr repcount: %d ssrc: %u block1ssrc %u jitter:%u (decrypt_len:%u)\n",
+                                   nrep, in_ssrc, 
+                                   ntohl(report->blocks[issrc].ssrc_block1),
+                                   jitter,
+                                   unprotect_len);
+
+                            printf("jitter delta: %d\n", jitter - peer->srtp[rtp_idx].receiver_report_jitter_last);
+
+                            // adjust pacer offsetting
+                            int pace_delta = (peer->srtp[rtp_idx].receiver_report_jitter_last - jitter);
+                            printf("pace_delta=%d\n", pace_delta);
+                            peers[peer->subscriptionID].paced_sender.timestamp_offset_ms += pace_delta / 16;                            
+                            peer->srtp[rtp_idx].receiver_report_jitter_last = jitter;
+                            issrc ++;
+                        }
                     }
 
                     for(p = 0; p < MAX_PEERS; p++)
@@ -896,6 +909,7 @@ connection_worker(void* p)
                                     outbuf = peer->out_buffers_head.next;
                                 }
 
+                                // TODO: refactor as below 
                                 unsigned long clock_ts_delta = time_ms - peer->clock_timestamp_ms_initial[rtp_idx];
                                 if(!clock_ts_delta) clock_ts_delta = 1;
                                 float ts_delta = timestamp_in - peer->rtp_timestamp_initial[rtp_idx];
@@ -934,11 +948,10 @@ connection_worker(void* p)
                 {
                     peer_buffer_node_t* cur = NULL;
                     unsigned long ts_delta = timestamp_in - peer->rtp_timestamp_initial[rtp_idx];
+                    unsigned long ts_inc = ts_delta / (time_ms - peer->clock_timestamp_ms_initial[rtp_idx]);
                     peer->srtp[rtp_idx].ts_last_unprotect = ntohl(rtpFrame->hdr.timestamp);
                     peer->srtp[rtp_idx].ts_last = timestamp_in;
                     peer->srtp[rtp_idx].recv_time_avg = (peer->srtp[rtp_idx].recv_time_avg + ts_delta) / 2;
-
-                    //printf("ts_last delta %lu (stream:%d) (average:%lu)\n", ts_delta, rtp_idx, peer->srtp[rtp_idx].recv_time_avg);
 
                     peer->stats.stat[8] = rtpFrame->hdr.payload_type & 0x7f;
 
@@ -946,7 +959,7 @@ connection_worker(void* p)
                     {
                         peer->rtp_timestamp_initial[rtp_idx] = ntohl(rtpFrame->hdr.timestamp);
                         peer->rtp_seq_initial[rtp_idx] = ntohs(rtpFrame->hdr.sequence);
-                        peer->clock_timestamp_ms_initial[rtp_idx] = get_time_ms();
+                        peer->clock_timestamp_ms_initial[rtp_idx] = time_ms-1;
                     }
 
                     int p, lengthPeer;
@@ -975,14 +988,16 @@ connection_worker(void* p)
                             memcpy(rtp_frame_out, rtpFrame, lengthPeer);
 
                             rtp_frame_out->hdr.seq_src_id = htonl(peers[p].srtp[rtp_idx_write].ssrc_offer);
+            
+                            // TODO: adjust timestamp based on offset
+                            long timestamp_new = ntohl(rtp_frame_out->hdr.timestamp) + peer->timestamp_adjust[rtp_idx];
+                            rtp_frame_out->hdr.timestamp = htonl(timestamp_new);
 
                             if(srtp_protect(peers[p].srtp[rtp_idx_write].session, rtp_frame_out, &lengthPeer) == srtp_err_status_ok)
                             {
                                 unsigned long clock_ts_delta = time_ms - peer->clock_timestamp_ms_initial[rtp_idx];
-                                if(!clock_ts_delta) clock_ts_delta = 1;
-                                float ts_delta = timestamp_in - peer->rtp_timestamp_initial[rtp_idx];
-                                float m = ts_delta / clock_ts_delta;
-                                outbuf->timestamp = peer->clock_timestamp_ms_initial[rtp_idx] + (ts_delta / m);
+                                //outbuf->timestamp = peer->clock_timestamp_ms_initial[rtp_idx] + ts_inc * clock_ts_delta;
+                                outbuf->timestamp = time_ms + peers[p].paced_sender.timestamp_offset_ms;
                                 outbuf->id = p;
                                 outbuf->len = lengthPeer;
 
@@ -1108,7 +1123,7 @@ connection_paced_streamer(void* p)
 
         while(cur)
         {
-            if(cur->len > 0 /*&& time_ms >= cur->timestamp*/)
+            if(cur->len > 0 && time_ms >= cur->timestamp)
             {
                 if(time_ms - cur->timestamp >= error_margin) 
                 {
@@ -1509,7 +1524,7 @@ int main( int argc, char* argv[] ) {
 
         node->recv_time = node->timestamp = time_ms;
 
-        /* TODO: avoid this memcpy by having separate msgs buffers for each peer */
+        // TODO: avoid this memcpy by having separate msgs buffers for each peer
         memcpy(node->buf, buffer, length);
         node->id = sidx;
         node->len = length;

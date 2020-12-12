@@ -127,18 +127,18 @@ typedef struct
         int ffwd_done;
         unsigned long recv_time_avg;
         unsigned long ts_last;
-        u8 recv_report_buflast[2048];
-        u32 recv_report_buflast_len;
         u32 recv_report_seqlast;
         u32 recv_report_tslast;
+        
+        u32 receiver_report_jitter_last;
 
         time_t pli_last;
 
     } srtp[PEER_RTP_CTX_COUNT];
 
     struct {
-        u32 receiver_tslast;
-    } report;
+        unsigned int timestamp_offset_ms;
+    } paced_sender;
 
     struct {
         char cookie[256];
@@ -177,6 +177,7 @@ typedef struct
     peer_buffer_node_t* in_buffer_next;
     u32 rtp_timestamp_initial[PEER_RTP_CTX_COUNT];
     unsigned long clock_timestamp_ms_initial[PEER_RTP_CTX_COUNT];
+    long timestamp_adjust[PEER_RTP_CTX_COUNT];
     u16 rtp_seq_initial[PEER_RTP_CTX_COUNT];
 
     int sock;
@@ -451,6 +452,39 @@ int peer_stun_bound(peer_session_t* peer)
 
 const char* sdp_offer_create(peer_session_t* peer)
 {
+
+    /*
+     "\"a=rtpmap:8 PCMA/8000\\n\" + \n"
+     "\"a=setup:actpass\\n\" + \n"
+     "\"a=ssrc:%d cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\\n\" + \n"
+-    "\"m=video 9 RTP/SAVPF 127 120 126 97\\n\" + \n"
++    "\"m=video 9 RTP/SAVPF 126 97\\n\" + \n"
+     "\"c=IN IP4 0.0.0.0\\n\" + \n"
+     "\"a=sendrecv\\n\" + \n"
+-    "\"a=fmtp:120 max-fr=60; max-fs=14400;\\n\" + \n"
+     "\"a=fmtp:126 profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1\\n\" + \n"
+     "\"a=fmtp:97 profile-level-id=42e01f;level-asymmetry-allowed=1\\n\" + \n"
+-    "\"a=rtpmap:127 VP9/90000\\n\" + \n"
+-    "\"a=rtcp-fb:127 goog-remb\\n\" + \n"
+-    "\"a=rtcp-fb:127 transport-cc\\n\" + \n"
+-    "\"a=rtcp-fb:127 ccm fir\\n\" + \n"
+-    "\"a=rtcp-fb:127 nack\\n\" + \n"
+-    "\"a=rtcp-fb:127 nack pli\\n\" + \n"
+-    "\"a=fmtp:127 profile-id="VP9PROFILEID"\\n\" + \n"
+     "\"a=ice-pwd:230r89wef32jsdsjJlkj23rndasf23rlknas\\n\" + \n"
+     "\"a=ice-ufrag:%s\\n\" + \n"
+     "\"a=mid:sdparta_1\\n\" + \n"
+     "\"a=msid:{7e5b1422-7cbe-3649-9897-864febd59342} {f46f496f-30aa-bd40-8746-47bda9150d23}\\n\" + \n"
+-    "\"a=rtcp-fb:120 ccm fir pli nack\\n\" + \n"
+     "\"a=rtcp-fb:126 ccm fir\\n\" + \n"
+     "\"a=rtcp-fb:97 ccm fir\\n\" + \n"
+     "\"a=rtcp-mux\\n\" + \n"
+-    "\"a=rtpmap:120 VP8/90000\\n\" + \n"
+     "\"a=rtpmap:126 H264/90000\\n\" + \n"
+     "\"a=rtpmap:97 H264/90000\\n\" + \n"
+     "\"a=setup:actpass\\n\" + \n"
+
+    */
     const char* offer_template =
     "\"v=0\\n\" + \n"
     "\"o=mozilla...THIS_IS_SDPARTA-38.0.1_cookiea8f73130 1702670192771025677 0 IN IP4 0.0.0.0\\n\" + \n"
@@ -475,18 +509,28 @@ const char* sdp_offer_create(peer_session_t* peer)
     "\"a=rtpmap:8 PCMA/8000\\n\" + \n"
     "\"a=setup:actpass\\n\" + \n"
     "\"a=ssrc:%d cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\\n\" + \n"
-    "\"m=video 9 RTP/SAVPF 126 97\\n\" + \n"
+    "\"m=video 9 RTP/SAVPF 127 120 126 97\\n\" + \n"
     "\"c=IN IP4 0.0.0.0\\n\" + \n"
     "\"a=sendrecv\\n\" + \n"
+    "\"a=fmtp:120 max-fr=60; max-fs=14400;\\n\" + \n"
     "\"a=fmtp:126 profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1\\n\" + \n"
     "\"a=fmtp:97 profile-level-id=42e01f;level-asymmetry-allowed=1\\n\" + \n"
+    "\"a=rtpmap:127 VP9/90000\\n\" + \n"
+    "\"a=rtcp-fb:127 goog-remb\\n\" + \n"
+    "\"a=rtcp-fb:127 transport-cc\\n\" + \n"
+    "\"a=rtcp-fb:127 ccm fir\\n\" + \n"
+    "\"a=rtcp-fb:127 nack\\n\" + \n"
+    "\"a=rtcp-fb:127 nack pli\\n\" + \n"
+    "\"a=fmtp:127 profile-id="VP9PROFILEID"\\n\" + \n"
     "\"a=ice-pwd:230r89wef32jsdsjJlkj23rndasf23rlknas\\n\" + \n"
     "\"a=ice-ufrag:%s\\n\" + \n"
     "\"a=mid:sdparta_1\\n\" + \n"
     "\"a=msid:{7e5b1422-7cbe-3649-9897-864febd59342} {f46f496f-30aa-bd40-8746-47bda9150d23}\\n\" + \n"
+    "\"a=rtcp-fb:120 ccm fir pli nack\\n\" + \n"
     "\"a=rtcp-fb:126 ccm fir\\n\" + \n"
     "\"a=rtcp-fb:97 ccm fir\\n\" + \n"
     "\"a=rtcp-mux\\n\" + \n"
+    "\"a=rtpmap:120 VP8/90000\\n\" + \n"
     "\"a=rtpmap:126 H264/90000\\n\" + \n"
     "\"a=rtpmap:97 H264/90000\\n\" + \n"
     "\"a=setup:actpass\\n\" + \n"
