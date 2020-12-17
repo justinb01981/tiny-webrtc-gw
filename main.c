@@ -59,7 +59,7 @@
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
-#define EPOLL_TIMEOUT_MS (100)
+#define EPOLL_TIMEOUT_MS (10)
 //#define PEER_CLEANUP_INTERVAL (1)
 #define RECVMSG_NUM (PEER_RECV_BUFFER_COUNT)
 
@@ -744,7 +744,7 @@ connection_worker(void* p)
             goto peer_again;
         }
 
-        // don't process packets until stun completed
+        /* don't process packets until stun completed */
         if(!peer_stun_bound(peer)) goto peer_again;
 
         if(type == PKT_TYPE_SRTP)
@@ -823,6 +823,7 @@ connection_worker(void* p)
                             if(jitter > diagnostics.jitter_max) diagnostics.jitter_max = jitter;
                             if(jitter < diagnostics.jitter_min) diagnostics.jitter_min = jitter;
 
+                            /*
                             printf("receiver report hdr repcount: %d ssrc: %u block1ssrc %u jitter:%u (decrypt_len:%u)\n",
                                    nrep, in_ssrc, 
                                    ntohl(report->blocks[issrc].ssrc_block1),
@@ -830,11 +831,20 @@ connection_worker(void* p)
                                    unprotect_len);
 
                             printf("jitter delta: %d\n", jitter - peer->srtp[rtp_idx].receiver_report_jitter_last);
+                            */
 
                             // adjust pacer offsetting
                             int pace_delta = (peer->srtp[rtp_idx].receiver_report_jitter_last - jitter);
                             printf("pace_delta=%d\n", pace_delta);
-                            peers[peer->subscriptionID].paced_sender.timestamp_offset_ms += pace_delta / 16;                            
+                            // how did I arrive at this divisor? experimentation. On a LAN. :-/
+                            if(pace_delta >= 0 && peers[peer->subscriptionID].paced_sender.timestamp_offset_ms <= 50)
+                            {
+                                peers[peer->subscriptionID].paced_sender.timestamp_offset_ms += (pace_delta / 8);
+                            }
+                            else
+                            {
+                                peers[peer->subscriptionID].paced_sender.timestamp_offset_ms += (pace_delta / 2);
+                            }
                             peer->srtp[rtp_idx].receiver_report_jitter_last = jitter;
                             issrc ++;
                         }
@@ -1225,25 +1235,42 @@ int main( int argc, char* argv[] ) {
     epoll_fd = epoll_create1(0);
     if(epoll_fd == -1) return;
 
+    #if 0
     for(i = 0; i < MAX_PEERS; i++)
     {
         struct epoll_event ep_event;
 
-        peers[i].sock = bindsocket( udpserver.inip, listen_port_base+i, 0 );
+        peers[i].sock = bindsocket(udpserver.inip, listen_port_base+i, 0);
         peers[i].port = listen_port_base+i;
+
         ep_event.events = EPOLLIN;
         ep_event.data.fd = peers[i].sock;
-        printf("epoll_add:%d\n", ep_event.data.fd);
         if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, peers[i].sock, &ep_event) != 0)
         {
             printf("epoll_ctl got error %s\n", strerror(errno));
             exit(0);
         }
     }
+    #else
+    peers[0].sock = bindsocket(udpserver.inip, listen_port_base, 0);
+    peers[0].port = listen_port_base;
+    for(i = 0; i < MAX_PEERS; i++)
+    {
+        struct epoll_event ep_event;
 
-    // make socket non-blocking
-    //blockingsocket(listen, 0);
- 
+        peers[i].sock = peers[0].sock;
+        peers[i].port = listen_port_base;
+
+        ep_event.events = EPOLLIN;
+        ep_event.data.fd = peers[i].sock;
+        if(i == 0 && epoll_ctl(epoll_fd, EPOLL_CTL_ADD, peers[i].sock, &ep_event) != 0)
+        {
+            printf("epoll_ctl got error %s\n", strerror(errno));
+            exit(0);
+        }
+    }
+    #endif
+
     ret.sin_addr.s_addr = 0;
     
     //int udp_recv_timeout_usec = strToInt(get_config("udp_read_timeout_usec="));
@@ -1353,6 +1380,7 @@ int main( int argc, char* argv[] ) {
                 PEERS_SOCKETS_UNLOCK();
                 PERFTIME_END(PERFTIMER_SELECT);
                 if(event_count < 0) printf("epoll_wait got error: %s\n", strerror(errno));
+                sleep_msec(1);
                 goto select_timeout;
             }
 
@@ -1382,7 +1410,7 @@ int main( int argc, char* argv[] ) {
                 diagnostics.recv_sock = sck;
 
                 diagnostics.recv_count = RECVMSG_NUM-msg_recv_count;
-                int result = recvmmsg(sck, msgs+msg_recv_count, 1, MSG_DONTWAIT, NULL);
+                int result = recvmmsg(sck, msgs+msg_recv_count, RECVMSG_NUM-msg_recv_count, MSG_DONTWAIT, NULL);
                 if(result < 0)
                 {
                     printf("recvmmsg returned error: %d\n", errno);
@@ -1490,21 +1518,6 @@ int main( int argc, char* argv[] ) {
         }
         
         if(sidx < 0) goto select_timeout;
-
-        /*
-        if(src.sin_addr.s_addr != peers[sidx].addr.sin_addr.s_addr ||
-           src.sin_port != peers[sidx].addr.sin_port)
-        {
-            // ignore (same peer)
-            printf("%s:%d peer address updated (duplicate STUN cookie)\n", __func__, __LINE__);
-            memcpy(&peers[sidx].addr, &src, sizeof(src));
-        }
-
-        if(length < 1 || length >= PEER_BUFFER_NODE_BUFLEN) {
-            printf("%s:%d unhandled length\n");
-            goto select_timeout;
-        }
-        */
 
         PEER_LOCK(sidx);
 
