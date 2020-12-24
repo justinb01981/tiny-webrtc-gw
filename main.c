@@ -63,6 +63,8 @@
 //#define PEER_CLEANUP_INTERVAL (1)
 #define RECVMSG_NUM (PEER_RECV_BUFFER_COUNT)
 
+#define IDEAL_BACKLOG_MS 500
+
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS+1];
 FILECACHE_INSTANTIATE();
@@ -834,17 +836,11 @@ connection_worker(void* p)
                             */
 
                             // adjust pacer offsetting
-                            int pace_delta = (peer->srtp[rtp_idx].receiver_report_jitter_last - jitter);
-                            printf("pace_delta=%d\n", pace_delta);
-                            // how did I arrive at this divisor? experimentation. On a LAN. :-/
-                            if(pace_delta >= 0 && peers[peer->subscriptionID].paced_sender.timestamp_offset_ms <= 50)
-                            {
-                                peers[peer->subscriptionID].paced_sender.timestamp_offset_ms += (pace_delta / 8);
-                            }
-                            else
-                            {
-                                peers[peer->subscriptionID].paced_sender.timestamp_offset_ms += (pace_delta / 2);
-                            }
+                            long pace_delta = (peer->srtp[rtp_idx].receiver_report_jitter_last - jitter);
+                            //printf("pace_delta=%d\n", pace_delta);
+                            // how did I arrive at this divisor? experimentation. On a LAN. :-/ 20ms seemed like a reasonable jitter value...
+                            peers[peer->subscriptionID].paced_sender.timestamp_offset_ms += (pace_delta / abs(pace_delta/20));
+                            printf("peer[%d]:timestamp_offset_ms=%ld\n", peer->subscriptionID, peers[peer->subscriptionID].paced_sender.timestamp_offset_ms);
                             peer->srtp[rtp_idx].receiver_report_jitter_last = jitter;
                             issrc ++;
                         }
@@ -906,6 +902,10 @@ connection_worker(void* p)
                                 pss32 ++;
                             }
 
+                            rtp_frame_t *rtp_frame_out = (rtp_frame_t*) reportPeer;
+                            long timestamp_new = ntohl(rtp_frame_out->hdr.timestamp) + peer->timestamp_adjust[rtp_idx];
+                            rtp_frame_out->hdr.timestamp = htonl(timestamp_new);
+
                             if(protect_len > 0 &&
                                srtp_protect_rtcp(peers[p].srtp[rtp_idx_write].session, reportPeer, &protect_len) == srtp_err_status_ok) 
                             {  
@@ -916,16 +916,23 @@ connection_worker(void* p)
                                 if(!outbuf)
                                 {
                                     printf("rtp send_queue overrun!\n");
+
+                                    // flush everything
                                     outbuf = peer->out_buffers_head.next;
+                                    while(outbuf)
+                                    {
+                                        outbuf->timestamp = time_ms;
+                                        outbuf = outbuf->next;
+                                    }
+
+                                    goto peer_again;
                                 }
 
-                                // TODO: refactor as below 
                                 unsigned long clock_ts_delta = time_ms - peer->clock_timestamp_ms_initial[rtp_idx];
-                                if(!clock_ts_delta) clock_ts_delta = 1;
-                                float ts_delta = timestamp_in - peer->rtp_timestamp_initial[rtp_idx];
-                                float m = ts_delta / clock_ts_delta;
-                                outbuf->timestamp = peer->clock_timestamp_ms_initial[rtp_idx] + (ts_delta / m);
                                 memcpy(outbuf->buf, reportPeer, protect_len);
+                                //outbuf->timestamp = peer->clock_timestamp_ms_initial[rtp_idx] + ts_inc * clock_ts_delta;
+                                long time_ms_plus_offset = time_ms + IDEAL_BACKLOG_MS + peers[p].paced_sender.timestamp_offset_ms;
+                                outbuf->timestamp = time_ms_plus_offset;
                                 outbuf->id = p;
                                 outbuf->len = protect_len;
                             }
@@ -991,7 +998,16 @@ connection_worker(void* p)
                             if(!outbuf)
                             {
                                 printf("rtp send_queue overrun!\n");
+
+                                // flush everything
                                 outbuf = peer->out_buffers_head.next;
+                                while(outbuf)
+                                {
+                                    outbuf->timestamp = time_ms;
+                                    outbuf = outbuf->next;
+                                }
+
+                                goto peer_again;
                             }
 
                             rtp_frame_t *rtp_frame_out = (rtp_frame_t*) outbuf->buf;
@@ -999,7 +1015,6 @@ connection_worker(void* p)
 
                             rtp_frame_out->hdr.seq_src_id = htonl(peers[p].srtp[rtp_idx_write].ssrc_offer);
             
-                            // TODO: adjust timestamp based on offset
                             long timestamp_new = ntohl(rtp_frame_out->hdr.timestamp) + peer->timestamp_adjust[rtp_idx];
                             rtp_frame_out->hdr.timestamp = htonl(timestamp_new);
 
@@ -1007,7 +1022,8 @@ connection_worker(void* p)
                             {
                                 unsigned long clock_ts_delta = time_ms - peer->clock_timestamp_ms_initial[rtp_idx];
                                 //outbuf->timestamp = peer->clock_timestamp_ms_initial[rtp_idx] + ts_inc * clock_ts_delta;
-                                outbuf->timestamp = time_ms + peers[p].paced_sender.timestamp_offset_ms;
+                                long time_ms_plus_offset = time_ms + IDEAL_BACKLOG_MS + peers[p].paced_sender.timestamp_offset_ms;
+                                outbuf->timestamp = time_ms_plus_offset;
                                 outbuf->id = p;
                                 outbuf->len = lengthPeer;
 
@@ -1526,7 +1542,11 @@ int main( int argc, char* argv[] ) {
 
         peer_buffer_node_t* node = peers[sidx].in_buffer_next;
         if(!node) node = peers[sidx].in_buffers_head.next;
-
+        if(!node) 
+        {
+            printf("WARN: this should never happen! %s:%d\n", __FILE__, __LINE__);
+            goto select_timeout;
+        }
         peers[sidx].in_buffer_next = node->next;
 
         if(node->len != 0)

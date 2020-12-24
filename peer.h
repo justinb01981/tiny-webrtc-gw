@@ -3,6 +3,8 @@
 
 #include "memdebughack.h"
 
+#define SDP_OFFER_VP8 1
+
 #define MAX_PEERS 15
 #define PEER_IDX_INVALID (MAX_PEERS+1)
 
@@ -34,7 +36,8 @@ typedef enum {
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&((x)->mcond), &((x->mutex)))
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 4096
-#define PEER_RECV_BUFFER_COUNT 256
+#define PEER_RECV_BUFFER_COUNT 64
+#define PEER_SEND_BUFFER_COUNT 1024
 
 #ifdef assert
 #undef assert
@@ -294,10 +297,16 @@ void peer_buffers_init(peer_session_t* peer)
     peer->buffer_count = buffer_count;
     while(buffer_count > 0)
     {
-        peer_buffer_node_list_add(&peer->out_buffers_head, buffer_node_alloc());
 
         peer_buffer_node_list_add(&peer->in_buffers_head, buffer_node_alloc());
 
+        buffer_count -= 1;
+    }
+
+    buffer_count = PEER_SEND_BUFFER_COUNT;
+    while(buffer_count > 0)
+    {
+        peer_buffer_node_list_add(&peer->out_buffers_head, buffer_node_alloc());
         buffer_count -= 1;
     }
 }
@@ -509,28 +518,31 @@ const char* sdp_offer_create(peer_session_t* peer)
     "\"a=rtpmap:8 PCMA/8000\\n\" + \n"
     "\"a=setup:actpass\\n\" + \n"
     "\"a=ssrc:%d cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\\n\" + \n"
-    "\"m=video 9 RTP/SAVPF 127 120 126 97\\n\" + \n"
+#if SDP_OFFER_VP8
+    "\"m=video 9 RTP/SAVPF 120 126 97\\n\" + \n"
+#else
+    "\"m=video 9 RTP/SAVPF 126 97\\n\" + \n"
+#endif
     "\"c=IN IP4 0.0.0.0\\n\" + \n"
     "\"a=sendrecv\\n\" + \n"
+#if SDP_OFFER_VP8
     "\"a=fmtp:120 max-fr=60; max-fs=14400;\\n\" + \n"
+#endif
     "\"a=fmtp:126 profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1\\n\" + \n"
     "\"a=fmtp:97 profile-level-id=42e01f;level-asymmetry-allowed=1\\n\" + \n"
-    "\"a=rtpmap:127 VP9/90000\\n\" + \n"
-    "\"a=rtcp-fb:127 goog-remb\\n\" + \n"
-    "\"a=rtcp-fb:127 transport-cc\\n\" + \n"
-    "\"a=rtcp-fb:127 ccm fir\\n\" + \n"
-    "\"a=rtcp-fb:127 nack\\n\" + \n"
-    "\"a=rtcp-fb:127 nack pli\\n\" + \n"
-    "\"a=fmtp:127 profile-id="VP9PROFILEID"\\n\" + \n"
     "\"a=ice-pwd:230r89wef32jsdsjJlkj23rndasf23rlknas\\n\" + \n"
     "\"a=ice-ufrag:%s\\n\" + \n"
     "\"a=mid:sdparta_1\\n\" + \n"
     "\"a=msid:{7e5b1422-7cbe-3649-9897-864febd59342} {f46f496f-30aa-bd40-8746-47bda9150d23}\\n\" + \n"
+#if SDP_OFFER_VP8
     "\"a=rtcp-fb:120 ccm fir pli nack\\n\" + \n"
+#endif
     "\"a=rtcp-fb:126 ccm fir\\n\" + \n"
     "\"a=rtcp-fb:97 ccm fir\\n\" + \n"
     "\"a=rtcp-mux\\n\" + \n"
+#if SDP_OFFER_VP8
     "\"a=rtpmap:120 VP8/90000\\n\" + \n"
+#endif
     "\"a=rtpmap:126 H264/90000\\n\" + \n"
     "\"a=rtpmap:97 H264/90000\\n\" + \n"
     "\"a=setup:actpass\\n\" + \n"
