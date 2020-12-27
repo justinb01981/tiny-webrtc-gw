@@ -11,7 +11,6 @@ var remoteConnectionStunConfig = %$STUNCONFIGJS$%;
 var closeHandler = null;
 //var stunHost = "%$HOSTNAME$%";
 var stunHost = document.location.host;
-//var stunPort = "3478";
 var stunPort = "%$RTPPORT$%";
 //var onLoadDoneAnswerUpload;
 
@@ -162,7 +161,6 @@ function rtcPopupCreate(handlerOpen, handlerClose, recvOnly, watchUser) {
 function rtcPopupCreateIframe(handlerOpen, handlerClose) {
     document.location = 'answer_upload.html';
     popupRecvOnly = false;
-    //w.document.body.onload = handlerOpen1;
     console.debug('rtcPopupCreateIframe');
     parent.onLoadDoneAnswerUpload = handlerOpen;
     closeHandler = handlerClose;
@@ -233,39 +231,3 @@ function attachMediaStream(vidElem, vidStream)
     console.debug('attachMediaStream: onloadedmetadata');
 }
 
-function prepareVideo(containerTable, labelText)
-{
-    var table = containerTable;
-
-    var row = window.parent.document.createElement('tr');
-    var col = window.parent.document.createElement('td');
-
-    var videoElemToAdd = window.parent.document.createElement('video');
-    var labelToAdd = window.parent.document.createTextNode(labelText);
-    var paraToAdd = window.parent.document.createElement('p');
-
-    paraToAdd.appendChild(labelToAdd);
-    paraToAdd.style.cssText = 'z-index:1; position:relative; top:20px; left:0px; width:100px; background-color:black;';
-
-    
-    col.appendChild(paraToAdd);
-    col.appendChild(videoElemToAdd);
-    row.appendChild(col);
-
-    videoElemToAdd.className = 'videoMain';
-    videoElemToAdd.autoplay = true;
-    videoElemToAdd.muted = true;
-    videoElemToAdd.setAttribute('playsinline', 'true');
-    videoElemToAdd.setAttribute('webkit-playsinline', 'webkit-playsinline');
-    videoElemToAdd.id = 'video' + window.parent.videoElemIdCounter;
-    videoElemToAdd.parentRow = row;
-
-    // TODO: instead of using a counter, use username to identify each videoElem
-    window.parent.videoElemIdCounter += 1;
-
-    table.appendChild(row);
-
-    window.parent.iframeConnectState.videoElem = videoElemToAdd;
-
-    return row
-}

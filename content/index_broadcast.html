@@ -131,13 +131,7 @@ function onLoadDone() {
     var videoElemCaptured = window.parent.iframeConnectState.videoElem;
 
     onLeave = function() {
-        var elemRemote = videoElemCaptured;
-        var elemLocal = document.getElementById('localVideo');
-
-        if(elemRemote != null && elemRemote.closeAction) elemRemote.closeAction(elemRemote);
-        if(elemLocal.closeAction) elemLocal.closeAction(elemLocal);
-
-        getConnectIframe().contentWindow.location.reload();
+        onLeaveRoom(videoElemCaptured);
     }
 
     onJoinPending = function() {
@@ -175,14 +169,6 @@ function onAdvanced(button) {
         button.value = '-';
         iframeConnectState.advancedSettings = true;
     }
-}
-
-function getSelectAudioDevice() {
-    return document.getElementById('selectMicInput');
-}
-
-function getSelectVideoDevice() {
-    return document.getElementById('selectCamInput');
 }
 // don't add things here, do that in broadcast.js
 </script>

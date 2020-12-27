@@ -31,7 +31,10 @@
 <script src='js/popup.js'></script>
 <script src='js/peers.js'></script>
 <script src='js/peerdynamic.js'></script>
+<!--
 <script src='js/broadcast.js'></script>
+-->
+
 <script language='javascript'>
 
 function connectIFrameOnLoad(htmlBodyElem)
@@ -98,7 +101,7 @@ function connectIFrameOnLoad(htmlBodyElem)
       // add this user
       state.usersSubscribed.push(name);
       state.selectedUser = name;
-      prepareVideo(videoTable, name);
+      window.parent.prepareVideo(videoTable, name);
       onJoin();
 
       break;
@@ -138,12 +141,14 @@ function connectIFrameOnLoad(htmlBodyElem)
 }
 
 function onJoin() {
-  var parentDoc = window.parent.document;
+  console.debug('onJoin in doc ' + document.location);
+
   var state = window.parent.iframeConnectState;
   var joinMode = document.getElementById('joinMode');
-  var roomElem = parentDoc.getElementById('roomName');
+  //var roomElem = parentDoc.getElementById('roomName');
+  var roomName = window.parent.getSelectedRoom();
   
-  if(!roomElem.value) { alert('enter a room name'); return; }
+  if(roomName == '') { alert('enter a room name'); return; }
 
   window.parent.onLoadMedia().then(function() {
   
@@ -154,13 +159,13 @@ function onJoin() {
     else
     {
       joinMode.value = 'broadcast';
-      state.selectedRoom = roomElem.value;
+      state.selectedRoom = roomName;
       state.usersSubscribed = [];
     }
     console.debug('joinMode:' + joinMode.value);
 
     var vidElem = joinMode.value == 'broadcast' ?
-      parentDoc.getElementById('localVideo') :
+      window.parent.document.getElementById('localVideo') :
       window.parent.iframeConnectState.videoElem;
 
     if(vidElem.closeAction) 
@@ -171,17 +176,14 @@ function onJoin() {
     state.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
     state.joinMode = joinMode.value;
 
-    connectVideoIframe(vidElem, 
-      window.parent.iframeConnectState.onConnectVideo,
-      vidElem.value);
+    window.parent.connectVideoIframe(window, vidElem, window.parent.iframeConnectState.onConnectVideo);
 
   }).catch(function(e) {
 
-    var roomElem = parentDoc.getElementById('roomName');
     var vidElem = window.parent.iframeConnectState.videoElem;
 
     console.debug('failed to get local video-source with exception: ' + e);
-    window.parent.iframeConnectState.selectedRoom = roomElem.value;
+    window.parent.iframeConnectState.selectedRoom = roomName;
 
     if(vidElem && vidElem.closeAction) {
       vidElem.closeAction();
@@ -190,7 +192,7 @@ function onJoin() {
     window.parent.iframeConnectState.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
     window.parent.iframeConnectState.joinMode = 'watch';
     if(vidElem && window.parent.iframeConnectState.selectedUser) {
-      connectVideoIframe(vidElem, window.parent.iframeConnectState.onConnectVideo,vidElem.value);
+      connectVideoIframe(window, vidElem, window.parent.iframeConnectState.onConnectVideo);
     }
     else {
       window.location = window.location;
@@ -221,7 +223,7 @@ function onSelectUserChange(elem)
 
   console.assert(mainVideoTable != null, 'ERROR: videoMainContainer not found');
 
-  prepareVideo(mainVideoTable, elem.value);
+  window.parent.prepareVideo(mainVideoTable, elem.value);
 
   if(elemOption.value != 'NULL')
   {

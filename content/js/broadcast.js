@@ -1,3 +1,4 @@
+// -- variables
 var divRoom = null;
 
 var vidChildW = 128;
@@ -71,6 +72,9 @@ var answerIframe;
 
 var getMediaPromise;
 
+var divPresenterClientWidth = 0;
+var divPresenterClientHeight = 0;
+
 var onLoadMedia = function() {
     return getMedia();
 }
@@ -88,9 +92,23 @@ var addUserLoad = function(name) {
     }
 }
 
+// -- functions
+
 function vidChildInit() {
     vidChildX = mainDivX;
     vidChildY = mainDivY + mainDivH;
+}
+
+function getSelectAudioDevice() {
+    return document.getElementById('selectMicInput');
+}
+
+function getSelectVideoDevice() {
+    return document.getElementById('selectCamInput');
+}
+
+function getSelectedRoom() {
+    return document.getElementById('roomName').value;
 }
 
 function enumerateMedia() {
@@ -129,7 +147,6 @@ function getMedia() {
             getSelectAudioDevice().disabled = true;
             getSelectVideoDevice().disabled = true;
 
-            console.debug('ai='+ai+'vi='+vi);
 /*
             for(var i = 0; i < sourceInfos.length; i++) {
                 console.log('mediaDevices('+sourceInfos[i].kind+')['+i+']: ' + sourceInfos[i].label);
@@ -244,6 +261,21 @@ function setLoggedIn() {
     h.style = 'display:none;';
 }
 
+function onLeaveRoom(videoElemCaptured) {
+    console.debug('onLeaveRoom');
+
+    var elemRemote = videoElemCaptured;
+    var elemLocal = document.getElementById('localVideo');
+
+    if(elemRemote != null && elemRemote.closeAction) elemRemote.closeAction(elemRemote);
+    if(elemLocal.closeAction) elemLocal.closeAction(elemLocal);
+
+    getConnectIframe().contentWindow.location.reload();
+
+    getSelectAudioDevice().disabled = false;
+    getSelectVideoDevice().disabled = false;
+}
+
 function logout() {
     location = 'logout.html';
 }
@@ -299,28 +331,6 @@ function joinPopupClose(connection, userName, recvOnlyChecked, roomName) {
     videoConnectionTable[winPopupVideoTarget.id] = new VideoConnection(userName, winPopupVideoTarget, winPopupRemoteConnection);
 
     window.parent.joinPopupCloseDone(winPopupVideoTarget);
-}
-
-function joinPopupOnLoadBroadcast() {
-    var doc = document;
-
-    var user = doc.getElementById('userName').value;
-    var room = doc.getElementById('roomName').value;
-    winPopup.document.theform.my_name.value = user;
-    winPopup.document.theform.room_name.value = room;
-    winPopup.document.theform.peerstream_recv.value = user;
-
-    joinPopupOnLoad2(winPopup);
-}
-
-function joinPopupOnLoadRecvOnly() {
-    console.debug('joinPopupOnLoadRecvOnly');
-
-    var user = 'watch' + Math.floor((Math.random() * 1000));
-    winPopup.document.theform.my_name.value = user;
-    winPopup.document.theform.peerstream_recv.value = user;
-    winPopup.document.theform.recvonly.checked = true;
-    joinPopupOnLoad2(winPopup, window);
 }
 
 function joinIframeOnLoadBroadcast() {
@@ -393,54 +403,14 @@ function disconnectVideo(vidElem) {
   }
 }
 
-/*
-function connectVideo(videoElem, recvOnly, watchUser, roomName) {
-  var popupOnLoad = joinPopupOnLoadBroadcast;
-
-  disconnectVideo(videoElem);
-
-  if (recvOnly) popupOnLoad = joinPopupOnLoadRecvOnly;
-
-  //winPopupSdp = videoSDPOffer;
-  winPopupVideoTarget = videoElem;
-  winPopup = rtcPopupCreate(popupOnLoad, joinPopupClose, recvOnly, watchUser);
-
-  if(!winPopup) alert('popup blocked?');
-  //else window.onfocus = function(){ winPopup.close(); }
-}
-*/
-
-function connectVideoIframe(videoElem, afterOnLoad, watchUser, roomName, target) {
+function connectVideoIframe(windowSrc, videoElem, afterOnLoad) {
   //var popupOnLoad = joinIframeOnLoadBroadcast;
 
   //disconnectVideo(videoElem);
 
-  window.parent.winPopupVideoTarget = videoElem;
-  rtcPopupCreateIframe(afterOnLoad, joinPopupClose);
-}
-
-function onBtnAddUser(userName) {
-    resizeObjectWithID("roomAddButtonDiv", mainDivX+(userCounter*(vidChildW+100)), vidChildY+vidChildH/2, 50, 50);
-    vidChildInit();
-
-    if(userName.length == 0) userName = userCounter.toString();
-    var val = macroHelper(divVideoHTML, '$USERNAME', userName);
-    roomTable += val;
-    roomTableCols++;
-    var divRoomCurs = document.getElementById("roomDivCursor");
-    divRoomCurs.innerHTML = divRoomCurs.innerHTML + val;
-    userCounter++;
-}
-
-function onBtnUsersExpand() {
-    var d = document.getElementById('roomAddButtonDiv');
-    if(d.style.cssText.indexOf('none') >= 0) {
-        d.style.cssText = '';
-    }
-    else {
-        d.style.cssText = 'display:none;';
-    }
-    resizeObjectWithID("roomAddButtonDiv", mainDivX+(userCounter*(vidChildW+100)), vidChildY+vidChildH/2, 50, 50);
+  console.debug('connectVideoIframe in doc: ' + window.parent.document.location);
+  window.winPopupVideoTarget = videoElem;
+  windowSrc.rtcPopupCreateIframe(afterOnLoad, joinPopupClose);
 }
 
 function onBtnMute(btn, userName) {
@@ -465,8 +435,7 @@ function onBtnClose(btn, userName) {
     var d = document.getElementById('div_'+userName+'_child');
     d.style.cssText = 'display:none;';
 }
-var divPresenterClientWidth = 0;
-var divPresenterClientHeight = 0;
+
 function onBtnMakePresent(btn, userName) {
     var vid = document.getElementById('videoMain');
     var vidSrc = document.getElementById('video_'+userName+'_remote');
@@ -479,11 +448,46 @@ function onBtnMakePresent(btn, userName) {
     if(divPresenterClientHeight == 0) divPresenterClientHeight = divPresenter.clientHeight;
     vid.width = divPresenterClientWidth;
     vid.height = divPresenterClientHeight;
-
-    //resizeObjectWithID("videoMain", mainDivX, mainDivY, (mainDivW/100)*60, (mainDivH/100)*50);
 }
 
-function mainVideoEmbiggen(pct) { 
+function prepareVideo(containerTable, labelText)
+{
+    var table = containerTable;
+
+    var row = document.createElement('tr');
+    var col = document.createElement('td');
+
+    var videoElemToAdd = document.createElement('video');
+    var labelToAdd = document.createTextNode(labelText);
+    var paraToAdd = document.createElement('p');
+    var stopButton = document.createElement('button');
+
+    paraToAdd.appendChild(labelToAdd);
+    paraToAdd.style.cssText = 'z-index:1; position:relative; top:20px; left:0px; width:100px; background-color:black;';
+
+    stopButton.style.cssText = 'width:32px; height:32px; position:relative; top:0px; left:px; z-index:2; background-position:center; background-repeat:no-repeat; background-image:url(/content/img/stop.png);';
+    
+    col.appendChild(paraToAdd);
+    col.appendChild(videoElemToAdd);
+    paraToAdd.appendChild(stopButton);
+    row.appendChild(col);
+
+    videoElemToAdd.className = 'videoMain';
+    videoElemToAdd.autoplay = true;
+    videoElemToAdd.muted = true;
+    videoElemToAdd.setAttribute('playsinline', 'true');
+    videoElemToAdd.setAttribute('webkit-playsinline', 'webkit-playsinline');
+    videoElemToAdd.id = 'video' + videoElemIdCounter;
+    videoElemToAdd.parentRow = row;
+
+    // TODO: instead of using a counter, use username to identify each videoElem
+    videoElemIdCounter += 1;
+
+    table.appendChild(row);
+
+    iframeConnectState.videoElem = videoElemToAdd;
+
+    return row
 }
 
 function stopSending() {
