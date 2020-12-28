@@ -4,8 +4,8 @@
 </head>
 
 <body onLoad="broadcastOnLoad()">
-<div id="mainDiv">
-    <table id="mainDivTable">
+<div id="mainDiv" style="width:100%;">
+    <table id="mainDivTable" style="width:100%;">
         <tr style='height:5%;'>
             <th colspan=2>gitHub:<a href='https://github.com/justinb01981/tiny-webrtc-gw'>https://github.com/justinb01981/tiny-webrtc-gw</a></th>
         </tr>
@@ -50,11 +50,11 @@
             <td id="thPresenter">
                 <div id="localPreviewDiv">
                     <p class="videoLabel">me</p>
-                    <video class="videoLocal" id="localVideo" muted autoplay muted loop playsinline controls="true" ></video>
+                    <video id="localVideo" class="localVideo" muted autoplay muted loop playsinline controls="true" ></video>
                 </div>
             </td>
 
-            <td rowspan=2 align="center">
+            <td rowspan=2 align="center" class="chat">
                 <iframe name='chatFrame' src='chat.html' style='width:100%; height:480px; -webkit-overflow-scrolling:touch;'>
                 </iframe>
             </td>
@@ -69,6 +69,13 @@
     </table>
 
 </div> <!-- mainDiv -->
+
+<!--
+<div id="bigVideoDiv" style="position:relative; top:-600px; width:100%; height:100%; z-index:2; background-color:black;">
+    <p>big video goes here
+    <video />
+</div>
+-->
 </body>
 
 <script src="src/js/adapter.js"></script>

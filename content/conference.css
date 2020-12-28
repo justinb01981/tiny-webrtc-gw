@@ -13,7 +13,15 @@ td {
     padding:0;
     border-collapse: collapse;
     overflow:hidden;
-    width:320px;
+    width:70%;
+}
+
+td.chat {
+    margin:0;
+    padding:0;
+    border-collapse: collapse;
+    overflow:hidden;
+    width:30%;
 }
 
 tr {
@@ -34,13 +42,18 @@ table {
 }
 
 video {
-    height:240;
+    width:100%;
     controls:true;
 }
 
 video.videoMain {
-    height:240;
+    width:100%;
     z-index:-1;
+}
+
+video.videoLocal {
+    width:320px;
+    height:240px;
 }
 
 p.videoLabel {
