@@ -24,7 +24,7 @@
            </td>
         </tr>
         <tr style='height:5%;'>
-            <td style='border-width:0px;' align='right'>
+            <td style='border-width:0px;' align='center'>
                 Room:
                 <input type='text' id='roomName' onInput='roomEdited(this)'>
                 </input>
@@ -46,11 +46,11 @@
         <tr style='height:5%;'>
             <th colspan=1>Meeting Room</th><th colspan=1>Chat</th>
         </tr>
-        <tr style="height:80%;">
-            <td id="thPresenter">
+        <tr>
+            <td align="center" id="thPresenter">
                 <div id="localPreviewDiv">
                     <p class="videoLabel">me</p>
-                    <video id="localVideo" class="localVideo" muted autoplay muted loop playsinline controls="true" ></video>
+                    <video id="localVideo" class="videoLocal" muted autoplay muted loop playsinline controls="true" ></video>
                 </div>
             </td>
 
@@ -60,7 +60,7 @@
             </td>
         </tr>
         <tr>
-             <td>
+             <td align="center">
                 <table id="videoMainContainer" class="table">
                     <!-- new video elements will appear here (see popup.js) -->
                 </table>
@@ -90,7 +90,6 @@ var urlArgRoom;
 var urlArgName;
 var iframeConnectState = {selectedUser: null, selectedRoom: null, advancedSettings: false, onConnectVideo: null, joinMode: null, awaiting: null, usersSubscribed: [], iframeOnDisconnect: null, videoElem: null};
 var onLoadDoneAnswerUpload;
-var videoElemIdCounter = 1;
 
 var joinPopupCloseDone = function(videoElem) {
     videoElem.closeAction = function() {

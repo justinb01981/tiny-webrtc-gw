@@ -466,9 +466,30 @@ function prepareVideo(containerTable, labelText)
     paraToAdd.style.cssText = 'z-index:1; position:relative; top:20px; left:0px; width:100px; background-color:black;';
 
     stopButton.style.cssText = 'width:32px; height:32px; position:relative; top:0px; left:px; z-index:2; background-position:center; background-repeat:no-repeat; background-image:url(/content/img/stop.png);';
+    stopButton.onclick = function () {
+        let vidElem = videoElemToAdd;
+
+        vidElem.muted = true;
+        if(vidElem.closeAction) {
+            vidElem.closeAction();
+
+            vidElem.onended = null;
+            console.debug('vidElem.onended');
+
+            vidElem.controls = false;
+            if(vidElem.srcObject) {
+                vidElem.srcObject.getTracks().forEach(track=>track.stop());
+                vidElem.srcObject = null;
+            }
+
+            vidElem.startButton = null;
+        }
+        table.removeChild(row);
+    }
     
     col.appendChild(paraToAdd);
     col.appendChild(videoElemToAdd);
+    col.align = 'center';
     paraToAdd.appendChild(stopButton);
     row.appendChild(col);
 
@@ -477,11 +498,8 @@ function prepareVideo(containerTable, labelText)
     videoElemToAdd.muted = true;
     videoElemToAdd.setAttribute('playsinline', 'true');
     videoElemToAdd.setAttribute('webkit-playsinline', 'webkit-playsinline');
-    videoElemToAdd.id = 'video' + videoElemIdCounter;
+    videoElemToAdd.id = 'video' + Math.random();
     videoElemToAdd.parentRow = row;
-
-    // TODO: instead of using a counter, use username to identify each videoElem
-    videoElemIdCounter += 1;
 
     table.appendChild(row);
 

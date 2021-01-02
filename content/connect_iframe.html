@@ -123,7 +123,7 @@ function connectIFrameOnLoad(htmlBodyElem)
         console.debug('trying to remove ' + state.usersSubscribed[p] + ' that has disappeared');
 
         // remove video elem
-        var elemToRemoveFromParent = videoElemForUser(state.usersSubscribed[p]);
+        var elemToRemoveFromParent = window.parent.videoElemForUser(state.usersSubscribed[p]);
         if(elemToRemoveFromParent != null) 
         {
           elemToRemoveFromParent.remove();

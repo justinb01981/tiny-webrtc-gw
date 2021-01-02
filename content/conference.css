@@ -13,7 +13,7 @@ td {
     padding:0;
     border-collapse: collapse;
     overflow:hidden;
-    width:70%;
+    align:right;
 }
 
 td.chat {
@@ -26,7 +26,6 @@ td.chat {
 
 tr {
     overflow:hidden;
-    height:240;
 }
 
 table {
@@ -52,8 +51,11 @@ video.videoMain {
 }
 
 video.videoLocal {
-    width:320px;
-    height:240px;
+    width:120px;
+    height:84px;
+    position:relative;
+    top:-200px;
+    left:0px;
 }
 
 p.videoLabel {

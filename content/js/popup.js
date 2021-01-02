@@ -147,17 +147,6 @@ function iframeOnLoad() {
     );
 }
 
-function rtcPopupCreate(handlerOpen, handlerClose, recvOnly, watchUser) {
-    var randomNum = Math.ceil(Math.random() % 10 * 1000);
-    var w = window.open('answer_upload.html?name='+watchUser, 'sdp_answer_upload' + randomNum, '');
-    popupRecvOnly = recvOnly;
-    //w.document.body.onload = handlerOpen1;
-    onLoadDoneAnswerUpload = handlerOpen;
-    closeHandler = handlerClose;
-
-    return w;
-}
-
 function rtcPopupCreateIframe(handlerOpen, handlerClose) {
     document.location = 'answer_upload.html';
     popupRecvOnly = false;
@@ -179,8 +168,6 @@ function resizeObjectWithID(idName, x, y, w, h) {
 
 function attachMediaStream(vidElem, vidStream)
 {
-    // TODO: have single function for building vidElem and sibling nodes as rows in the table instead of splitting in multiple JS files
-
     var cssButton = 'width:32px; height:32px; position:relative; top:-60px; left:150px; background-position:center; background-repeat:no-repeat;';
     if(vidElem.srcObject != null) {
         console.debug('attachMediaStream: video element srcObject != null, ignoring');
@@ -197,30 +184,10 @@ function attachMediaStream(vidElem, vidStream)
         if(vidElem.muted) {
             vidElem.controls = true;
             vidElem.muted = false;
-                vidElem.startButton.style.cssText = cssButton + ' background-image:url(/content/img/stop.png); z-index:1;';
-            }
-            else {
-                vidElem.muted = true;
-                if(vidElem.closeAction) {
-                    vidElem.closeAction();
-
-                    vidElem.onended = null;
-                    console.debug('vidElem.onended');
-
-                    vidElem.controls = false;
-                    if(vidElem.srcObject) {
-                        // commented this out since it kills local streams and are unrecoverable
-                        vidElem.srcObject.getTracks().forEach(track=>track.stop());
-                        vidElem.srcObject = null;
-                    }
-                    //if(vidElem.startButton) return;
-
-                    //vidElem.startButton.onRemove.removeChild(vidElem.startButton)
-                    vidElem.parentRow.remove();
-                    vidElem.startButton = null;
-                }
-            }
         }
+        vidElem.parentNode.removeChild(startButton);
+        vidElem.startButton = null;
+    }
 
     vidElem.startButton = startButton;
 
