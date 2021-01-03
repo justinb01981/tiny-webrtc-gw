@@ -12,9 +12,8 @@
 
         <tr id='rowChat' style='height:5%'>
             <td align='center'>
-                video/audio sources:<br>
-                <select id='selectCamInput'></select>
-                <select id='selectMicInput'></select>
+                video:<select id='selectCamInput'></select><br>
+                audio:<select id='selectMicInput'></select><br>
             </td>
             <td align='center'>
                 username:<br>
@@ -48,12 +47,18 @@
         </tr>
         <tr>
             <td align="center" id="thPresenter">
-                <div id="localPreviewDiv">
-                    <p class="videoLabel">me</p>
-                    <video id="localVideo" class="videoLocal" muted autoplay muted loop playsinline controls="true" ></video>
+                <div id="localPreviewDiv" class="localPreview">
+                    <table border=1 class="localPreviewTable">
+                        <tr>
+                            <td>
+                                <p class="videoLabel">Camera</p>
+                                <video id="localVideo" class="videoLocal" muted autoplay muted loop playsinline controls="true" ></video>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
             </td>
-
+        
             <td rowspan=2 align="center" class="chat">
                 <iframe name='chatFrame' src='chat.html' style='width:100%; height:480px; -webkit-overflow-scrolling:touch;'>
                 </iframe>
@@ -64,9 +69,11 @@
                 <table id="videoMainContainer" class="table">
                     <!-- new video elements will appear here (see popup.js) -->
                 </table>
+                <p id="emptyRoomLabel" class="emptyRoomLabel">Nobody else here...
             </td>
         </tr>
     </table>
+
 
 </div> <!-- mainDiv -->
 
@@ -175,6 +182,10 @@ function onAdvanced(button) {
         button.value = '-';
         iframeConnectState.advancedSettings = true;
     }
+}
+
+function hideRoomEmptyLabel() {
+    document.getElementById('emptyRoomLabel').style.cssText = 'display:none;'
 }
 // don't add things here, do that in broadcast.js
 </script>

@@ -457,15 +457,17 @@ function prepareVideo(containerTable, labelText)
     var row = document.createElement('tr');
     var col = document.createElement('td');
 
-    var videoElemToAdd = document.createElement('video');
+    videoElemToAdd = document.createElement('video');
     var labelToAdd = document.createTextNode(labelText);
     var paraToAdd = document.createElement('p');
     var stopButton = document.createElement('button');
 
     paraToAdd.appendChild(labelToAdd);
-    paraToAdd.style.cssText = 'z-index:1; position:relative; top:20px; left:0px; width:100px; background-color:black;';
+    paraToAdd.className = 'controlsPara';
+    //paraToAdd.style.cssText = 'z-index:1; position:relative; top:20px; left:0px; width:100px; background-color:black;';
 
-    stopButton.style.cssText = 'width:32px; height:32px; position:relative; top:0px; left:px; z-index:2; background-position:center; background-repeat:no-repeat; background-image:url(/content/img/stop.png);';
+    stopButton.className = 'stopButton';
+
     stopButton.onclick = function () {
         let vidElem = videoElemToAdd;
 
@@ -486,7 +488,7 @@ function prepareVideo(containerTable, labelText)
         }
         table.removeChild(row);
     }
-    
+
     col.appendChild(paraToAdd);
     col.appendChild(videoElemToAdd);
     col.align = 'center';
@@ -503,9 +505,23 @@ function prepareVideo(containerTable, labelText)
 
     table.appendChild(row);
 
+    videoElemToAdd.controlPara = paraToAdd;
+
     iframeConnectState.videoElem = videoElemToAdd;
 
+    hideRoomEmptyLabel();
+
     return row
+}
+
+function addStartButton(vidElem, button) {
+    if(vidElem.controlPara == null) return;
+    vidElem.controlPara.appendChild(button);
+}
+
+function removeStartButton(vidElem, button) {
+    if(vidElem.controlPara == null) return;
+    vidElem.controlPara.removeChild(button);
 }
 
 function stopSending() {

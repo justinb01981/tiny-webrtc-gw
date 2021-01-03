@@ -151,7 +151,7 @@ function onJoin() {
   if(roomName == '') { alert('enter a room name'); return; }
 
   window.parent.onLoadMedia().then(function() {
-  
+ 
     if(state.selectedRoom)
     {
       joinMode.value = 'watch';

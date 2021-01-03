@@ -51,28 +51,64 @@ video.videoMain {
 }
 
 video.videoLocal {
-    width:120px;
-    height:84px;
-    position:relative;
-    top:-200px;
-    left:0px;
+    width:128px;
+    height:96px;
 }
 
 p.videoLabel {
     z-index:1;
-    position:relative;
-    top:20px;
     background-color:black;
     color:green;
     width:100px;
 }
 
+div.localPreview {
+    position:fixed;
+    top:2%;
+    left:2%;
+    width:128px;
+    height:96px;
+}
+
 p {
+    font-size:12pt;
     color:green;
 }
 
+p.controlsPara {
+    position:relative;
+    top:50px;
+    z-index:1;
+    width:200px;
+    background-color:black;
+}
+
+p.emptyRoomLabel {
+    position:absolute;
+    top:50%;
+    left:30%;
+}
+
 button.playButton {
-    background-image:url('/img/play.png');
+    width:32px;
+    height:32px;
+    position:relative;
+    left: 30px;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-image:url(/content/img/unmute.png);
+    z-index:1;
+}
+
+button.stopButton {
+    width:32px;
+    height:32px;
+    position:relative;
+    left: 96px;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-image:url(/content/img/stop.png);
+    z-index:1;
 }
 
 @keyframes loadingAnimation {

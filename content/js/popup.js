@@ -168,7 +168,6 @@ function resizeObjectWithID(idName, x, y, w, h) {
 
 function attachMediaStream(vidElem, vidStream)
 {
-    var cssButton = 'width:32px; height:32px; position:relative; top:-60px; left:150px; background-position:center; background-repeat:no-repeat;';
     if(vidElem.srcObject != null) {
         console.debug('attachMediaStream: video element srcObject != null, ignoring');
         return;
@@ -185,15 +184,13 @@ function attachMediaStream(vidElem, vidStream)
             vidElem.controls = true;
             vidElem.muted = false;
         }
-        vidElem.parentNode.removeChild(startButton);
+        window.parent.removeStartButton(vidElem, startButton);
         vidElem.startButton = null;
     }
 
-    vidElem.startButton = startButton;
+    startButton.className = 'playButton';
 
-    startButton.style.cssText = cssButton + ' background-image:url(/content/img/unmute.png); z-index:1;';
-
-    if(vidElem.parentNode) vidElem.parentNode.appendChild(startButton);
+    window.addStartButton(vidElem, startButton);
 
     console.debug('attachMediaStream: onloadedmetadata');
 }
