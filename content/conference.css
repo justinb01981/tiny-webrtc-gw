@@ -84,9 +84,9 @@ p.controlsPara {
 }
 
 p.emptyRoomLabel {
-    position:absolute;
-    top:50%;
-    left:30%;
+    position:relative;
+    top:10px;
+    left:20px;
 }
 
 button.playButton {

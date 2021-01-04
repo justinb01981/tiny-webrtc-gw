@@ -192,7 +192,7 @@ function onJoin() {
     window.parent.iframeConnectState.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
     window.parent.iframeConnectState.joinMode = 'watch';
     if(vidElem && window.parent.iframeConnectState.selectedUser) {
-      connectVideoIframe(window, vidElem, window.parent.iframeConnectState.onConnectVideo);
+      window.parent.connectVideoIframe(window, vidElem, window.parent.iframeConnectState.onConnectVideo);
     }
     else {
       window.location = window.location;
