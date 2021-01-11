@@ -5,7 +5,7 @@
 
 #define SDP_OFFER_VP8 1
 
-#define MAX_PEERS 15
+#define MAX_PEERS 59
 #define PEER_IDX_INVALID (MAX_PEERS+1)
 
 #define PEER_RTP_CTX_COUNT 8

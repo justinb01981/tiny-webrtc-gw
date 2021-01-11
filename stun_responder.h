@@ -231,7 +231,8 @@ pktType(unsigned char* buf, unsigned int len)
     }
 
     if(len >= 2 &&
-       buf[0] == 0x80 || buf[0] == 0x90 || buf[0] == 0x81)
+       buf[0] == 0x80 || buf[0] == 0x90 || buf[0] == 0x81 
+    )
     {
         return PKT_TYPE_SRTP;
     }

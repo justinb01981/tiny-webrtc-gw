@@ -767,11 +767,15 @@ connection_worker(void* p)
                     is_receiver_report = 1;
                     in_ssrc = ntohl(report->hdr.seq_src_id);
                 }
-
-                if(rtpFrame->hdr.payload_type == rtp_sender_report_type)
+                else if(rtpFrame->hdr.payload_type == rtp_sender_report_type)
                 {
                     is_sender_report = 1;
                     in_ssrc = ntohl(sendreport->hdr.seq_src_id);
+                }
+                else
+                {
+                    counts[10]++;
+                    stats_printf(counts_log, "unknown RTP payload-type %u from peer %d\n", rtpFrame->hdr.payload_type, peer->id);
                 }
 
                 if(in_ssrc == answer_ssrc[0])
@@ -782,21 +786,10 @@ connection_worker(void* p)
                 {
                     rtp_idx = 1;
                 }
-                /*
-                else if(in_ssrc == offer_ssrc[0])
-                {
-                    rtp_idx = 0;
-                }
-                else if(in_ssrc == offer_ssrc[1])
-                {
-                    rtp_idx = 1;
-                }
-                */
                 else
                 {
-                    //printf("unknown RTP SSID: %u\n", in_ssrc);
-                    counts[10]++;
-                    goto peer_again;
+                    //printf("unknown RTP message or SSRC (ssrc: %u)\n", in_ssrc);
+                    rtp_idx = 0; // will not be used for receiver reports, so this is okay
                 }
 
                 int rtp_idx_write = PEER_RTP_CTX_WRITE + rtp_idx;
@@ -836,11 +829,13 @@ connection_worker(void* p)
                             */
 
                             // adjust pacer offsetting
-                            long pace_delta = (peer->srtp[rtp_idx].receiver_report_jitter_last - jitter);
-                            //printf("pace_delta=%d\n", pace_delta);
                             // how did I arrive at this divisor? experimentation. On a LAN. :-/ 20ms seemed like a reasonable jitter value...
-                            peers[peer->subscriptionID].paced_sender.timestamp_offset_ms += (pace_delta / abs(pace_delta/20));
-                            printf("peer[%d]:timestamp_offset_ms=%ld\n", peer->subscriptionID, peers[peer->subscriptionID].paced_sender.timestamp_offset_ms);
+                            long div = 20;
+                            long pace_delta = (peer->srtp[rtp_idx].receiver_report_jitter_last - jitter);
+                            if(abs(pace_delta) >= div)
+                            {
+                                peers[peer->subscriptionID].paced_sender.timestamp_offset_ms += (pace_delta / abs(pace_delta/div));
+                            }
                             peer->srtp[rtp_idx].receiver_report_jitter_last = jitter;
                             issrc ++;
                         }
@@ -854,16 +849,12 @@ connection_worker(void* p)
                            peers[p].subscriptionID == peer->id &&
                            peers[p].srtp[rtp_idx].inited)
                         {
+                            int ssrc_matched = 0;
                             unsigned char reportPeer[PEER_BUFFER_NODE_BUFLEN];
                             memcpy(reportPeer, report, protect_len);
                             
-                            // modify sender SSRC
                             u32 *pss32 = (u32*) reportPeer; pss32 ++;
                             u32 *pssEnd = reportPeer; pssEnd += (protect_len/sizeof(u32));
-
-                            //printf("replacing %u sender_ssrc with %u\n", ntohl(*pss32), peers[p].srtp[rtp_idx].ssrc_offer);
-                            *pss32 = htonl(peers[p].srtp[rtp_idx].ssrc_offer);
-                            pss32 ++;
 
                             // fix up SSRC fields
                             while(pss32 < pssEnd)
@@ -871,36 +862,51 @@ connection_worker(void* p)
                                 u32 *pu32 = pss32;
                                 u32 ssrc = ntohl(*pu32);
 
-                                if(peer->id == p) protect_len = 0; // dont send to originating peeer
+                                if(peer->id == p) protect_len = 0; // dont send to originating peer
 
-                                if(ssrc == answer_ssrc[0]) 
+                                if(is_sender_report)
                                 {
-                                    //printf("replacing ssrc in sender report %u with %u\n", ssrc, peers[p].srtp[0].ssrc_offer);
-                                    *pu32 = htonl(peers[p].srtp[0].ssrc_offer);
+                                    if(ssrc == answer_ssrc[rtp_idx]) 
+                                    {
+                                        printf("replacing ssrc in sender report %u with %u\n", ssrc, peers[p].srtp[rtp_idx].ssrc_offer);
+                                        *pu32 = htonl(peers[p].srtp[rtp_idx].ssrc_offer);
+                                        ssrc_matched = 1;
+                                    }
+                                    else if(ssrc == peer->srtp[rtp_idx].ssrc_offer)
+                                    {
+                                        printf("THIS SHOULD NEVER HAPPEN (line %d)\n", __LINE__);
+
+                                        printf("replacing ssrc in receiver report %u with %u\n", ssrc, peers[p].srtp[rtp_idx].ssrc_offer);
+                                        *pu32 = htonl(peers[p].srtp[rtp_idx].ssrc_offer);
+                                        ssrc_matched = 1;
+                                    }
+                                    else
+                                    {
+                                        //protect_len = 0;
+                                    }
                                 }
-                                else if(ssrc == answer_ssrc[1])
-                                {
-                                    //printf("replacing ssrc in sender report %u with %u\n", ssrc, peers[p].srtp[1].ssrc_offer);
-                                    *pu32 = htonl(peers[p].srtp[1].ssrc_offer);
-                                }
-                                else if(ssrc == offer_ssrc[0] && peers[p].srtp[0].ssrc_offer != 0)
-                                {
-                                    printf("replacing ssrc in receiver report %u with %u\n", ssrc, peers[p].srtp[0].ssrc_offer);
-                                    *pu32 = htonl(peers[p].srtp[0].ssrc_offer);
-                                }
-                                else if(ssrc == offer_ssrc[1] && peers[p].srtp[1].ssrc_offer != 0)
-                                {
-                                    printf("replacing ssrc in receiver report %u with %u\n", ssrc, peers[p].srtp[1].ssrc_offer);
-                                    *pu32 = htonl(peers[p].srtp[1].ssrc_offer);
-                                }
-                     
                                 else
                                 {
-                                    //printf("WTF: unknown receiver report ssrc: %u\n", ssrc);
-                                    //protect_len = 0;
+                                    // don't think we can rely on rtp_idx to be set when this is a receiver_report
+                                    u32 src_table[] = {answer_ssrc[0], answer_ssrc[1],
+                                                     offer_ssrc[0], offer_ssrc[1]};
+                                    u32 dst_table[] = {peers[p].srtp[0].ssrc_offer, peers[p].srtp[1].ssrc_offer,
+                                                     peers[p].srtp[0].ssrc_answer, peers[p].srtp[1].ssrc_answer
+                                    };
+                                    for(int idx = 0; idx < sizeof(src_table)/sizeof(u32); idx++)
+                                    {
+                                        if(ssrc == src_table[idx]) {
+                                            *pu32 = htonl(dst_table[idx]);
+                                            printf("replacing %u with %u in receiver report from %d to %d\n", 
+                                                    src_table[idx], dst_table[idx], peer->id, p);
+                                            ssrc_matched = 1;
+                                        }
+                                    }
                                 }
                                 pss32 ++;
                             }
+
+                            if(!ssrc_matched) printf("WTF: no ssrc matched in report - expected:%u\n", peer->srtp[rtp_idx].ssrc_offer);
 
                             rtp_frame_t *rtp_frame_out = (rtp_frame_t*) reportPeer;
                             long timestamp_new = ntohl(rtp_frame_out->hdr.timestamp) + peer->timestamp_adjust[rtp_idx];
@@ -1041,7 +1047,7 @@ connection_worker(void* p)
                 if(wall_time - peer->srtp[rtp_idx].pli_last >= RTP_PICT_LOSS_INDICATOR_INTERVAL &&
                    RTP_PICT_LOSS_INDICATOR_INTERVAL > 0)
                 {
-                    rtp_report_pli_t report_pli;
+                    rtp_plat_feedback_t report_pli;
                     int report_len = sizeof(report_pli);
                     peer->srtp[rtp_idx].pli_last = wall_time;
 

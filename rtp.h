@@ -77,7 +77,7 @@ typedef struct {
     u16 length;
     u32 seq_src_id;
     u32 seq_src_id_ref;
-} ATTR_PACKED rtp_report_pli_t;
+} ATTR_PACKED rtp_plat_feedback_t;
 
 typedef struct {
     u8 ver;
