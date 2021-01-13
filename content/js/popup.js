@@ -148,11 +148,20 @@ function iframeOnLoad() {
 }
 
 function rtcPopupCreateIframe(handlerOpen, handlerClose) {
-    document.location = 'answer_upload.html';
-    popupRecvOnly = false;
-    console.debug('rtcPopupCreateIframe');
-    parent.onLoadDoneAnswerUpload = handlerOpen;
+    console.debug('rtcPopupCreateIframe at location:' + document.location);
+
     closeHandler = handlerClose;
+
+    loc = window.location.href.split("/").pop();
+    if(loc != 'index_broadcast.html') {
+        document.location = 'answer_upload.html';
+        popupRecvOnly = false;
+        parent.onLoadDoneAnswerUpload = handlerOpen;
+    }
+    else {
+        handlerOpen();
+    }
+    console.debug('rtcPopupCreateIframe');
 }
 
 function roomlistPopupCreate(roomName) {

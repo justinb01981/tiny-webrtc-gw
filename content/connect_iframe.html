@@ -31,9 +31,6 @@
 <script src='js/popup.js'></script>
 <script src='js/peers.js'></script>
 <script src='js/peerdynamic.js'></script>
-<!--
-<script src='js/broadcast.js'></script>
--->
 
 <script language='javascript'>
 
@@ -150,6 +147,14 @@ function onJoin() {
   
   if(roomName == '') { alert('enter a room name'); return; }
 
+  if(!state.selectedRoom && !window.parent.getCameraCheckbox()) {
+    console.debug('skipping getUserMedia (no camera desired)');
+    state.selectedRoom = roomName;
+    state.usersSubscribed = [];
+    window.location = window.location;
+    return;
+  }
+
   window.parent.onLoadMedia().then(function() {
  
     if(state.selectedRoom)
@@ -176,7 +181,7 @@ function onJoin() {
     state.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
     state.joinMode = joinMode.value;
 
-    window.parent.connectVideoIframe(window, vidElem, window.parent.iframeConnectState.onConnectVideo);
+    window.parent.connectVideoIframe(window, vidElem, window.parent.iframeConnectState.onConnectVideo, window.parent.joinPopupClose);
 
   }).catch(function(e) {
 
@@ -189,10 +194,10 @@ function onJoin() {
       vidElem.closeAction();
     }
 
-    window.parent.iframeConnectState.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
-    window.parent.iframeConnectState.joinMode = 'watch';
-    if(vidElem && window.parent.iframeConnectState.selectedUser) {
-      window.parent.connectVideoIframe(window, vidElem, window.parent.iframeConnectState.onConnectVideo);
+    state.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
+    state.joinMode = 'watch';
+    if(vidElem && state.selectedUser) {
+      window.parent.connectVideoIframe(window, vidElem, state.onConnectVideo);
     }
     else {
       window.location = window.location;

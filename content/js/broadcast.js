@@ -403,14 +403,14 @@ function disconnectVideo(vidElem) {
   }
 }
 
-function connectVideoIframe(windowSrc, videoElem, afterOnLoad) {
+function connectVideoIframe(windowSrc, videoElem, afterOnLoad, afterClose) {
   //var popupOnLoad = joinIframeOnLoadBroadcast;
 
   //disconnectVideo(videoElem);
 
   console.debug('connectVideoIframe in doc: ' + window.parent.document.location);
   window.winPopupVideoTarget = videoElem;
-  windowSrc.rtcPopupCreateIframe(afterOnLoad, joinPopupClose);
+  windowSrc.rtcPopupCreateIframe(afterOnLoad, /*joinPopupClose*/ afterClose);
 }
 
 function onBtnMute(btn, userName) {
@@ -573,4 +573,40 @@ function startLiveBcast(elemButton) {
             startLiveBcast(elemButton);
         };
     }
+}
+
+function getCameraCheckbox() {
+    return document.getElementById('enableVideoCheckbox').checked;
+}
+
+function onEnableVideo() {
+  onLoadMedia().then(function() {
+ 
+    var vidElem = document.getElementById('localVideo');
+
+    if(vidElem.closeAction) 
+    {
+      vidElem.closeAction();
+    }
+
+    iframeConnectState.onConnectVideo = function() {
+        console.debug('state.onConnectVideo');
+    }
+
+    window.winPopupVideoTarget = vidElem;
+    connectVideoIframe(window, vidElem, function() {
+        console.debug('connectVideoIframe done');
+    });
+    
+  }).catch(function(e) {
+
+    var vidElem = iframeConnectState.videoElem;
+
+    console.debug('failed to get local video-source with exception: ' + e);
+
+    if(vidElem && vidElem.closeAction) {
+      vidElem.closeAction();
+    }
+
+  });
 }

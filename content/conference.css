@@ -111,6 +111,10 @@ button.stopButton {
     z-index:1;
 }
 
+select.mediaSelect {
+    width:100px;
+}
+
 @keyframes loadingAnimation {
     from {background-color: gray;}
     to {background-color: white;}

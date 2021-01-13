@@ -861,38 +861,28 @@ connection_worker(void* p)
                             {
                                 u32 *pu32 = pss32;
                                 u32 ssrc = ntohl(*pu32);
+                                u32 src_table[] = {answer_ssrc[0], answer_ssrc[1],
+                                                 offer_ssrc[0], offer_ssrc[1]};
+                                u32 dst_table[] = {peers[p].srtp[0].ssrc_offer, peers[p].srtp[1].ssrc_offer,
+                                                 peers[p].srtp[0].ssrc_answer, peers[p].srtp[1].ssrc_answer
+                                };
 
                                 if(peer->id == p) protect_len = 0; // dont send to originating peer
 
                                 if(is_sender_report)
                                 {
-                                    if(ssrc == answer_ssrc[rtp_idx]) 
+                                    for(int idx = 0; idx < sizeof(src_table)/sizeof(u32); idx++)
                                     {
-                                        printf("replacing ssrc in sender report %u with %u\n", ssrc, peers[p].srtp[rtp_idx].ssrc_offer);
-                                        *pu32 = htonl(peers[p].srtp[rtp_idx].ssrc_offer);
-                                        ssrc_matched = 1;
-                                    }
-                                    else if(ssrc == peer->srtp[rtp_idx].ssrc_offer)
-                                    {
-                                        printf("THIS SHOULD NEVER HAPPEN (line %d)\n", __LINE__);
-
-                                        printf("replacing ssrc in receiver report %u with %u\n", ssrc, peers[p].srtp[rtp_idx].ssrc_offer);
-                                        *pu32 = htonl(peers[p].srtp[rtp_idx].ssrc_offer);
-                                        ssrc_matched = 1;
-                                    }
-                                    else
-                                    {
-                                        //protect_len = 0;
+                                        if(ssrc == src_table[idx]) {
+                                            *pu32 = htonl(dst_table[idx]);
+                                            printf("replacing %u with %u in sender report from %d to %d\n", 
+                                                    src_table[idx], dst_table[idx], peer->id, p);
+                                            ssrc_matched = 1;
+                                        }
                                     }
                                 }
                                 else
                                 {
-                                    // don't think we can rely on rtp_idx to be set when this is a receiver_report
-                                    u32 src_table[] = {answer_ssrc[0], answer_ssrc[1],
-                                                     offer_ssrc[0], offer_ssrc[1]};
-                                    u32 dst_table[] = {peers[p].srtp[0].ssrc_offer, peers[p].srtp[1].ssrc_offer,
-                                                     peers[p].srtp[0].ssrc_answer, peers[p].srtp[1].ssrc_answer
-                                    };
                                     for(int idx = 0; idx < sizeof(src_table)/sizeof(u32); idx++)
                                     {
                                         if(ssrc == src_table[idx]) {
