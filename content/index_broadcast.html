@@ -12,7 +12,7 @@
 
         <tr id='rowChat' style='height:5%'>
             <td align='right'>
-                camera enabled: <input type='checkbox' id='enableVideoCheckbox' onclick='onEnableVideo()'/><br>
+                camera enabled: <input type='checkbox' id='enableVideoCheckbox' onchange='onEnableVideo(self)'/><br>
                 video:<select class='mediaSelect' id='selectCamInput'></select><br>
                 audio:<select class='mediaSelect' id='selectMicInput'></select><br>
             </td>
@@ -24,7 +24,7 @@
            </td>
         </tr>
         <tr style='height:5%;'>
-            <td style='border-width:0px;' align='center'>
+            <td style='border-width:0px;' align='right'>
                 Room:
                 <input type='text' id='roomName' onInput='roomEdited(this)'>
                 </input>
@@ -70,7 +70,7 @@
                 <table id="videoMainContainer" class="table">
                     <!-- new video elements will appear here (see popup.js) -->
                 </table>
-                <p id="emptyRoomLabel" class="emptyRoomLabel">Nobody else here... (did everyone check "enable camera"?)
+                <p id="emptyRoomLabel" class="emptyRoomLabel">Nobody else here... (did everyone check "enable camera" and join this room?)
             </td>
         </tr>
     </table>
@@ -187,6 +187,10 @@ function onAdvanced(button) {
 
 function hideRoomEmptyLabel() {
     document.getElementById('emptyRoomLabel').style.cssText = 'display:none;'
+}
+
+function getEnableVideoCheckbox() {
+    return document.getElementById('enableVideoCheckbox');
 }
 // don't add things here, do that in broadcast.js
 </script>

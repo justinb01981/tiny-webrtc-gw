@@ -112,7 +112,8 @@ function getSelectedRoom() {
 }
 
 function enumerateMedia() {
-    navigator.mediaDevices.enumerateDevices().then(
+
+    navigator.mediaDevices.enumerateDevices().then( 
         function(sourceInfos) {
             for(var i = 0; i < sourceInfos.length; i++) {
                 console.log('mediaDevices('+sourceInfos[i].kind+')['+i+']: ' + sourceInfos[i].label);
@@ -125,6 +126,10 @@ function enumerateMedia() {
                     document.getElementById('selectMicInput').add(opt);
                 }
                 else if(sourceInfos[i].kind == 'video' || sourceInfos[i].kind == 'videoinput') {
+                    document.getElementById('selectCamInput').add(opt);
+                }
+                else {
+                    document.getElementById('selectMicInput').add(opt);
                     document.getElementById('selectCamInput').add(opt);
                 }
             }
@@ -579,7 +584,14 @@ function getCameraCheckbox() {
     return document.getElementById('enableVideoCheckbox').checked;
 }
 
-function onEnableVideo() {
+function onEnableVideo(checkbox) {
+
+  if(!getEnableVideoCheckbox().checked) {
+    // hack: just reload the whole page
+    window.location = window.location;
+    return;
+  }
+
   onLoadMedia().then(function() {
  
     var vidElem = document.getElementById('localVideo');

@@ -203,6 +203,17 @@ function onJoin() {
       window.location = window.location;
     }
   });
+
+  /*
+  state.joinMode = 'watch';
+  var vidElem = window.parent.iframeConnectState.videoElem;
+  if(vidElem.closeAction)
+  {
+    vidElem.closeAction();
+  }
+  state.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
+  window.parent.connectVideoIframe(window, vidElem, window.parent.iframeConnectState.onConnectVideo, window.parent.joinPopupClose);
+  */
 }
 
 function onOK() {
