@@ -58,12 +58,14 @@ function connectIFrameOnLoad(htmlBodyElem)
     roomTextfield.disabled = true;
     joinButton.style.cssText = 'display:none;';
     selectUser.style.cssText = '';
+    window.parent.enableDisableCameraCheckbox(false);
   }
   else
   {
     roomTextfield.disabled = false;
     joinButton.style.cssText = '';
     selectUser.style.cssText = 'display:none';
+    window.parent.enableDisableCameraCheckbox(true);
   }
 
   let optionLabel = document.createElement('option');

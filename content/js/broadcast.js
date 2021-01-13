@@ -584,6 +584,10 @@ function getCameraCheckbox() {
     return document.getElementById('enableVideoCheckbox').checked;
 }
 
+function enableDisableCameraCheckbox(enabled) {
+    document.getElementById('enableVideoCheckbox').disabled = !enabled;
+}
+
 function onEnableVideo(checkbox) {
 
   if(!getEnableVideoCheckbox().checked) {
