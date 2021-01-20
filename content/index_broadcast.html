@@ -100,6 +100,8 @@ var iframeConnectState = {selectedUser: null, selectedRoom: null, advancedSettin
 var onLoadDoneAnswerUpload;
 
 var joinPopupCloseDone = function(videoElem) {
+    console.debug('joinPopupCloseDone: set videoElem.closeAction');
+
     videoElem.closeAction = function() {
         if(videoElem.onended) {
           videoElem.onended();

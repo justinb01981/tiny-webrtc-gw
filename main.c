@@ -65,7 +65,7 @@
 
 #define IDEAL_BACKLOG_MS 500
 
-#define PACED_STREAMER_INTERVAL_MS(100)
+#define PACED_STREAMER_INTERVAL_MS (100)
 
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS+1];
@@ -463,10 +463,10 @@ connection_worker(void* p)
     if(peer->send_only)
     {
         snprintf(str256, sizeof(str256)-1,
-            "\"%s\" joined \"%s\" %s\n",
+            "server:%s joined %s - %s\n",
             peer->name,
             peer->roomname,
-            peer->send_only ? "(broadcasting)" : "(watching)");
+            peer->send_only ? "broadcasting" : "watching");
         chatlog_append(str256);
     }
 
@@ -778,7 +778,6 @@ connection_worker(void* p)
                         in_ssrc = ntohl(report->hdr.seq_src_id);
                         // see rfc 3550 header length format
                         //curlen = ntohs(((rtp_report_receiver_t*)ptrbuffer)->hdr.length) * 4 + 4;
-                        printf("processing recv report length:%u\n", curlen);
                     }
                     else if(rtpFrame->hdr.payload_type == rtp_sender_report_type)
                     {
@@ -786,7 +785,6 @@ connection_worker(void* p)
                         in_ssrc = ntohl(sendreport->hdr.seq_src_id);
                         // see rfc 3550 header length format
                         //curlen = ntohs(((rtp_report_receiver_t*)ptrbuffer)->hdr.length) * 4 + 4;
-                        printf("processing send report length:%u\n", curlen);
                     }
                     else
                     {
@@ -1236,7 +1234,7 @@ int main( int argc, char* argv[] ) {
 
     memset(g_chatlog, 0, sizeof(g_chatlog));
     chatlog_reload();
-    chatlog_append("restarted...\n");
+    chatlog_append("server:restarted...\n");
 
     memset(peers, 0, sizeof(peers));
 
@@ -1729,7 +1727,7 @@ int main( int argc, char* argv[] ) {
                 memset(&peers[i].addr, 0, sizeof(peers[i].addr));
                 memset(&peers[i].addr_listen, 0, sizeof(peers[i].addr_listen));
 
-                if(log_user_exit && strlen(peers[i].name) > 0) sprintf(strbuf, "(%s) has left\n", peers[i].name);
+                if(log_user_exit && strlen(peers[i].name) > 0) sprintf(strbuf, "server:%s left %s\n", peers[i].name, peers[i].roomname);
 
                 peers[i].name[0] = '\0';
                 peers[i].cleanup_in_progress = 0;

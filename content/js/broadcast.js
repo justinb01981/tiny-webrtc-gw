@@ -479,18 +479,17 @@ function prepareVideo(containerTable, labelText)
         vidElem.muted = true;
         if(vidElem.closeAction) {
             vidElem.closeAction();
-
-            vidElem.onended = null;
-            console.debug('vidElem.onended');
-
-            vidElem.controls = false;
-            if(vidElem.srcObject) {
-                vidElem.srcObject.getTracks().forEach(track=>track.stop());
-                vidElem.srcObject = null;
-            }
-
-            vidElem.startButton = null;
         }
+
+        vidElem.onended = null;
+        console.debug('vidElem.onended');
+        vidElem.controls = false;
+        if(vidElem.srcObject) {
+            vidElem.srcObject.getTracks().forEach(track=>track.stop());
+            vidElem.srcObject = null;
+        }
+
+        vidElem.startButton = null;
         table.removeChild(row);
     }
 

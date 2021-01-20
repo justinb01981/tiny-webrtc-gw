@@ -193,6 +193,7 @@ function attachMediaStream(vidElem, vidStream)
             vidElem.controls = true;
             vidElem.muted = false;
         }
+        vidElem.play();
         window.parent.removeStartButton(vidElem, startButton);
         vidElem.startButton = null;
     }
