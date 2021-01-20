@@ -65,6 +65,8 @@
 
 #define IDEAL_BACKLOG_MS 500
 
+#define PACED_STREAMER_INTERVAL_MS(100)
+
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS+1];
 FILECACHE_INSTANTIATE();
@@ -932,15 +934,17 @@ connection_worker(void* p)
                                     {
                                         printf("rtp send_queue overrun!\n");
 
-                                        // flush everything
+                                        // dump everything and schedule a full-frame refresh
                                         outbuf = peers[p].out_buffers_head.next;
                                         while(outbuf)
                                         {
-                                            outbuf->timestamp = time_ms;
+                                            outbuf->timestamp = time_ms-1;
                                             outbuf = outbuf->next;
                                         }
+                                        peers[p].srtp[0].pli_last = time_sec - RTP_PICT_LOSS_INDICATOR_INTERVAL;
+                                        peers[p].srtp[1].pli_last = time_sec - RTP_PICT_LOSS_INDICATOR_INTERVAL;
 
-                                        goto peer_again;
+                                        continue;
                                     }
 
                                     memcpy(outbuf->buf, reportPeer, protect_len);
@@ -1016,11 +1020,13 @@ connection_worker(void* p)
                                     outbuf = peers[p].out_buffers_head.next;
                                     while(outbuf)
                                     {
-                                        outbuf->timestamp = time_ms;
+                                        outbuf->timestamp = time_ms-1;
                                         outbuf = outbuf->next;
                                     }
+                                    peers[p].srtp[0].pli_last = time_sec - RTP_PICT_LOSS_INDICATOR_INTERVAL;
+                                    peers[p].srtp[1].pli_last = time_sec - RTP_PICT_LOSS_INDICATOR_INTERVAL;
 
-                                    goto peer_again;
+                                    continue;
                                 }
 
                                 rtp_frame_t *rtp_frame_out = (rtp_frame_t*) outbuf->buf;
@@ -1182,7 +1188,7 @@ connection_paced_streamer(void* p)
         }
 
         PEER_SENDER_THREAD_UNLOCK(peer);
-        sleep_msec(10);
+        sleep_msec(PACED_STREAMER_INTERVAL_MS);
     }
 }
 
