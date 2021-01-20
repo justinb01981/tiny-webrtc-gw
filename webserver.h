@@ -31,6 +31,7 @@ struct webserver_state {
     char inip[64];
     int running;
     unsigned int peer_idx_next;
+    int sock;
 };
 extern struct webserver_state webserver;
 
@@ -985,7 +986,6 @@ webserver_worker(void* p)
                         peers[sidx].alive = 1;
                         peers[sidx].restart_needed = 0;                       
 
-
                         printf("peer restarted (stun_ice.user-name answer/offer: %s:%s)\n", peers[sidx].stun_ice.ufrag_answer, peers[sidx].stun_ice.ufrag_offer);
                         free(sdp);
                         sdp = NULL;
@@ -1079,6 +1079,13 @@ void webserver_init()
     webserver.peer_idx_next = 0;
 }
 
+void webserver_deinit(pthread_t thread)
+{
+    shutdown(webserver.sock, SHUT_RD);
+    webserver.running = 0;
+    pthread_join(thread, NULL);
+}
+
 void*
 webserver_accept_worker(void* p)
 {    
@@ -1089,6 +1096,7 @@ webserver_accept_worker(void* p)
     thread_init();
 
     int sock_web = bindsocket(webserver.inip, strToULong(get_config("webserver_port=")), 1);
+    webserver.sock = sock_web;
 
     if(sock_web >= 0)
     {

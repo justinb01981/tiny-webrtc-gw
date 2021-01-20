@@ -180,7 +180,6 @@ typedef struct
     peer_buffer_node_t* in_buffer_next;
     u32 rtp_timestamp_initial[PEER_RTP_CTX_COUNT];
     unsigned long clock_timestamp_ms_initial[PEER_RTP_CTX_COUNT];
-    long timestamp_adjust[PEER_RTP_CTX_COUNT];
     u16 rtp_seq_initial[PEER_RTP_CTX_COUNT];
 
     int sock;
@@ -297,7 +296,6 @@ void peer_buffers_init(peer_session_t* peer)
     peer->buffer_count = buffer_count;
     while(buffer_count > 0)
     {
-
         peer_buffer_node_list_add(&peer->in_buffers_head, buffer_node_alloc());
 
         buffer_count -= 1;
