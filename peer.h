@@ -239,8 +239,8 @@ typedef struct
 
 } peer_session_t;
 
-const static int PEER_TIMEOUT_DEFAULT = 60;
-const static int PEER_TIMEOUT_SIGNEDIN = 120;
+const static int PEER_TIMEOUT_DEFAULT = 20;
+const static int PEER_TIMEOUT_SIGNEDIN = 20;
 
 typedef struct {
     struct {
@@ -533,7 +533,7 @@ const char* sdp_offer_create(peer_session_t* peer)
     "\"a=mid:sdparta_1\\n\" + \n"
     "\"a=msid:{7e5b1422-7cbe-3649-9897-864febd59342} {f46f496f-30aa-bd40-8746-47bda9150d23}\\n\" + \n"
 #if SDP_OFFER_VP8
-    "\"a=rtcp-fb:120 ccm fir pli nack\\n\" + \n"
+    "\"a=rtcp-fb:120 ccm fir pli" /*" nack"*/"\\n\" + \n"
 #endif
     "\"a=rtcp-fb:126 ccm fir\\n\" + \n"
     "\"a=rtcp-fb:97 ccm fir\\n\" + \n"

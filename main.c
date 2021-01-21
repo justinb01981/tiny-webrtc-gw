@@ -65,7 +65,8 @@
 
 #define IDEAL_BACKLOG_MS 500
 
-#define PACED_STREAMER_INTERVAL_MS (100)
+#define PACED_STREAMER_INTERVAL_MS (20)
+#define PACED_STREAMER_TIMESTAMP_OFFSET_MAX (1000)
 
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS+1];
@@ -846,7 +847,8 @@ connection_worker(void* p)
                                 // how did I arrive at this divisor? experimentation. On a LAN. :-/ 20ms seemed like a reasonable jitter value...
                                 long div = 20;
                                 long pace_delta = (peer->srtp[rtp_idx].receiver_report_jitter_last - jitter);
-                                if(abs(pace_delta) >= div)
+                                if(abs(pace_delta) >= div &&
+                                   abs(peer->paced_sender.timestamp_offset_ms + (pace_delta/div)) < PACED_STREAMER_TIMESTAMP_OFFSET_MAX)
                                 {
                                     peer->paced_sender.timestamp_offset_ms += (pace_delta / abs(pace_delta/div));
                                 }
@@ -930,17 +932,15 @@ connection_worker(void* p)
 
                                     if(!outbuf)
                                     {
-                                        printf("rtp send_queue overrun!\n");
+                                        printf("rtp send_queue overrun peer:%d timestamp_offset_ms:%u\n", p, peers[p].paced_sender.timestamp_offset_ms);
 
                                         // dump everything and schedule a full-frame refresh
                                         outbuf = peers[p].out_buffers_head.next;
                                         while(outbuf)
                                         {
-                                            outbuf->timestamp = time_ms-1;
+                                            outbuf->timestamp = 0;
                                             outbuf = outbuf->next;
                                         }
-                                        peers[p].srtp[0].pli_last = time_sec - RTP_PICT_LOSS_INDICATOR_INTERVAL;
-                                        peers[p].srtp[1].pli_last = time_sec - RTP_PICT_LOSS_INDICATOR_INTERVAL;
 
                                         continue;
                                     }
@@ -1018,11 +1018,9 @@ connection_worker(void* p)
                                     outbuf = peers[p].out_buffers_head.next;
                                     while(outbuf)
                                     {
-                                        outbuf->timestamp = time_ms-1;
+                                        outbuf->timestamp = 0;
                                         outbuf = outbuf->next;
                                     }
-                                    peers[p].srtp[0].pli_last = time_sec - RTP_PICT_LOSS_INDICATOR_INTERVAL;
-                                    peers[p].srtp[1].pli_last = time_sec - RTP_PICT_LOSS_INDICATOR_INTERVAL;
 
                                     continue;
                                 }
@@ -1153,6 +1151,8 @@ void *
 connection_paced_streamer(void* p)
 {
     peer_session_t* peer = (peer_session_t*) p;
+    int sleep_pace = PACED_STREAMER_INTERVAL_MS;
+    const int M = 10;
 
     while(peer->alive)
     {
@@ -1186,7 +1186,19 @@ connection_paced_streamer(void* p)
         }
 
         PEER_SENDER_THREAD_UNLOCK(peer);
-        sleep_msec(PACED_STREAMER_INTERVAL_MS);
+        sleep_msec(sleep_pace);
+
+        if(sent_count == 0)
+        {
+            peer->paced_sender.timestamp_offset_ms += M;
+            sleep_pace += M;
+        }
+        else if(sleep_pace > M*2)
+        {
+            // trying to catch up without having received a receiver-report
+            peer->paced_sender.timestamp_offset_ms -= M;
+            sleep_pace -= M;
+        }
     }
 }
 
