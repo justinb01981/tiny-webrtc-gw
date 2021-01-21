@@ -1152,7 +1152,7 @@ connection_paced_streamer(void* p)
 {
     peer_session_t* peer = (peer_session_t*) p;
     int sleep_pace = PACED_STREAMER_INTERVAL_MS;
-    const int M = 10;
+    const int M = 20;
 
     while(peer->alive)
     {
@@ -1190,14 +1190,14 @@ connection_paced_streamer(void* p)
 
         if(sent_count == 0)
         {
-            peer->paced_sender.timestamp_offset_ms += M;
+            //peer->paced_sender.timestamp_offset_ms += M;
             sleep_pace += M;
         }
         else if(sleep_pace > M*2)
         {
             // trying to catch up without having received a receiver-report
-            peer->paced_sender.timestamp_offset_ms -= M;
-            sleep_pace -= M;
+            //peer->paced_sender.timestamp_offset_ms -= M;
+            sleep_pace -= M/2;
         }
     }
 }
