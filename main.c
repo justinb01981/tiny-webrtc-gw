@@ -468,7 +468,8 @@ connection_worker(void* p)
             peer->name,
             peer->roomname,
             peer->send_only ? "broadcasting" : "watching");
-        chatlog_append(str256);
+        //chatlog_append(str256);
+        chatlog_ts_update();
     }
 
     for(incoming = 1; incoming >= 0; incoming--)
@@ -1685,9 +1686,7 @@ int main( int argc, char* argv[] ) {
                         int rtp_idx;
                         for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_COUNT; rtp_idx++) { peers[p].subscription_reset[rtp_idx] = 1; }
 
-                        /* TODO: attempt to re-subscribe this peer (or at least mark as alive=0) */
                         peers[p].subscriptionID = PEER_IDX_INVALID;
-                        //peers[p].restart_needed = 1;
                         DTLS_peer_shutdown(&peers[p]);
                     }
                 }
@@ -1751,7 +1750,8 @@ int main( int argc, char* argv[] ) {
 
                 printf("%s:%d reclaim peer DONE (alive=%d)\n", __func__, __LINE__, peers[i].alive);
                 
-                chatlog_append(strbuf);
+                //chatlog_append(strbuf);
+                chatlog_ts_update();
                 
                 break;
             }

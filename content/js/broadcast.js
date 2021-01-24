@@ -426,21 +426,6 @@ function onBtnMute(btn, userName) {
     }
 }
 
-function onBtnClose(btn, userName) {
-    var vidSrc = document.getElementById('video_'+userName+'_remote');
-    vidSrc.pause();
-    var vidMain = document.getElementById('videoMain');
-    //reattachMediaStream(vidSrc, null);
-    if(vidPresenter == vidSrc) {
-    vidSrc.pause();
-        vidMain.pause();
-        //reattachMediaStream(vidMain, null);
-    }
-
-    var d = document.getElementById('div_'+userName+'_child');
-    d.style.cssText = 'display:none;';
-}
-
 function onBtnMakePresent(btn, userName) {
     var vid = document.getElementById('videoMain');
     var vidSrc = document.getElementById('video_'+userName+'_remote');
@@ -462,7 +447,7 @@ function prepareVideo(containerTable, labelText)
     var row = document.createElement('tr');
     var col = document.createElement('td');
 
-    videoElemToAdd = document.createElement('video');
+    var videoElemToAdd = document.createElement('video');
     var labelToAdd = document.createTextNode(labelText);
     var paraToAdd = document.createElement('p');
     var stopButton = document.createElement('button');
@@ -481,8 +466,6 @@ function prepareVideo(containerTable, labelText)
             vidElem.closeAction();
         }
 
-        vidElem.onended = null;
-        console.debug('vidElem.onended');
         vidElem.controls = false;
         if(vidElem.srcObject) {
             vidElem.srcObject.getTracks().forEach(track=>track.stop());

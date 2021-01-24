@@ -104,6 +104,12 @@ chatlog_read()
 }
 
 void
+chatlog_ts_update()
+{
+    g_chatlog_ts = time(NULL);
+}
+
+void
 chatlog_append(const char* pchatmsg)
 {
     size_t appendlen = strlen(pchatmsg);
@@ -127,7 +133,7 @@ chatlog_append(const char* pchatmsg)
     *pto = '\0';
     
     file_write2(g_chatlog, strlen(g_chatlog), "chatlog.txt");
-    g_chatlog_ts = time(NULL);
+    chatlog_ts_update();
 }
 
 void

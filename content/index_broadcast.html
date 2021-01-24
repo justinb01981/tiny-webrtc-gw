@@ -96,25 +96,20 @@
 var onLeave;
 var urlArgRoom;
 var urlArgName;
-var iframeConnectState = {selectedUser: null, selectedRoom: null, advancedSettings: false, onConnectVideo: null, joinMode: null, awaiting: null, usersSubscribed: [], iframeOnDisconnect: null, videoElem: null};
+var iframeConnectState = {selectedUser: null, selectedRoom: null, advancedSettings: false, onConnectVideo: null, joinMode: null, awaiting: null, usersSubscribed: [], videoElem: null};
 var onLoadDoneAnswerUpload;
 
 var joinPopupCloseDone = function(videoElem) {
     console.debug('joinPopupCloseDone: set videoElem.closeAction');
 
     videoElem.closeAction = function() {
-        if(videoElem.onended) {
-          videoElem.onended();
-        }
+        console.debug('videoElem.closeAction called');
         disconnectVideo(videoElem);
-
-        if(iframeConnectState.iframeOnDisconnect) {
-          iframeConnectState.iframeOnDisconnect();
-        }
-
+        /*
         if(videoElem != null && videoElem.parentElement != null && videoElem.id != 'localVideo') {
           videoElem.parentElement.removeChild(videoElem);
         }
+        */
     }
 }
 
