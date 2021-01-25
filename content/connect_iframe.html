@@ -91,8 +91,7 @@ function connectIFrameOnLoad(htmlBodyElem)
       selectUser.options.add(option);
 
       // ignore this user if already subscribed
-      if(state.usersSubscribed.includes(name) ||
-         window.parent.myUsername == name)
+      if(state.usersSubscribed.includes(name))
       { 
         continue;
       }
@@ -106,33 +105,34 @@ function connectIFrameOnLoad(htmlBodyElem)
       break;
     }
 
-    for(p = 0; p < state.usersSubscribed.length; p++)
+  }
+
+  for(p = 0; p < state.usersSubscribed.length; p++)
+  {
+    found = 0;
+    for(i = 0; i < peerList.length; i++)
     {
-      found = 0;
-      for(i = 0; i < peerList.length; i++)
+      if(peerList[i].name == state.usersSubscribed[p])
       {
-        if(peerList[i].name == state.usersSubscribed[p])
-        {
-          found = 1;
-        }
-      }
-
-      if(!found)
-      {
-        console.debug('trying to remove ' + state.usersSubscribed[p] + ' that has disappeared');
-
-        // remove video elem
-        var elemToRemoveFromParent = window.parent.videoElemForUser(state.usersSubscribed[p]);
-        if(elemToRemoveFromParent != null) 
-        {
-          elemToRemoveFromParent.remove();
-        }
-
-        window.parent.iframeConnectState.usersSubscribed.splice(p, 1);
-        if(p > 0) p--;
+        found = 1;
       }
     }
-  }
+
+    if(!found)
+    {
+      console.debug('trying to remove ' + state.usersSubscribed[p] + ' that has disappeared');
+
+      // remove video elem
+      var elemToRemoveFromParent = window.parent.videoElemForUser(state.usersSubscribed[p]);
+      if(elemToRemoveFromParent != null) 
+      {
+        elemToRemoveFromParent.remove();
+      }
+
+      window.parent.iframeConnectState.usersSubscribed.splice(p, 1);
+      if(p > 0) p--;
+    }
+  } 
 }
 
 function onJoin() {

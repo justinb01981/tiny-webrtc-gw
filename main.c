@@ -468,8 +468,7 @@ connection_worker(void* p)
             peer->name,
             peer->roomname,
             peer->send_only ? "broadcasting" : "watching");
-        //chatlog_append(str256);
-        chatlog_ts_update();
+        chatlog_append(str256);
     }
 
     for(incoming = 1; incoming >= 0; incoming--)

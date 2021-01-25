@@ -1,6 +1,8 @@
 body {
     background-color: white;
     color:green;
+    width:100vw;
+    height:100vh;
 }
 
 h1 {
@@ -22,20 +24,38 @@ td.chat {
     border-collapse: collapse;
     overflow:hidden;
     width:30%;
+    height:100%;
 }
 
 tr {
     overflow:hidden;
 }
 
-table {
+tr.chatRow {
+}
+
+table.mainTable {
     margin:0;
     padding:0;
     border:1;
     border-collapse: collapse;
     display:inline-block;
-    overflow:hidden;
-    table-layout:fixed;
+    overflow:scroll;
+    table-layout:auto;
+    background-color:black;
+    border-color:white;
+    width:100%;
+    height:100%;
+}
+
+table.videoMainContainer {
+    margin:0;
+    padding:0;
+    border:1;
+    border-collapse: collapse;
+    display:inline-block;
+    overflow:scroll;
+    table-layout:auto;
     background-color:black;
     border-color:white;
 }
@@ -43,12 +63,12 @@ table {
 video {
     width:100%;
     controls:true;
+    object-fit:contain;
 }
 
 video.videoMain {
-    width:100%;
-    height:256px;
     z-index:-1;
+    object-fit:contain;
 }
 
 video.videoLocal {
@@ -69,6 +89,11 @@ div.localPreview {
     left:2%;
     width:128px;
     height:96px;
+}
+
+div.mainDiv {
+  width:100vw;
+  height:100vh;
 }
 
 p {
@@ -114,6 +139,11 @@ button.stopButton {
 
 select.mediaSelect {
     width:100px;
+}
+
+iframe.chatFrame {
+    width:100%;
+    height:640px;
 }
 
 @keyframes loadingAnimation {
