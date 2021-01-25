@@ -3,8 +3,8 @@ webserver_port=8008
 
 # the address of the interface to listen on (ifconfig)
 # 0.0.0.0 won't work
-# MUST FILL THIS VALUE IN WITH THE SERVER IP ADDRESS/PORT PRESENTED VIA STUN
-udpserver_addr=198.27.251.23
+# MUST FILL THIS VALUE IN WITH THE SERVER IP ADDRESS PRESENTED VIA STUN
+udpserver_addr=
 
 # this server will masquerade as a STUN server, so use STUN port (by default)...if behind a NAT, this is one port you need to forward to this server
 udpserver_port=3478
