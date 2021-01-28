@@ -90,7 +90,7 @@ sdp_offer_table_t sdp_offer_table;
 unsigned long connection_worker_backlog_highwater = 0;
 
 volatile time_t wall_time = 0;
-pthread_mutex_t peers_sockets_lock;
+pthread_mutex_t peers_table_lock;
 const static udp_recv_timeout_usec_min = 20;
 const static udp_recv_timeout_usec_max = 100000;
 
@@ -824,11 +824,13 @@ connection_worker(void* p)
                         {
                             int issrc = 0;
                             rtp_report_receiver_t* preport = report;
-                            u32 jitter = 0; 
+                            u32 jitter = 0, last_sr = 0, delay_last_sr = 0; 
 
                             while(issrc < nrep || (nrep == 0 && issrc == 0))
                             {
                                 jitter = ntohl(report->blocks[issrc].interarrival_jitter);
+                                last_sr = ntohl(report->blocks[issrc].last_sr_timestamp);
+                                delay_last_sr = ntohl(report->blocks[issrc].last_sr_timestamp_delay);
                                 
                                 if(jitter > diagnostics.jitter_max) diagnostics.jitter_max = jitter;
                                 if(jitter < diagnostics.jitter_min) diagnostics.jitter_min = jitter;
@@ -845,14 +847,27 @@ connection_worker(void* p)
 
                                 // adjust pacer offsetting
                                 // how did I arrive at this divisor? experimentation. On a LAN. :-/ 20ms seemed like a reasonable jitter value...
-                                long div = 20;
-                                long pace_delta = (peer->srtp[rtp_idx].receiver_report_jitter_last - jitter);
-                                if(abs(pace_delta) >= div &&
-                                   abs(peer->paced_sender.timestamp_offset_ms + (pace_delta/div)) < PACED_STREAMER_TIMESTAMP_OFFSET_MAX)
+                                long pace_delta = peer->srtp[rtp_idx].receiver_report_jitter_last - jitter;
+                                long sr_delay_delta = peer->srtp[rtp_idx].receiver_report_sr_delay_last - ntohl(report->blocks[issrc].last_sr_timestamp_delay);
+                                long sr_delta = peer->srtp[rtp_idx].receiver_report_sr_last - ntohl(report->blocks[issrc].last_sr_timestamp);
+                                long ts_offset_delta = sr_delay_delta - sr_delta;
+//                                printf("peer[%d] ts_offset_delta:%ld - peer_ts_offset:%ld\n",
+//                                       peer->id,
+//                                       ts_offset_delta, peer->paced_sender.timestamp_offset_ms);
+
+                                while(abs(ts_offset_delta) >= 100) ts_offset_delta /= 2;
+                                if(ts_offset_delta != 0) peer->paced_sender.timestamp_offset_ms += ts_offset_delta; // +/- 20ms
+                                /*
+                                if(abs(peer->paced_sender.timestamp_offset_ms + sr_delta) < PACED_STREAMER_TIMESTAMP_OFFSET_MAX)
                                 {
-                                    peer->paced_sender.timestamp_offset_ms += (pace_delta / abs(pace_delta/div));
+                                    printf("adjust pace pace_delta:%ld\n", sr_delta);
+                                    peer->paced_sender.timestamp_offset_ms += sr_delta;
                                 }
-                                peer->srtp[rtp_idx].receiver_report_jitter_last = jitter;
+                                */
+
+                                peer->srtp[rtp_idx].receiver_report_jitter_last += pace_delta;
+                                peer->srtp[rtp_idx].receiver_report_sr_delay_last += sr_delay_delta;
+                                peer->srtp[rtp_idx].receiver_report_sr_last += sr_delta;
                                 issrc ++;
                             }
                         }
@@ -932,7 +947,7 @@ connection_worker(void* p)
 
                                     if(!outbuf)
                                     {
-                                        printf("rtp send_queue overrun peer:%d timestamp_offset_ms:%u\n", p, peers[p].paced_sender.timestamp_offset_ms);
+                                        printf("rtp send_queue overrun peer:%d timestamp_offset_ms:%ld\n", p, peers[p].paced_sender.timestamp_offset_ms);
 
                                         // dump everything and schedule a full-frame refresh
                                         outbuf = peers[p].out_buffers_head.next;
@@ -1172,7 +1187,7 @@ connection_paced_streamer(void* p)
             {
                 if(time_ms - cur->timestamp >= error_margin)
                 {
-                    //printf("warning: paced send: (len=%u) (error_ms:%lu)\n", cur->len, time_ms - cur->timestamp);
+                    //printf("warning: paced send: (len=%u) (error_ms:%ld)\n", cur->len, time_ms - cur->timestamp);
                     pacing_failed = 1;
                 }
 
@@ -1187,6 +1202,15 @@ connection_paced_streamer(void* p)
 
         PEER_SENDER_THREAD_UNLOCK(peer);
         sleep_msec(sleep_pace);
+
+        // adjust timestamp-offset (bias timestamp_offset change towards 0)
+        long* ts_off = &peer->paced_sender.timestamp_offset_ms;
+        if(*ts_off != 0) *ts_off -= (*ts_off/abs(*ts_off) * 10);
+
+        if(abs(*ts_off) > IDEAL_BACKLOG_MS)
+        {
+            printf("peer[%d] timestamp_offset_ms=%ld\n", peer->id, peer->paced_sender.timestamp_offset_ms);
+        }
 
         if(sent_count == 0)
         {
@@ -1277,7 +1301,7 @@ int main( int argc, char* argv[] ) {
     
     listen_port_base = udpserver.inport;
     
-    pthread_mutex_init(&peers_sockets_lock, NULL);
+    pthread_mutex_init(&peers_table_lock, NULL);
 
     epoll_fd = epoll_create1(0);
     if(epoll_fd == -1) return;
@@ -1417,21 +1441,16 @@ int main( int argc, char* argv[] ) {
         {
             PERFTIME_BEGIN(PERFTIMER_SELECT);
 
-            PEERS_SOCKETS_LOCK();
-
             msg_recv_offset = 0;
 
             int event_count = epoll_wait(epoll_fd, ep_events, PEER_RECV_BUFFER_COUNT, EPOLL_TIMEOUT_MS);
             if(event_count <= 0)
             {
-                PEERS_SOCKETS_UNLOCK();
                 PERFTIME_END(PERFTIMER_SELECT);
                 if(event_count < 0) printf("epoll_wait got error: %s\n", strerror(errno));
                 sleep_msec(1);
                 goto select_timeout;
             }
-
-            PEERS_SOCKETS_UNLOCK();
 
             PERFTIME_END(PERFTIMER_SELECT);
 
@@ -1474,8 +1493,6 @@ int main( int argc, char* argv[] ) {
             }
 
             PERFTIME_END(PERFTIMER_RECV);
-
-            PEERS_SOCKETS_UNLOCK();
 
             goto select_timeout;
         }
@@ -1571,19 +1588,18 @@ int main( int argc, char* argv[] ) {
         // now sending peer is known, enqueue it for that peers connection_worker thready        
         //if(!peers[sidx].in_buffers_head.next) goto select_timeout;
 
-        peer_buffer_node_t* node = peers[sidx].in_buffer_next;
-        if(!node) node = peers[sidx].in_buffers_head.next;
+        peer_buffer_node_t* node = peers[sidx].in_buffers_head.next;
+        while(node && node->len != 0) node = node->next;
+
         if(!node) 
         {
             // justin: this shit be happening with your macbook + chrome from the PC
-            printf("WARN: this should never happen! (linked-list damaged) %s:%d\n", __FILE__, __LINE__);
+            printf("WARN: peer %d buffer overrun dropping packet or linked-list-damaged: head->next = %02x\n", sidx, peers[sidx].in_buffers_head.next);
             goto select_timeout;
         }
-        peers[sidx].in_buffer_next = node->next;
 
         if(node->len != 0)
         {
-            printf("WARN: peer %d buffer overrun dropping packet\n", sidx);
             goto select_timeout;
         }
 
@@ -1605,6 +1621,8 @@ int main( int argc, char* argv[] ) {
         select_timeout:
 
         time_ms_peer_maintain_last = time_ms;
+
+        PEERS_TABLE_LOCK();
 
         i = 0;
         while(i < MAX_PEERS)
@@ -1639,7 +1657,7 @@ int main( int argc, char* argv[] ) {
                         //pthread_create(&peers[sidx].thread_rtp_send, NULL, peer_rtp_send_worker, (void*) args);
                     }
                     peers[i].thread_inited = 1;
-                    
+                   
                     udp_recv_timeout_usec = udp_recv_timeout_usec_min;
 
                     PEER_UNLOCK(i);
@@ -1670,7 +1688,7 @@ int main( int argc, char* argv[] ) {
 
                 // HACK: lock out all reader-threads
                 peers[i].cleanup_in_progress = 1;
-                
+
                 PEER_LOCK(i);
 
                 peers[i].alive = 0;
@@ -1692,22 +1710,6 @@ int main( int argc, char* argv[] ) {
 
                 peers[i].cleanup_in_progress = 0;
 
-                if(peers[i].thread_inited)
-                {
-                    printf("%s:%d terminating peer %d threads\n", __func__, __LINE__, i);
-                    
-                    PEER_UNLOCK(i);
-                    
-                    pthread_join(peers[i].thread, NULL);
-                    pthread_join(peers[i].thread_rtp_send, NULL);
-                    pthread_cond_destroy(&peers[i].mcond);
-                    pthread_mutex_destroy(&peers[i].mutex);
-                    pthread_mutex_destroy(&peers[i].mutex_sender);
-                    peers[i].thread_rtp_send = 0;
-                    peers[i].thread = 0;
-                    peers[i].thread_inited = 0;
-                }
-
                 DTLS_peer_uninit(&peers[i]);
                 memset(&peers[i].dtls, 0, sizeof(peers[i].dtls));
 
@@ -1716,7 +1718,7 @@ int main( int argc, char* argv[] ) {
                 int rtp_idx = 0;
                 while(rtp_idx < PEER_RTP_CTX_COUNT)
                 {
-                    int err = 
+                    int err =
                     peer_buffer_node_list_free_all(&peers[i].rtp_buffers_head[rtp_idx]);
                     rtp_idx++;
                 }
@@ -1736,7 +1738,7 @@ int main( int argc, char* argv[] ) {
 
                 memset(&peers[i].addr, 0, sizeof(peers[i].addr));
                 memset(&peers[i].addr_listen, 0, sizeof(peers[i].addr_listen));
-
+ 
                 if(log_user_exit && strlen(peers[i].name) > 0) sprintf(strbuf, "server:%s left %s\n", peers[i].name, peers[i].roomname);
 
                 peers[i].name[0] = '\0';
@@ -1744,7 +1746,31 @@ int main( int argc, char* argv[] ) {
                 peers[i].subscribed = 0;
                 peers[i].restart_done = 1;
 
-                while(peers[i].restart_needed) usleep(udp_recv_timeout_usec_min);
+                if(peers[i].thread_inited)
+                {
+                    printf("%s:%d terminating peer %d threads\n", __func__, __LINE__, i);
+
+                    PEERS_TABLE_UNLOCK();
+                    PEER_UNLOCK(i);
+
+                    pthread_join(peers[i].thread, NULL);
+                    pthread_join(peers[i].thread_rtp_send, NULL);
+                    pthread_cond_destroy(&peers[i].mcond);
+                    pthread_mutex_destroy(&peers[i].mutex);
+                    pthread_mutex_destroy(&peers[i].mutex_sender);
+                    peers[i].thread_rtp_send = 0;
+                    peers[i].thread = 0;
+                    peers[i].thread_inited = 0;
+
+                    PEERS_TABLE_LOCK();
+                }
+
+                while(peers[i].restart_needed)
+                {
+                    PEERS_TABLE_UNLOCK();
+                    usleep(udp_recv_timeout_usec_min);
+                    PEERS_TABLE_LOCK();
+                }
                 peers[i].restart_done = 0;
 
                 printf("%s:%d reclaim peer DONE (alive=%d)\n", __func__, __LINE__, peers[i].alive);
@@ -1757,6 +1783,8 @@ int main( int argc, char* argv[] ) {
 
             i++;
         }
+
+        PEERS_TABLE_UNLOCK();
 
         PERFTIME_END(PERFTIMER_MAIN_LOOP);
     }

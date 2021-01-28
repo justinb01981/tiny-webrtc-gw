@@ -704,7 +704,13 @@ webserver_worker(void* p)
                         sidx = webserver.peer_idx_next % MAX_PEERS;
                         webserver.peer_idx_next += 1;
 
-                        if(peers[sidx].alive) break;
+                        PEER_LOCK(sidx);
+
+                        if(peers[sidx].alive)
+                        {
+                            PEER_UNLOCK(sidx);
+                            break;
+                        }
 
                         printf("peer[%d] logging in\n", sidx);
 
@@ -721,6 +727,8 @@ webserver_worker(void* p)
                         strcat(peers[sidx].http.dynamic_js, "myUsername = '");
                         strcat(peers[sidx].http.dynamic_js, peers[sidx].name);
                         strcat(peers[sidx].http.dynamic_js, "';\n");
+
+                        PEER_UNLOCK(sidx);
                     }
 
                     if(strstr(purl, tag_logout))
@@ -733,15 +741,24 @@ webserver_worker(void* p)
                             chatlog_append("logged out:"); chatlog_append(peer_found_via_cookie->name); chatlog_append("\n");
                             */
 
+                            PEER_LOCK(peer_logout->id);
+
                             peer_logout->restart_done = 0;
                             peer_logout->restart_needed = 1;
-                            while(!peer_logout->restart_done) usleep(SPIN_WAIT_USEC);
+                            while(!peer_logout->restart_done)
+                            {
+                                PEER_UNLOCK(peer_logout->id);
+                                usleep(SPIN_WAIT_USEC);
+                                PEER_LOCK(peer_logout->id);
+                            }
                             peer_logout->alive = 0;
                             peer_logout->restart_needed = 0;
                             peer_init(peer_logout, PEER_INDEX(peer_logout));
                             peer_cookie_init(peer_logout, "");
                             
                             peer_found_via_cookie = NULL;
+
+                            PEER_UNLOCK(peer_logout->id);
                         }
                     }
 
@@ -923,6 +940,8 @@ webserver_worker(void* p)
 
                         sdp = sdp_decode(sdp);
 
+                        PEERS_TABLE_LOCK();
+
                         const char* ufrag_answer = sdp_read(sdp, "a=ice-ufrag:");
                         
                         // anonymous+watching-only peers use new slot
@@ -940,6 +959,8 @@ webserver_worker(void* p)
                                 printf("peer found, but no offer found for ice_ufrag\n");
                                 
                                 free(sdp);
+                                sdp = NULL;
+                                PEERS_TABLE_UNLOCK();
                                 goto response_override;
                             }
                             
@@ -958,7 +979,7 @@ webserver_worker(void* p)
                             {
                                 free(sdp);
                                 sdp = NULL;
-
+                                PEERS_TABLE_UNLOCK();
                                 goto response_override;
                             }
 
@@ -975,7 +996,14 @@ webserver_worker(void* p)
                         peers[sidx].restart_done = 0;
                         peers[sidx].restart_needed = 1;
 
-                        while(!peers[sidx].restart_done) usleep(SPIN_WAIT_USEC);
+                        PEERS_TABLE_UNLOCK();
+
+                        while(!peers[sidx].restart_done)
+                        {
+                            usleep(SPIN_WAIT_USEC);
+                        }
+
+                        PEER_LOCK(sidx);
 
                         // init stun-ice attributes
                         strcpy(peers[sidx].stun_ice.ufrag_answer, ufrag_answer);
@@ -1002,6 +1030,7 @@ webserver_worker(void* p)
                         response[0] = '\0'; strcat(response, page_buf_sdp_uploaded);
                         content_type = content_type_html;
 
+                        PEER_UNLOCK(sidx);
                         goto response_override;
                     }
                     else if(strcmp(purl, "/chatmsg") == 0)

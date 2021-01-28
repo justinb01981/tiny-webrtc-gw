@@ -48,6 +48,22 @@
         </tr>
         <tr class='chatRow'>
             <td align="center" id="thPresenter">
+                <table id="videoMainContainer" class="videoMainContainer">
+                    <!-- new video elements will appear here (see popup.js) -->
+                </table>
+                <p id="emptyRoomLabel" class="emptyRoomLabel">Nobody else here... (did everyone check "enable camera" and join this room?)
+            </td>
+
+            <td rowspan=2 align="center" class="chat">
+                <iframe name='chatFrame' src='chat.html' class='chatFrame'>
+                </iframe>
+            </td>
+        </tr>
+        <tr>
+        <!-- empty row for table-balance -->
+        </tr>
+    </table>
+
                 <div id="localPreviewDiv" class="localPreview">
                     <table border=1 class="localPreviewTable">
                         <tr>
@@ -58,22 +74,6 @@
                         </tr>
                     </table>
                 </div>
-            </td>
-        
-            <td rowspan=2 align="center" class="chat">
-                <iframe name='chatFrame' src='chat.html' class='chatFrame'>
-                </iframe>
-            </td>
-        </tr>
-        <tr>
-             <td align="center">
-                <table id="videoMainContainer" class="videoMainContainer">
-                    <!-- new video elements will appear here (see popup.js) -->
-                </table>
-                <p id="emptyRoomLabel" class="emptyRoomLabel">Nobody else here... (did everyone check "enable camera" and join this room?)
-            </td>
-        </tr>
-    </table>
 
 
 </div> <!-- mainDiv -->

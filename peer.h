@@ -31,8 +31,8 @@ typedef enum {
 #define PEER_THREAD_UNLOCK(x) { (x)->worker_lock_st = LOCK_UNHELD; pthread_mutex_unlock(&((x)->mutex)); }
 #define PEER_SENDER_THREAD_LOCK(x) { pthread_mutex_lock(&((x)->mutex_sender)); }
 #define PEER_SENDER_THREAD_UNLOCK(x) { pthread_mutex_unlock(&((x)->mutex_sender)); }
-#define PEERS_SOCKETS_LOCK() { pthread_mutex_lock(&peers_sockets_lock); }
-#define PEERS_SOCKETS_UNLOCK() { pthread_mutex_unlock(&peers_sockets_lock); }
+#define PEERS_TABLE_LOCK() { pthread_mutex_lock(&peers_table_lock); }
+#define PEERS_TABLE_UNLOCK() { pthread_mutex_unlock(&peers_table_lock); }
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&((x)->mcond), &((x->mutex)))
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 4096
@@ -134,13 +134,15 @@ typedef struct
         u32 recv_report_tslast;
         
         u32 receiver_report_jitter_last;
+        u32 receiver_report_sr_last;
+        u32 receiver_report_sr_delay_last;
 
         time_t pli_last;
 
     } srtp[PEER_RTP_CTX_COUNT];
 
     struct {
-        unsigned int timestamp_offset_ms;
+        long timestamp_offset_ms;
     } paced_sender;
 
     struct {
@@ -177,7 +179,6 @@ typedef struct
     unsigned int rtp_buffered_total;
     unsigned long buffer_count;
     //unsigned long out_buffer_next;
-    peer_buffer_node_t* in_buffer_next;
     u32 rtp_timestamp_initial[PEER_RTP_CTX_COUNT];
     unsigned long clock_timestamp_ms_initial[PEER_RTP_CTX_COUNT];
     u16 rtp_seq_initial[PEER_RTP_CTX_COUNT];
@@ -253,7 +254,7 @@ typedef struct {
 
 extern sdp_offer_table_t sdp_offer_table;
 
-extern pthread_mutex_t peers_sockets_lock;
+extern pthread_mutex_t peers_table_lock;
 
 extern unsigned long get_time_ms();
 
@@ -319,8 +320,6 @@ void peer_init(peer_session_t* peer, int id)
 {
     /* preserve some fields across init */
 
-    PEERS_SOCKETS_LOCK();
-
     int sock = peer->sock;
     int port = peer->port;
     memset(peer, 0, sizeof(*peer));
@@ -338,8 +337,6 @@ void peer_init(peer_session_t* peer, int id)
     peer_cookie_init(peer, "");
 
     sprintf(peer->http.dynamic_js, "%s", PEER_DYNAMIC_JS_EMPTY);
-
-    PEERS_SOCKETS_UNLOCK();
 }
 
 static unsigned long

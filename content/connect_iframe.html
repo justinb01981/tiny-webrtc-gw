@@ -91,7 +91,8 @@ function connectIFrameOnLoad(htmlBodyElem)
       selectUser.options.add(option);
 
       // ignore this user if already subscribed
-      if(state.usersSubscribed.includes(name))
+      if(state.usersSubscribed.includes(name) ||
+         name == window.parent.myUsername)
       { 
         continue;
       }
