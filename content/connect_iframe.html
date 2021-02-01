@@ -39,10 +39,11 @@ function connectIFrameOnLoad(htmlBodyElem)
   let roomTextfield = window.parent.document.getElementById('roomName');
   var myName = window.parent.document.getElementById('userName').value;
   var videoTable = window.parent.document.getElementById('videoMainContainer');
+  var myNameFound = false;
 
   let state = window.parent.iframeConnectState;
 
-  console.debug('connectIFrameOnLoad');
+  console.debug('connectIFrameOnLoad (myName=' + myName + ')');
 
   window.parent.connectIframe = window;
   window.parent.connectIframe.document = window.document;
@@ -85,6 +86,13 @@ function connectIFrameOnLoad(htmlBodyElem)
         continue;
       }
 
+      if(name == myName)
+      {
+        console.debug('connectIFrameOnLoad: found my name: ' + myName);
+        myNameFound = true;
+        window.parent.errorCancel();
+      }
+
       let option = document.createElement('option');
       option.value = name;
       option.text = name;
@@ -106,6 +114,10 @@ function connectIFrameOnLoad(htmlBodyElem)
       break;
     }
 
+    if(!myNameFound && window.parent.getCameraCheckbox())
+    {
+      window.parent.errorSchedule();
+    }
   }
 
   for(p = 0; p < state.usersSubscribed.length; p++)

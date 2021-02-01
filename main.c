@@ -1207,11 +1207,6 @@ connection_paced_streamer(void* p)
         long* ts_off = &peer->paced_sender.timestamp_offset_ms;
         if(*ts_off != 0) *ts_off -= (*ts_off/abs(*ts_off) * 10);
 
-        if(abs(*ts_off) > IDEAL_BACKLOG_MS)
-        {
-            printf("peer[%d] timestamp_offset_ms=%ld\n", peer->id, peer->paced_sender.timestamp_offset_ms);
-        }
-
         if(sent_count == 0)
         {
             //peer->paced_sender.timestamp_offset_ms += M;
@@ -1691,8 +1686,6 @@ int main( int argc, char* argv[] ) {
 
                 PEER_LOCK(i);
 
-                peers[i].alive = 0;
-
                 /* reset all this peer's subscribers */
                 int p;
                 for(p = 0; p < MAX_PEERS; p++)
@@ -1709,6 +1702,8 @@ int main( int argc, char* argv[] ) {
                 }
 
                 peers[i].cleanup_in_progress = 0;
+
+                peers[i].alive = 0;
 
                 DTLS_peer_uninit(&peers[i]);
                 memset(&peers[i].dtls, 0, sizeof(peers[i].dtls));
@@ -1744,14 +1739,14 @@ int main( int argc, char* argv[] ) {
                 peers[i].name[0] = '\0';
                 peers[i].cleanup_in_progress = 0;
                 peers[i].subscribed = 0;
-                peers[i].restart_done = 1;
+                peers[i].alive = 0;
 
                 if(peers[i].thread_inited)
                 {
                     printf("%s:%d terminating peer %d threads\n", __func__, __LINE__, i);
 
-                    PEERS_TABLE_UNLOCK();
                     PEER_UNLOCK(i);
+                    PEERS_TABLE_UNLOCK();
 
                     pthread_join(peers[i].thread, NULL);
                     pthread_join(peers[i].thread_rtp_send, NULL);
@@ -1764,6 +1759,9 @@ int main( int argc, char* argv[] ) {
 
                     PEERS_TABLE_LOCK();
                 }
+
+                // signal webserver thread to re-init the peer and acknowledge
+                peers[i].restart_done = 1;
 
                 while(peers[i].restart_needed)
                 {

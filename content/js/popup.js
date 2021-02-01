@@ -78,7 +78,7 @@ function onConnect() {
 
     remoteConnection.setRemoteDescription(remoteConnectionOffer).then(
         function () {
-            console.debug('setRemoteScription.then');
+            console.debug('setRemoteDescription.then');
 
             remoteConnection.createAnswer({'mandatory': {'OfferToReceiveAudio': true, 'OfferToReceiveVideo': true}}).then(
                 function (answer) {

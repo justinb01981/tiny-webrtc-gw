@@ -92,6 +92,8 @@ var addUserLoad = function(name) {
     }
 }
 
+var connectionWarning = false;
+
 // -- functions
 
 function vidChildInit() {
@@ -607,4 +609,20 @@ function onEnableVideo(checkbox) {
     }
 
   });
+}
+
+function errorSchedule() {
+    connectionWarning = true;
+    let f = function() {
+        if(connectionWarning) {
+            alert('warning: connection seems to have failed? Try again or contact the server admin.');
+        }
+    }
+
+    setTimeout(f, 7000);
+}
+
+function errorCancel() {
+    console.debug('errorCancel: found us');
+    connectionWarning = false;
 }

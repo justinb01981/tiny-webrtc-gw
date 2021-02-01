@@ -29,6 +29,8 @@ function getParent() {
 }
 
 function onLoad() {
+    console.debug('answer_upload: onLoad()');
+
     getParent().answerIframe = window;
 
     setupForm();
