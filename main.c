@@ -1694,6 +1694,7 @@ int main( int argc, char* argv[] ) {
                     {
                         memset(&peers[p].subscription_ptr, 0, sizeof(peers[p].subscription_ptr));
                         int rtp_idx;
+                        // WTF: is this even doing?
                         for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_COUNT; rtp_idx++) { peers[p].subscription_reset[rtp_idx] = 1; }
 
                         peers[p].subscriptionID = PEER_IDX_INVALID;

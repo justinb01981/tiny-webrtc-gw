@@ -94,6 +94,8 @@ var addUserLoad = function(name) {
 
 var connectionWarning = false;
 
+var autoJoinRoomDone = false;
+
 // -- functions
 
 function vidChildInit() {
@@ -132,7 +134,6 @@ function enumerateMedia() {
                 }
                 else {
                     document.getElementById('selectMicInput').add(opt);
-                    document.getElementById('selectCamInput').add(opt);
                 }
             }
         });
@@ -251,12 +252,31 @@ function broadcastOnLoad() {
 
     var userElem = document.getElementById('userName');
     userElem.value = myUsername;
-
     setLoggedIn();
 
     onLoadDone();
 
     userElem.scrollIntoView();
+
+    parseURLArguments();
+}
+
+function parseURLArguments() {
+    let params = new URLSearchParams(document.location.search.substring(1));
+    let room = params.get('joinroom');
+
+    if(room && !autoJoinRoomDone) {
+        console.debug('auto-joining room ' + room);
+
+        // necessary so we don't try and re-join every connect_iframe refresh, just the first page landing
+        autoJoinRoomDone = true;
+
+        let frameChild = document.getElementById('connect_iframe');
+        let roomField = document.getElementById('roomName');
+
+        roomField.value = room;
+        frameChild.contentWindow.onOK();
+    }
 }
 
 function setLoggedIn() {

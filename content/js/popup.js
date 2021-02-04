@@ -153,6 +153,9 @@ function rtcPopupCreateIframe(handlerOpen, handlerClose) {
     closeHandler = handlerClose;
 
     loc = window.location.href.split("/").pop();
+    loc = loc.split("?")[0];
+    console.debug(loc);
+
     if(loc != 'index_broadcast.html') {
         document.location = 'answer_upload.html';
         popupRecvOnly = false;
