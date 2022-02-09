@@ -59,7 +59,7 @@
 #define RTP_PSFB 1 
 
 #define RECEIVER_REPORT_MIN_INTERVAL_MS 20
-#define EPOLL_TIMEOUT_MS (10)
+#define EPOLL_TIMEOUT_MS  /*10*/ (2)
 //#define PEER_CLEANUP_INTERVAL (1)
 #define RECVMSG_NUM (PEER_RECV_BUFFER_COUNT)
 
@@ -846,26 +846,48 @@ connection_worker(void* p)
                                 */
 
                                 // adjust pacer offsetting
-                                // how did I arrive at this divisor? experimentation. On a LAN. :-/ 20ms seemed like a reasonable jitter value...
-                                long pace_delta = peer->srtp[rtp_idx].receiver_report_jitter_last - jitter;
-                                long sr_delay_delta = peer->srtp[rtp_idx].receiver_report_sr_delay_last - ntohl(report->blocks[issrc].last_sr_timestamp_delay);
-                                long sr_delta = peer->srtp[rtp_idx].receiver_report_sr_last - ntohl(report->blocks[issrc].last_sr_timestamp);
+/*
+A.8 Estimating the Interarrival Jitter
+
+   The code fragments below implement the algorithm given in Section
+   6.4.1 for calculating an estimate of the statistical variance of the
+   RTP data interarrival time to be inserted in the interarrival jitter
+   field of reception reports.  The inputs are r->ts, the timestamp from
+   the incoming packet, and arrival, the current time in the same units.
+   Here s points to state for the source; s->transit holds the relative
+   transit time for the previous packet, and s->jitter holds the
+   estimated jitter.  The jitter field of the reception report is
+   measured in timestamp units and expressed as an unsigned integer, but
+   the jitter estimate is kept in a floating point.  As each data packet
+   arrives, the jitter estimate is updated:
+
+      int transit = arrival - r->ts;
+      int d = transit - s->transit;
+      s->transit = transit;
+      if (d < 0) d = -d;
+      s->jitter += (1./16.) * ((double)d - s->jitter);
+*/
+
+
+// @justin - why would the timestamp offset ever go negative? that only represents the outgoing buffer sent time (which can't be in the past)
+                                long pace_delta = jitter - peer->srtp[rtp_idx].receiver_report_jitter_last;
+                                long sr_delay_delta = ntohl(report->blocks[issrc].last_sr_timestamp_delay) - peer->srtp[rtp_idx].receiver_report_sr_delay_last;
+                                long sr_delta = ntohl(report->blocks[issrc].last_sr_timestamp) - peer->srtp[rtp_idx].receiver_report_sr_last;
                                 long ts_offset_delta = sr_delay_delta - sr_delta;
-//                                printf("peer[%d] ts_offset_delta:%ld - peer_ts_offset:%ld\n",
-//                                       peer->id,
-//                                       ts_offset_delta, peer->paced_sender.timestamp_offset_ms);
+                                printf("peer[%d] ts_offset_delta:%ld - peer_ts_offset:%ld\n\tjitter:%ld\n\tjitter_delta:%ld\n",
+                                       peer->id,
+                                       ts_offset_delta, peer->paced_sender.timestamp_offset_ms, jitter, pace_delta);
 
-                                while(abs(ts_offset_delta) >= 100) ts_offset_delta /= 2;
-                                if(ts_offset_delta != 0) peer->paced_sender.timestamp_offset_ms += ts_offset_delta; // +/- 20ms
-                                /*
-                                if(abs(peer->paced_sender.timestamp_offset_ms + sr_delta) < PACED_STREAMER_TIMESTAMP_OFFSET_MAX)
+                                // somehow maintain a backlog of outgoing packets, but it should flush slightly faster than real-time
+                                // ... until the bucket becomes empty and then pause, and develop a backlog -- see: "leaky bucket"
+                                long pdD16 = pace_delta / 16;
+                                if(1)
                                 {
-                                    printf("adjust pace pace_delta:%ld\n", sr_delta);
-                                    peer->paced_sender.timestamp_offset_ms += sr_delta;
+                                    peer->paced_sender.timestamp_offset_ms += pdD16;
                                 }
-                                */
 
-                                peer->srtp[rtp_idx].receiver_report_jitter_last += pace_delta;
+                                //peer->srtp[rtp_idx].receiver_report_jitter_last += pace_delta;
+                                peer->srtp[rtp_idx].receiver_report_jitter_last = jitter;
                                 peer->srtp[rtp_idx].receiver_report_sr_delay_last += sr_delay_delta;
                                 peer->srtp[rtp_idx].receiver_report_sr_last += sr_delta;
                                 issrc ++;
@@ -961,7 +983,7 @@ connection_worker(void* p)
                                     }
 
                                     memcpy(outbuf->buf, reportPeer, protect_len);
-                                    long time_ms_plus_offset = time_ms + IDEAL_BACKLOG_MS + peers[p].paced_sender.timestamp_offset_ms;
+                                    long time_ms_plus_offset = time_ms + peers[p].paced_sender.timestamp_offset_ms;
                                     outbuf->timestamp = time_ms_plus_offset;
                                     outbuf->id = p;
                                     outbuf->len = protect_len;
@@ -1050,7 +1072,7 @@ connection_worker(void* p)
 
                                 if(srtp_protect(peers[p].srtp[rtp_idx_write].session, rtp_frame_out, &lengthPeer) == srtp_err_status_ok)
                                 {
-                                    long time_ms_plus_offset = time_ms + IDEAL_BACKLOG_MS + peers[p].paced_sender.timestamp_offset_ms;
+                                    long time_ms_plus_offset = time_ms + peers[p].paced_sender.timestamp_offset_ms;
                                     outbuf->timestamp = time_ms_plus_offset;
                                     outbuf->id = p;
                                     outbuf->len = lengthPeer;
@@ -1176,13 +1198,15 @@ connection_paced_streamer(void* p)
         unsigned long error_margin = 20;
         unsigned long time_ms = get_time_ms();
         unsigned long sent_count = 0;
-        int pacing_failed = 0;
+        int pacing_failed = 0, pacing_failed_underrun = 1;
         
         // check outgoing buffer queues for scheduled sends
         peer_buffer_node_t *cur = peer->out_buffers_head.next;
 
         while(cur)
         {
+            pacing_failed_underrun = 0;
+
             if(cur->len > 0 && time_ms >= cur->timestamp)
             {
                 if(time_ms - cur->timestamp >= error_margin)
@@ -1200,24 +1224,14 @@ connection_paced_streamer(void* p)
             cur = cur->next;
         }
 
+        if(pacing_failed_underrun)
+        {
+            printf("streamer: peer %x underrun\n");
+            peer->paced_sender.timestamp_offset_ms = 100;
+        }
+
         PEER_SENDER_THREAD_UNLOCK(peer);
         sleep_msec(sleep_pace);
-
-        // adjust timestamp-offset (bias timestamp_offset change towards 0)
-        long* ts_off = &peer->paced_sender.timestamp_offset_ms;
-        if(*ts_off != 0) *ts_off -= (*ts_off/abs(*ts_off) * 10);
-
-        if(sent_count == 0)
-        {
-            //peer->paced_sender.timestamp_offset_ms += M;
-            sleep_pace += M;
-        }
-        else if(sleep_pace > M*2)
-        {
-            // trying to catch up without having received a receiver-report
-            //peer->paced_sender.timestamp_offset_ms -= M;
-            sleep_pace -= M/2;
-        }
     }
 }
 
