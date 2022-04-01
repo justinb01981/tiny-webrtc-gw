@@ -880,11 +880,10 @@ A.8 Estimating the Interarrival Jitter
 
                                 // somehow maintain a backlog of outgoing packets, but it should flush slightly faster than real-time
                                 // ... until the bucket becomes empty and then pause, and develop a backlog -- see: "leaky bucket"
-                                long pdD16 = pace_delta / 16;
-                                if(1)
-                                {
-                                    peer->paced_sender.timestamp_offset_ms += pdD16;
-                                }
+                                float pdD16 = (pace_delta / 16) * 0.8;
+
+                                // bias the timing slightly toward underrun (instead of overrun)?
+                                peer->paced_sender.timestamp_offset_ms += pdD16;
 
                                 //peer->srtp[rtp_idx].receiver_report_jitter_last += pace_delta;
                                 peer->srtp[rtp_idx].receiver_report_jitter_last = jitter;
@@ -975,6 +974,7 @@ A.8 Estimating the Interarrival Jitter
                                         outbuf = peers[p].out_buffers_head.next;
                                         while(outbuf)
                                         {
+                                            // todo: does playback be smoother if we just drop these frames/packets rather than dump them on the network? -- tbd experiment
                                             outbuf->timestamp = 0;
                                             outbuf = outbuf->next;
                                         }
@@ -1222,12 +1222,6 @@ connection_paced_streamer(void* p)
             }
 
             cur = cur->next;
-        }
-
-        if(pacing_failed_underrun)
-        {
-            printf("streamer: peer %x underrun\n");
-            peer->paced_sender.timestamp_offset_ms = 100;
         }
 
         PEER_SENDER_THREAD_UNLOCK(peer);
