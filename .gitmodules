@@ -1,3 +1,0 @@
-[submodule "ws/cwebsocket"]
-	path = ws/cwebsocket
-	url = git@github.com:m8rge/cwebsocket.git
