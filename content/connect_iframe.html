@@ -4,10 +4,7 @@
 <tr>
 
 <td>
-<select id='joinMode' name='joinMode' style='display:none;' onchange='onJoinModeChange(this)'>
-  <option value='broadcast'>broadcast</option>
-  <option value='watch'>watch</option>
-</select>
+--
 </td>
 <td>
 <select id='selectUser' name='selectUser' style='display:none;' onchange='onSelectUserChange(this)'>
@@ -43,7 +40,7 @@ function connectIFrameOnLoad(htmlBodyElem)
 
   let state = window.parent.iframeConnectState;
 
-  console.debug('connectIFrameOnLoad (myName=' + myName + ')');
+  console.debug('connectIFrameOnLoad (myName=' + myName + ', joinMode=' + state.joinMode + ')');
 
   window.parent.connectIframe = window;
   window.parent.connectIframe.document = window.document;
@@ -59,14 +56,12 @@ function connectIFrameOnLoad(htmlBodyElem)
     roomTextfield.disabled = true;
     joinButton.style.cssText = 'display:none;';
     selectUser.style.cssText = '';
-    window.parent.enableDisableCameraCheckbox(false);
   }
   else
   {
     roomTextfield.disabled = false;
     joinButton.style.cssText = '';
     selectUser.style.cssText = 'display:none';
-    window.parent.enableDisableCameraCheckbox(true);
   }
 
   let optionLabel = document.createElement('option');
@@ -90,6 +85,8 @@ function connectIFrameOnLoad(htmlBodyElem)
       {
         console.debug('connectIFrameOnLoad: found my name: ' + myName);
         myNameFound = true;
+        window.parent.getCameraCheckbox().checked = false; // TODO: disable camera checkbox
+        state.joinMode = 'watch';
         window.parent.errorCancel();
       }
 
@@ -114,7 +111,8 @@ function connectIFrameOnLoad(htmlBodyElem)
       break;
     }
 
-    if(!myNameFound && window.parent.getCameraCheckbox())
+    // detect error negotiating connection
+    if(!myNameFound && state.joinMode != 'watch')
     {
       window.parent.errorSchedule();
     }
@@ -145,42 +143,54 @@ function connectIFrameOnLoad(htmlBodyElem)
       window.parent.iframeConnectState.usersSubscribed.splice(p, 1);
       if(p > 0) p--;
     }
-  } 
+  }
+
+  window.parent.onJoinIframeLoadAsync(); 
+  window.parent.onJoinIframeLoadAsync = function() {};
 }
 
+// bear in-mind this is called every time the connect_iframe refreshes
+// so state lives elsewhere in the parent
 function onJoin() {
-  console.debug('onJoin in doc ' + document.location);
 
   var state = window.parent.iframeConnectState;
-  var joinMode = document.getElementById('joinMode');
-  //var roomElem = parentDoc.getElementById('roomName');
   var roomName = window.parent.getSelectedRoom();
   
   if(roomName == '') { alert('enter a room name'); return; }
 
-  if(!state.selectedRoom && !window.parent.getCameraCheckbox()) {
-    console.debug('skipping getUserMedia (no camera desired)');
+  if(state.joinMode == 'watch') {
+    // TODO: can't proceed until connectIframeOnLoad completed - should use async/await, but hacky state callbacks will do...
+
+    console.debug('skipping getUserMedia (no camera desired - assert someone is streaming) / state.selectedUser:'+state.selecteduser);
     state.selectedRoom = roomName;
-    state.usersSubscribed = [];
+
+    window.parent.onJoinIframeLoadAsync = function () {
+
+      console.debug('onJoinIframeLoadAsync: joinMode = ' + state.joinMode);
+
+      var vidElem = state.videoElem;
+
+      if(vidElem && vidElem.closeAction) 
+      {
+        vidElem.closeAction();
+      }
+
+      state.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
+
+      window.parent.connectVideoIframe(window, vidElem, state.onConnectVideo, window.parent.joinPopupClose);
+    }
+
     window.location = window.location;
+
     return;
   }
 
+  console.debug('calling onLoadMedia...');
   window.parent.onLoadMedia().then(function() {
  
-    if(state.selectedRoom)
-    {
-      joinMode.value = 'watch';
-    }
-    else
-    {
-      joinMode.value = 'broadcast';
-      state.selectedRoom = roomName;
-      state.usersSubscribed = [];
-    }
-    console.debug('joinMode:' + joinMode.value);
+    state.selectedRoom = roomName;
 
-    var vidElem = joinMode.value == 'broadcast' ?
+    var vidElem = state.joinMode == 'broadcast' ?
       window.parent.document.getElementById('localVideo') :
       window.parent.iframeConnectState.videoElem;
 
@@ -190,11 +200,14 @@ function onJoin() {
     }
 
     state.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
-    state.joinMode = joinMode.value;
 
     window.parent.connectVideoIframe(window, vidElem, window.parent.iframeConnectState.onConnectVideo, window.parent.joinPopupClose);
 
+    console.debug('onJoin(): connectVideoIframe successful');
+
   }).catch(function(e) {
+
+    console.debug('exception caught in onJoin() (should never happen)')
 
     var vidElem = window.parent.iframeConnectState.videoElem;
 
@@ -206,7 +219,6 @@ function onJoin() {
     }
 
     state.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
-    state.joinMode = 'watch';
     if(vidElem && state.selectedUser) {
       window.parent.connectVideoIframe(window, vidElem, state.onConnectVideo);
     }
@@ -214,17 +226,6 @@ function onJoin() {
       window.location = window.location;
     }
   });
-
-  /*
-  state.joinMode = 'watch';
-  var vidElem = window.parent.iframeConnectState.videoElem;
-  if(vidElem.closeAction)
-  {
-    vidElem.closeAction();
-  }
-  state.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
-  window.parent.connectVideoIframe(window, vidElem, window.parent.iframeConnectState.onConnectVideo, window.parent.joinPopupClose);
-  */
 }
 
 function onOK() {
@@ -233,8 +234,11 @@ function onOK() {
 
 function onLeave()
 {
+  console.debug('onLeave: ' + window.parent.iframeConnectState.joinMode);
+
   window.parent.iframeConnectState.selectedRoom = null;
   window.parent.iframeConnectState.selectedUser = null;
+  window.parent.iframeConnectState.usersSubscribed = [];
   window.parent.iframeConnectState.awaiting = null;
   window.parent.onLeave();
   window.location.reload();
@@ -258,15 +262,6 @@ function onSelectUserChange(elem)
   }
 }
 
-function onJoinModeChange(elem)
-{
-  var selectUser = document.getElementById('selectUser');
-  selectUser.style.cssText = 'display:none;';
-  if(elem.value == 'watch')
-  {
-    selectUser.style.cssText = '';
-  }
-}
 </script>
 
 </html>

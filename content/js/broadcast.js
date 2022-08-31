@@ -297,8 +297,6 @@ function onLeaveRoom(videoElemCaptured) {
     if(elemRemote != null && elemRemote.closeAction) elemRemote.closeAction(elemRemote);
     if(elemLocal.closeAction) elemLocal.closeAction(elemLocal);
 
-    getConnectIframe().contentWindow.location.reload();
-
     getSelectAudioDevice().disabled = false;
     getSelectVideoDevice().disabled = false;
 }
@@ -345,6 +343,9 @@ function videoElemForUser(userName) {
 }
 
 function joinPopupClose(connection, userName, recvOnlyChecked, roomName) {
+
+    console.debug('joinPopupClose called: ' + connection + '/'+userName + '/'+recvOnlyChecked + '/'+roomName);
+
     joinPopupLast.connection = connection;
     joinPopupLast.userName = userName;
     joinPopupLast.roomName = roomName;
@@ -357,7 +358,11 @@ function joinPopupClose(connection, userName, recvOnlyChecked, roomName) {
 
     videoConnectionTable[winPopupVideoTarget.id] = new VideoConnection(userName, winPopupVideoTarget, winPopupRemoteConnection);
 
+    console.debug('joinPopupClose called3');
+
     window.parent.joinPopupCloseDone(winPopupVideoTarget);
+
+    console.debug('joinPopupClose called4');
 }
 
 function joinIframeOnLoadBroadcast() {
@@ -389,10 +394,7 @@ function joinIframeOnLoadBroadcast() {
         docCForm.recvonly.checked = true;
     }
     else {
-        //docCForm.appendsdp.value += 'a=sendonly\n';
-
-        var recvSDP = docCForm.offersdp.value.replace(/a=sendrecv/g, 'a=recvonly');
-        docCForm.offersdp.value = recvSDP;
+        docCForm.offersdp.value = docCForm.offersdp.value.replace(/a=sendrecv/g, 'a=recvonly');
     }
 
     joinPopupOnLoad2(answerIframe, window);
@@ -464,6 +466,8 @@ function onBtnMakePresent(btn, userName) {
 
 function prepareVideo(containerTable, labelText)
 {
+    console.debug('prepareVideo called');
+
     var table = containerTable;
 
     var row = document.createElement('tr');
@@ -585,50 +589,7 @@ function startLiveBcast(elemButton) {
 }
 
 function getCameraCheckbox() {
-    return document.getElementById('enableVideoCheckbox').checked;
-}
-
-function enableDisableCameraCheckbox(enabled) {
-    document.getElementById('enableVideoCheckbox').disabled = !enabled;
-}
-
-function onEnableVideo(checkbox) {
-
-  if(!getEnableVideoCheckbox().checked) {
-    // hack: just reload the whole page
-    window.location = window.location;
-    return;
-  }
-
-  onLoadMedia().then(function() {
- 
-    var vidElem = document.getElementById('localVideo');
-
-    if(vidElem.closeAction) 
-    {
-      vidElem.closeAction();
-    }
-
-    iframeConnectState.onConnectVideo = function() {
-        console.debug('state.onConnectVideo');
-    }
-
-    window.winPopupVideoTarget = vidElem;
-    connectVideoIframe(window, vidElem, function() {
-        console.debug('connectVideoIframe done');
-    });
-    
-  }).catch(function(e) {
-
-    var vidElem = iframeConnectState.videoElem;
-
-    console.debug('failed to get local video-source with exception: ' + e);
-
-    if(vidElem && vidElem.closeAction) {
-      vidElem.closeAction();
-    }
-
-  });
+    return document.getElementById('enableVideoCheckbox');
 }
 
 function errorSchedule() {

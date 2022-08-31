@@ -53,20 +53,15 @@
 
 #define stats_printf sprintf
 
-#define CONNECTION_DELAY_MS 2000
-
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 10
 #define RTP_PSFB 1 
 
-#define RECEIVER_REPORT_MIN_INTERVAL_MS 20
+#define RECEIVER_REPORT_MIN_INTERVAL_MS 17/*20*/
 #define EPOLL_TIMEOUT_MS  /*10*/ (2)
 //#define PEER_CLEANUP_INTERVAL (1)
 #define RECVMSG_NUM (PEER_RECV_BUFFER_COUNT)
 
-#define IDEAL_BACKLOG_MS 500
-
-#define PACED_STREAMER_INTERVAL_MS (20)
-#define PACED_STREAMER_TIMESTAMP_OFFSET_MAX (1000)
+#define PACED_STREAMER_INTERVAL_MS (100)
 
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS+1];
@@ -512,8 +507,8 @@ connection_worker(void* p)
     // schedule full-frame-refresh 10 seconds from now (for the peer we're subscribing to)
     // TODO:ideally the client will send this, and we'll pass it along to the sender, assuming
     // we are honoring send/receive reports...
-    peers[peer->subscriptionID].srtp[0].pli_last = (wall_time - RTP_PICT_LOSS_INDICATOR_INTERVAL/2);
-    peers[peer->subscriptionID].srtp[1].pli_last = peers[peer->subscriptionID].srtp[0].pli_last;
+    peers[peer->subscriptionID].srtp[0].pli_last = /*(wall_time - RTP_PICT_LOSS_INDICATOR_INTERVAL/2)*/ 0;
+    peers[peer->subscriptionID].srtp[1].pli_last = /*peers[peer->subscriptionID].srtp[0].pli_last*/ 0;
 
     peer->running = 1;
 
@@ -868,22 +863,23 @@ A.8 Estimating the Interarrival Jitter
       s->jitter += (1./16.) * ((double)d - s->jitter);
 */
 
-
-// @justin - why would the timestamp offset ever go negative? that only represents the outgoing buffer sent time (which can't be in the past)
                                 long pace_delta = jitter - peer->srtp[rtp_idx].receiver_report_jitter_last;
                                 long sr_delay_delta = ntohl(report->blocks[issrc].last_sr_timestamp_delay) - peer->srtp[rtp_idx].receiver_report_sr_delay_last;
                                 long sr_delta = ntohl(report->blocks[issrc].last_sr_timestamp) - peer->srtp[rtp_idx].receiver_report_sr_last;
                                 long ts_offset_delta = sr_delay_delta - sr_delta;
-                                printf("peer[%d] ts_offset_delta:%ld - peer_ts_offset:%ld\n\tjitter:%ld\n\tjitter_delta:%ld\n",
+                                printf("peer[%d] ts_offset_delta:%ld - peer_ts_offset:%ld\n\tjitter:%ld\n\tjitter_delta(relative):%ld\n",
                                        peer->id,
                                        ts_offset_delta, peer->paced_sender.timestamp_offset_ms, jitter, pace_delta);
 
                                 // somehow maintain a backlog of outgoing packets, but it should flush slightly faster than real-time
                                 // ... until the bucket becomes empty and then pause, and develop a backlog -- see: "leaky bucket"
-                                float pdD16 = (pace_delta / 16) * 0.8;
+                                //float pdD16 = (pace_delta / 32) * 1.0;
+
+                                float pdD16 = pace_delta / 100; // TODO: can we be agnostic about receiver-report precision? 1ms? 10ms? 0.001ms? It's all relative, just compare with previous report and adjust incrementally!
+                                printf("paced_delta ts offset = %f (pace_delta = %f)", pdD16, pace_delta);
 
                                 // bias the timing slightly toward underrun (instead of overrun)?
-                                peer->paced_sender.timestamp_offset_ms += pdD16;
+                                peer->paced_sender.timestamp_offset_ms += (pdD16 - /* just for testing:  -- why does stream get more pauses/skips as it gets lived? */ 20);
 
                                 //peer->srtp[rtp_idx].receiver_report_jitter_last += pace_delta;
                                 peer->srtp[rtp_idx].receiver_report_jitter_last = jitter;
@@ -1063,6 +1059,7 @@ A.8 Estimating the Interarrival Jitter
                                 }
 
                                 rtp_frame_t *rtp_frame_out = (rtp_frame_t*) outbuf->buf;
+
                                 memcpy(rtp_frame_out, rtpFrame, lengthPeer);
 
                                 rtp_frame_out->hdr.seq_src_id = htonl(peers[p].srtp[rtp_idx_write].ssrc_offer);
@@ -1072,7 +1069,7 @@ A.8 Estimating the Interarrival Jitter
 
                                 if(srtp_protect(peers[p].srtp[rtp_idx_write].session, rtp_frame_out, &lengthPeer) == srtp_err_status_ok)
                                 {
-                                    long time_ms_plus_offset = time_ms + peers[p].paced_sender.timestamp_offset_ms;
+                                    long time_ms_plus_offset = time_ms + peers[p].paced_sender.timestamp_offset_ms; // TODO: arbitratry values for testing
                                     outbuf->timestamp = time_ms_plus_offset;
                                     outbuf->id = p;
                                     outbuf->len = lengthPeer;
@@ -1718,7 +1715,6 @@ int main( int argc, char* argv[] ) {
                 memset(&peers[i].dtls, 0, sizeof(peers[i].dtls));
 
                 peer_buffers_uninit(&peers[i]);
-
                 int rtp_idx = 0;
                 while(rtp_idx < PEER_RTP_CTX_COUNT)
                 {

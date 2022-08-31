@@ -12,7 +12,7 @@
 
         <tr id='rowChat' style='height:32px;'>
             <td align='right'>
-                camera enabled: <input type='checkbox' id='enableVideoCheckbox' onchange='onEnableVideo(self)'/><br>
+                camera enabled: <input type='checkbox' id='enableVideoCheckbox' onChange='onEnableDisableVideoCheckbox()'/><br>
                 video:<select class='mediaSelect' id='selectCamInput'></select><br>
                 audio:<select class='mediaSelect' id='selectMicInput'></select><br>
             </td>
@@ -96,8 +96,10 @@
 var onLeave;
 var urlArgRoom;
 var urlArgName;
-var iframeConnectState = {selectedUser: null, selectedRoom: null, advancedSettings: false, onConnectVideo: null, joinMode: null, awaiting: null, usersSubscribed: [], videoElem: null};
+var iframeConnectState = {selectedUser: null, selectedRoom: null, advancedSettings: false, onConnectVideo: null, joinMode: 'watch', awaiting: null, usersSubscribed: [], videoElem: null};
 var onLoadDoneAnswerUpload;
+var onJoinIframeLoadAsync = function() {
+}
 
 var joinPopupCloseDone = function(videoElem) {
     console.debug('joinPopupCloseDone called: set videoElem.closeAction');
@@ -179,6 +181,10 @@ function onAdvanced(button) {
 
 function hideRoomEmptyLabel() {
     document.getElementById('emptyRoomLabel').style.cssText = 'display:none;'
+}
+
+function onEnableDisableVideoCheckbox() {
+  iframeConnectState.joinMode = 'broadcast'; 
 }
 
 function getEnableVideoCheckbox() {

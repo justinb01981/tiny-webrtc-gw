@@ -828,7 +828,7 @@ webserver_worker(void* p)
                                 hex_print(key_buf, peers[i].dtls.master_key_salt, 8);
                                 sprintf(line, "<option value=\"%s\">%s (%s:%d)</option>\n", peers[i].name, peers[i].name, inet_ntoa(peers[i].addr.sin_addr), ntohs(peers[i].addr.sin_port));
                                 
-                                if(strlen(line) > peer_list_html) break;
+                                if(strlen(line) >= sizeof(peer_list_html)-strlen(peer_list_html)) break;
 
                                 strcat(peer_list_html, line);
                                 peer_list_html_free -= strlen(line);

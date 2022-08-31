@@ -102,6 +102,11 @@ function onConnect() {
 function broadcastStart(onSuccess, onFailure) {
     var remoteStream = remoteConnection.getRemoteStreams()[0];
 
+    if(remoteConnectionAnswer == null) {
+        console.debug('HACK: broadcastStart with null remoteConnectionAnswer');
+        return; 
+    }
+
     remoteConnection.setLocalDescription(remoteConnectionAnswer).then(
         function () {
             console.debug('remoteConnection.setLocalDescription');
@@ -136,13 +141,17 @@ function doSubmit() {
 function iframeOnLoad() {
     broadcastStart(
         function() {
+            console.debug('broadcastStart trying');
             let user = window.parent.iframeConnectState.selectedUser;
             window.parent.iframeConnectState.selectedUser = null;
+            console.debug('broadcastStart trying2');
 
             closeHandler(remoteConnection, user, document.theform.recvonly.checked, document.theform.room_name.value);
+            console.debug('broadcastStart trying3');
         },
         function() {
-            alert('broadcastStart failed');
+            console.debug('broadcastStart failed');
+            alert('broadcastStart: failed');
         }
     );
 }
