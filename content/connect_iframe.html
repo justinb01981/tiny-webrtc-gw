@@ -85,7 +85,7 @@ function connectIFrameOnLoad(htmlBodyElem)
       {
         console.debug('connectIFrameOnLoad: found my name: ' + myName);
         myNameFound = true;
-        window.parent.getCameraCheckbox().checked = false; // TODO: disable camera checkbox
+        window.parent.getCameraCheckbox().checked = false; // disable camera checkbox
         state.joinMode = 'watch';
         window.parent.errorCancel();
       }
@@ -106,6 +106,9 @@ function connectIFrameOnLoad(htmlBodyElem)
       state.usersSubscribed.push(name);
       state.selectedUser = name;
       window.parent.prepareVideo(videoTable, name);
+
+      console.debug('onJoin during connect_iframe onLoad');
+
       onJoin();
 
       break;
@@ -158,26 +161,30 @@ function onJoin() {
   
   if(roomName == '') { alert('enter a room name'); return; }
 
+  state.selectedRoom = roomName;
+
   if(state.joinMode == 'watch') {
     // TODO: can't proceed until connectIframeOnLoad completed - should use async/await, but hacky state callbacks will do...
 
-    console.debug('skipping getUserMedia (no camera desired - assert someone is streaming) / state.selectedUser:'+state.selecteduser);
-    state.selectedRoom = roomName;
+    if(state.selectedUser) {
 
-    window.parent.onJoinIframeLoadAsync = function () {
+      console.debug('skipping getUserMedia (no camera desired - assert someone is streaming) / state.selectedUser:'+state.selecteduser);
 
-      console.debug('onJoinIframeLoadAsync: joinMode = ' + state.joinMode);
+      window.parent.onJoinIframeLoadAsync = function () {
 
-      var vidElem = state.videoElem;
+        console.debug('onJoinIframeLoadAsync: joinMode = ' + state.joinMode);
 
-      if(vidElem && vidElem.closeAction) 
-      {
-        vidElem.closeAction();
+        var vidElem = state.videoElem;
+
+        if(vidElem && vidElem.closeAction) {
+          vidElem.closeAction();
+        }
+
+        state.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
+
+        window.parent.connectVideoIframe(window, vidElem, state.onConnectVideo, window.parent.joinPopupClose);
       }
 
-      state.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
-
-      window.parent.connectVideoIframe(window, vidElem, state.onConnectVideo, window.parent.joinPopupClose);
     }
 
     window.location = window.location;

@@ -56,12 +56,11 @@
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 10
 #define RTP_PSFB 1 
 
-#define RECEIVER_REPORT_MIN_INTERVAL_MS 17/*20*/
 #define EPOLL_TIMEOUT_MS  /*10*/ (2)
 //#define PEER_CLEANUP_INTERVAL (1)
-#define RECVMSG_NUM (PEER_RECV_BUFFER_COUNT)
+#define RECVMSG_NUM (512)
 
-#define PACED_STREAMER_INTERVAL_MS (100)
+#define PACED_STREAMER_INTERVAL_MS (25)
 
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS+1];
@@ -458,12 +457,15 @@ connection_worker(void* p)
 
     if(peer->send_only)
     {
+        /*
         snprintf(str256, sizeof(str256)-1,
             "server:%s joined %s - %s\n",
             peer->name,
             peer->roomname,
             peer->send_only ? "broadcasting" : "watching");
         chatlog_append(str256);
+        */
+        chatlog_append("");
     }
 
     for(incoming = 1; incoming >= 0; incoming--)
@@ -819,7 +821,10 @@ connection_worker(void* p)
                         {
                             int issrc = 0;
                             rtp_report_receiver_t* preport = report;
-                            u32 jitter = 0, last_sr = 0, delay_last_sr = 0; 
+                            u32 jitter = 0, last_sr = 0, delay_last_sr = 0;
+
+                            long report_ts_delta = time_ms - peer->srtp[rtp_idx].receiver_report_ts_last;
+                            peer->srtp[rtp_idx].receiver_report_ts_last = time_ms;
 
                             while(issrc < nrep || (nrep == 0 && issrc == 0))
                             {
@@ -841,47 +846,55 @@ connection_worker(void* p)
                                 */
 
                                 // adjust pacer offsetting
-/*
-A.8 Estimating the Interarrival Jitter
 
-   The code fragments below implement the algorithm given in Section
-   6.4.1 for calculating an estimate of the statistical variance of the
-   RTP data interarrival time to be inserted in the interarrival jitter
-   field of reception reports.  The inputs are r->ts, the timestamp from
-   the incoming packet, and arrival, the current time in the same units.
-   Here s points to state for the source; s->transit holds the relative
-   transit time for the previous packet, and s->jitter holds the
-   estimated jitter.  The jitter field of the reception report is
-   measured in timestamp units and expressed as an unsigned integer, but
-   the jitter estimate is kept in a floating point.  As each data packet
-   arrives, the jitter estimate is updated:
+                                /*
+                                A.8 Estimating the Interarrival Jitter
 
-      int transit = arrival - r->ts;
-      int d = transit - s->transit;
-      s->transit = transit;
-      if (d < 0) d = -d;
-      s->jitter += (1./16.) * ((double)d - s->jitter);
-*/
+                                   The code fragments below implement the algorithm given in Section
+                                   6.4.1 for calculating an estimate of the statistical variance of the
+                                   RTP data interarrival time to be inserted in the interarrival jitter
+                                   field of reception reports.  The inputs are r->ts, the timestamp from
+                                   the incoming packet, and arrival, the current time in the same units.
+                                   Here s points to state for the source; s->transit holds the relative
+                                   transit time for the previous packet, and s->jitter holds the
+                                   estimated jitter.  The jitter field of the reception report is
+                                   measured in timestamp units and expressed as an unsigned integer, but
+                                   the jitter estimate is kept in a floating point.  As each data packet
+                                   arrives, the jitter estimate is updated:
 
-                                long pace_delta = jitter - peer->srtp[rtp_idx].receiver_report_jitter_last;
+                                      int transit = arrival - r->ts;
+                                      int d = transit - s->transit;
+                                      s->transit = transit;
+                                      if (d < 0) d = -d;
+                                      s->jitter += (1./16.) * ((double)d - s->jitter);
+                                */
+
+                                long jitter_delta = jitter - peer->srtp[rtp_idx].receiver_report_jitter_last;
                                 long sr_delay_delta = ntohl(report->blocks[issrc].last_sr_timestamp_delay) - peer->srtp[rtp_idx].receiver_report_sr_delay_last;
                                 long sr_delta = ntohl(report->blocks[issrc].last_sr_timestamp) - peer->srtp[rtp_idx].receiver_report_sr_last;
                                 long ts_offset_delta = sr_delay_delta - sr_delta;
-                                printf("peer[%d] ts_offset_delta:%ld - peer_ts_offset:%ld\n\tjitter:%ld\n\tjitter_delta(relative):%ld\n",
-                                       peer->id,
-                                       ts_offset_delta, peer->paced_sender.timestamp_offset_ms, jitter, pace_delta);
+                                //printf("peer[%d] ts_offset_delta:%ld - peer_ts_offset:%ld\n\tjitter:%ld\n\tjitter_delta(relative):%ld\n",
+                                //       peer->id,
+                                //       ts_offset_delta, peer->paced_sender.timestamp_offset_ms, jitter, pace_delta);
 
                                 // somehow maintain a backlog of outgoing packets, but it should flush slightly faster than real-time
                                 // ... until the bucket becomes empty and then pause, and develop a backlog -- see: "leaky bucket"
-                                //float pdD16 = (pace_delta / 32) * 1.0;
+                                //float pdD16 = (jitter_delta / 32) * 1.0;
 
-                                float pdD16 = pace_delta / 100; // TODO: can we be agnostic about receiver-report precision? 1ms? 10ms? 0.001ms? It's all relative, just compare with previous report and adjust incrementally!
-                                printf("paced_delta ts offset = %f (pace_delta = %f)", pdD16, pace_delta);
+                                /*
+                                float pdD16 = 0;
+                                if(jitter_delta report_ts_delta == 0) {
+                                    // trying to bias backlog/buffer
+                                    pdD16 = (pdD16*100)/90;
+                                }
+                                else {
+                                    pdD16 = jitter_delta / report_ts_delta;
+                                }
+                                */
+                                peer->paced_sender.timestamp_offset_ms += jitter_delta / 16;
+                                printf("paced_delta ts offset = jitter_delta = %d\n", jitter_delta);
 
-                                // bias the timing slightly toward underrun (instead of overrun)?
-                                peer->paced_sender.timestamp_offset_ms += (pdD16 - /* just for testing:  -- why does stream get more pauses/skips as it gets lived? */ 20);
 
-                                //peer->srtp[rtp_idx].receiver_report_jitter_last += pace_delta;
                                 peer->srtp[rtp_idx].receiver_report_jitter_last = jitter;
                                 peer->srtp[rtp_idx].receiver_report_sr_delay_last += sr_delay_delta;
                                 peer->srtp[rtp_idx].receiver_report_sr_last += sr_delta;
@@ -1047,11 +1060,14 @@ A.8 Estimating the Interarrival Jitter
                                 {
                                     printf("rtp send_queue overrun!\n");
 
-                                    // flush everything
+                                    // flush (or drop)  everything
                                     outbuf = peers[p].out_buffers_head.next;
                                     while(outbuf)
                                     {
+                                        // TODO: schedule a full-frame-refresh for this peer since 
+                                        // we couldn't keep up
                                         outbuf->timestamp = 0;
+                                        outbuf->len = 0;
                                         outbuf = outbuf->next;
                                     }
 
@@ -1069,7 +1085,7 @@ A.8 Estimating the Interarrival Jitter
 
                                 if(srtp_protect(peers[p].srtp[rtp_idx_write].session, rtp_frame_out, &lengthPeer) == srtp_err_status_ok)
                                 {
-                                    long time_ms_plus_offset = time_ms + peers[p].paced_sender.timestamp_offset_ms; // TODO: arbitratry values for testing
+                                    long time_ms_plus_offset = time_ms + peers[p].paced_sender.timestamp_offset_ms;
                                     outbuf->timestamp = time_ms_plus_offset;
                                     outbuf->id = p;
                                     outbuf->len = lengthPeer;
@@ -1090,6 +1106,7 @@ A.8 Estimating the Interarrival Jitter
                     {
                         rtp_plat_feedback_t report_pli;
                         int report_len = sizeof(report_pli);
+                        int p;
                         peer->srtp[rtp_idx].pli_last = wall_time;
 
                         /* see RFC 4585 */
@@ -1187,6 +1204,7 @@ connection_paced_streamer(void* p)
     peer_session_t* peer = (peer_session_t*) p;
     int sleep_pace = PACED_STREAMER_INTERVAL_MS;
     const int M = 20;
+    int dbg_counter = 0;
 
     while(peer->alive)
     {
@@ -1195,6 +1213,7 @@ connection_paced_streamer(void* p)
         unsigned long error_margin = 20;
         unsigned long time_ms = get_time_ms();
         unsigned long sent_count = 0;
+        unsigned long unsent_count = 0;
         int pacing_failed = 0, pacing_failed_underrun = 1;
         
         // check outgoing buffer queues for scheduled sends
@@ -1217,8 +1236,19 @@ connection_paced_streamer(void* p)
                 cur->len = 0;
                 sent_count++;
             }
+            else
+            {
+                unsent_count++;
+            }
 
             cur = cur->next;
+        }
+        
+        dbg_counter += 1;
+        if(dbg_counter >= (1000 / sleep_pace))
+        {
+            printf("peer [%d]: sent/unsent: (%d/%d)", peer->id, sent_count, unsent_count);
+            dbg_counter = 0;
         }
 
         PEER_SENDER_THREAD_UNLOCK(peer);
@@ -1456,7 +1486,7 @@ int main( int argc, char* argv[] ) {
 
             PERFTIME_BEGIN(PERFTIMER_RECV);
 
-            /* HACK: need to refactor this to work with epoll more efficiently */
+            // HACK: need to refactor this to work with epoll more efficiently */
             for(i = 0; i < event_count; i++)
             {
                 int p;
@@ -1476,6 +1506,11 @@ int main( int argc, char* argv[] ) {
                 diagnostics.recv_sock = sck;
 
                 diagnostics.recv_count = RECVMSG_NUM-msg_recv_count;
+                if(diagnostics.recv_count <= 0) {
+                    printf("no room to call recvmmsg, epoll buffers all full\n");
+                    assert(0);
+                }
+
                 int result = recvmmsg(sck, msgs+msg_recv_count, RECVMSG_NUM-msg_recv_count, MSG_DONTWAIT, NULL);
                 if(result < 0)
                 {
@@ -1589,7 +1624,9 @@ int main( int argc, char* argv[] ) {
         //if(!peers[sidx].in_buffers_head.next) goto select_timeout;
 
         peer_buffer_node_t* node = peers[sidx].in_buffers_head.next;
-        while(node && node->len != 0) node = node->next;
+        while(node && node->len != 0) { 
+            node = node->next;
+        }
 
         if(!node) 
         {
@@ -1732,9 +1769,9 @@ int main( int argc, char* argv[] ) {
                 memset(peers[i].srtp, 0, sizeof(peers[i].srtp));
                 peers[i].srtp_inited = 0;
 
-                peer_stun_init(&peers[i]);
-
                 peer_buffers_init(&peers[i]);
+
+                peer_stun_init(&peers[i]);
 
                 memset(&peers[i].addr, 0, sizeof(peers[i].addr));
                 memset(&peers[i].addr_listen, 0, sizeof(peers[i].addr_listen));
