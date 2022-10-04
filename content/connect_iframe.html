@@ -40,6 +40,12 @@ function connectIFrameOnLoad(htmlBodyElem)
 
   let state = window.parent.iframeConnectState;
 
+  // moved this from the bottom of this func because it cleans up joinMode from bcast back to watch
+  // whihch has to happen before we start adding peers, not after
+
+  window.parent.onJoinIframeLoadAsync(); 
+  window.parent.onJoinIframeLoadAsync = function() {};
+
   console.debug('connectIFrameOnLoad (myName=' + myName + ', joinMode=' + state.joinMode + ')');
 
   window.parent.connectIframe = window;
@@ -71,6 +77,19 @@ function connectIFrameOnLoad(htmlBodyElem)
 
   if(state.selectedRoom != null)
   {
+    // search for my broadcast
+    for(let p = 0; p < peerList.length; p++)
+    {
+      if(peerList[p]['name'] == myName)
+      {
+        console.debug('connectIFrameOnLoad: found my name: ' + myName);
+        myNameFound = true;
+        state.joinMode = 'watch';
+        window.parent.getCameraCheckbox().checked = false; // disable camera checkbox
+        window.parent.errorCancel();
+      }
+    }
+
     for(let p = 0; p < peerList.length; p++)
     {
       var name = peerList[p]['name'];
@@ -79,15 +98,6 @@ function connectIFrameOnLoad(htmlBodyElem)
          state.selectedRoom != peerList[p]['room'])
       {
         continue;
-      }
-
-      if(name == myName)
-      {
-        console.debug('connectIFrameOnLoad: found my name: ' + myName);
-        myNameFound = true;
-        window.parent.getCameraCheckbox().checked = false; // disable camera checkbox
-        state.joinMode = 'watch';
-        window.parent.errorCancel();
       }
 
       let option = document.createElement('option');
@@ -102,15 +112,22 @@ function connectIFrameOnLoad(htmlBodyElem)
         continue;
       }
 
-      // add this user
-      state.usersSubscribed.push(name);
-      state.selectedUser = name;
-      window.parent.prepareVideo(videoTable, name);
 
-      console.debug('onJoin during connect_iframe onLoad');
+      // hack to delay and not overwrite a pending onJoin
+      setTimeout(() => {
+        console.debug('onJoin stall hack done'); 
 
-      onJoin();
+        // add this user
+        state.usersSubscribed.push(name);
+        state.selectedUser = name;
+        window.parent.prepareVideo(videoTable, name);
 
+        console.debug('onJoin during connect_iframe onLoad');
+
+        onJoin();
+      }, 2000);
+
+        
       break;
     }
 
@@ -140,16 +157,18 @@ function connectIFrameOnLoad(htmlBodyElem)
       var elemToRemoveFromParent = window.parent.videoElemForUser(state.usersSubscribed[p]);
       if(elemToRemoveFromParent != null) 
       {
-        elemToRemoveFromParent.remove();
+        if(elemToRemoveFromParent.closeAction)
+        {
+            console.debug('...calling closeAction on vidElem');
+            elemToRemoveFromParent.closeAction();
+        }
+        rowForVideo(elemToRemoveFromParent).remove();
       }
 
       window.parent.iframeConnectState.usersSubscribed.splice(p, 1);
       if(p > 0) p--;
     }
   }
-
-  window.parent.onJoinIframeLoadAsync(); 
-  window.parent.onJoinIframeLoadAsync = function() {};
 }
 
 // bear in-mind this is called every time the connect_iframe refreshes
@@ -248,6 +267,7 @@ function onLeave()
   window.parent.iframeConnectState.usersSubscribed = [];
   window.parent.iframeConnectState.awaiting = null;
   window.parent.onLeave();
+  usersSubscribed = [];
   window.location.reload();
 }
 

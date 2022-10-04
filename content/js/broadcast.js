@@ -8,7 +8,7 @@ var divVideoHTML = "" +
 "<div id=\"div_$USERNAME_child\">" +
 "<td>" +
 "<table id=\"table_$USERNAME\" border=0>"+
-    "<tr><td>" +
+    "<tr align=top><td>" +
         "<video controls autoplay class='videoChild' id=\"video_$USERNAME_remote\" width="+vidChildW.toString()+" height="+vidChildH.toString()+"></video>" +
     "</td>"+
     "<td>" +
@@ -299,6 +299,12 @@ function onLeaveRoom(videoElemCaptured) {
 
     getSelectAudioDevice().disabled = false;
     getSelectVideoDevice().disabled = false;
+
+    let t = window.parent.videoConnectionTable;
+    // TODO: remove all video elements, calling closeAction for each
+    for (var v of Object.entries(t)) {
+        videoConnectionTable[v[0]].vidElem.closeAction();
+    }    
 }
 
 function logout() {
@@ -335,7 +341,7 @@ function videoElemForUser(userName) {
   Object.keys(t).forEach(function(key) {
     if(t[key].user == userName) {
       // return video element containing table-row (see popup.js)
-      result = t[key].vidElem.parentRow;
+      result = t[key].vidElem;
     }
   });
 
@@ -473,6 +479,7 @@ function prepareVideo(containerTable, labelText)
     var row = document.createElement('tr');
     var col = document.createElement('td');
 
+    var videoContainer = document.createElement('div');
     var videoElemToAdd = document.createElement('video');
     var labelToAdd = document.createTextNode(labelText);
     var paraToAdd = document.createElement('p');
@@ -481,6 +488,8 @@ function prepareVideo(containerTable, labelText)
     paraToAdd.appendChild(labelToAdd);
     paraToAdd.className = 'controlsPara';
     //paraToAdd.style.cssText = 'z-index:1; position:relative; top:20px; left:0px; width:100px; background-color:black;';
+
+    videoContainer.className = 'videoContainerDiv';
 
     stopButton.className = 'stopButton';
 
@@ -502,8 +511,9 @@ function prepareVideo(containerTable, labelText)
         table.removeChild(row);
     }
 
+    videoContainer.appendChild(videoElemToAdd);
     col.appendChild(paraToAdd);
-    col.appendChild(videoElemToAdd);
+    col.appendChild(videoContainer);
     col.align = 'center';
     paraToAdd.appendChild(stopButton);
     row.appendChild(col);
@@ -519,12 +529,18 @@ function prepareVideo(containerTable, labelText)
     table.appendChild(row);
 
     videoElemToAdd.controlPara = paraToAdd;
+    videoElemToAdd.parentDiv = videoContainer;
 
     iframeConnectState.videoElem = videoElemToAdd;
 
     hideRoomEmptyLabel();
 
     return row
+}
+
+function rowForVideo(videoElem)
+{
+    return videoElem.parentDiv;
 }
 
 function addStartButton(vidElem, button) {

@@ -46,21 +46,18 @@
         <tr style='height:32px;'>
             <th colspan=1>Meeting Room</th><th colspan=1>Chat</th>
         </tr>
-        <tr class='chatRow'>
-            <td align="center" id="thPresenter">
+        <tr class='chatRow' valign=top>
+            <td align='top' id="thPresenter">
                 <table id="videoMainContainer" class="videoMainContainer">
                     <!-- new video elements will appear here (see popup.js) -->
                 </table>
                 <p id="emptyRoomLabel" class="emptyRoomLabel">Nobody else here... (did everyone check "enable camera" and join this room?)
             </td>
 
-            <td rowspan=2 align="center" class="chat">
-                <iframe name='chatFrame' src='chat.html' class='chatFrame'>
+            <td class="chat">
+                <iframe name='chatFrame' src='chat.html' height=320px />
                 </iframe>
             </td>
-        </tr>
-        <tr>
-        <!-- empty row for table-balance -->
         </tr>
     </table>
 
@@ -105,8 +102,9 @@ var joinPopupCloseDone = function(videoElem) {
     console.debug('joinPopupCloseDone called: set videoElem.closeAction');
 
     videoElem.closeAction = function() {
-        console.debug('videoElem.closeAction called');
+        console.debug('videoElem.closeAction called with: '+videoElem);
         disconnectVideo(videoElem);
+        if(videoElem.parentDiv) videoElem.parentDiv.remove();
     }
 }
 

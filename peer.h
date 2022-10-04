@@ -38,7 +38,7 @@ typedef enum {
 #define OFFER_SDP_SIZE 4096
 #define PEER_RECV_BUFFER_COUNT 64
 // TODO: -- 1 broadcaster sending to MAX_PEERS-1 would potentially need COUNT * N_PEERS
-#define PEER_SEND_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT * 8)
+#define PEER_SEND_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT * 4)
 
 #ifdef assert
 #undef assert
@@ -133,13 +133,15 @@ typedef struct
         unsigned long ts_last;
         u32 recv_report_seqlast;
         u32 recv_report_tslast;
+        unsigned long last_sr;
+        unsigned long pkt_lost;
         
-        unsigned long receiver_report_ts_last;
-        u32 receiver_report_jitter_last;
-        u32 receiver_report_sr_last;
-        u32 receiver_report_sr_delay_last;
+        long receiver_report_jitter_last;
+        long receiver_report_sr_last;
+        long receiver_report_sr_delay_last;
 
         time_t pli_last;
+        
 
     } srtp[PEER_RTP_CTX_COUNT];
 
@@ -158,7 +160,6 @@ typedef struct
     int subscriptionID;
     int subscribed;
     int broadcastingID;
-    peer_buffer_node_t *subscription_ptr[PEER_RTP_CTX_COUNT];
 
     rtp_state_t rtp_states[PEER_RTP_CTX_COUNT];
 
@@ -213,7 +214,7 @@ typedef struct
     unsigned long time_last_run;
 
     struct {
-        unsigned long stat[9];
+        unsigned long stat[10];
     } stats;
 
     char name[64];

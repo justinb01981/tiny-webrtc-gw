@@ -35,16 +35,6 @@ struct webserver_state {
 };
 extern struct webserver_state webserver;
 
-enum websocket_state {
-    WS_STATE_INITIAL = 1,
-    WS_STATE_INITPEER = 2,
-    WS_STATE_WRITESDP = 3,
-    WS_STATE_JOINROOM = 4,
-    WS_STATE_ROOMPOST = 5,
-    WS_STATE_READING = 6,
-    WS_STATE_EXIT = 7
-};
-
 typedef struct {
     int sock;
     pthread_t ws_thread;
@@ -154,6 +144,7 @@ chatlog_reload()
 static void*
 websocket_worker(void* p)
 {
+/*
     webserver_worker_args* args = (webserver_worker_args*) p;
     struct {
         char* out;
@@ -418,7 +409,7 @@ websocket_worker(void* p)
         if(args->pbody) free(args->pbody);
         free(args);
     }
-
+*/
     return NULL;
 }
 
@@ -563,7 +554,6 @@ webserver_worker(void* p)
                 int cmd_post = 0;
                 char cookie_hdr[256];
                 int sidx;
-                int become_ws = 0;
                 int i;
                 char tmp[256];
 
@@ -576,19 +566,6 @@ webserver_worker(void* p)
 
                 if(strncmp(recvbuf, "GET ", 4) == 0) {
                     purl = recvbuf+4;
-                }
-                else if(strncmp(recvbuf, tag_joinroom_ws, strlen(tag_joinroom_ws)) == 0) {
-                    char *proomname = purl + strlen(tag_joinroom_ws);
-                    str_read(proomname, args->roomname, "\r\n ", sizeof(args->roomname));
-                    purl = recvbuf+5;
-                    // parse room name
-                    args->state = WS_STATE_JOINROOM;
-                    become_ws = 1;
-                }
-                else if(strncmp(recvbuf, tag_msgroom_ws, strlen(tag_msgroom_ws)) == 0) {
-                    purl = recvbuf+5;
-                    args->state = WS_STATE_ROOMPOST;
-                    become_ws = 1;
                 }
                 else if(strncmp(recvbuf, "POST ", 5) == 0) {
                     purl = recvbuf+5;
@@ -651,24 +628,7 @@ webserver_worker(void* p)
 
                     //printf("%s:%d webserver GET for file (%s):\n\t%s\n", __func__, __LINE__, file_buf? "": "failed", path);
 
-                    if(strncmp(purl, "/ws", 3) == 0) { become_ws = 1; args->state = WS_STATE_INITIAL; }
-
-                    if(!file_buf && become_ws)
-                    {
-                        args->pbody = strdup(pbody);
-                        strcpy(args->websocket_accept_response,
-                               websocket_accept_header(phttpheaders, ws_header_buf));
-
-                        if(args->state == WS_STATE_INITIAL)
-                        {
-                             printf("peer[%d] logging in via websocket\n", sidx);
-                        }
-
-                        if(!args->ws_thread) pthread_create(&args->ws_thread, NULL, websocket_worker, args);
-                        free(response);
-                        return NULL;
-                    }
-                    else if(!file_buf || strcmp(purl, "/") == 0)
+                    if(!file_buf || strcmp(purl, "/") == 0)
                     {
                         if(file_buf)
                         {
