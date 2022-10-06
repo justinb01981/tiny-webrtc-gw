@@ -51,7 +51,7 @@ table.videoMainContainer {
     border:1;
     border-collapse: collapse;
     display:inline-block;
-    overflow:scroll;
+    overflow:hidden;
     table-layout:auto;
     background-color:black;
     border-color:white;
@@ -92,12 +92,6 @@ div.localPreview {
     left:2%;
     width:128px;
     height:96px;
-}
-
-div.mainDiv {
-  width:50%;
-  height:90%;
-  margin:auto;
 }
 
 div.videoContainerDiv {
@@ -155,6 +149,7 @@ select.mediaSelect {
 }
 
 iframe.chatFrame {
+    overflow:hidden;
 }
 
 @keyframes loadingAnimation {
