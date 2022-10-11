@@ -514,7 +514,7 @@ function prepareVideo(containerTable, labelText)
     videoContainer.appendChild(videoElemToAdd);
     col.appendChild(paraToAdd);
     col.appendChild(videoContainer);
-    col.align = 'center';
+    col.style.cssText = 'text-align:right; padding:16px';
     paraToAdd.appendChild(stopButton);
     row.appendChild(col);
 

@@ -1485,7 +1485,7 @@ int main( int argc, char* argv[] ) {
             {
                 PERFTIME_END(PERFTIMER_SELECT);
                 if(event_count < 0) printf("epoll_wait got error: %s\n", strerror(errno));
-                sleep_msec(1);
+                //sleep_msec(1);
                 goto select_timeout;
             }
 
