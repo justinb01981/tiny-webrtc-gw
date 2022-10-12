@@ -303,6 +303,7 @@ function onLeaveRoom(videoElemCaptured) {
     let t = window.parent.videoConnectionTable;
     // TODO: remove all video elements, calling closeAction for each
     for (var v of Object.entries(t)) {
+        console.debug('calling vidElem.closeAction');
         videoConnectionTable[v[0]].vidElem.closeAction();
     }    
 }
@@ -506,9 +507,6 @@ function prepareVideo(containerTable, labelText)
             vidElem.srcObject.getTracks().forEach(track=>track.stop());
             vidElem.srcObject = null;
         }
-
-        vidElem.startButton = null;
-        table.removeChild(row);
     }
 
     videoContainer.appendChild(videoElemToAdd);
@@ -525,21 +523,26 @@ function prepareVideo(containerTable, labelText)
     videoElemToAdd.setAttribute('webkit-playsinline', 'webkit-playsinline');
     videoElemToAdd.id = 'video' + Math.random();
     videoElemToAdd.parentRow = row;
+    videoElemToAdd.stopButton = stopButton;
+    videoElemToAdd.controlPara = paraToAdd;
+
+    // this closeAction will be replaced and called by the replacement (chained)
+    videoElemToAdd.closeAction = function f() {
+        table.removeChild(row);
+    }
 
     table.appendChild(row);
-
-    videoElemToAdd.controlPara = paraToAdd;
-    videoElemToAdd.parentDiv = videoContainer;
 
     iframeConnectState.videoElem = videoElemToAdd;
 
     hideRoomEmptyLabel();
 
-    return row
+    return row;
 }
 
 function rowForVideo(videoElem)
 {
+    console.debug('WARN: rowForVideo is dead code and should be removed!');
     return videoElem.parentDiv;
 }
 

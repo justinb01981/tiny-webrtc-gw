@@ -196,10 +196,6 @@ function onJoin() {
 
         var vidElem = state.videoElem;
 
-        if(vidElem && vidElem.closeAction) {
-          vidElem.closeAction();
-        }
-
         state.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
 
         window.parent.connectVideoIframe(window, vidElem, state.onConnectVideo, window.parent.joinPopupClose);

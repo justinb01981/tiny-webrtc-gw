@@ -159,8 +159,6 @@ function iframeOnLoad() {
 function rtcPopupCreateIframe(handlerOpen, handlerClose) {
     console.debug('rtcPopupCreateIframe at location:' + document.location);
 
-    closeHandler = handlerClose;
-
     loc = window.location.href.split("/").pop();
     loc = loc.split("?")[0];
     console.debug(loc);

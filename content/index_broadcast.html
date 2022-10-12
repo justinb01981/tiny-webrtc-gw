@@ -4,61 +4,63 @@
 </head>
 
 <body onLoad="broadcastOnLoad()">
-<table id="mainDivTable" class="mainTable">
-    <tr style='height:32px;'>
-        <th colspan=2>gitHub:<a href='https://github.com/justinb01981/tiny-webrtc-gw'>https://github.com/justinb01981/tiny-webrtc-gw</a></th>
-    </tr>
+<div class="topDiv">
+    <table id="mainDivTable" class="mainTable">
+        <tr style='height:32px;'>
+            <th colspan=2>gitHub:<a href='https://github.com/justinb01981/tiny-webrtc-gw'>https://github.com/justinb01981/tiny-webrtc-gw</a></th>
+        </tr>
 
-    <tr id='rowChat' style='height:32px;'>
-        <td align='right'>
-            camera enabled: <input type='checkbox' id='enableVideoCheckbox' onChange='onEnableDisableVideoCheckbox()' /><br>
-            video:<select class='mediaSelect' id='selectCamInput'></select><br>
-            audio:<select class='mediaSelect' id='selectMicInput'></select><br>
-        </td>
-        <td align='center'>
-            username:<br>
-            <textarea rows=1 cols=16 id='userName'>user123</textarea>
-            <button onclick='location="login.html"' id='login'>login</button>
-            <button onclick='logout();' id='logout'>logout</button>
-       </td>
-    </tr>
-    <tr style='height:32px;'>
-        <td style='border-width:0px;' align='right'>
-            Room:
-            <input type='text' id='roomName' onInput='roomEdited(this)'>
-            </input>
-            <input type='button' value='+' onClick='onAdvanced(this)' style='display:none;'>
-            </input>
-        </td>
-        <td style='border-width:0px;'>
-            <iframe style='width:100%; height:50px; border-width:0px; -webkit-overflow-scrolling:touch; overflow:hidden;' name='connectIframe' src='connect_iframe.html' id='connect_iframe'>
-            </iframe>
+        <tr id='rowChat' style='height:32px;'>
+            <td align='right'>
+                camera enabled: <input type='checkbox' id='enableVideoCheckbox' onChange='onEnableDisableVideoCheckbox()' /><br>
+                video:<select class='mediaSelect' id='selectCamInput'></select><br>
+                audio:<select class='mediaSelect' id='selectMicInput'></select><br>
+            </td>
+            <td align='center'>
+                username:<br>
+                <textarea rows=1 cols=16 id='userName'>user123</textarea>
+                <button onclick='location="login.html"' id='login'>login</button>
+                <button onclick='logout();' id='logout'>logout</button>
+           </td>
+        </tr>
+        <tr style='height:32px;'>
+            <td style='border-width:0px;' align='right'>
+                Room:
+                <input type='text' id='roomName' onInput='roomEdited(this)'>
+                </input>
+                <input type='button' value='+' onClick='onAdvanced(this)' style='display:none;'>
+                </input>
+            </td>
+            <td style='border-width:0px;'>
+                <iframe style='width:100%; height:50px; border-width:0px; -webkit-overflow-scrolling:touch; overflow:hidden;' name='connectIframe' src='connect_iframe.html' id='connect_iframe'>
+                </iframe>
 
 
-            <!--
-            <button id='joinButton' onClick='startLiveBcast(this)'>
-                Join
-            </button>
-            -->
-        </td>
-    </tr>
-    <tr style='height:32px;'>
-        <th colspan=1>Meeting Room</th><th colspan=1>Chat</th>
-    </tr>
-    <tr class='chatRow' valign=top>
-        <td align='top' id="thPresenter">
-            <table id="videoMainContainer" class="videoMainContainer">
-                <!-- new video elements will appear here (see popup.js) -->
-            </table>
-            <p id="emptyRoomLabel" class="emptyRoomLabel">Nobody else here...&nbsp;(did anyone check "enable camera" before joining this room?)
-        </td>
+                <!--
+                <button id='joinButton' onClick='startLiveBcast(this)'>
+                    Join
+                </button>
+                -->
+            </td>
+        </tr>
+        <tr style='height:32px;'>
+            <th colspan=1>Meeting Room</th><th colspan=1>Chat</th>
+        </tr>
+        <tr class='chatRow' valign=top>
+            <td align='top' id="thPresenter">
+                <table id="videoMainContainer" class="videoMainContainer">
+                    <!-- new video elements will appear here (see popup.js) -->
+                </table>
+                <p id="emptyRoomLabel" class="emptyRoomLabel">Nobody else here...<br>did anyone check "enable camera"<br>before joining this room?
+            </td>
 
-        <td class="chat">
-            <iframe name='chatFrame' class='chatFrame' src='chat.html' height=320px />
-            </iframe>
-        </td>
-    </tr>
-</table>
+            <td class="chat">
+                <iframe name='chatFrame' class='chatFrame' src='chat.html' height=320px />
+                </iframe>
+            </td>
+        </tr>
+    </table>
+</div>
 
 <div id="localPreviewDiv" class="localPreview">
     <table border=1 class="localPreviewTable">
@@ -97,10 +99,14 @@ var onJoinIframeLoadAsync = function() {
 var joinPopupCloseDone = function(videoElem) {
     console.debug('joinPopupCloseDone called: set videoElem.closeAction');
 
+    let prevAction = videoElem.closeAction;
+
     videoElem.closeAction = function() {
         console.debug('videoElem.closeAction called with: '+videoElem);
         disconnectVideo(videoElem);
-        if(videoElem.parentDiv) videoElem.parentDiv.remove();
+        if(prevAction) {
+            prevAction();
+        }
     }
 }
 

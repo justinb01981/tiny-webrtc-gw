@@ -37,7 +37,7 @@ table.mainTable {
     border:1;
     border-collapse: collapse;
     display:inline-block;
-    overflow:scroll;
+    overflow:hidden;
     table-layout:auto;
     background-color:black;
     border-color:white;
@@ -55,6 +55,7 @@ table.videoMainContainer {
     table-layout:auto;
     background-color:black;
     border-color:white;
+    width:320px;
 }
 
 video {
@@ -88,8 +89,8 @@ p.videoLabel {
 
 div.localPreview {
     position:fixed;
-    top:2%;
-    left:2%;
+    top:1%;
+    left:1%;
     width:128px;
     height:96px;
 }
@@ -97,6 +98,12 @@ div.localPreview {
 div.videoContainerDiv {
   width:320px;
   height:240px;
+}
+
+div.topDiv {
+  width: 1024px;
+  height: 1024px;
+  overflow: hidden;
 }
 
 body {
