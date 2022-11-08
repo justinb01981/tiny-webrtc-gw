@@ -36,7 +36,7 @@ typedef enum {
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&((x)->mcond), &((x->mutex)))
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 4096
-#define PEER_RECV_BUFFER_COUNT 64
+#define PEER_RECV_BUFFER_COUNT 512
 // TODO: -- 1 broadcaster sending to MAX_PEERS-1 would potentially need COUNT * N_PEERS
 #define PEER_SEND_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT * 4)
 

@@ -56,11 +56,11 @@
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 10
 #define RTP_PSFB 1 
 
-#define EPOLL_TIMEOUT_MS  /*10*/ (2)
+#define EPOLL_TIMEOUT_MS  /*10*/ 20
 //#define PEER_CLEANUP_INTERVAL (1)
-#define RECVMSG_NUM (256)
+#define RECVMSG_NUM /*(256)*/ (PEER_RECV_BUFFER_COUNT)
 
-#define PACED_STREAMER_INTERVAL_MS (20)
+#define PACED_STREAMER_INTERVAL_MS (2)
 
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS+1];
@@ -484,7 +484,10 @@ connection_worker(void* p)
                     printf("incoming peer %d subscribed to peer %s\n", PEER_INDEX(peer), peer->watchname);
                     peer->subscriptionID = peers[si].id;
                     // schedule picutre-loss-indicator (full-frame-refresh
-                    for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_COUNT; rtp_idx++) peers[si].srtp[rtp_idx].pli_last = wall_time - 2;
+                    for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_COUNT; rtp_idx++)
+                    {
+                        peers[si].srtp[rtp_idx].pli_last = wall_time - 2;
+                    }
                     break;
                 }
             }
@@ -499,21 +502,18 @@ connection_worker(void* p)
                     // also connect opposing/waiting peer
                     peers[si].subscriptionID = PEER_INDEX(peer);
                     // schedule picture-loss-indicator
-                    for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_COUNT; rtp_idx++) peer->srtp[rtp_idx].pli_last = wall_time - 2;
-              }
+                    for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_COUNT; rtp_idx++)
+                    {
+                        peers[si].srtp[rtp_idx].pli_last = wall_time - 2;
+                    }
+                }
             }
         }
     }
 
-    stats_printf(counts_log, "%s:%d peer running\n", __func__, __LINE__);
+    stats_printf(counts_log, "%s:%d peer %d running and subscribed to %d\n", __func__, __LINE__, peer->id, peers[peer->subscriptionID].id);
 
     peers[peer->subscriptionID].subscribed = 1;
-
-    // schedule full-frame-refresh 10 seconds from now (for the peer we're subscribing to)
-    // TODO:ideally the client will send this, and we'll pass it along to the sender, assuming
-    // we are honoring send/receive reports...
-    peers[peer->subscriptionID].srtp[0].pli_last = (wall_time - 5);
-    peers[peer->subscriptionID].srtp[1].pli_last = (wall_time - 5);
 
     peer->running = 1;
 
@@ -530,8 +530,7 @@ connection_worker(void* p)
 
         if(peer->cleanup_in_progress == 1)
         {
-            PEER_THREAD_UNLOCK(peer);
-            break;
+            goto peer_again;
         }
 
         if(!peer->alive) goto peer_again;
@@ -775,9 +774,7 @@ connection_worker(void* p)
                     }
                     else
                     {
-                        // TODO: figure out what these reports are? seeing PT=109,120 (which are the codecs sdp ids)
-                        counts[10]++;
-                        //stats_printf(counts_log, "unknown RTP payload-type %u from peer %d\n", rtpFrame->hdr.payload_type, peer->id);
+                        // not an RTP report, probably data packets
                     }
 
                     if(in_ssrc == answer_ssrc[0])
@@ -890,7 +887,7 @@ connection_worker(void* p)
                                     rpt_pkt_lost);
                                 if(peer->srtp[report_rtp_idx].pkt_lost != rpt_pkt_lost)
                                 {
-                                    printf("DETECTED_LOST_PKT!!!: %u total (%d)\n", rpt_pkt_lost, report_rtp_idx);
+                                    printf("DETECTED_LOST_PKT!!!: total:%u peer:%d)\n", rpt_pkt_lost, report_rtp_idx);
                                     peer->srtp[report_rtp_idx].pkt_lost = rpt_pkt_lost;
                                     peers[peer->subscriptionID].srtp[report_rtp_idx].pli_last = 0; // schedule picture-loss-indicator
                                 }
@@ -1025,7 +1022,7 @@ connection_worker(void* p)
                     
                     if(srtp_unprotect(peer->srtp[rtp_idx].session, rtpFrame, &unprotect_len) != srtp_err_status_ok)
                     {
-                        printf("%s:%d srtp_unprotect failed\n", __func__, __LINE__);
+                        printf("%s:%d srtp_unprotect failed for %d bytes\n", __func__, __LINE__, unprotect_len);
                         counts[11]++;
                     }
                     else
@@ -1194,6 +1191,12 @@ connection_worker(void* p)
         }
 
         PEER_THREAD_UNLOCK(peer);
+        if(peer->underrun_signal)
+        {
+            sleep_msec(1);
+            // TODO: remove old underrun_signal logic below
+            peer->underrun_signal = 0;
+        }
     }
     connection_worker_exit:
     peer->running = 0;
@@ -1308,7 +1311,7 @@ int main( int argc, char* argv[] ) {
 
     memset(g_chatlog, 0, sizeof(g_chatlog));
     chatlog_reload();
-    chatlog_append("server:restarted...\n");
+    chatlog_append("");
 
     memset(peers, 0, sizeof(peers));
 
@@ -1478,6 +1481,11 @@ int main( int argc, char* argv[] ) {
         {
             PERFTIME_BEGIN(PERFTIMER_SELECT);
 
+            for(i = 0; i < PEER_RECV_BUFFER_COUNT; i++)
+            {
+                msg_peeridx[i] = -1;
+            }
+
             msg_recv_offset = 0;
 
             int event_count = epoll_wait(epoll_fd, ep_events, PEER_RECV_BUFFER_COUNT, EPOLL_TIMEOUT_MS);
@@ -1491,10 +1499,13 @@ int main( int argc, char* argv[] ) {
 
             PERFTIME_END(PERFTIMER_SELECT);
 
+            sleep_msec(EPOLL_TIMEOUT_MS);
+
             PERFTIME_BEGIN(PERFTIMER_RECV);
 
             // HACK: need to refactor this to work with epoll more efficiently */
-            for(i = 0; i < event_count; i++)
+            i = 0;
+            while(i < event_count)
             {
                 int p;
                 int sck = -1;
@@ -1508,30 +1519,30 @@ int main( int argc, char* argv[] ) {
                     }
                 }
 
-                if(sck < 0) continue;
-
                 diagnostics.recv_sock = sck;
-
-                diagnostics.recv_count = RECVMSG_NUM-msg_recv_count;
-                if(diagnostics.recv_count <= 0) {
-                    printf("no room to call recvmmsg, epoll buffers all full\n");
-                    assert(0);
-                }
-
-                int result = recvmmsg(sck, msgs+msg_recv_count, RECVMSG_NUM-msg_recv_count, MSG_DONTWAIT, NULL);
-                if(result < 0)
+                while(ep_events[i].data.fd == peers[p].sock)
                 {
-                    printf("recvmmsg returned error: %d\n", errno);
-                    msg_recv_count = 0;
-                    break;
+                    diagnostics.recv_count = RECVMSG_NUM-msg_recv_count;
+                    if(diagnostics.recv_count <= 0) {
+                        printf("no room to call recvmmsg, epoll buffers all full\n");
+                        assert(0);
+                    }
+        
+                    int result = recvmmsg(sck, msgs+msg_recv_count, RECVMSG_NUM-msg_recv_count, MSG_DONTWAIT, NULL);
+                    if(result < 0)
+                    {
+                        printf("recvmmsg returned error: %d\n", errno);
+                        msg_recv_count = 0;
+                        break;
+                    }
+
+                    msg_recv_count += result;
+
+                    msg_peeridx[i] = p;
+
+                    //if(msg_recv_count > 1) printf("recvmmsg got packets: %d\n", msg_recv_count);
+                    i++;
                 }
-
-                int offset = msg_recv_count;
-                msg_recv_count += result;
-
-                msg_peeridx[i] = p;
-
-                //if(msg_recv_count > 1) printf("recvmmsg got packets: %d\n", msg_recv_count);
             }
 
             PERFTIME_END(PERFTIMER_RECV);
@@ -1541,6 +1552,8 @@ int main( int argc, char* argv[] ) {
         else
         {
             PERFTIME_BEGIN(PERFTIMER_PROCESS_BUFFER);
+
+            assert(msg_recv_offset < PEER_RECV_BUFFER_COUNT);
 
             length = msgs[msg_recv_offset].msg_len;
             buffer = bufs[msg_recv_offset];
@@ -1632,11 +1645,6 @@ int main( int argc, char* argv[] ) {
             goto select_timeout;
         }
 
-        if(node->len != 0)
-        {
-            goto select_timeout;
-        }
-
         node->recv_time = node->timestamp = time_ms;
 
         // TODO: avoid this memcpy by having separate msgs buffers for each peer
@@ -1656,6 +1664,7 @@ int main( int argc, char* argv[] ) {
 
         time_ms_peer_maintain_last = time_ms;
 
+
         PEERS_TABLE_LOCK();
 
         i = 0;
@@ -1665,8 +1674,8 @@ int main( int argc, char* argv[] ) {
             if(peers[i].underrun_signal)
             {
                 // lock thread until data arrives
-                PEER_LOCK(i);
-                peers[i].underrun_signal = 0;
+                //PEER_LOCK(i);
+                //peers[i].underrun_signal = 0;
             }
 
             if(peers[i].alive)
@@ -1807,7 +1816,6 @@ int main( int argc, char* argv[] ) {
                 
                 //chatlog_append(strbuf);
                 chatlog_ts_update();
-                
                 break;
             }
 
