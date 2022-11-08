@@ -1,5 +1,5 @@
-body {
-    background-color: white;
+body.outerBody {
+    background-color: black;
     color:green;
 }
 
@@ -23,12 +23,16 @@ td.chat {
     overflow:hidden;
 }
 
-tr {
-    margin:0;
+tr.videoCellRow {
+}
+
+td.videoCell {
+    text-align: left;
+    margin: 0 0 0 0;
 }
 
 tr.chatRow {
-    margin:16px;
+    margin:0px;
 }
 
 table.mainTable {
@@ -37,7 +41,7 @@ table.mainTable {
     border:1;
     border-collapse: collapse;
     display:inline-block;
-    overflow:hidden;
+    overflow:scroll;
     table-layout:auto;
     background-color:black;
     border-color:white;
@@ -46,15 +50,15 @@ table.mainTable {
 }
 
 table.videoMainContainer {
-    margin:0 0 0 128px;
-    padding:0;
-    border:1;
+    margin:0 0 0 0;
+    padding: 0;
+    border-width:2;
     border-collapse: collapse;
     display:inline-block;
     overflow:hidden;
     table-layout:auto;
     background-color:black;
-    border-color:white;
+    border-color:grey;
     width:320px;
 }
 
@@ -66,8 +70,8 @@ video {
 }
 
 video.videoMain {
-    z-index:-1;
     object-fit:contain;
+    z-index: 1;
 }
 
 video.videoLocal {
@@ -80,8 +84,10 @@ video.videoChild {
     width: 320px;
 }
 
+t.videoNameText {
+}
+
 p.videoLabel {
-    z-index:1;
     background-color:black;
     color:green;
     width:100px;
@@ -96,18 +102,20 @@ div.localPreview {
 }
 
 div.videoContainerDiv {
-  width:320px;
-  height:240px;
+  padding: 0px;
+  border-collapse: collapse;
+  overflow: hidden;
+  position: relative;
+  top: 0px;
+}
+
+div.videoContainerFake {
+  margin: 0 0 0 0;
+  padding: 2;
 }
 
 div.topDiv {
   width: 1024px;
-  height: 1024px;
-  overflow: hidden;
-}
-
-body {
-  background-color:black;
 }
 
 p {
@@ -117,10 +125,13 @@ p {
 
 p.controlsPara {
     position:relative;
-    top:50px;
-    z-index:1;
+    top:-2;
+    left:16;
     width:200px;
-    background-color:black;
+    height:0px;
+    margin: 0 0 0 0;
+    background-color:gray;
+    z-index: 2;
 }
 
 p.emptyRoomLabel {
@@ -137,7 +148,6 @@ button.playButton {
     background-position:center;
     background-repeat:no-repeat;
     background-image:url(/content/img/unmute.png);
-    z-index:1;
 }
 
 button.stopButton {
@@ -148,7 +158,6 @@ button.stopButton {
     background-position:center;
     background-repeat:no-repeat;
     background-image:url(/content/img/stop.png);
-    z-index:1;
 }
 
 select.mediaSelect {
@@ -156,10 +165,30 @@ select.mediaSelect {
 }
 
 iframe.chatFrame {
+    border-width:0;
     overflow:hidden;
+}
+
+body.chatIframeBody {
+    overflow: hidden;
 }
 
 @keyframes loadingAnimation {
     from {background-color: gray;}
     to {background-color: white;}
+}
+
+li.chatListElem {
+    background-color: transparent;
+}
+
+ul.chatLogParent {
+  height:100%;
+  overflow:scroll;
+  webkit-overflow-scrolling:touch;
+  compact; font-family:monospace;
+  font-size:8pt;
+  padding-left:0;
+  list-style:none;
+  overflow:hidden;
 }

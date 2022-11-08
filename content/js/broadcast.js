@@ -481,6 +481,7 @@ function prepareVideo(containerTable, labelText)
     var col = document.createElement('td');
 
     var videoContainer = document.createElement('div');
+    var videoContainerParent = document.createElement('div');
     var videoElemToAdd = document.createElement('video');
     var labelToAdd = document.createTextNode(labelText);
     var paraToAdd = document.createElement('p');
@@ -490,7 +491,7 @@ function prepareVideo(containerTable, labelText)
     paraToAdd.className = 'controlsPara';
     //paraToAdd.style.cssText = 'z-index:1; position:relative; top:20px; left:0px; width:100px; background-color:black;';
 
-    videoContainer.className = 'videoContainerDiv';
+    videoContainerParent.className = 'videoContainerDiv';
 
     stopButton.className = 'stopButton';
 
@@ -509,11 +510,14 @@ function prepareVideo(containerTable, labelText)
         }
     }
 
+    videoContainerParent.appendChild(videoContainer);
+    videoContainer.className = 'videoContainerFake';
+    videoContainer.appendChild(paraToAdd);
     videoContainer.appendChild(videoElemToAdd);
-    col.appendChild(paraToAdd);
-    col.appendChild(videoContainer);
-    col.style.cssText = 'text-align:right; padding:16px';
+    col.appendChild(videoContainerParent);
+    col.className = 'videoCell';
     paraToAdd.appendChild(stopButton);
+    row.className = 'videoCellRow';
     row.appendChild(col);
 
     videoElemToAdd.className = 'videoMain';
