@@ -16,19 +16,19 @@
 
 #define VP9PROFILEID "0"
 
-typedef enum {
-  LOCK_UNHELD,
-  LOCK_WORKER_HELD,
-  LOCK_MAIN_HELD
-} peer_lock_state_t;
+//typedef enum {
+//  LOCK_UNHELD,
+//  LOCK_WORKER_HELD,
+//  LOCK_MAIN_HELD
+//} peer_lock_state_t;
 
-#define PEER_LOCK(x) if(peers[(x)].worker_lock_st != LOCK_MAIN_HELD){ pthread_mutex_lock(&peers[(x)].mutex); peers[(x)].worker_lock_st = LOCK_MAIN_HELD; }
-#define PEER_UNLOCK(x) if(peers[(x)].worker_lock_st == LOCK_MAIN_HELD) { peers[(x)].worker_lock_st = LOCK_UNHELD; pthread_mutex_unlock(&peers[(x)].mutex); }
+#define PEER_LOCK(x) pthread_mutex_lock(&peers[(x)].mutex);
+#define PEER_UNLOCK(x) pthread_mutex_unlock(&peers[(x)].mutex);
 
 #define PEER_SIGNAL(x) pthread_cond_signal(&peers[(x)].mcond)
 
-#define PEER_THREAD_LOCK(x) { pthread_mutex_lock(&((x)->mutex)); (x)->worker_lock_st = LOCK_WORKER_HELD; }
-#define PEER_THREAD_UNLOCK(x) { (x)->worker_lock_st = LOCK_UNHELD; pthread_mutex_unlock(&((x)->mutex)); }
+#define PEER_THREAD_LOCK(x) { pthread_mutex_lock(&((x)->mutex)); }
+#define PEER_THREAD_UNLOCK(x) { pthread_mutex_unlock(&((x)->mutex)); }
 #define PEER_SENDER_THREAD_LOCK(x) { pthread_mutex_lock(&((x)->mutex_sender)); }
 #define PEER_SENDER_THREAD_UNLOCK(x) { pthread_mutex_unlock(&((x)->mutex_sender)); }
 #define PEERS_TABLE_LOCK() { pthread_mutex_lock(&peers_table_lock); }
@@ -36,7 +36,7 @@ typedef enum {
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&((x)->mcond), &((x->mutex)))
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 4096
-#define PEER_RECV_BUFFER_COUNT 512
+#define PEER_RECV_BUFFER_COUNT /*512*/ 64
 // TODO: -- 1 broadcaster sending to MAX_PEERS-1 would potentially need COUNT * N_PEERS
 #define PEER_SEND_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT * 4)
 
@@ -239,7 +239,6 @@ typedef struct
     int restart_needed;
     int restart_done;
     int underrun_signal;
-    peer_lock_state_t worker_lock_st;
 
 } peer_session_t;
 
@@ -524,7 +523,9 @@ const char* sdp_offer_create(peer_session_t* peer)
     "\"c=IN IP4 0.0.0.0\\n\" + \n"
     "\"a=sendrecv\\n\" + \n"
 #if SDP_OFFER_VP8
-    "\"a=fmtp:120 max-fr=60; max-fs=14400;\\n\" + \n"
+    // see link below
+    //"\"a=fmtp:120 max-fr=30; max-fs=14400;\\n\" + \n"
+    "\"a=fmtp:120 max-fr=30; max-fs=47600;\\n\" + \n"
 #endif
     "\"a=fmtp:126 profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1\\n\" + \n"
     "\"a=fmtp:97 profile-level-id=42e01f;level-asymmetry-allowed=1\\n\" + \n"
@@ -539,6 +540,8 @@ const char* sdp_offer_create(peer_session_t* peer)
     "\"a=rtcp-fb:97 ccm fir\\n\" + \n"
     "\"a=rtcp-mux\\n\" + \n"
 #if SDP_OFFER_VP8
+    // see: https://tipsycollab.com/sip-video-macroblocks/
+    //"\"a=rtpmap:120 VP8/90000\\n\" + \n"
     "\"a=rtpmap:120 VP8/90000\\n\" + \n"
 #endif
     "\"a=rtpmap:126 H264/90000\\n\" + \n"

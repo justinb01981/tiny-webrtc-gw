@@ -1628,6 +1628,7 @@ int main( int argc, char* argv[] ) {
         
         if(sidx < 0) goto select_timeout;
 
+        // deadlock happens here
         PEER_LOCK(sidx);
 
         // now sending peer is known, enqueue it for that peers connection_worker thread        
@@ -1642,6 +1643,7 @@ int main( int argc, char* argv[] ) {
             printf("WARN: peer %d buffer overrun dropping packet or linked-list-damaged: head->next = %02x\n", sidx, peers[sidx].in_buffers_head.next);
 
             // TODO: make room in buffers by dropping older data
+            PEER_UNLOCK(sidx);
             goto select_timeout;
         }
 
@@ -1806,9 +1808,13 @@ int main( int argc, char* argv[] ) {
 
                 while(peers[i].restart_needed)
                 {
+                    PEER_UNLOCK(i);
                     PEERS_TABLE_UNLOCK();
+
                     usleep(udp_recv_timeout_usec_min);
+
                     PEERS_TABLE_LOCK();
+                    PEER_LOCK(i);
                 }
                 peers[i].restart_done = 0;
 

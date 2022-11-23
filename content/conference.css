@@ -21,6 +21,7 @@ td.chat {
     padding:0;
     border-collapse: collapse;
     overflow:hidden;
+    width: 33%;
 }
 
 tr.videoCellRow {
@@ -59,7 +60,6 @@ table.videoMainContainer {
     table-layout:auto;
     background-color:black;
     border-color:grey;
-    width:320px;
 }
 
 video {
@@ -69,19 +69,30 @@ video {
     object-fit:contain;
 }
 
+table.localPreviewTable {
+    margin:2 2 2 2;
+    padding: 0;
+    border-width:2;
+    border-collapse: collapse;
+    display:inline-block;
+    overflow:hidden;
+    table-layout:auto;
+    background-color:black;
+    border-color:grey;
+    width:96px;
+    height:72px;
+}
+
 video.videoMain {
     object-fit:contain;
     z-index: 1;
 }
 
 video.videoLocal {
-    width:128px;
-    height:96px;
+    height:8%;
 }
 
 video.videoChild {
-    height: 320px;
-    width: 320px;
 }
 
 t.videoNameText {
@@ -97,8 +108,8 @@ div.localPreview {
     position:fixed;
     top:1%;
     left:1%;
-    width:128px;
-    height:96px;
+    width:12%;
+    height:8%;
 }
 
 div.videoContainerDiv {
@@ -115,7 +126,6 @@ div.videoContainerFake {
 }
 
 div.topDiv {
-  width: 1024px;
 }
 
 p {
@@ -126,12 +136,13 @@ p {
 p.controlsPara {
     position:relative;
     top:-2;
-    left:16;
-    width:200px;
+    left:50%;
+    width:100%;
     height:0px;
     margin: 0 0 0 0;
     background-color:gray;
     z-index: 2;
+    height:10%;
 }
 
 p.emptyRoomLabel {
@@ -167,6 +178,8 @@ select.mediaSelect {
 iframe.chatFrame {
     border-width:0;
     overflow:hidden;
+    width:100%;
+    height:100%
 }
 
 body.chatIframeBody {
