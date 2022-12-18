@@ -86,7 +86,6 @@ function connectIFrameOnLoad(htmlBodyElem)
         console.debug('connectIFrameOnLoad: found my name: ' + myName);
         myNameFound = true;
         state.joinMode = 'watch';
-        window.parent.getCameraCheckbox().checked = false; // disable camera checkbox
         window.parent.errorCancel();
       }
     }
@@ -163,7 +162,8 @@ function connectIFrameOnLoad(htmlBodyElem)
             console.debug('...calling closeAction on vidElem');
             elemToRemoveFromParent.closeAction();
         }
-        rowForVideo(elemToRemoveFromParent).remove();
+        var row = rowForVideo(elemToRemoveFromParent)
+        if(row) row.remove();
       }
 
       window.parent.iframeConnectState.usersSubscribed.splice(p, 1);
@@ -181,6 +181,8 @@ function onJoin() {
   
   if(roomName == '') { alert('enter a room name'); return; }
 
+  state.joinMode = window.parent.enableVideoChecked() && !window.parent.broadcastInProgress() ? 'broadcast' : 'watch';
+
   state.selectedRoom = roomName;
 
   if(state.joinMode == 'watch') {
@@ -195,6 +197,7 @@ function onJoin() {
         console.debug('onJoinIframeLoadAsync: joinMode = ' + state.joinMode);
 
         var vidElem = state.videoElem;
+        state.videoElem = null;
 
         state.onConnectVideo = window.parent.joinIframeOnLoadBroadcast;
 

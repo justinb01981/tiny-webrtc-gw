@@ -12,7 +12,7 @@
 
         <tr id='rowChat' style='height:32px;'>
             <td align='right'>
-                camera enabled: <input type='checkbox' id='enableVideoCheckbox' onChange='onEnableDisableVideoCheckbox()' /><br>
+                camera enabled: <input type='checkbox' id='enableVideoCheckbox' /><br>
                 video:<select class='mediaSelect' id='selectCamInput'></select><br>
                 audio:<select class='mediaSelect' id='selectMicInput'></select><br>
             </td>
@@ -184,13 +184,14 @@ function hideRoomEmptyLabel() {
     document.getElementById('emptyRoomLabel').style.cssText = 'display:none;'
 }
 
-function onEnableDisableVideoCheckbox() {
-  iframeConnectState.joinMode = 'broadcast'; 
+function enableVideoChecked() {
+    return document.getElementById('enableVideoCheckbox').checked;
 }
 
-function getEnableVideoCheckbox() {
-    return document.getElementById('enableVideoCheckbox');
+function broadcastInProgress() {
+    return localVideo.srcObject != null;
 }
+
 // don't add things here, do that in broadcast.js
 </script>
 

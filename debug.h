@@ -89,4 +89,13 @@ static void PERFTIME_END(perf_timer_t timer)
     }
 }
 
+static void print_hex(void* ptr, size_t len)
+{
+    int i;
+    for(i = 0; i < len; i++)
+    {
+        printf("%02x", (unsigned int) *((char*)ptr+i));
+    }
+}
+
 #endif

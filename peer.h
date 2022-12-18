@@ -16,12 +16,6 @@
 
 #define VP9PROFILEID "0"
 
-//typedef enum {
-//  LOCK_UNHELD,
-//  LOCK_WORKER_HELD,
-//  LOCK_MAIN_HELD
-//} peer_lock_state_t;
-
 #define PEER_LOCK(x) pthread_mutex_lock(&peers[(x)].mutex);
 #define PEER_UNLOCK(x) pthread_mutex_unlock(&peers[(x)].mutex);
 
@@ -36,9 +30,9 @@
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&((x)->mcond), &((x->mutex)))
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 4096
-#define PEER_RECV_BUFFER_COUNT /*512*/ 64
+#define PEER_RECV_BUFFER_COUNT 1024
 // TODO: -- 1 broadcaster sending to MAX_PEERS-1 would potentially need COUNT * N_PEERS
-#define PEER_SEND_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT * 4)
+#define PEER_SEND_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT * 2)
 
 #ifdef assert
 #undef assert
@@ -178,6 +172,7 @@ typedef struct
     peer_buffer_node_t in_buffers_head;
     peer_buffer_node_t rtp_buffers_head[PEER_RTP_CTX_COUNT];
     peer_buffer_node_t out_buffers_head;
+    peer_buffer_node_t *in_buffers_tail;
 
     unsigned int rtp_buffered_total;
     unsigned long buffer_count;
@@ -310,6 +305,8 @@ void peer_buffers_init(peer_session_t* peer)
         peer_buffer_node_list_add(&peer->out_buffers_head, buffer_node_alloc());
         buffer_count -= 1;
     }
+
+    peer->in_buffers_tail = NULL;
 }
 
 void peer_buffers_uninit(peer_session_t* peer)
@@ -507,6 +504,7 @@ const char* sdp_offer_create(peer_session_t* peer)
     "\"a=ice-pwd:230r89wef32jsdsjJlkj23rndasf23rlknas\\n\" + \n"
     "\"a=ice-ufrag:%s\\n\" + \n"
     "\"a=mid:sdparta_0\\n\" + \n"
+    //"\"b=AS:5000\\n\" + \n"
     "\"a=msid:{7e5b1422-7cbe-3649-9897-864febd59342} {6fca7dee-f59d-3c4f-be9c-8dd1092b10e3}\\n\" + \n"
     "\"a=rtcp-mux\\n\" + \n"
     "\"a=rtpmap:109 opus/48000/2\\n\" + \n"
@@ -525,7 +523,8 @@ const char* sdp_offer_create(peer_session_t* peer)
 #if SDP_OFFER_VP8
     // see link below
     //"\"a=fmtp:120 max-fr=30; max-fs=14400;\\n\" + \n"
-    "\"a=fmtp:120 max-fr=30; max-fs=47600;\\n\" + \n"
+    //"\"b=AS:16000\\n\" + \n"
+    "\"a=fmtp:120 max-fr=60; max-fs=28800; x-google-max-bitrate=5000; x-google-min-bitrate=0; x-google-start-bitrate=3000\\n\" + \n"
 #endif
     "\"a=fmtp:126 profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1\\n\" + \n"
     "\"a=fmtp:97 profile-level-id=42e01f;level-asymmetry-allowed=1\\n\" + \n"

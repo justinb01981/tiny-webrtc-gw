@@ -3,6 +3,11 @@ body.outerBody {
     color:green;
 }
 
+p {
+  font-family:monospace;
+  font-size:10pt;
+}
+
 h1 {
     color: navy;
     margin-left: 20px;
@@ -12,7 +17,6 @@ td {
     margin:0;
     padding:0;
     border-collapse: collapse;
-    overflow:hidden;
     margin:auto;
 }
 
@@ -20,7 +24,6 @@ td.chat {
     margin:auto;
     padding:0;
     border-collapse: collapse;
-    overflow:hidden;
     width: 33%;
 }
 
@@ -37,12 +40,9 @@ tr.chatRow {
 }
 
 table.mainTable {
-    margin:0;
+    margin:0 0 0 16;
     padding:0;
-    border:1;
-    border-collapse: collapse;
-    display:inline-block;
-    overflow:scroll;
+    border-width:2px;
     table-layout:auto;
     background-color:black;
     border-color:white;
@@ -55,8 +55,7 @@ table.videoMainContainer {
     padding: 0;
     border-width:2;
     border-collapse: collapse;
-    display:inline-block;
-    overflow:hidden;
+    overflow:scroll;
     table-layout:auto;
     background-color:black;
     border-color:grey;
@@ -74,7 +73,6 @@ table.localPreviewTable {
     padding: 0;
     border-width:2;
     border-collapse: collapse;
-    display:inline-block;
     overflow:hidden;
     table-layout:auto;
     background-color:black;
@@ -129,18 +127,18 @@ div.topDiv {
 }
 
 p {
-    font-size:14pt;
+    font-size:10pt;
     color:green;
 }
 
 p.controlsPara {
     position:relative;
     top:-2;
-    left:50%;
+    left:0%;
     width:100%;
     height:0px;
     margin: 0 0 0 0;
-    background-color:gray;
+    background-color:black;
     z-index: 2;
     height:10%;
 }
@@ -183,7 +181,7 @@ iframe.chatFrame {
 }
 
 body.chatIframeBody {
-    overflow: hidden;
+    overflow: scroll;
 }
 
 @keyframes loadingAnimation {
@@ -197,10 +195,8 @@ li.chatListElem {
 
 ul.chatLogParent {
   height:100%;
-  overflow:scroll;
-  webkit-overflow-scrolling:touch;
-  compact; font-family:monospace;
-  font-size:8pt;
+  font-family:monospace;
+  font-size:10pt;
   padding-left:0;
   list-style:none;
   overflow:hidden;

@@ -88,7 +88,6 @@ var addUserLoad = function(name) {
             vidChildY += vidChildH+20;
             vidChildX = mainDivX;
         }
-        check.checked = true;
     }
 }
 
@@ -305,7 +304,11 @@ function onLeaveRoom(videoElemCaptured) {
     for (var v of Object.entries(t)) {
         console.debug('calling vidElem.closeAction');
         videoConnectionTable[v[0]].vidElem.closeAction();
-    }    
+    }
+
+    window.parent.localVideo.srcObject = null;
+    // TODO: this works but a ref to the device is lingering somewhere - webcam light doesn tturn off
+    window.parent.localStream = null;
 }
 
 function logout() {
@@ -368,6 +371,7 @@ function joinPopupClose(connection, userName, recvOnlyChecked, roomName) {
     console.debug('joinPopupClose called3');
 
     window.parent.joinPopupCloseDone(winPopupVideoTarget);
+    winPopupVideoTarget = null;
 
     console.debug('joinPopupClose called4');
 }
@@ -427,12 +431,7 @@ function disconnectVideo(vidElem) {
 
     if(conn.signalingState != 'closed')
     {
-      // TODO: this isn't working
-      //conn.getLocalStreams().forEach(s => function(s){
-      //  s.getTracks().forEach(t => t.stop())
-      //});
-
-      //console.debug('closing...');
+      // TODO: closing conn component streams? 
     }
     conn.close();
     delete videoConnectionTable[vidElem.id];
@@ -440,13 +439,10 @@ function disconnectVideo(vidElem) {
 }
 
 function connectVideoIframe(windowSrc, videoElem, afterOnLoad, afterClose) {
-  //var popupOnLoad = joinIframeOnLoadBroadcast;
-
-  //disconnectVideo(videoElem);
 
   console.debug('connectVideoIframe in doc: ' + window.parent.document.location);
   window.winPopupVideoTarget = videoElem;
-  windowSrc.rtcPopupCreateIframe(afterOnLoad, /*joinPopupClose*/ afterClose);
+  windowSrc.rtcPopupCreateIframe(afterOnLoad, afterClose);
 }
 
 function onBtnMute(btn, userName) {
