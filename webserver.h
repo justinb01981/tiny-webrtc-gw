@@ -683,7 +683,7 @@ webserver_worker(void* p)
                         peers[sidx].restart_needed = 1;
                         while(!peers[sidx].restart_done) { 
                             printf("!restart_done...\n");
-                            sleep_msec(1);
+                            sleep_msec(2);
                         }
                         peers[sidx].alive = 1;
                         peers[sidx].restart_needed = 0;

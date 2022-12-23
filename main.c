@@ -389,7 +389,7 @@ void *
 connection_worker(void* p)
 {
     peer_session_t* peer = (peer_session_t*) p;
-    peer_buffer_node_t *buffer_next = NULL;
+    peer_buffer_node_t *buffer_next = NULL, *cur;
     int si, incoming, L;
     int rtp_idx;
     rtp_frame_t *rtpFrame;
@@ -406,7 +406,7 @@ connection_worker(void* p)
     PEER_LOCK(peer->id);
 
     // pause to wait for other thread to prep peer
-    while(!peer->stunID32 || !peer->alive)
+    while(!peer->stunID32 && peer->alive)
     {
         PEER_UNLOCK(peer->id);
         sleep_msec(1);
@@ -515,6 +515,8 @@ connection_worker(void* p)
 
     peer->running = 1;
 
+    buffer_next = peer->in_buffers_head.next;
+
     PEER_UNLOCK(peer->id);
 
     // enter main work-loop
@@ -537,16 +539,23 @@ connection_worker(void* p)
 
         peer->time_last_run = wall_time;
 
-        if(!buffer_next)
-        {
-            buffer_next = peer->in_buffers_head.next;
-            while(buffer_next && buffer_next->len == 0)
-            {
-                buffer_next = buffer_next->next;
-            } 
-        }
+        static long lavg = 0;
+        long l = 0;
 
-        if(!buffer_next || buffer_next->len == 0)
+//        if(!buffer_next)
+//        {
+//            int l = 0;
+//            buffer_next = peer->in_buffers_tail;
+//            while(buffer_next && buffer_next->len == 0)
+///            {
+ //               buffer_next = buffer_next->next; l++;
+ //           } 
+ //           lavg = (lavg+l)/2;
+            //printf("head:%02x lavg:%d\n", peer->in_buffers_head.next, lavg);
+   //     }
+
+        
+        if(buffer_next->len == 0)
         {
             peer->stats.stat[3] += 1;
             peer->underrun_signal = 1;
@@ -906,10 +915,13 @@ connection_worker(void* p)
                         for(p = 0; p < MAX_PEERS; p++)
                         {
                             u32 protect_len = unprotect_len;
-
-                            if(!peers[p].alive) continue;
-
                             PEER_LOCK(p);
+
+                            if(!peers[p].alive)
+                            {
+                                PEER_UNLOCK(p);
+                                continue;
+                            }
 
                             if(peers[p].running &&
                                ((is_sender_report && peers[p].subscriptionID == peer->id)
@@ -1039,6 +1051,7 @@ connection_worker(void* p)
                     {
                         printf("%s:%d srtp_unprotect failed for %d bytes\n", __func__, __LINE__, unprotect_len);
                         counts[11]++;
+                        
                     }
                     else
                     {
@@ -1063,12 +1076,13 @@ connection_worker(void* p)
                         PEER_UNLOCK(peer->id);
                         for(p = 0; p < MAX_PEERS; p++)
                         {
+                            PEER_LOCK(p);
                             if(!peers[p].alive) 
                             {
+                                PEER_UNLOCK(p);
                                 continue;
                             }
 
-                            PEER_LOCK(p);
                             if(!peers[p].send_only &&
                                peers[p].subscriptionID == peer->id &&
                                peers[p].srtp[rtp_idx].inited)
@@ -1209,10 +1223,10 @@ connection_worker(void* p)
         }
        
         PEER_UNLOCK(peer->id);
-
+        
         if(peer->underrun_signal && peer->alive)
         {
-            //PEER_THREAD_WAITSIGNAL(peer->id); 
+            // TODO: wait for signal here
             sleep_msec(1);
             peer->underrun_signal = 0;
         }
@@ -1537,20 +1551,12 @@ int main( int argc, char* argv[] ) {
 
         // now sending peer is known, enqueue it for that peers connection_worker thread        
         peer_buffer_node_t* node = peers[sidx].in_buffers_tail;
-        while(node && node->len != 0) node = node->next;
 
         peer_session_t* peer = &peers[sidx];
-        if(!node) 
+        assert(node);
+        if(node->len > 0) 
         {
             printf("WARN: peer[%d] in-buffers full\n", sidx);
-            peer_buffer_node_t *bnode = peer->in_buffers_head.next;
-            while(bnode)
-            {   
-                //bnode->len = 0;
-                bnode = bnode->next;
-            }
-            peer->in_buffers_tail = peer->in_buffers_head.next;
-
             PEER_UNLOCK(sidx);
             goto select_timeout;
         }
@@ -1559,7 +1565,8 @@ int main( int argc, char* argv[] ) {
             peers[sidx].stats.stat[5] += 1;
         }
 
-        peer->in_buffers_tail = node->next ? node->next : peer->in_buffers_head.next;
+        // in_buffers is a circular linked-list
+        peer->in_buffers_tail = peer->in_buffers_tail->next;
 
         node->recv_time = node->timestamp = time_ms;
 
@@ -1573,7 +1580,6 @@ int main( int argc, char* argv[] ) {
 
         if(msg_recv_count > 0)
         {
-            PERFTIME_END(PERFTIMER_PROCESS_BUFFER);
             continue;
         }
 
@@ -1728,7 +1734,7 @@ int main( int argc, char* argv[] ) {
                 
                 //chatlog_append(strbuf);
                 chatlog_ts_update();
-                break;
+                //break;
             }
 
             i++;

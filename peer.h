@@ -297,6 +297,18 @@ void peer_buffers_init(peer_session_t* peer)
         buffer_count -= 1;
     }
 
+    // circular buffer
+    peer_buffer_node_t* cur = peer->in_buffers_head.next;
+    while(cur)
+    {
+        if(cur->next == NULL)
+        {
+            cur->next = peer->in_buffers_head.next;
+            break;
+        }
+        cur = cur->next;
+    }
+
     peer->in_buffers_tail = peer->in_buffers_head.next;
 }
 
@@ -390,7 +402,7 @@ peer_buffer_node_list_remove(peer_buffer_node_t* head, peer_buffer_node_t* node)
         if(cur->next == node)
         {
             tmp = node;
-            cur->next = cur->next->next;
+            if(cur->next) cur->next = cur->next->next;
             removed++;
             if(!cur->next) head->tail = cur;
             break;
@@ -407,12 +419,14 @@ int
 peer_buffer_node_list_free_all(peer_buffer_node_t* head)
 {
     unsigned int total = 0;
-    peer_buffer_node_t* node = head->next;
+    peer_buffer_node_t* node = head->next, *tmp;
     while(node)
     {
         total += peer_buffer_node_list_remove(head, node);
-        free(node);
-        node = head->next;
+        tmp = node;
+        node = node->next;
+        free(tmp);
+        if(node == head->next) break;
     }
     return total;
 }
