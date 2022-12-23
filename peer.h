@@ -16,23 +16,21 @@
 
 #define VP9PROFILEID "0"
 
-#define PEER_LOCK(x) pthread_mutex_lock(&peers[(x)].mutex);
+#define PEER_LOCK(j) pthread_mutex_lock(&peers[(int) (j)].mutex);
 #define PEER_UNLOCK(x) pthread_mutex_unlock(&peers[(x)].mutex);
 
 #define PEER_SIGNAL(x) pthread_cond_signal(&peers[(x)].mcond)
 
-#define PEER_THREAD_LOCK(x) { pthread_mutex_lock(&((x)->mutex)); }
-#define PEER_THREAD_UNLOCK(x) { pthread_mutex_unlock(&((x)->mutex)); }
+//#define PEER_THREAD_LOCK(x) { pthread_mutex_lock(&((x)->mutex)); }
+//#define PEER_THREAD_UNLOCK(x) { pthread_mutex_unlock(&((x)->mutex)); }
 #define PEER_SENDER_THREAD_LOCK(x) { pthread_mutex_lock(&((x)->mutex_sender)); }
 #define PEER_SENDER_THREAD_UNLOCK(x) { pthread_mutex_unlock(&((x)->mutex_sender)); }
 #define PEERS_TABLE_LOCK() { pthread_mutex_lock(&peers_table_lock); }
 #define PEERS_TABLE_UNLOCK() { pthread_mutex_unlock(&peers_table_lock); }
-#define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&((x)->mcond), &((x->mutex)))
+#define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&peers[x].mcond, &peers[x].mutex)
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 4096
 #define PEER_RECV_BUFFER_COUNT 1024
-// TODO: -- 1 broadcaster sending to MAX_PEERS-1 would potentially need COUNT * N_PEERS
-#define PEER_SEND_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT * 2)
 
 #ifdef assert
 #undef assert
@@ -299,14 +297,7 @@ void peer_buffers_init(peer_session_t* peer)
         buffer_count -= 1;
     }
 
-    buffer_count = PEER_SEND_BUFFER_COUNT;
-    while(buffer_count > 0)
-    {
-        peer_buffer_node_list_add(&peer->out_buffers_head, buffer_node_alloc());
-        buffer_count -= 1;
-    }
-
-    peer->in_buffers_tail = NULL;
+    peer->in_buffers_tail = peer->in_buffers_head.next;
 }
 
 void peer_buffers_uninit(peer_session_t* peer)

@@ -15,6 +15,9 @@
 
 #define CHATLOG_SIZE 16384
 
+#define TMPTRACE \
+    printf("TRACE:%d",__FILE__,__LINE__)
+
 extern int listen_port_base;
 extern peer_session_t peers[];
 extern int stun_binding_response_count;
@@ -140,279 +143,6 @@ chatlog_reload()
         free(file_buf);
     }
 }
-
-static void*
-websocket_worker(void* p)
-{
-/*
-    webserver_worker_args* args = (webserver_worker_args*) p;
-    struct {
-        char* out;
-        char* in;
-        size_t out_len;
-        size_t in_len;
-    } ws_buffer;
-    const size_t buf_size = 4096;
-    int state;
-    char* sdp = NULL;
-    unsigned int icecandidates[16];
-    char room_id_msg[256] = {0};
-    int icecandidates_n = 0;
-
-    peer_session_t* peer = NULL;
-
-    thread_init();
-
-    memset(&ws_buffer, 0, sizeof(ws_buffer));
-
-    do
-    {
-        int sock;
-        struct sockaddr_in sa;
-        socklen_t sa_len;
-        int flags = 0;
-
-        memset(&sa, 0, sizeof(sa));
-        sa_len = sizeof(sa);
-
-        sock = args->sock;
-        state = args->state;
-
-        if(args->pbody)
-        {
-            printf("WS POST with body:\n%s\n", args->pbody);
-        }
-
-        if(sock >= 0)
-        {
-            char recvbuf[buf_size];
-            char wsdecoded[buf_size];
-            char sendbuf[buf_size];
-            size_t send_len = 0;
-
-            char value[buf_size];
-            int value_len;
-            int timeout_ms = 1000;
-            int timeout_counter = 10;
-
-            printf("%s:%d websocket connection (%s:%d)\n", __func__, __LINE__, inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
-
-            memset(recvbuf, 0, sizeof(recvbuf));
-            memset(wsdecoded, 0, sizeof(wsdecoded));
-
-            char *roff = recvbuf;
-            unsigned int recv_left = sizeof(recvbuf)-1;
-
-            while(state != WS_STATE_EXIT && (!peer || (time(NULL) - peer->time_pkt_last < 10)))
-            {
-                int r = 0;
-
-                if(state == WS_STATE_READING) {
-
-                    if(waitsocket(sock, timeout_ms / 1000, 0) == 0)
-                    {
-                        timeout_counter--;
-                    }
-                    else
-                    {
-                        timeout_counter = 30;
-                        r = recv(sock, roff, recv_left > 0? 1: 0, flags);
-                        if(r <= 0 || r > recv_left)
-                        {
-                            state = WS_STATE_EXIT; 
-                            break;
-                        }
-
-                        roff += r;
-                        recv_left -= r;
-                    }
-                }
-
-                if(state == WS_STATE_READING && r > 0)
-                {
-                    uint8_t* decodedbuf = wsdecoded;
-                    size_t decodedbuf_len = sizeof(wsdecoded)-1;
-
-                    int frame_type =
-                        wsParseInputFrame(recvbuf, roff-recvbuf,
-                                          &decodedbuf, &decodedbuf_len);
-                    switch(frame_type)
-                    {
-                    case WS_INCOMPLETE_FRAME:
-                        // keep reading
-                        continue;
-
-                    case WS_TEXT_FRAME:
-                        printf("websocket msg<-:\n%s\n", decodedbuf);
-                        {
-                             value_len = str_read_from_key("\\\"candidate\\\" : \\\"", decodedbuf, value, "\\", buf_size-1, 0);
-                             while(value_len > 0 && icecandidates_n < 16) {
-                                 char raddr_buf[64], rport_buf[64], cand_buf[64];
-                                 if(str_read_from_key("raddr ", value, raddr_buf, " ", sizeof(raddr_buf)-1, 0) <= 0) break;
-                                 if(str_read_from_key("rport ", value, rport_buf, " ", sizeof(rport_buf)-1, 0) <= 0) break;
-                                 if(str_read_from_key("candidate:", value, cand_buf, " ", sizeof(cand_buf)-1, 0) <= 0) break;
-
-                                 icecandidates[icecandidates_n++] = atoi(cand_buf);
-                                 break;
-                            }
-
-                            value_len = str_read_from_key("\\\"sdp\\\":\\\"", decodedbuf, value, "\\\"", buf_size-1, 0);
-                            if(value_len > 0)
-                            {
-                                sdp = strdup(decodedbuf);
-                                if(sdp) sdp = str_replace_nested_escapes(sdp);
- 
-                                state = WS_STATE_INITPEER;
-                            }
-
-                            value_len = str_read_from_key("\"cmd\" : \"register\"", decodedbuf, value, "}", buf_size-1, 0);
-                            if(value_len > 0)
-                            {
-                                value_len = str_read_from_key("\"roomid\" : \"", value, room_id_msg, "\"", sizeof(room_id_msg)-1, 0);
-                            }
-                        }
-
-                    default:
-                        roff = recvbuf;
-                        recv_left = sizeof(recvbuf)-1;
-                        memset(recvbuf, 0, sizeof(recvbuf));
-                    }
-                }
-
-                if(state == WS_STATE_INITPEER)
-                {
-                    state = WS_STATE_READING;
-
-                    int p;
-                    for(p = 0; p < MAX_PEERS; p++)
-                    {
-                        if(!peers[p].alive)
-                        {
-                            peer = &peers[p];
-                            break;
-                        }
-                    }
-                 
-                    if(peer)
-                    {
-                        peer_init(peer, PEER_INDEX(peer));
-
-                        const char* sdp_offer_pending = sdp_offer_create_apprtc(peer);
-                    
-                        char* offersdp = strdup(sdp_offer_pending);
-                        
-                        if(offersdp) offersdp = str_replace_nested_escapes(offersdp);
-                        
-                        strcpy(peer->sdp.offer, offersdp);
-
-                        strcpy(peer->stun_ice.ufrag_offer, sdp_read(offersdp, "a=ice-ufrag:"));
-
-                        free(offersdp);
-
-                        if(sdp)
-                        {
-                            char *psep = strchr(room_id_msg, '@');
-                            *psep = '\0'; psep++;
-                            sprintf(peer->sdp.answer, "a=myname=%s\r\na=watch=%s\r\n%s", room_id_msg, psep, sdp);
-                            peer->stun_ice.controller = 0;
-                            if(icecandidates_n > 0) peer->stun_ice.candidate_id = icecandidates[icecandidates_n-1];
-
-                            free(sdp);
-                            sdp = NULL;
-                        }
-
-                        // mark -- wait for peer to be initialized
-                        peer->alive = 1;
-                        peer->restart_done = 0;
-                        peer->restart_needed = 1;
-
-                        while(!peer->restart_done) usleep(SPIN_WAIT_USEC);
-                        peer->time_pkt_last = time(NULL);
-                        peer->alive = 1;
-
-                        peer->restart_needed = 0;
-                    }
-                }
-
-                if(state == WS_STATE_INITIAL || state == WS_STATE_JOINROOM || state == WS_STATE_WRITESDP | state == WS_STATE_ROOMPOST)
-                {
-                    if(state == WS_STATE_INITIAL) {
-                        
-                        sprintf(sendbuf, "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: %s\r\n\r\n", args->websocket_accept_response);
-                        send_len = strlen(sendbuf);
-                        state = WS_STATE_READING;
-                    }
-                    else if(state == WS_STATE_JOINROOM) {
-                        chatlog_append("appRTC joining\n");
-                       
-                        int file_buf_len = 0;
-                        char* file_buf = file_read("content/apprtc/init.txt", &file_buf_len);
-
-                        if(file_buf_len > 0)
-                        {
-                            char stuncandidate_js[256];
-                            char* response = strdup(file_buf);
-                            sprintf(stuncandidate_js, "candidate:1 1 UDP 1234 %s "
-                                "%d typ host",
-                                get_config("udpserver_addr="), listen_port_base);
-                            response = macro_str_expand(response,
-                                    tag_icecandidate, stuncandidate_js);
-
-                            response = macro_str_expand(response, tag_room_ws, args->roomname);
-
-                            sprintf(sendbuf, "HTTP/1.0 200 OK\r\nContent-Length: %lu\r\nContent-Type: text/plain\r\n\r\n%s",
-                                    strlen(response), response);
-                            send_len = strlen(sendbuf);
-                            free(response);
-                            free(file_buf);
-                        }
-                        state = WS_STATE_EXIT;
-                    }
-                    else if(state == WS_STATE_ROOMPOST) {
-                        sdp = strdup(args->pbody);
-                        if(sdp) sdp = str_replace_nested_escapes(sdp);
-
-                        state = WS_STATE_INITPEER;
-                    }
-                    else if(state == WS_STATE_WRITESDP) {
-                        int file_buf_len = 0;
-                        char* file_buf = file_read("content/apprtc/offer.txt", &file_buf_len);
-                        
-                        if(file_buf_len > 0) {
-                            strcpy(sendbuf, file_buf);
-                            send_len = file_buf_len;
-                            free(file_buf);
-                        }
-
-                        state = WS_STATE_READING;
-                    }
-                }
-
-                if(send_len > 0) {
-                    printf("websocket msg->:\n%s\n", sendbuf);
-                    send(sock, sendbuf, send_len, 0);
-                }
-                send_len = 0;
-            }
-
-            printf("websocket_worker shutting down\n");
-            shutdown(sock, SHUT_WR);
-            close(sock);
-            sock = -1;
-        }
-    }
-    while(0);
-
-    if(sdp) free(sdp);
-
-    if(args) {
-        if(args->pbody) free(args->pbody);
-        free(args);
-    }
-*/
-    return NULL;
-}
-
 
 void*
 webserver_worker(void* p)
@@ -677,7 +407,6 @@ webserver_worker(void* p)
                         peer_init(&peers[sidx], sidx);
 
                         peers[sidx].time_pkt_last = time(NULL);
-                        peers[sidx].alive = 1;
 
                         peer_cookie_init(&peers[sidx], cookie);
                         strcpy((char*) &peers[sidx].name, str_read_unsafe(url_args, "name=", 0));
@@ -900,8 +629,6 @@ webserver_worker(void* p)
 
                         sdp = sdp_decode(sdp);
 
-                        PEERS_TABLE_LOCK();
-
                         const char* ufrag_answer = sdp_read(sdp, "a=ice-ufrag:");
                         
                         // anonymous+watching-only peers use new slot
@@ -920,7 +647,6 @@ webserver_worker(void* p)
                                 
                                 free(sdp);
                                 sdp = NULL;
-                                PEERS_TABLE_UNLOCK();
                                 goto response_override;
                             }
                             
@@ -939,7 +665,6 @@ webserver_worker(void* p)
                             {
                                 free(sdp);
                                 sdp = NULL;
-                                PEERS_TABLE_UNLOCK();
                                 goto response_override;
                             }
 
@@ -951,19 +676,20 @@ webserver_worker(void* p)
 
                         printf("webserver got SDP:\n%s\n", sdp);
 
+                        PEER_UNLOCK(sidx);
+                        PEERS_TABLE_UNLOCK();
                         // moved setting .alive to below to avoid a race
-                        //peers[sidx].alive = 1;
                         peers[sidx].restart_done = 0;
                         peers[sidx].restart_needed = 1;
-
-                        PEERS_TABLE_UNLOCK();
-
-                        while(!peers[sidx].restart_done)
-                        {
-                            usleep(SPIN_WAIT_USEC);
+                        while(!peers[sidx].restart_done) { 
+                            printf("!restart_done...\n");
+                            sleep_msec(1);
                         }
+                        peers[sidx].alive = 1;
+                        peers[sidx].restart_needed = 0;
+                        PEERS_TABLE_LOCK();
 
-                        PEER_LOCK(sidx);
+                        // peer will be marked alive after thread spawned by main
 
                         // init stun-ice attributes
                         strcpy(peers[sidx].stun_ice.ufrag_answer, ufrag_answer);
@@ -977,8 +703,8 @@ webserver_worker(void* p)
                         strcpy(peers[sidx].name, str_read_unsafe(sdp, "a=myname=", 0));
                         strcpy(peers[sidx].roomname, str_read_unsafe(sdp, "a=room=", 0));
 
-                        peers[sidx].alive = 1;
                         peers[sidx].restart_needed = 0;                       
+                        PEERS_TABLE_UNLOCK();
 
                         printf("peer restarted (stun_ice.user-name answer/offer: %s:%s)\n", peers[sidx].stun_ice.ufrag_answer, peers[sidx].stun_ice.ufrag_offer);
                         free(sdp);

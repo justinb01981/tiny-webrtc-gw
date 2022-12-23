@@ -23,45 +23,13 @@ typedef struct {
     unsigned long total_microsec; // 1/1000000 of a second
 } perf_state_t;
 
-typedef struct {
-    int recv_sock;
-    int recv_count;
+perf_state_t timers[PERFTIMER_LAST];
 
-    perf_state_t timers[PERFTIMER_LAST];
-
-    pthread_t thread_watchdog;
-
-    unsigned int jitter_max;
-    unsigned int jitter_min;
-} diagnostics_t;
-
-extern diagnostics_t diagnostics;
 extern int terminated;
-
-static void* watchdog_worker(void* arg)
-{
-    while(!terminated)
-    {
-        printf("diagnostics: recv_sock:%d recv_count:%d\n", diagnostics.recv_sock, diagnostics.recv_count);
-
-        printf("perf timers: SELECT           RECV         PROCESS_BUFFER     MAINLOOP\n");
-        printf("             %lu          %lu          %lu            %lu \n",
-                diagnostics.timers[PERFTIMER_SELECT].total_microsec,
-                diagnostics.timers[PERFTIMER_RECV].total_microsec,
-                diagnostics.timers[PERFTIMER_PROCESS_BUFFER].total_microsec,
-                diagnostics.timers[PERFTIMER_MAIN_LOOP].total_microsec
-                );
-        printf("global reported jitter range: %u\n", diagnostics.jitter_max - diagnostics.jitter_min);
-        usleep(1000000);
-    }
-}
 
 static void DEBUG_INIT()
 {
     //pthread_create(&diagnostics.thread_watchdog, NULL, watchdog_worker, NULL);
-
-    diagnostics.jitter_max = 0;
-    diagnostics.jitter_min = INT_MAX;
 }
 
 static void DEBUG_DEINIT()
@@ -71,7 +39,7 @@ static void DEBUG_DEINIT()
 
 static void PERFTIME_BEGIN(perf_timer_t timer)
 {
-    int r = clock_gettime(CLOCK_MONOTONIC, &diagnostics.timers[timer]);
+    int r = clock_gettime(CLOCK_MONOTONIC, &timers[timer]);
 }
 
 static void PERFTIME_END(perf_timer_t timer)
@@ -81,12 +49,27 @@ static void PERFTIME_END(perf_timer_t timer)
 
     if(r == 0)
     {
-        diagnostics.timers[timer].total_microsec +=
-            (tm.tv_sec - diagnostics.timers[timer].tm.tv_sec) * 1000000 +
-            (tm.tv_nsec - diagnostics.timers[timer].tm.tv_nsec) / 1000;
+        timers[timer].total_microsec +=
+            (tm.tv_sec - timers[timer].tm.tv_sec) * 1000000 +
+            (tm.tv_nsec - timers[timer].tm.tv_nsec) / 1000;
 
-        diagnostics.timers[timer].tm = tm;
+        timers[timer].tm = tm;
     }
+}
+
+static unsigned long PERFTIME_CUR()
+{
+    struct timespec tm;
+    int r = clock_gettime(CLOCK_MONOTONIC, &tm);
+
+    if(r == 0)
+    {
+        unsigned long microsec =
+            (tm.tv_sec * 1000000) +
+            (tm.tv_nsec / 1000);
+        return microsec;
+    }
+    return 0;
 }
 
 static void print_hex(void* ptr, size_t len)
@@ -96,6 +79,17 @@ static void print_hex(void* ptr, size_t len)
     {
         printf("%02x", (unsigned int) *((char*)ptr+i));
     }
+}
+
+static unsigned long PERFTIME_INTERVAL_SINCE(unsigned long* st)
+{
+    unsigned long mask = 0x00ffffff;
+
+    unsigned long locked_d = PERFTIME_CUR() - (*st & mask);
+    unsigned char n = *st & 0xff000000;
+    n++;
+    *st = (PERFTIME_CUR() & mask) | (0xff000000 & (n << 24));
+    //printf("perftime_interval: %02x locked/time %lu\n", (unsigned long) st, locked_d);
 }
 
 #endif
