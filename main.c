@@ -58,7 +58,7 @@
 
 #define EPOLL_TIMEOUT_MS 20
 
-#define RECVMSG_NUM (2)
+#define RECVMSG_NUM (128)
 
 #define PACED_STREAMER_INTERVAL_MS (1)
 
@@ -256,7 +256,6 @@ void peer_send_block(peer_session_t* peer, char* buf, int len)
 
 void DIAG_PEER(peer_session_t* peer)
 {   
-    /* 
     size_t n = 0, m = 0;
     size_t tot = 0, used = 0;
     peer_buffer_node_t* node = peer->in_buffers_head.rnext;
@@ -274,19 +273,7 @@ void DIAG_PEER(peer_session_t* peer)
         node = node->next;
     }
 
-    printf("\npeer %02x buffers %u/%u\n", peer, used, tot);
-    */
-    SANITIZE_PEER(peer);
-}
-
-void SANITIZE_PEER(peer_session_t* peer)
-{
-    peer_buffer_node_t* cur = peer->in_buffers_head.next;
-    while(cur)
-    {
-        cur = cur->next;
-    }
-    //printf("%s:%d - %d sane buffers\n", __FUNC__, __LINE__, l);
+    printf("peer[%d] in-buffers %u/%u\n", peer->id, used, tot);
 }
 
 void
@@ -421,7 +408,7 @@ connection_worker(void* p)
     int nrecv, nwait = 0;
     int flush_outbuf_overrun = 0;
     int awaitStun = 16;
-    static unsigned sleep_usec = 100000;
+    static unsigned nsleep = 5;
     
     
     thread_init();
@@ -540,6 +527,8 @@ connection_worker(void* p)
 
     buffer_next = peer->in_buffers_head.next;
 
+    peer->underrun_signal = 1; // lock first time
+
     // MARK: -- enter main peer connection worker loop
     while(peer->alive)
     {
@@ -559,7 +548,9 @@ connection_worker(void* p)
 
         peer->time_last_run = wall_time;
 
+        peer->underrun_signal= 0;
         PEER_LOCK(peer->id);
+
         while(buffer_next && buffer_next->len == 0) 
         {
             buffer_next = buffer_next->next;
@@ -1243,30 +1234,25 @@ connection_worker(void* p)
         }
 
         // done with buffer_next decrease sleep interval
-        sleep_usec /= 2;
+        nsleep /= 2;
 
         // MARK: -- peer_again goto where we unlock and move to the next buffer in cxn_worker
         peer_again:
 
-        buffer_next->len = 0;
-        buffer_next = buffer_next->next;
+        if(!peer->underrun_signal) {
+            // hold lock if another buffer is available and skip sleep
+            nsleep /= 2;
 
-        if(buffer_next) {
-            // TODO: hold lock if another buffer is available
-            continue;
+            buffer_next->len = 0;
+            buffer_next = buffer_next->next;
+        }
+        else
+        {
+            if(nsleep < 1000) nsleep += 5;
         }
 
         PEER_UNLOCK(peer->id);
-
-        // allow other threads to work here... 
-
-        usleep(sleep_usec);
-        while(peer->underrun_signal)
-        {
-            if(sleep_usec < 1000000) sleep_usec += sleep_usec/32;
-            // TODO: wait for signal here
-            peer->underrun_signal = 0;
-        }
+        sleep_msec(nsleep);
     
         //printf("cxn_worker:%d: cxn_worker[%d] finished @ %lu\n", __LINE__, p, PERFTIME_CUR());
     }
@@ -1639,7 +1625,8 @@ int main( int argc, char* argv[] ) {
         // no mutex should be held now...
         select_timeout:
 
-        // HACKHACKHACK: adding a sleep here? still unsure if it helps 
+        // HACKHACKHACK: adding a sleep here? still unsure if it helps
+        sleep_msec(EPOLL_TIMEOUT_MS/2);
 
         // MARK: -- house-keeping of peers connection state
         i = 0;
