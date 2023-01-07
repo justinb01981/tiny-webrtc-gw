@@ -8,11 +8,13 @@ static void ignore_signal(int s)
 {
 }
 
+static int tid_last;
+
 static void
 thread_init()
 {
     signal(SIGPIPE, ignore_signal);
-    printf("thread created: taskID %d\n", syscall(SYS_gettid));
+    //printf("thread created: taskID %d\n", syscall(SYS_gettid));
 }
 
 #endif

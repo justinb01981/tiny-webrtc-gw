@@ -5,6 +5,7 @@
 #include "peer.h"
 #include "thread.h"
 #include <sys/errno.h>
+#include "stun_callback.h"
 
 /* include websockets */
 #define sha1 sha1_
@@ -27,6 +28,8 @@ const static unsigned long SPIN_WAIT_USEC = 1000;
 static char g_chatlog[CHATLOG_SIZE];
 
 static time_t g_chatlog_ts;
+
+static char* g_sdp;
 
 extern int sdp_prefix_set(const char*);
 
@@ -54,6 +57,7 @@ static char *tag_room_ws = "%$ROOMNAME$%";
 static char *tag_sdp_offer1 = "%$SDP_OFFER$%";
 static char* tag_joinroom_ws = "POST /join/";
 static char* tag_msgroom_ws = "POST /message/domain17/";
+static char* webserver_staticc;
 
 
 char*
@@ -144,6 +148,31 @@ chatlog_reload()
     }
 }
 
+void
+bootstrap_peer_async(peer_session_t* p)
+{
+
+    usleep(1000000);
+    p->alive = 1;
+
+    printf("bootstrap_peer:\nsdp:\n%s\n", p->sdp.answer);
+    int count = 10;
+    while(count > 0) 
+    {
+        while(p->alive && !p->thread_inited) 
+        {
+            usleep(10000);
+            printf("bootstrap_peer_async: awaiting !peers[%d].thread_inited\n", p->id);
+        }
+
+        printf("bootstrap_peer_async: peer[%d] alive=%d\n", p->id, p->alive);
+        count--;
+    }
+    //printf("bootstrap_peer_async: aliving..");
+    //p->alive = 1;
+    printf(".done\n");
+}
+
 void*
 webserver_worker(void* p)
 {
@@ -189,6 +218,9 @@ webserver_worker(void* p)
     int peer_broadcast_from_cookie = PEER_IDX_INVALID;
     char stackPaddingHack[2048];
     char* recvbuf = malloc(buf_size*2);
+    pthread_t thr_boot;
+    pthread_attr_t thread_attrs;
+
 
     memset(cookie, 0, sizeof(cookie));
 
@@ -540,6 +572,8 @@ webserver_worker(void* p)
                         {
                             if(peers[i].alive)
                             {
+                                printf("%s:%d: %s\n", __FILE__, __LINE__, peers[i].name);
+
                                 num_peers++;
 
                                 char key_buf[1024];
@@ -622,17 +656,21 @@ webserver_worker(void* p)
                     if(strcmp(purl, "/"FILENAME_SDP_ANSWER) == 0)
                     {
                         // create temp file, decode, rename for worker thread to pick up/read and remove
-                        char tmp[256], ufrag_offer_tmp[256];
-                        char* sdp = strdup(pbody);
+                        char tmp[256];
+                        static char ufrag_offer_tmp[256];
+                        char** sdp = &g_sdp;
 
-                        memdebug_sanity(sdp);
+                        *sdp = strdup(pbody);
 
-                        sdp = sdp_decode(sdp);
+                        memdebug_sanity(*sdp);
 
-                        const char* ufrag_answer = sdp_read(sdp, "a=ice-ufrag:");
+                        *sdp = sdp_decode(*sdp);
+
+                        const static char* ufrag_answer = NULL;
+                        ufrag_answer = sdp_read(*sdp, "a=ice-ufrag:");
                         
                         // anonymous+watching-only peers use new slot
-                        if(peer_found_via_cookie && strstr(sdp, "a=recvonly") != NULL)
+                        if(peer_found_via_cookie && strstr(*sdp, "a=recvonly") != NULL)
                         {
                             peer_broadcast_from_cookie = peer_found_via_cookie->id;
                             peer_found_via_cookie = NULL;
@@ -645,8 +683,6 @@ webserver_worker(void* p)
                             {
                                 printf("peer found, but no offer found for ice_ufrag\n");
                                 
-                                free(sdp);
-                                sdp = NULL;
                                 goto response_override;
                             }
                             
@@ -661,54 +697,44 @@ webserver_worker(void* p)
                             sidx = webserver.peer_idx_next % MAX_PEERS;
                             webserver.peer_idx_next += 1;
 
-                            if(peers[sidx].alive)
-                            {
-                                free(sdp);
-                                sdp = NULL;
-                                goto response_override;
-                            }
-
                             peer_init(&peers[sidx], sidx);
                             peers[sidx].broadcastingID = peer_broadcast_from_cookie;
                             
                             strcpy(ufrag_offer_tmp, sdp_offer_table.t.iceufrag);
+                            printf("ufrag_offer_tmp:%s\n", ufrag_offer_tmp);
                         }
 
-                        printf("webserver got SDP:\n%s\n", sdp);
+                        printf("webserver got SDP:\n%s\n", *sdp);
 
-                        PEER_UNLOCK(sidx);
-                        PEERS_TABLE_UNLOCK();
-                        // moved setting .alive to below to avoid a race
-                        peers[sidx].restart_done = 0;
-                        peers[sidx].restart_needed = 1;
-                        while(!peers[sidx].restart_done) { 
-                            printf("!restart_done...\n");
-                            sleep_msec(2);
+                        strcpy(peers[sidx].sdp.answer, *sdp);
+
+                        void setupSTUN(void* voidp) {
+                            peer_session_t *p = voidp;
+                            // this is called with peer lock taken and alive=true, careful
+
+                            printf("setupSTUN: ....\n");
+
+                            // init stun-ice attributes
+                            strcpy(p->stun_ice.ufrag_answer, ufrag_answer);
+                            strcat(ufrag_offer_tmp, ":");
+                            strcat(ufrag_offer_tmp, ufrag_answer);
+                            strcpy(p->stun_ice.ufrag_offer, ufrag_offer_tmp);
+
+                            printf("setupSTUN.ufrag_offer_tmp:%s\n", ufrag_offer_tmp);
+                            strcpy(p->sdp.offer, sdp_offer_find(/*p->stun_ice.ufrag_offer*/ ufrag_offer_tmp, ufrag_answer));
+                            strcpy(p->sdp.answer, *sdp);
+
+                            // HACK: leaking a buffer here for sdp so it can be shared between threads
+                            //printf("leaking sdp: %02x\n", *sdp);
+                            //free(*sdp);
+                            //*sdp = NULL;
+
+                            // mark -- signal/wait for peer to be initialized
+                            p->time_pkt_last = time(NULL);
                         }
-                        peers[sidx].alive = 1;
-                        peers[sidx].restart_needed = 0;
-                        PEERS_TABLE_LOCK();
 
-                        // peer will be marked alive after thread spawned by main
-
-                        // init stun-ice attributes
-                        strcpy(peers[sidx].stun_ice.ufrag_answer, ufrag_answer);
-                        strcpy(peers[sidx].stun_ice.ufrag_offer, ufrag_offer_tmp);
-                        strcpy(peers[sidx].sdp.offer, sdp_offer_find(peers[sidx].stun_ice.ufrag_offer, ufrag_answer));
-                        strcpy(peers[sidx].sdp.answer, sdp);
-
-                        // mark -- signal/wait for peer to be initialized
-                        peers[sidx].time_pkt_last = time(NULL);
-                          
-                        strcpy(peers[sidx].name, str_read_unsafe(sdp, "a=myname=", 0));
-                        strcpy(peers[sidx].roomname, str_read_unsafe(sdp, "a=room=", 0));
-
-                        peers[sidx].restart_needed = 0;                       
-                        PEERS_TABLE_UNLOCK();
-
-                        printf("peer restarted (stun_ice.user-name answer/offer: %s:%s)\n", peers[sidx].stun_ice.ufrag_answer, peers[sidx].stun_ice.ufrag_offer);
-                        free(sdp);
-                        sdp = NULL;
+                        printf("requesting peer[%d] restart: stun_ice.user-name answer/offer: %s:%s\n",
+                            sidx, peers[sidx].stun_ice.ufrag_answer, peers[sidx].stun_ice.ufrag_offer);
 
                         free(response);
                         //response = strdup(page_buf_sdp_uploaded);
@@ -716,7 +742,43 @@ webserver_worker(void* p)
                         response[0] = '\0'; strcat(response, page_buf_sdp_uploaded);
                         content_type = content_type_html;
 
-                        PEER_UNLOCK(sidx);
+                        //pthread_attr_init(&thread_attrs);
+                        //pthread_attr_setdetachstate(&thread_attrs, PTHREAD_CREATE_DETACHED);
+                        //pthread_create(&thr_boot, &thread_attrs, bootstrap_peer_async, &peers[sidx]);
+
+                        peers[sidx].cxn_start = setupSTUN;
+                        peers[sidx].restart_done = 0;
+                        /*
+                        while(!peers[sidx].restart_done) {
+                            PEER_LOCK(sidx);
+                            // don't set alive here - happens when STUN pkt
+                            peers[sidx].restart_needed = 1;
+                            PEER_UNLOCK(sidx);
+                            printf("restart_done: waiting...\n");
+                            sleep_msec(20);
+                        }
+                        */
+
+                        peers[sidx].restart_done = 0;
+                        peers[sidx].restart_needed = 1;
+                        sleep_msec(100);
+                        assert(peers[sidx].restart_done);
+                        peers[sidx].restart_needed = 0;
+                        peers[sidx].restart_done = 0;
+
+                        char offerid[256];
+                        sprintf(offerid, "%s:%s", peers[sidx].stun_ice.ufrag_offer, peers[sidx].stun_ice.ufrag_answer);
+
+                        printf("peers[sidx].stun_ice.ufrag_offer: %s\n", /*peers[sidx].stun_ice.ufrag_offer*/ufrag_offer_tmp); 
+                        strcpy(peers[sidx].sdp.offer, sdp_offer_find(ufrag_offer_tmp/*peers[sidx].stun_ice.ufrag_offer*/, ufrag_answer));
+                        printf("found offer:%s\n", peers[sidx].sdp.offer);
+
+                        peers[sidx].restart_done = 0;
+                        peers[sidx].alive = 1;
+                        // cxn_start is called by main epoll thread
+
+                        printf("...done\n");
+
                         goto response_override;
                     }
                     else if(strcmp(purl, "/chatmsg") == 0)
@@ -803,6 +865,7 @@ void webserver_init()
 void webserver_deinit(pthread_t thread)
 {
     shutdown(webserver.sock, SHUT_RD);
+    close(webserver.sock);
     webserver.running = 0;
     pthread_join(thread, NULL);
 }

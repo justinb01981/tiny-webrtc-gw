@@ -2,10 +2,11 @@
 #define __PEER_H__
 
 #include "memdebughack.h"
+#include "stun_callback.h"
 
 #define SDP_OFFER_VP8 1
 
-#define MAX_PEERS 59
+#define MAX_PEERS 60
 #define PEER_IDX_INVALID (MAX_PEERS+1)
 
 #define PEER_RTP_CTX_COUNT 8
@@ -16,21 +17,22 @@
 
 #define VP9PROFILEID "0"
 
-#define PEER_LOCK(j) pthread_mutex_lock(&peers[(int) (j)].mutex);
-#define PEER_UNLOCK(x) pthread_mutex_unlock(&peers[(x)].mutex);
+static char* culprit_lock_file = "";
+static char* culprit_unlock_file = "";
+static int culprit_lock = -1;
+static int culprit_unlock = -1;
+#define PEER_LOCK(j) { culprit_lock_file = __FILE__; culprit_lock = __LINE__; pthread_mutex_lock(&peers[(int) (j)].mutex); }
+#define PEER_UNLOCK(j) { culprit_unlock_file = __FILE__; culprit_unlock = __LINE__; pthread_mutex_unlock(&peers[(j)].mutex); }
+
 
 #define PEER_SIGNAL(x) pthread_cond_signal(&peers[(x)].mcond)
 
-//#define PEER_THREAD_LOCK(x) { pthread_mutex_lock(&((x)->mutex)); }
-//#define PEER_THREAD_UNLOCK(x) { pthread_mutex_unlock(&((x)->mutex)); }
-#define PEER_SENDER_THREAD_LOCK(x) { pthread_mutex_lock(&((x)->mutex_sender)); }
-#define PEER_SENDER_THREAD_UNLOCK(x) { pthread_mutex_unlock(&((x)->mutex_sender)); }
-#define PEERS_TABLE_LOCK() { pthread_mutex_lock(&peers_table_lock); }
-#define PEERS_TABLE_UNLOCK() { pthread_mutex_unlock(&peers_table_lock); }
+//#define PEERS_TABLE_LOCK() { pthread_mutex_lock(&peers_table_lock); }
+//#define PEERS_TABLE_UNLOCK() { pthread_mutex_unlock(&peers_table_lock); }
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&peers[x].mcond, &peers[x].mutex)
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 4096
-#define PEER_RECV_BUFFER_COUNT 1024
+#define PEER_RECV_BUFFER_COUNT 512
 
 #ifdef assert
 #undef assert
@@ -51,7 +53,8 @@ const char* PEER_DYNAMIC_JS_EMPTY = "/* dynamic js */\n"
 
 typedef struct peer_buffer_node
 {
-    volatile struct peer_buffer_node* next, *tail;
+    volatile struct peer_buffer_node* next, *tail; // unordered backing list
+    volatile struct peer_buffer_node* rnext; // for alternative 2nd linked-list (reader)
 
     volatile unsigned int len;
     unsigned int id;
@@ -169,12 +172,9 @@ typedef struct
 
     peer_buffer_node_t in_buffers_head;
     peer_buffer_node_t rtp_buffers_head[PEER_RTP_CTX_COUNT];
-    peer_buffer_node_t out_buffers_head;
-    peer_buffer_node_t *in_buffers_tail;
 
     unsigned int rtp_buffered_total;
     unsigned long buffer_count;
-    //unsigned long out_buffer_next;
     u32 rtp_timestamp_initial[PEER_RTP_CTX_COUNT];
     unsigned long clock_timestamp_ms_initial[PEER_RTP_CTX_COUNT];
     u16 rtp_seq_initial[PEER_RTP_CTX_COUNT];
@@ -187,16 +187,19 @@ typedef struct
     time_t time_start;
     time_t time_http_last;
 
-    pthread_t thread;
-    pthread_t thread_rtp_send;
-    pthread_mutex_t mutex;
     pthread_mutex_t mutex_sender;
     pthread_cond_t mcond;
     int thread_inited;
 
+    stun_callback_t cxn_start;
+
     int fwd;
 
-    int alive, running;
+    int pad1[256];
+
+    pthread_mutex_t mutex;
+
+    volatile int alive, running;
 
     int srtp_inited;
 
@@ -207,14 +210,18 @@ typedef struct
     unsigned long time_last_run;
 
     struct {
-        unsigned long stat[10];
+        unsigned long stat[13];
     } stats;
+
+    int pad2[256];
+
+    pthread_t thread;
 
     char name[64];
     char roomname[64];
     char watchname[64];
 
-    int timeout_sec;
+    time_t timeout_sec;
 
     int recv_only;
     int send_only;
@@ -223,6 +230,7 @@ typedef struct
         char offer[OFFER_SDP_SIZE];
         char answer[OFFER_SDP_SIZE];
     } sdp;
+    int pad3[256];
 
     struct {
         char raddr[64];
@@ -232,6 +240,7 @@ typedef struct
     int restart_needed;
     int restart_done;
     int underrun_signal;
+    int pad4[256];
 
 } peer_session_t;
 
@@ -248,8 +257,6 @@ typedef struct {
 } sdp_offer_table_t;
 
 extern sdp_offer_table_t sdp_offer_table;
-
-extern pthread_mutex_t peers_table_lock;
 
 extern unsigned long get_time_ms();
 
@@ -287,7 +294,6 @@ void peer_buffers_init(peer_session_t* peer)
         peer_buffer_node_list_init(&peer->rtp_buffers_head[i]);
     }
     peer_buffer_node_list_init(&peer->in_buffers_head);
-    peer_buffer_node_list_init(&peer->out_buffers_head);
 
     peer->buffer_count = buffer_count;
     while(buffer_count > 0)
@@ -297,44 +303,39 @@ void peer_buffers_init(peer_session_t* peer)
         buffer_count -= 1;
     }
 
-    // circular buffer
-    peer_buffer_node_t* cur = peer->in_buffers_head.next;
-    while(cur)
-    {
-        if(cur->next == NULL)
-        {
-            cur->next = peer->in_buffers_head.next;
-            break;
-        }
-        cur = cur->next;
-    }
-
-    peer->in_buffers_tail = peer->in_buffers_head.next;
+    peer->in_buffers_head.tail = peer->in_buffers_head.next;
 }
 
 void peer_buffers_uninit(peer_session_t* peer)
 {
     peer_buffer_node_list_free_all(&peer->in_buffers_head);
-    peer_buffer_node_list_free_all(&peer->out_buffers_head);
 }
 
 void peer_init(peer_session_t* peer, int id)
 {
     /* preserve some fields across init */
+    peer->id = id;
 
     int sock = peer->sock;
     int port = peer->port;
-    memset(peer, 0, sizeof(*peer));
 
-    /* restore */
+    //memset(peer, 0, sizeof(*peer));
+
     peer->sock = sock;
     peer->port = port;
+    peer->srtp_inited = 0;
+    memset(&peer->stun_ice, 0, sizeof(peer->stun_ice));
+    memset(&peer->srtp, 0, sizeof(peer->srtp));
+    peer->dtls.connected = 0;
 
-    peer->id = id;
+    peer->cleartext.len = peer->alive = peer->restart_needed = peer->underrun_signal = peer->restart_done = 0;
+    peer->thread_inited = 0;
+
     peer->subscriptionID = PEER_IDX_INVALID;
     peer->broadcastingID = PEER_IDX_INVALID;
 
     peer->time_start = time(NULL);
+    peer->timeout_sec = PEER_TIMEOUT_DEFAULT;
     
     peer_cookie_init(peer, "");
 
@@ -426,7 +427,6 @@ peer_buffer_node_list_free_all(peer_buffer_node_t* head)
         tmp = node;
         node = node->next;
         free(tmp);
-        if(node == head->next) break;
     }
     return total;
 }
@@ -529,7 +529,7 @@ const char* sdp_offer_create(peer_session_t* peer)
     // see link below
     //"\"a=fmtp:120 max-fr=30; max-fs=14400;\\n\" + \n"
     //"\"b=AS:16000\\n\" + \n"
-    "\"a=fmtp:120 max-fr=60; max-fs=28800; x-google-max-bitrate=5000; x-google-min-bitrate=0; x-google-start-bitrate=3000\\n\" + \n"
+    "\"a=fmtp:120 max-fr=60; max-fs=28800; x-google-max-bitrate=5000; x-google-min-bitrate=0; x-google-start-bitrate=1000\\n\" + \n"
 #endif
     "\"a=fmtp:126 profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1\\n\" + \n"
     "\"a=fmtp:97 profile-level-id=42e01f;level-asymmetry-allowed=1\\n\" + \n"
@@ -604,6 +604,7 @@ const char* sdp_offer_create(peer_session_t* peer)
         strcpy(peer->stun_ice.ufrag_offer, sdp_offer_table.t.iceufrag);
         peer->srtp[0].ssrc_offer = ssrc1;
         peer->srtp[1].ssrc_offer = ssrc2;
+        printf("sdp_offer_create: using %s ufrag[offer]\n", peer->stun_ice.ufrag_offer);
     }
     
     
@@ -635,17 +636,17 @@ const char* sdp_offer_find(const char* ufrag, const char* ufrag_answer)
 {
     static char sdp_offer_find_buf[256];
     int i;
-    
     for(i = 0; i < MAX_PEERS; i++)
     {
-        if(strcmp(sdp_offer_table.t.iceufrag, ufrag) == 0)
+        /* THIS IS FAILING GDB this */
+        if(strstr(ufrag, sdp_offer_table.t.iceufrag) != 0) 
         {
             strcpy(sdp_offer_table.t.iceufrag_answer, ufrag_answer);
-            sdp_offer_table.t.iceufrag[0] = '\0';
+            //sdp_offer_table.t.iceufrag[0] = '\0';
             return sdp_offer_table.t.offer;
         }
     }
-    sprintf(sdp_offer_find_buf, "no offer found for user_fragment: %s\n", ufrag);
+    sprintf(sdp_offer_find_buf, "[no offer found for user_fragment: \"%s\"]\n", ufrag);
     return sdp_offer_find_buf;
 }
 

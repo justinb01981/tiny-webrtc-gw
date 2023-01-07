@@ -6,6 +6,7 @@ INC_LIBSRTP_CRYPTO=./libsrtp/crypto/include
 INC_LIBWS=./ws/cwebsocket/lib
 LDARGS=-static -pthread -lcrypto -lssl -lcrypto -lpthread -lcrypto -lsrtp2 -lm -lrt
 #LDARGS=-lcrypto -lssl -lcrypto -lpthread -lc -lcrypto -lsrtp2 -lm -lpthread -lssl
+GPROF_FLAG=-g
 
 all: lib/libcrypto.a lib/libsrtp2.a lib/libssl.a
 # add -pg to profile with gprof
@@ -19,4 +20,8 @@ lib/libssl.a:
 lib/libsrtp2.a:
 	cd libsrtp && cmake . && make && cp libsrtp2.a ../lib;
 
+#allpre
+#	GPROF_FLAG=-pg
 
+#gprof: all allprep
+	

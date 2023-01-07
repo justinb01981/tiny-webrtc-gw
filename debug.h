@@ -25,6 +25,8 @@ typedef struct {
 
 perf_state_t timers[PERFTIMER_LAST];
 
+static unsigned int dbg_tomb = __LINE__;
+
 extern int terminated;
 
 static void DEBUG_INIT()
@@ -79,6 +81,7 @@ static void print_hex(void* ptr, size_t len)
     {
         printf("%02x", (unsigned int) *((char*)ptr+i));
     }
+    printf("\n");
 }
 
 static unsigned long PERFTIME_INTERVAL_SINCE(unsigned long* st)
