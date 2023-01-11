@@ -56,7 +56,7 @@
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 10
 #define RTP_PSFB 1 
 
-#define EPOLL_TIMEOUT_MS 20
+#define EPOLL_TIMEOUT_MS 5
 
 #define RECVMSG_NUM (128)
 
@@ -256,24 +256,16 @@ void peer_send_block(peer_session_t* peer, char* buf, int len)
 
 void DIAG_PEER(peer_session_t* peer)
 {   
-    size_t n = 0, m = 0;
-    size_t tot = 0, used = 0;
-    peer_buffer_node_t* node = peer->in_buffers_head.rnext;
+    size_t m = 0, tot = 0, used = 0;
+    peer_buffer_node_t* node = peer->in_buffers_head.next;
     while(node)
     {
-        n++;
-        used += node->len;
-        node = node->rnext;
-    }
-    node = peer->in_buffers_head.next;
-    while(node)
-    {
-        m++;
-        tot += node->len;
+        if(node->len > 0) m++;
+        tot += 1; // # bufs used
         node = node->next;
     }
 
-    printf("peer[%d] in-buffers %u/%u\n", peer->id, used, tot);
+    printf(" %u/%u bufs\n", m, tot);
 }
 
 void
@@ -409,13 +401,33 @@ connection_worker(void* p)
     int flush_outbuf_overrun = 0;
     int awaitStun = 16;
     static unsigned nsleep = 5;
+    unsigned long buffering_until = get_time_ms() + 4000, bufferingM = 1;
     
     
     thread_init();
 
-    PEER_LOCK(peer->id);
+    int retries = 10;
+    while(retries > 0) {
+        sleep_msec(100);
+        retries--;
 
-    //peer->cxn_start(peer);
+        PEER_LOCK(peer->id);
+
+        if(peer->alive)
+        {
+            PEER_UNLOCK(peer->id);
+            break;
+        }
+
+        if(retries == 0)
+        {
+            peer->alive = 0;
+        }
+
+        PEER_UNLOCK(peer->id);
+    }
+
+    PEER_LOCK(peer->id);
 
     // TODO: would be nice to call cxn_callback here to fill stun info instead of during restart_needed
 
@@ -529,8 +541,10 @@ connection_worker(void* p)
 
     peer->underrun_signal = 1; // lock first time
 
+    unsigned counter = 0;
+
     // MARK: -- enter main peer connection worker loop
-    while(peer->alive)
+    while(1)
     {
         //printf("main.c:%d: peer[%d] alive loop\n", __LINE__, peer->id);
 
@@ -550,6 +564,12 @@ connection_worker(void* p)
 
         peer->underrun_signal= 0;
         PEER_LOCK(peer->id);
+
+        if(!peer->alive) 
+        {
+            PEER_UNLOCK(peer->id);
+            break;
+        };
 
         while(buffer_next && buffer_next->len == 0) 
         {
@@ -619,6 +639,7 @@ connection_worker(void* p)
                 if(ntohs(bind_req->hdr.len) == 0)
                 {
                     printf("unknown STUN binding request with HDR len 0\n");
+                    attr_len = sizeof(bind_resp->attrs); // no clue what this pkt is all about but don't crash
                 }
                 else if(ntohs(bind_resp->hdr.len) == 8)
                 {
@@ -834,6 +855,8 @@ connection_worker(void* p)
 
                     void* psrtpsess = peer->srtp[rtp_idx].session;
 
+                    if(psrtpsess == NULL) break;
+
                     srtp_err_status_t erru = srtp_unprotect_rtcp(psrtpsess, report, &unprotect_len);
                     if(
                         psrtpsess &&
@@ -922,7 +945,7 @@ connection_worker(void* p)
 
                                     //printf("DETECTED_LOST_PKTS!!!: total:%u peer%d rtpidx:%d)\n", rpt_pkt_lost, peer->id, report_rtp_idx);
                                     // TODO: does this even help or will peers decide on their own based on reports?
-                                    //peers[peer->subscriptionID].srtp[report_rtp_idx].pli_last = wall_time-RTP_PICT_LOSS_INDICATOR_INTERVAL; // schedule picture-loss-indicator
+                                    peers[peer->subscriptionID].srtp[report_rtp_idx].pli_last = wall_time-RTP_PICT_LOSS_INDICATOR_INTERVAL; // schedule picture-loss-indicator
                                 }
                                 peer->srtp[report_rtp_idx].pkt_lost = rpt_pkt_lost;
 
@@ -937,14 +960,15 @@ connection_worker(void* p)
 
                         for(p = 0; p < MAX_PEERS; p++)
                         {
+                            PEER_LOCK(p);
                             u32 protect_len = unprotect_len;
 
                             if(!peers[p].alive)
                             {
+                                PEER_UNLOCK(p);
                                 continue;
                             }
 
-                            PEER_LOCK(p);
 
                             if(peers[p].running &&
                                ((is_sender_report && peers[p].subscriptionID == peer->id)
@@ -1087,12 +1111,14 @@ connection_worker(void* p)
                         PEER_UNLOCK(peer->id);
                         for(p = 0; p < MAX_PEERS; p++)
                         {
+                            PEER_LOCK(p);
+
                             if(!peers[p].alive) 
                             {
+                                PEER_UNLOCK(p);
                                 continue;
                             }
 
-                            PEER_LOCK(p);
                             //printf("srtp_unprotect total + peer: %d %d..", total_protected, rtp_idx);
                             if(!peers[p].send_only &&
                                peers[p].subscriptionID == peer->id &&
@@ -1126,10 +1152,6 @@ connection_worker(void* p)
                                     //printf("srtp_protect: ok + sent\n");
                                     // HACK: SEND IMMEDIATELY?!
                                     peer_send_block(&peers[p], rtp_frame_out, lengthPeer);
-                                    //long time_ms_plus_offset = time_ms /* + peers[p].paced_sender.timestamp_offset_ms*/;
-                                    //outbuf->timestamp = time_ms_plus_offset;
-                                    //outbuf->id = p;
-                                    //outbuf->len = lengthPeer;
 
                                     peer->stats.stat[7] += 1;
 
@@ -1234,26 +1256,45 @@ connection_worker(void* p)
         }
 
         // done with buffer_next decrease sleep interval
-        nsleep /= 2;
+        //nsleep /= 2;
 
         // MARK: -- peer_again goto where we unlock and move to the next buffer in cxn_worker
         peer_again:
 
-        if(!peer->underrun_signal) {
-            // hold lock if another buffer is available and skip sleep
-            nsleep /= 2;
+        buffer_next->len = 0;
+        buffer_next = buffer_next->next;
+        peer->buffer_count += 1;
 
-            buffer_next->len = 0;
-            buffer_next = buffer_next->next;
-        }
-        else
-        {
-            if(nsleep < 1000) nsleep += 5;
-        }
+        int signal_under = peer->underrun_signal;
 
         PEER_UNLOCK(peer->id);
-        sleep_msec(nsleep);
-    
+
+        if(buffering_until < get_time_ms())
+        {
+            if(signal_under || bufferingM == 1)
+            {
+                peer->underrun_signal = 0;
+                // slow and accum. buffer
+                bufferingM = 1;
+            }
+            else if(peer->buffer_count >= PEER_RECV_BUFFER_COUNT / 4)
+            {
+                bufferingM = 4; // drain faster
+            }
+            else
+            {
+                // sleep less frequently before sending
+                bufferingM = 1;
+            }
+            buffering_until = get_time_ms() + 1000;
+        }
+        
+        counter++;
+        if(counter % bufferingM == 0)
+        {
+            sleep_msec(bufferingM);
+        }
+
         //printf("cxn_worker:%d: cxn_worker[%d] finished @ %lu\n", __LINE__, p, PERFTIME_CUR());
     }
 
@@ -1541,17 +1582,19 @@ int main( int argc, char* argv[] ) {
                     sidx = p;
                     //printf("stun_locate: found peer %s has uname: %s\n", peers[sidx].name, stun_uname);
                     if(!peers[p].alive) {
-                        printf("HACK: peers[%d]/%s now alive\n", sidx, stun_uname);
+                        printf("HACK: peers[%d]/%s coming alive\n", sidx, stun_uname);
 
-                        peers[p].alive = 1;
+                        // TODO: setting alive here exposes a race abnd crashes cxn_worker do that after peer set up - see below
+                        //peers[p].alive = 1;
                     }
                     peers[p].time_pkt_last = time_ms;
+                    break;
                 }
                 else
                 {
                     //printf("stun_locate: \"%s\" != \"%s\"\n", stun_uname, stun_uname_expected);
+                    PEER_UNLOCK(p);
                 }
-                PEER_UNLOCK(p);
             }
 
             if(sidx == -1)
@@ -1560,6 +1603,8 @@ int main( int argc, char* argv[] ) {
                 sprintf(counts_log, "ICE binding request: peer matching user-fragment (%s) and _alive_ not found\in", stun_uname);
                 break;
             }
+
+            // here we are PEER_LOCKED(sidx)
 
             // mark -- init new peer
             printf("[%d] STUN bound + adding %s:%d\n", sidx,
@@ -1574,10 +1619,19 @@ int main( int argc, char* argv[] ) {
 
             peers[sidx].cleartext.len = 0;
 
-            assert(peers[sidx].alive);
-            peers[sidx].cxn_start(&peers[sidx]);
+
+            if(peers[sidx].cxn_start)
+            {
+                printf("Cxn-start calling\n");
+                peers[sidx].cxn_start(&peers[sidx]);
+                printf("Cxn-start done\n");
+            }
+
+            peers[sidx].alive = 1;
 
             counts[6]++;
+            PEER_UNLOCK(sidx);
+            goto select_timeout;
         }
         
         if(sidx < 0) {
@@ -1604,12 +1658,27 @@ int main( int argc, char* argv[] ) {
         node->id = sidx;
         node->len = length;
 
+        peers[sidx].buffer_count -= 1;
+
         cur = &peers[sidx].in_buffers_head.next;
 
         peer_buffer_node_t** ptail = &peers[sidx].in_buffers_head.tail;
 
         *ptail = (*ptail)->next;
         if(!*ptail) *ptail = peers[sidx].in_buffers_head.next;
+
+        if((*ptail)->len > 0)
+        {
+            // out of room to enqueue flush
+            printf("peer buffers:[%d] FULL\n", sidx);
+            peer_buffer_node_t* cur = peers[sidx].in_buffers_head.next;
+            while(cur)
+            {
+                cur->len = 0;
+                cur = cur->next;
+                peers[sidx].buffer_count++;
+            }
+        }
 
         //assert(cur != node && peers[sidx].in_buffers_head.rnext != NULL && peers[sidx].in_buffers_head.rnext != &peers[sidx].in_buffers_head);
 
@@ -1626,7 +1695,7 @@ int main( int argc, char* argv[] ) {
         select_timeout:
 
         // HACKHACKHACK: adding a sleep here? still unsure if it helps
-        sleep_msec(EPOLL_TIMEOUT_MS/2);
+        sleep_msec(EPOLL_TIMEOUT_MS);
 
         // MARK: -- house-keeping of peers connection state
         i = 0;
@@ -1634,13 +1703,7 @@ int main( int argc, char* argv[] ) {
         {
             PEER_LOCK(i);
 
-            // check if peer underrun has happened
-            if(peers[i].underrun_signal)
-            {
-                // TODO: lock thread until data arrives, then signal (for now cxn_workers throttle selve
-                peers[i].underrun_signal = 0;
-                // TODO: adjust pacing
-            }
+            // TODO: check if peer underrun has happened
 
             if(peers[i].alive)
             {
@@ -1666,26 +1729,48 @@ int main( int argc, char* argv[] ) {
             }
             */
 
-            // check whether to remove this peer
-            if (!peers[i].restart_done && (peers[i].restart_needed || wall_time - peers[i].time_pkt_last > peers[i].timeout_sec))
+            
+            // close reinit if alive and stalled traffic
+            peers[i].restart_needed = peers[i].restart_needed | (peers[i].alive && wall_time - peers[i].time_pkt_last >= peers[i].timeout_sec);
+
+            int log_user_exit = !peers[i].restart_needed;
+
+            // check whether to reinit this peer
+            // restart_needed will be set when webserver is adding new peer OR if time_pkt_last sufficiently distant
+            if (/*!peers[i].restart_done &&*/ peers[i].restart_needed)
             {
-                int log_user_exit = !peers[i].restart_needed;
+                int s;
 
                 printf("%s:%d timeout/reclaim peer %d/n", __func__, __LINE__, i);
 
-                /*
                 sprintf(strbuf, "%s ", peers[i].name);
                 chatlog_append(strbuf);
-                */
 
+                PEER_UNLOCK(i);
                 /* TODO: reset all this peer's subscribers? */
+                for(s = 0; s < MAX_PEERS; s++) {
+                    PEER_LOCK(s);
+                    peer_session_t* peer = &peers[s];
+                    if(peer->alive && peer->subscriptionID == i) {
+
+                        // TODO: trying to make ssl_close cause peers dtls_read to return -1 but after close still need to write packets
+                        if(peer->srtp_inited) {
+                            DTLS_peer_shutdown(peer);
+                        }
+
+                        peer_init(peer, peer->id);
+                        printf("peer_init[%d]: unlocking...\n", peer->id);
+                    }
+                    PEER_UNLOCK(s);
+                }
+                PEER_LOCK(i);
 
                 DTLS_peer_uninit(&peers[i]);
                 memset(&peers[i].dtls, 0, sizeof(peers[i].dtls));
 
                 peer_buffers_uninit(&peers[i]);
 
-                int s = 0;
+                s = 0;
                 while(s < PEER_RTP_CTX_COUNT)
                 {
                     peers[i].srtp_inited = 0;
@@ -1705,7 +1790,11 @@ int main( int argc, char* argv[] ) {
                 memset(&peers[i].addr, 0, sizeof(peers[i].addr));
                 memset(&peers[i].addr_listen, 0, sizeof(peers[i].addr_listen));
  
-                if(log_user_exit && strlen(peers[i].name) > 0) sprintf(strbuf, "server:%s left %s\n", peers[i].name, peers[i].roomname);
+                if(log_user_exit && strlen(peers[i].name) > 0)
+                {
+                    sprintf(strbuf, "server:%s left %s\n", peers[i].name, peers[i].roomname);
+                    chatlog_append(strbuf);
+                }
 
                 peers[i].name[0] = '\0';
                 peers[i].subscribed = 0;
@@ -1729,7 +1818,13 @@ int main( int argc, char* argv[] ) {
                     assert(!peers[i].running);
                     printf("...stopped\n");
                 }
+
+                printf("restart_done[%d]: = 1 ..", i);
                 peers[i].restart_done = 1;
+                printf(".ok\n");
+
+                peers[i].restart_needed = 0;
+                printf("restart_needed: = 0\n");
             }
 
             PEER_UNLOCK(i);

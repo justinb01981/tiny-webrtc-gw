@@ -24,4 +24,6 @@ lib/libsrtp2.a:
 #	GPROF_FLAG=-pg
 
 #gprof: all allprep
-	
+
+debug: all
+	gdb -ex "run" webrtc_gw

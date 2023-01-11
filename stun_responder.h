@@ -2,6 +2,7 @@
 #define __STUN_RESPONDER_H__
 
 #include "debug.h"
+#include <assert.h>
 
 #define ATTR_PACKED __attribute__ ((packed))
 
@@ -258,15 +259,19 @@ stunID(unsigned char* buf, unsigned int len)
     {
         memcpy(&l, &(buf[offset]), sizeof(l));
     }
-    if(len >= sizeof(stun_hdr_t)+sizeof(bind_msg->attrs.stun_binding_request1))
+    if(len >= sizeof(stun_hdr_t)+sizeof(bind_msg->attrs.stun_binding_request2))
     {
         l = 0;
         int i = 0;
-        while(i < sizeof(bind_msg->attrs.stun_binding_request1.username.name))
+        while(i < sizeof(bind_msg->attrs.stun_binding_request2.username.name))
         {
-            l += bind_msg->attrs.stun_binding_request1.username.name[i];
+            l += bind_msg->attrs.stun_binding_request2.username.name[i];
             i++;
         }
+    }
+    else
+    {
+        printf("STUN exception: %d len=%d\n", __LINE__, len);
     }
     return l;
 }
@@ -279,10 +284,15 @@ stun_username(unsigned char* buf, int len, char* uname_out)
     if(len <= sizeof(stun_hdr_t)+sizeof(bind_msg->attrs.stun_binding_request1))
     {
         unsigned short l = ntohs(bind_msg->attrs.stun_binding_request1.username.len);
-        if(l < 64)
+        if(l <= 64)
         {
             memcpy(uname_out, bind_msg->attrs.stun_binding_request1.username.name, l);
             uname_out[l] = '\0';
+        }
+        else
+        {
+            // seeing this only during disconnect so save to ignore 
+            //printf("stun_username WARN: l > 64\n", l);
         }
     }
 }

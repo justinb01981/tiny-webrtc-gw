@@ -344,23 +344,50 @@ DTLS_peer_init(peer_session_t* peer)
     }
 }
 
-inline static int
-DTLS_peer_shutdown(peer_session_t* peer)
+inline static void
+DTLS_flush(peer_session_t* peer)
 {
-    if(peer->dtls.ssl == NULL) return -1;
+    // drain SSL_wbio and send packets
+    int r;
+    char buf[512];
 
-    return SSL_shutdown(peer->dtls.ssl);
+    r = BIO_read(SSL_get_wbio(peer->dtls.ssl), buf, sizeof(buf));
+    printf("DTLS_flush: %d bytes\n", r);
+    if(r > 0) peer_send_block(peer, buf, r);
 }
 
-inline static void
-DTLS_peer_uninit(peer_session_t* peer)
+inline static 
+DTLS_peer_shutdown(peer_session_t* peer)
 {
+    if(peer->dtls.ssl == NULL) return;
+
+    int res = 0;
+    int retries = 3;
+    while (res >= 0 && retries > 0) {
+        res = SSL_shutdown(peer->dtls.ssl);
+        DTLS_flush(peer);
+        sleep_msec(20);
+        retries--;
+    }
+}
+
+inline static int
+DTLS_close(peer_session_t* peer)
+{
+    DTLS_peer_shutdown(peer);
+
     if(peer->dtls.ssl)
     {
         SSL_free(peer->dtls.ssl);
         peer->dtls.ssl = NULL;
     }
     peer->dtls.connected = 0;
+}
+
+inline static void
+DTLS_peer_uninit(peer_session_t* peer)
+{
+    DTLS_close(peer);
 }
 
 typedef void (*DTLS_read_cb)(u8* buf, unsigned int len);

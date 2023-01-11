@@ -32,7 +32,7 @@ static int culprit_unlock = -1;
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&peers[x].mcond, &peers[x].mutex)
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 4096
-#define PEER_RECV_BUFFER_COUNT 512
+#define PEER_RECV_BUFFER_COUNT 4096
 
 #ifdef assert
 #undef assert
@@ -171,13 +171,15 @@ typedef struct
     } cleartext;
 
     peer_buffer_node_t in_buffers_head;
+    // TODO: unused - remove this
     peer_buffer_node_t rtp_buffers_head[PEER_RTP_CTX_COUNT];
 
     unsigned int rtp_buffered_total;
-    unsigned long buffer_count;
     u32 rtp_timestamp_initial[PEER_RTP_CTX_COUNT];
     unsigned long clock_timestamp_ms_initial[PEER_RTP_CTX_COUNT];
     u16 rtp_seq_initial[PEER_RTP_CTX_COUNT];
+
+    unsigned buffer_count;
 
     int sock;
     int port;
@@ -324,9 +326,10 @@ void peer_init(peer_session_t* peer, int id)
     peer->sock = sock;
     peer->port = port;
     peer->srtp_inited = 0;
+
     memset(&peer->stun_ice, 0, sizeof(peer->stun_ice));
     memset(&peer->srtp, 0, sizeof(peer->srtp));
-    peer->dtls.connected = 0;
+    memset(&peer->dtls, 0, sizeof(peer->dtls));
 
     peer->cleartext.len = peer->alive = peer->restart_needed = peer->underrun_signal = peer->restart_done = 0;
     peer->thread_inited = 0;
@@ -638,7 +641,6 @@ const char* sdp_offer_find(const char* ufrag, const char* ufrag_answer)
     int i;
     for(i = 0; i < MAX_PEERS; i++)
     {
-        /* THIS IS FAILING GDB this */
         if(strstr(ufrag, sdp_offer_table.t.iceufrag) != 0) 
         {
             strcpy(sdp_offer_table.t.iceufrag_answer, ufrag_answer);
