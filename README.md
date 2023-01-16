@@ -5,6 +5,9 @@ tiny-webrtc-gw: a webRTC conferencing server "monolith" written in C/C++
 or:
 webRTC video/audio conferencing (many-to-many) server daemon for linux
 
+
+__The simplest way to roll-your-own (secure) webRTC video broadcast service.__
+
 Goals:
 * very fast stream multiplexing via lightweight C
 * no external servers required - run it on a raspberry-pi on an
@@ -24,7 +27,6 @@ Caveats:
   browser/OS certificate trust-store)
 
 
-The simplest way to roll-your-own (secure) webRTC video broadcast service.
 
 (*OUTDATED* screenshot here)
 ![screenshot](http://www.domain17.net/justin/tiny-webrtc-gw-screenshot.png)
@@ -32,7 +34,8 @@ The simplest way to roll-your-own (secure) webRTC video broadcast service.
 demo server running on a raspberry-pi4:
 
 [https://weephone.domain17.net](https://weephone.domain17.net/)
-![https://github.com/justinb01981/tiny-webrtc-gw/raw/master/IMG-8094.jpg](https://tinyurl.com/dadcam1)
+![https://github.com/justinb01981/tiny-webrtc-gw/raw/master/IMG-8094.jpg]
+![https://raw.githubusercontent.com/justinb01981/tiny-webrtc-gw/master/IMG-8094.jpg](https://tinyurl.com/dadcam1)
 
 Hot features:
 * Very low latency 1-many streaming
