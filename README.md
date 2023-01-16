@@ -34,7 +34,7 @@ Caveats:
 demo server running on a raspberry-pi4:
 
 [https://weephone.domain17.net](https://weephone.domain17.net/)
-![https://github.com/justinb01981/tiny-webrtc-gw/raw/master/IMG-8094.jpg]
+
 ![https://raw.githubusercontent.com/justinb01981/tiny-webrtc-gw/master/IMG-8094.jpg](https://tinyurl.com/dadcam1)
 
 Hot features:
