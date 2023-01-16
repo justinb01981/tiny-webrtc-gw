@@ -58,6 +58,8 @@ static char *tag_sdp_offer1 = "%$SDP_OFFER$%";
 static char* tag_joinroom_ws = "POST /join/";
 static char* tag_msgroom_ws = "POST /message/domain17/";
 static char* webserver_staticc;
+static char buf_nonreentrant[1024];
+static char ufrag_offeranswer_tmp[256];
 
 
 char*
@@ -171,6 +173,27 @@ bootstrap_peer_async(peer_session_t* p)
     //printf("bootstrap_peer_async: aliving..");
     //p->alive = 1;
     printf(".done\n");
+}
+
+void setupSTUN(void* voidp) {
+    peer_session_t *p = voidp;
+    char** sdp = &g_sdp;
+
+    // this is called with peer lock taken and alive=true, careful
+
+    printf("setupSTUN: ICE peer matched....\n");
+
+    // init stun-ice attributes
+    buf_nonreentrant[0] = '\0';
+    strcpy(p->sdp.answer, *sdp);
+
+    // HACK: leaking a buffer here for sdp so it can be shared between threads
+    //printf("leaking sdp: %02x\n", *sdp);
+    //free(*sdp);
+    //*sdp = NULL;
+
+    // mark -- signal/wait for peer to be initialized
+    p->time_pkt_last = time(NULL);
 }
 
 void*
@@ -656,9 +679,7 @@ webserver_worker(void* p)
                     {
                         // create temp file, decode, rename for worker thread to pick up/read and remove
                         char tmp[256];
-                        static char ufrag_offeranswer_tmp[256];
                         char** sdp = &g_sdp;
-                        static char buf_nonreentrant[1024];
 
                         *sdp = strdup(pbody);
 
@@ -696,24 +717,7 @@ webserver_worker(void* p)
                             printf("ufrag_offerans_tmp:%s\n", ufrag_offeranswer_tmp);
                         }
 
-                        void setupSTUN(void* voidp) {
-                            peer_session_t *p = voidp;
-                            // this is called with peer lock taken and alive=true, careful
-
-                            printf("setupSTUN: ICE peer matched....\n");
-
-                            // init stun-ice attributes
-                            buf_nonreentrant[0] = '\0';
-                            strcpy(p->sdp.answer, *sdp);
-
-                            // HACK: leaking a buffer here for sdp so it can be shared between threads
-                            //printf("leaking sdp: %02x\n", *sdp);
-                            //free(*sdp);
-                            //*sdp = NULL;
-
-                            // mark -- signal/wait for peer to be initialized
-                            p->time_pkt_last = time(NULL);
-                        }
+                        // setupSTUN moved from here - can't live on the stack now
 
                         printf("requesting peer[%d] restart: stun_ice.user-name answer/offer: %s:%s\n",
                             sidx, peers[sidx].stun_ice.ufrag_answer, peers[sidx].stun_ice.ufrag_offer);
@@ -757,9 +761,9 @@ webserver_worker(void* p)
 
                         peers[sidx].alive = 1;
                         // cxn_start is called by main epoll thread
-
-                        printf("...done\n");
+                        
                         PEER_UNLOCK(sidx);
+                        printf("...done\n");
 
                         goto response_override;
                     }

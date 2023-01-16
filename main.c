@@ -1208,9 +1208,11 @@ connection_worker(void* p)
             goto peer_again;
         }
 
+        PEER_LOCK(peer->id);
         /* if we got here, STUN is "bound" and can begin DTLS */
         if(peer->dtls.use_membio && length > 0)
         {
+
             DTLS_write(peer, buffer, length);
 
             DTLS_accept_read(peer, cb_print);
@@ -1292,7 +1294,7 @@ connection_worker(void* p)
         counter++;
         if(counter % bufferingM == 0)
         {
-            sleep_msec(bufferingM);
+            sleep_msec(2);
         }
 
         //printf("cxn_worker:%d: cxn_worker[%d] finished @ %lu\n", __LINE__, p, PERFTIME_CUR());
@@ -1600,7 +1602,7 @@ int main( int argc, char* argv[] ) {
             if(sidx == -1)
             {
                 counts[1]++;
-                sprintf(counts_log, "ICE binding request: peer matching user-fragment (%s) and _alive_ not found\in", stun_uname);
+                sprintf(counts_log, "ICE binding request: peer matching user-fragment (%s) and _alive_ not found\n", stun_uname);
                 break;
             }
 
@@ -1619,19 +1621,17 @@ int main( int argc, char* argv[] ) {
 
             peers[sidx].cleartext.len = 0;
 
-
             if(peers[sidx].cxn_start)
             {
-                printf("Cxn-start calling\n");
                 peers[sidx].cxn_start(&peers[sidx]);
-                printf("Cxn-start done\n");
+                peers[sidx].cxn_start = NULL;
             }
 
             peers[sidx].alive = 1;
 
             counts[6]++;
             PEER_UNLOCK(sidx);
-            goto select_timeout;
+            //goto select_timeout;
         }
         
         if(sidx < 0) {
@@ -1694,7 +1694,7 @@ int main( int argc, char* argv[] ) {
         // no mutex should be held now...
         select_timeout:
 
-        // HACKHACKHACK: adding a sleep here? still unsure if it helps
+        // HACKHACKHACK: adding a sleep here? this appears to help avoid context switching so much
         sleep_msec(EPOLL_TIMEOUT_MS);
 
         // MARK: -- house-keeping of peers connection state
@@ -1729,11 +1729,10 @@ int main( int argc, char* argv[] ) {
             }
             */
 
+            int log_user_exit = !peers[i].restart_needed;
             
             // close reinit if alive and stalled traffic
             peers[i].restart_needed = peers[i].restart_needed | (peers[i].alive && wall_time - peers[i].time_pkt_last >= peers[i].timeout_sec);
-
-            int log_user_exit = !peers[i].restart_needed;
 
             // check whether to reinit this peer
             // restart_needed will be set when webserver is adding new peer OR if time_pkt_last sufficiently distant
@@ -1743,8 +1742,8 @@ int main( int argc, char* argv[] ) {
 
                 printf("%s:%d timeout/reclaim peer %d/n", __func__, __LINE__, i);
 
-                sprintf(strbuf, "%s ", peers[i].name);
-                chatlog_append(strbuf);
+                //sprintf(strbuf, "%s ", peers[i].name);
+                //chatlog_append(strbuf);
 
                 PEER_UNLOCK(i);
                 /* TODO: reset all this peer's subscribers? */

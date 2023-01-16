@@ -1,11 +1,11 @@
 body.outerBody {
-    background-color: black;
-    color:green;
+    color: green;
+    margin:8%;
 }
 
 p {
   font-family:monospace;
-  font-size:10pt;
+  font-size:12pt;
 }
 
 h1 {
@@ -14,9 +14,7 @@ h1 {
 }
 
 td {
-    margin:0;
-    padding:0;
-    border-collapse: collapse;
+    padding:2px;
     margin:auto;
 }
 
@@ -40,21 +38,16 @@ tr.chatRow {
 }
 
 table.mainTable {
-    margin:0 0 0 16;
-    padding:0;
-    border-width:2px;
     table-layout:auto;
-    background-color:black;
-    border-color:white;
     width:100%;
     height:100%;
+    background-color:#000000f2;
 }
 
 table.videoMainContainer {
     margin:0 0 0 0;
     padding: 0;
-    border-width:2;
-    border-collapse: collapse;
+    border-width:2px;
     overflow:scroll;
     table-layout:auto;
     background-color:black;
@@ -70,15 +63,13 @@ video {
 
 table.localPreviewTable {
     margin:2 2 2 2;
-    padding: 0;
     border-width:2;
-    border-collapse: collapse;
     overflow:hidden;
     table-layout:auto;
     background-color:black;
     border-color:grey;
-    width:96px;
-    height:72px;
+    width:128px;
+    height:96px;
 }
 
 video.videoMain {
@@ -97,6 +88,7 @@ t.videoNameText {
 }
 
 p.videoLabel {
+    font-family:monospace;
     background-color:black;
     color:green;
     width:100px;
@@ -104,10 +96,10 @@ p.videoLabel {
 
 div.localPreview {
     position:fixed;
-    top:1%;
-    left:1%;
-    width:12%;
-    height:8%;
+    top:5%;
+    left:5%;
+    width:16%;
+    height:12%;
 }
 
 div.videoContainerDiv {
@@ -124,11 +116,6 @@ div.videoContainerFake {
 }
 
 div.topDiv {
-}
-
-p {
-    font-size:10pt;
-    color:green;
 }
 
 p.controlsPara {
