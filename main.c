@@ -1644,6 +1644,12 @@ int main( int argc, char* argv[] ) {
         PEER_LOCK(sidx);
          
         node = peers[sidx].in_buffers_head.tail;
+        if(!node)
+        {
+            printf("epoll_memcpy: in_buffers_head.tail = 0! (SHOULDNT HAPPEN unless this is a tolerable race cond)\n");
+            PEER_UNLOCK(sidx);
+            goto select_timeout;
+        }
 
         //printf("peer[%d] used buffers:%d\n", peers[sidx.id, used);
                 
@@ -1782,6 +1788,7 @@ int main( int argc, char* argv[] ) {
                 }
                 memset(peers[i].srtp, 0, sizeof(peers[i].srtp));
 
+                peer_buffers_uninit(&peers[i]);
                 peer_buffers_init(&peers[i]);
 
                 peer_stun_init(&peers[i]);
