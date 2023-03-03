@@ -1,8 +1,8 @@
 #ifndef __PEER_H__
 #define __PEER_H__
 
-#include "memdebughack.h"
 #include "stun_callback.h"
+#include "srtp_key_len.h"
 
 #define SDP_OFFER_VP8 1
 
@@ -15,15 +15,9 @@
 //#define PEER_RTP_SEQ_MIN_RECLAIMABLE 128
 #define PEER_RTP_SEQ_MIN_RECLAIMABLE 0
 
-#define VP9PROFILEID "0"
 
-static char* culprit_lock_file = "";
-static char* culprit_unlock_file = "";
-static int culprit_lock = -1;
-static int culprit_unlock = -1;
-#define PEER_LOCK(j) { culprit_lock_file = __FILE__; culprit_lock = __LINE__; pthread_mutex_lock(&peers[(int) (j)].mutex); }
-#define PEER_UNLOCK(j) { culprit_unlock_file = __FILE__; culprit_unlock = __LINE__; pthread_mutex_unlock(&peers[(j)].mutex); }
-
+#define PEER_LOCK(j) { pthread_mutex_lock(&peers[(int) (j)].mutex); }
+#define PEER_UNLOCK(j) { pthread_mutex_unlock(&peers[(j)].mutex); }
 
 #define PEER_SIGNAL(x) pthread_cond_signal(&peers[(x)].mcond)
 
@@ -32,7 +26,19 @@ static int culprit_unlock = -1;
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&peers[x].mcond, &peers[x].mutex)
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 4096
-#define PEER_RECV_BUFFER_COUNT 4096
+#define PEER_RECV_BUFFER_COUNT_MS (200)
+#define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*4)
+#define RTP_PICT_LOSS_INDICATOR_INTERVAL 10000
+
+#define EPOLL_TIMEOUT_MS 5
+
+
+// TODO: artififially low to smooth jitter calculations and prevent bursts?
+#define RECVMSG_NUM (/*128*/ 8)
+
+//
+// -- fwiw i have never seen the buffers used go beyond 64 at 12mbitsec  on wifi on my pi 4
+//
 
 #ifdef assert
 #undef assert
@@ -48,7 +54,7 @@ static int culprit_unlock = -1;
     }                         \
 }
 
-const char* PEER_DYNAMIC_JS_EMPTY = "/* dynamic js */\n"
+const char* PEER_DYNAMIC_JS_EMPTY = "/* dynamic js */\n" 
 "function doPeerDynamicOnLoad() { return; }\n";
 
 typedef struct peer_buffer_node
@@ -73,7 +79,23 @@ typedef struct peer_buffer_node
     char buf[1];
 } peer_buffer_node_t;
 
-typedef struct
+typedef struct {
+    int bound;
+    int bound_client;
+    int controller;
+    char ufrag_offer[64];
+    char ufrag_answer[64];
+    char offer_pwd[128];
+    char answer_pwd[128];
+    unsigned long bind_req_rtt;
+    int bind_req_calc;
+    //char uname[64];
+    unsigned int candidate_id;
+} stun_ice_st_t;
+
+struct peer_session_t;
+
+typedef struct peer_session_t
 {
     u32 stunID32;
 
@@ -84,19 +106,7 @@ typedef struct
         char key[64];
     } crypto;
 
-    struct {
-        int bound;
-        int bound_client;
-        int controller;
-        char ufrag_offer[64];
-        char ufrag_answer[64];
-        char offer_pwd[128];
-        char answer_pwd[128];
-        unsigned long bind_req_rtt;
-        int bind_req_calc;
-        //char uname[64];
-        unsigned int candidate_id;
-    } stun_ice;
+    stun_ice_st_t stun_ice;
 
     struct {
         SSL *ssl;
@@ -136,13 +146,7 @@ typedef struct
         long receiver_report_sr_delay_last;
 
         time_t pli_last;
-        
-
     } srtp[PEER_RTP_CTX_COUNT];
-
-    struct {
-        long timestamp_offset_ms;
-    } paced_sender;
 
     struct {
         char cookie[256];
@@ -193,8 +197,6 @@ typedef struct
     pthread_cond_t mcond;
     int thread_inited;
 
-    stun_callback_t cxn_start;
-
     int fwd;
 
     int pad1[256];
@@ -239,8 +241,9 @@ typedef struct
         uint32_t rport;
     } websock_icecandidate;
 
-    int restart_needed;
-    int restart_done;
+    int init_needed;
+    //int restart_done;
+    void (*cb_restart)(struct peer_session_t*);
     int underrun_signal;
     int pad4[256];
 
@@ -305,7 +308,7 @@ void peer_buffers_init(peer_session_t* peer)
         buffer_count -= 1;
     }
 
-    peer->in_buffers_head.tail = peer->in_buffers_head.next;
+    peer->in_buffers_head.tail = NULL;
 }
 
 void peer_buffers_uninit(peer_session_t* peer)
@@ -315,30 +318,22 @@ void peer_buffers_uninit(peer_session_t* peer)
 
 void peer_init(peer_session_t* peer, int id)
 {
-    /* preserve some fields across init */
     peer->id = id;
-
-    int sock = peer->sock;
-    int port = peer->port;
-
-    //memset(peer, 0, sizeof(*peer));
-
-    peer->sock = sock;
-    peer->port = port;
-    peer->srtp_inited = 0;
-
-    memset(&peer->stun_ice, 0, sizeof(peer->stun_ice));
+    
+    // NOTE: this is being done in cb_disconnect which is only called @ close --> //memset(&peer->stun_ice, 0, sizeof(peer->stun_ice));
     memset(&peer->srtp, 0, sizeof(peer->srtp));
-    memset(&peer->dtls, 0, sizeof(peer->dtls));
 
-    peer->cleartext.len = peer->alive = peer->restart_needed = peer->underrun_signal = peer->restart_done = 0;
-    peer->thread_inited = 0;
+    peer->stun_ice.bound = peer->stun_ice.bound_client = 0;
+
+    peer->srtp_inited = peer->dtls.connected = peer->cleartext.len = /* peer->alive = */ peer->init_needed = peer->underrun_signal = 0;
+    //peer->thread_inited = 0;
 
     peer->subscriptionID = PEER_IDX_INVALID;
     peer->broadcastingID = PEER_IDX_INVALID;
 
     peer->time_start = time(NULL);
     peer->timeout_sec = PEER_TIMEOUT_DEFAULT;
+    peer->time_pkt_last = time(NULL);
     
     peer_cookie_init(peer, "");
 
@@ -541,7 +536,7 @@ const char* sdp_offer_create(peer_session_t* peer)
     "\"a=mid:sdparta_1\\n\" + \n"
     "\"a=msid:{7e5b1422-7cbe-3649-9897-864febd59342} {f46f496f-30aa-bd40-8746-47bda9150d23}\\n\" + \n"
 #if SDP_OFFER_VP8
-    "\"a=rtcp-fb:120 ccm fir pli" /*" nack"*/"\\n\" + \n"
+    "\"a=rtcp-fb:120 ccm fir pli" " nack""\\n\" + \n"
 #endif
     "\"a=rtcp-fb:126 ccm fir\\n\" + \n"
     "\"a=rtcp-fb:97 ccm fir\\n\" + \n"

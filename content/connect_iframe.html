@@ -71,6 +71,8 @@ function connectIFrameOnLoad(htmlBodyElem)
     selectUser.style.cssText = 'display:none';
   }
 
+  selectUser.size = 5;
+
   let optionLabel = document.createElement('option');
   optionLabel.value = 'NULL';
   optionLabel.text = '<users online>';
@@ -106,8 +108,9 @@ function connectIFrameOnLoad(htmlBodyElem)
       selectUser.options.add(option);
 
       // ignore this user if already subscribed
-      if(state.usersSubscribed.includes(name) ||
-         name == window.parent.myUsername)
+      if(state.usersSubscribed.includes(name)
+          ||
+         (name == window.parent.myUsername && state.joinMode == 'broadcast'))
       { 
         continue;
       }
@@ -122,7 +125,7 @@ function connectIFrameOnLoad(htmlBodyElem)
         state.selectedUser = name;
         window.parent.prepareVideo(videoTable, name);
 
-        console.debug('onJoin during connect_iframe onLoad');
+        console.debug('TODO: assert onJoin during connect_iframe onLoad');
 
         onJoin();
       }, 2000);
