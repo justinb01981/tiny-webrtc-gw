@@ -51,6 +51,11 @@ function appendMessagesToUnorderedList(l, array) {
     var bgColor = isItalic ? altcolor[1] : altcolor[0];
     var textColor = isItalic ? 'red' : 'green';
 
+    if (isItalic) {
+        i++;
+        continue;
+    }
+
     str = str.replace(/\+/g, ' ');
     while(offset < str.length && str.length > 0) {
       var listElem = appendMessageListElem(l, str.substring(offset, offset+maxLen, str.indexOf('server:') >= 0));

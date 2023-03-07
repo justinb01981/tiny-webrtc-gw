@@ -196,6 +196,10 @@ void setupSTUN(void* voidp) {
     p->time_pkt_last = time(NULL);
 }
 
+int cb_done;
+peer_session_t* cb_tgtpeer;
+
+
 void*
 webserver_worker(void* p)
 {
@@ -487,22 +491,18 @@ webserver_worker(void* p)
 
                             PEER_LOCK(peer_logout->id);
 
-                            peer_logout->restart_done = 0;
-                            while(!peer_logout->restart_done)
-                            {
-                                peer_logout->restart_needed = 1;
-                                PEER_UNLOCK(peer_logout->id);
-                                usleep(SPIN_WAIT_USEC);
-                                PEER_LOCK(peer_logout->id);
+                            void web_cb_logout(peer_session_t* p) {
+                                printf("cb_logout @ %02x\n", p);
+
+                                p->alive = 0;
+                                peer_cookie_init(p, "");
                             }
-                            peer_logout->alive = 0;
-                            peer_logout->restart_needed = peer_logout->restart_done = 0;
-                            peer_init(peer_logout, PEER_INDEX(peer_logout));
-                            peer_cookie_init(peer_logout, "");
+
+                            peer_logout->cb_restart = web_cb_logout;
+                            peer_logout->init_needed = 1;
+                            PEER_UNLOCK(peer_logout->id);
                             
                             peer_found_via_cookie = NULL;
-
-                            PEER_UNLOCK(peer_logout->id);
                         }
                     }
 
@@ -677,6 +677,7 @@ webserver_worker(void* p)
                     // handle SDP-answer upload
                     if(strcmp(purl, "/"FILENAME_SDP_ANSWER) == 0)
                     {
+
                         // create temp file, decode, rename for worker thread to pick up/read and remove
                         char tmp[256];
                         char** sdp = &g_sdp;
@@ -704,66 +705,75 @@ webserver_worker(void* p)
                             sidx = PEER_INDEX(peer_found_via_cookie);
 
                             if(sidx == webserver.peer_idx_next) webserver.peer_idx_next += 1;
+
+                            PEER_LOCK(sidx);
                         }
                         else
                         {
                             sidx = webserver.peer_idx_next % MAX_PEERS;
                             webserver.peer_idx_next += 1;
 
+                            PEER_LOCK(sidx);
+
                             peer_init(&peers[sidx], sidx);
                             peers[sidx].broadcastingID = peer_broadcast_from_cookie;
                             
                             strcpy(ufrag_offeranswer_tmp, sdp_offer_table.t.iceufrag);
-                            printf("ufrag_offerans_tmp:%s\n", ufrag_offeranswer_tmp);
+                            printf("webserver: no cookie/using offer ufrag %s\n", ufrag_offeranswer_tmp);
                         }
 
                         // setupSTUN moved from here - can't live on the stack now
 
-                        printf("requesting peer[%d] restart: stun_ice.user-name answer/offer: %s:%s\n",
-                            sidx, peers[sidx].stun_ice.ufrag_answer, peers[sidx].stun_ice.ufrag_offer);
+                        printf("requesting peer[%d] restart\n", sidx);
 
                         free(response);
-                        //response = strdup(page_buf_sdp_uploaded);
                         response = malloc(strlen(page_buf_sdp_uploaded) + 2048);
                         response[0] = '\0'; strcat(response, page_buf_sdp_uploaded);
                         content_type = content_type_html;
-
+                        
+                        // TODO: there may be some benefit to having a separate monitor thread
+                        // during setup "bootstrapping"
                         //pthread_attr_init(&thread_attrs);
                         //pthread_attr_setdetachstate(&thread_attrs, PTHREAD_CREATE_DETACHED);
                         //pthread_create(&thr_boot, &thread_attrs, bootstrap_peer_async, &peers[sidx]);
 
-                        PEER_LOCK(sidx);
-                        peers[sidx].cxn_start = setupSTUN;
-                        peers[sidx].restart_done = 0;
-                        while(!peers[sidx].restart_done) {
-                            peers[sidx].restart_needed = 1;
-                            PEER_UNLOCK(sidx);
-                            // don't set alive here - happens when STUN pkt
-                            sleep_msec(1);
-                            printf("restart_done: waiting...\n");
-                            PEER_LOCK(sidx);
+                        printf("webserver peer[%d] got SDP:\n%s\n", sidx, *sdp);
+
+                        void cb_begin(peer_session_t* p) {
+                            printf("peer[%d] we alive now chickenhead!\n", p->id);
+                            // cxn_start is called by main epoll thread
+
+                            // next time this peer restarts we are terminating (state) 
+                            extern void cb_disconnect(peer_session_t*);
+                            p->cb_restart = cb_disconnect;
+                            p->time_pkt_last = time(NULL);
+
+                            cb_done = 1;
+                            p->alive = 1;
                         }
-                        sleep_msec(20);
-                        assert(peers[sidx].restart_done);
-                        peers[sidx].restart_needed = 0;
-                        peers[sidx].restart_done = 0;
-                        sleep_msec(20);
-                        assert(peers[sidx].restart_done == 0);
 
-                        printf("webserver got SDP:\n%s\n", *sdp);
+                        {
+                            peer_session_t* p = &peers[sidx];;
+                            strcpy(p->sdp.answer, *sdp);
 
-                        strcpy(peers[sidx].sdp.answer, *sdp);
-                        strcpy(peers[sidx].stun_ice.ufrag_answer, sdp_read(*sdp, "a=ice-ufrag"));
+                            strcpy(p->stun_ice.ufrag_answer, sdp_read(p->sdp.answer, "a=ice-ufrag"));
+                            strcpy(p->sdp.offer, sdp_offer_find(ufrag_offeranswer_tmp, p->stun_ice.ufrag_answer));
+                            printf("found offer:%s\n", p->sdp.offer);
+                            strcpy(p->stun_ice.ufrag_offer, sdp_read(p->sdp.offer, "a=ice-ufrag"));
 
-                        strcpy(peers[sidx].sdp.offer, sdp_offer_find(ufrag_offeranswer_tmp, peers[sidx].stun_ice.ufrag_answer));
+                            // -- using init_needed here to signal
+                            p->cb_restart = cb_begin;
 
-                        printf("found offer:%s\n", peers[sidx].sdp.offer);
+                            // await??
+                            cb_done = 0;
+                            p->init_needed = 1;
+                            PEER_UNLOCK(p->id);
 
-                        peers[sidx].alive = 1;
-                        // cxn_start is called by main epoll thread
-                        
-                        PEER_UNLOCK(sidx);
-                        printf("...done\n");
+                            // TODO: signal connection_worker thread that it may continue running
+                            // (right now it just sleeps)
+
+                            printf("...done\n");
+                        }
 
                         goto response_override;
                     }

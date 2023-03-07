@@ -7,7 +7,7 @@
 --
 </td>
 <td>
-<select id='selectUser' name='selectUser' style='display:none;' onchange='onSelectUserChange(this)'>
+<select id='selectUser' name='selectUser' class='selectUser' onchange='onSelectUserChange(this)'>
 </select>
 </td>
 <td>
@@ -71,6 +71,8 @@ function connectIFrameOnLoad(htmlBodyElem)
     selectUser.style.cssText = 'display:none';
   }
 
+  selectUser.size = 5;
+
   let optionLabel = document.createElement('option');
   optionLabel.value = 'NULL';
   optionLabel.text = '<users online>';
@@ -79,6 +81,7 @@ function connectIFrameOnLoad(htmlBodyElem)
   if(state.selectedRoom != null)
   {
     // search for my broadcast
+    myIdx = -1;
     for(let p = 0; p < peerList.length; p++)
     {
       if(peerList[p]['name'] == myName)
@@ -86,6 +89,8 @@ function connectIFrameOnLoad(htmlBodyElem)
         console.debug('connectIFrameOnLoad: found my name: ' + myName);
         myNameFound = true;
         state.joinMode = 'watch';
+        console.debug('TODO: dont tune-in to your own stream (disabled temp) //myIdx = p');
+        //myIdx = p;
         window.parent.errorCancel();
       }
     }
@@ -95,7 +100,8 @@ function connectIFrameOnLoad(htmlBodyElem)
       var name = peerList[p]['name'];
 
       if(peerList[p]['recvonly'] ||
-         state.selectedRoom != peerList[p]['room'])
+         state.selectedRoom != peerList[p]['room'] ||
+         myIdx == p)
       {
         continue;
       }
@@ -106,8 +112,9 @@ function connectIFrameOnLoad(htmlBodyElem)
       selectUser.options.add(option);
 
       // ignore this user if already subscribed
-      if(state.usersSubscribed.includes(name) ||
-         name == window.parent.myUsername)
+      if(state.usersSubscribed.includes(name)
+          ||
+         (name == window.parent.myUsername && state.joinMode == 'broadcast'))
       { 
         continue;
       }
@@ -122,10 +129,10 @@ function connectIFrameOnLoad(htmlBodyElem)
         state.selectedUser = name;
         window.parent.prepareVideo(videoTable, name);
 
-        console.debug('onJoin during connect_iframe onLoad');
+        console.debug('TODO: assert onJoin during connect_iframe onLoad');
 
         onJoin();
-      }, 2000);
+      }, 500);
 
         
       break;

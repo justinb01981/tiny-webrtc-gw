@@ -154,7 +154,7 @@ function getMedia() {
             getSelectAudioDevice().disabled = true;
             getSelectVideoDevice().disabled = true;
 
-/*
+            /*
             for(var i = 0; i < sourceInfos.length; i++) {
                 console.log('mediaDevices('+sourceInfos[i].kind+')['+i+']: ' + sourceInfos[i].label);
                 if(sourceInfos[i].kind == 'audio' || sourceInfos[i].kind == 'audioinput') {
@@ -172,7 +172,7 @@ function getMedia() {
                     vi++;
                 }
             }
-*/
+            */
             audioSource = sourceInfos[ai].deviceId;
             audioSourceLabel = sourceInfos[ai].label;
             videoSource = sourceInfos[vi].deviceId;
@@ -322,7 +322,7 @@ function removeCookie() {
 
 function macroHelper(a, b, c) {
     v = a;
-    while(1) {
+   while(1) {
         var o = v;
         v = v.replace(b, c);
         if(o == v) break;
@@ -467,6 +467,40 @@ function onBtnMakePresent(btn, userName) {
     vid.height = divPresenterClientHeight;
 }
 
+/*
+function prepareVideo(table, vidElem, target) {
+    // iframeConnectState: {selectedUser: null, selectedRoom: null, advancedSettings: false, onConnectVideo: null, joinMode: 'watch', awaiting: null, usersSubscribed: [], videoElem: null};
+
+    iframeConnectState.selectedUser = target;
+    iframeConnectState.joinMode = 'watch';
+    iframeConnectState.vidElem = vidElem;
+
+    // HACK: remove this peers row by refreshing iframe
+    iframeConnectState.usersSubscribed = iframeConnectState.usersSubscribed.filter(function(arg) { return arg != target });
+
+    connectIframe.document.location = connectIframe.document.location;
+}
+*/
+
+function deleteElementAfter(elem, parentOfElem, ms)
+{
+   setTimeout(function f() {
+       parentOfElem.removeChild(elem);
+   }, ms);
+}
+
+function unmuteAfter(videlem, ms)
+{
+   setTimeout(function f() {
+       try {
+           videlem.muted = false;
+       }
+       catch(exc) {
+           console.debug('unmuteAfter: failed with ' + exc);
+       }
+   }, ms);
+}
+
 function prepareVideo(containerTable, labelText)
 {
     console.debug('prepareVideo called');
@@ -482,14 +516,15 @@ function prepareVideo(containerTable, labelText)
     var labelToAdd = document.createTextNode(labelText);
     var paraToAdd = document.createElement('p');
     var stopButton = document.createElement('button');
+    var loadingButton = document.createElement('button');
 
     paraToAdd.appendChild(labelToAdd);
     paraToAdd.className = 'controlsPara';
-    //paraToAdd.style.cssText = 'z-index:1; position:relative; top:20px; left:0px; width:100px; background-color:black;';
 
     videoContainerParent.className = 'videoContainerDiv';
 
     stopButton.className = 'stopButton';
+    loadingButton.className = 'loadingButton';
 
     stopButton.onclick = function () {
         let vidElem = videoElemToAdd;
@@ -506,10 +541,25 @@ function prepareVideo(containerTable, labelText)
         }
     }
 
+    // TODO: this replaces the video elem with a fresh one (removing because restart not necessary
+    /*
+    retryButton.onclick = function() {
+        console.debug('retry clicked '+labelText);
+
+        let preparedVid = videoElemToAdd;
+        reprepareVideo(containerTable, preparedVid, labelText);
+        videoElemToAdd.closeAction();
+    }
+    */
+
+    loadingButton.appendChild(document.createTextNode('loading... please wait'));
+    deleteElementAfter(loadingButton, videoContainer, 5000);
+
     videoContainerParent.appendChild(videoContainer);
     videoContainer.className = 'videoContainerFake';
     videoContainer.appendChild(paraToAdd);
     videoContainer.appendChild(videoElemToAdd);
+    videoContainer.appendChild(loadingButton);
     col.appendChild(videoContainerParent);
     col.className = 'videoCell';
     paraToAdd.appendChild(stopButton);
@@ -519,17 +569,20 @@ function prepareVideo(containerTable, labelText)
     videoElemToAdd.className = 'videoMain';
     videoElemToAdd.autoplay = true;
     videoElemToAdd.muted = true;
+    videoElemToAdd.controls = true;
     videoElemToAdd.setAttribute('playsinline', 'true');
     videoElemToAdd.setAttribute('webkit-playsinline', 'webkit-playsinline');
     videoElemToAdd.id = 'video' + Math.random();
     videoElemToAdd.parentRow = row;
     videoElemToAdd.stopButton = stopButton;
     videoElemToAdd.controlPara = paraToAdd;
+    videoElemToAdd.style.height = (window.document.body.clientHeight - 100) / 2;
 
     // this closeAction will be replaced and called by the replacement (chained)
     videoElemToAdd.closeAction = function f() {
         table.removeChild(row);
     }
+    unmuteAfter(videoElemToAdd, 1000);
 
     table.appendChild(row);
 
@@ -615,7 +668,7 @@ function errorSchedule() {
     connectionWarning = true;
     let f = function() {
         if(connectionWarning) {
-            alert('warning: connection seems to have failed? Try again or contact the server admin.');
+            alert('warning: connection seems to have failed? Confirm audio/video permissions and try again or contact the server admin.');
         }
     }
 

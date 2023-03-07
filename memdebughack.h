@@ -61,7 +61,7 @@ static void* malloc_debuggable(size_t size, const char* file, const unsigned lin
     return ptr;
 }
 
-void free_debuggable(void* ptr, const char* file, const unsigned line) {
+static void free_debuggable(void* ptr, const char* file, const unsigned line) {
     dbg_int_t *ptr_dbg = ptr;
     dbg_int_t *size_ind = ptr_dbg-2;
     dbg_int_t *ptr_logid = ptr_dbg-1;
@@ -83,14 +83,14 @@ void free_debuggable(void* ptr, const char* file, const unsigned line) {
     sprintf(g_malloc_debug_buffers[tid % N_DEBUG_BUFFERS], "");
 }
 
-char* strdup_debuggable(char* ptr, const char* file, const unsigned line) {
+static char* strdup_debuggable(char* ptr, const char* file, const unsigned line) {
     size_t len = strlen(ptr) + 16;
     char* ptr_ = malloc_debuggable(len, file, line);
     strcpy(ptr_, ptr);
     return ptr_;
 }
 
-int memdebug_sanity_i(void *buf, const char* file, const unsigned line) {
+static int memdebug_sanity_i(void *buf, const char* file, const unsigned line) {
     if(!buf) return;
 
     dbg_int_t* test = ((dbg_int_t*) buf) - 2;

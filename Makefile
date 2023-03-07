@@ -10,7 +10,7 @@ GPROF_FLAG=-g
 
 all: lib/libcrypto.a lib/libsrtp2.a lib/libssl.a
 # add -pg to profile with gprof
-	gcc -g -v -o webrtc_gw -DMEMDEBUGHACK=1 -DDTLS_BUILD_WITH_BORINGSSL=1 -I${INC_LIBSRTP} -I${INC_LIBSRTP_CFG} -I${INC_LIBSRTP_CRYPTO} -I${INC_OPENSSL} -I${INC_LIBWS} -L${LIB_OPENSSL} stubs.c main.c util.c tiny_config.c ws/cwebsocket/lib/*.c ${LDARGS};
+	gcc -g -v -o webrtc_gw -DMEMDEBUGHACK=1 -DDTLS_BUILD_WITH_BORINGSSL=1 -I${INC_LIBSRTP} -I${INC_LIBSRTP_CFG} -I${INC_LIBSRTP_CRYPTO} -I${INC_OPENSSL} -I${INC_LIBWS} -L${LIB_OPENSSL} stubs.c main.c util.c tiny_config.c filecache.c ws/cwebsocket/lib/*.c ${LDARGS};
 #	gcc -v -o webrtc_gw -DDTLS_BUILD_WITH_BORINGSSL=1 -I${INC_LIBSRTP} -I${INC_LIBSRTP_CFG} -I${INC_LIBSRTP_CRYPTO} -I${INC_OPENSSL} -I${INC_LIBWS} -L${LIB_OPENSSL} stubs.c main.c util.c tiny_config.c ws/cwebsocket/lib/*.c ${LDARGS};
 
 lib/libcrypto.a:
