@@ -14,44 +14,37 @@ h1 {
 }
 
 td {
-    padding:2px;
-    margin:auto;
 }
 
 td.chat {
-    margin:auto;
-    padding:0;
     border-collapse: collapse;
-    width: 5%;
+    height: 20%;
 }
 
 tr.videoCellRow {
+    aspect-ratio:4/3;
+    height:20%;
 }
 
 td.videoCell {
     text-align: left;
-    margin: 0 0 0 0;
 }
 
 tr.chatRow {
-    margin:0px;
 }
 
 table.mainTable {
     table-layout:auto;
-    width:100%;
-    height:100%;
     background-color:#000000f2;
+    width: 98%;
 }
 
 table.videoMainContainer {
-    margin:0 0 0 0;
-    padding: 2;
     border-width:2px;
-    overflow:scroll;
+    overflow:hide;
     table-layout:auto;
     background-color:black;
-    border-color:white;
+    border-color:gray;
 }
 
 video {
@@ -59,15 +52,15 @@ video {
     height:100%;
     controls:true;
     object-fit:contain;
+    aspect-ratio:4/3;
 }
 
 table.localPreviewTable {
-    margin:2 2 2 2;
     border-width:2;
     overflow:hidden;
     table-layout:auto;
     background-color:black;
-    border-color:white;
+    border-color:gray;
     width:128px;
     height:96px;
 }
@@ -78,7 +71,7 @@ video.videoMain {
 }
 
 video.videoLocal {
-    height:8%;
+    height:10%;
 }
 
 video.videoChild {
@@ -111,14 +104,13 @@ div.videoContainerDiv {
 }
 
 div.videoContainerFake {
-  margin: 4 4 4 4;
-  padding: 4;
-  aspect-ratio: 1.75;
-
   background-color: white;
+  border-width:2px;
+  border-color:gray;
 }
 
 div.topDiv {
+    height:98%;
 }
 
 p.controlsPara {
@@ -127,8 +119,7 @@ p.controlsPara {
     left:0%;
     width:100%;
     height:0px;
-    margin: 0 0 0 0;
-    background-color:black;
+    background-color: white;
     z-index: 2;
     height:10%;
 }
@@ -137,6 +128,7 @@ p.emptyRoomLabel {
     position:relative;
     top:10px;
     left:20px;
+    height:100px;
 }
 
 button.playButton {
@@ -181,11 +173,16 @@ button.loadingButton {
 
 
 select.mediaSelect {
-    width:100px;
+    width:50%;
+}
+
+select.selectUser {
+    display:none;
+    height: 80%;
 }
 
 iframe.chatFrame {
-    border-width:0;
+    border-width:2px;
     overflow:hidden;
     width:100%;
     height:100%
@@ -206,8 +203,7 @@ li.chatListElem {
 
 ul.chatLogParent {
   height:100%;
-  font-family:monospace;
-  font-size:10pt;
+  font-size:11pt;
   padding-left:0;
   list-style:none;
   overflow:hidden;

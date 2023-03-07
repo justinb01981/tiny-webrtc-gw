@@ -17,17 +17,17 @@ data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxQUEhYTFBQXFxYYGh4cG
         </tr>
 
         <tr id='rowChat' style='height:32px;'>
-            <td align='right'>
-                camera enabled: <input type='checkbox' id='enableVideoCheckbox' /><br>
-                video:<select class='mediaSelect' id='selectCamInput'></select><br>
-                audio:<select class='mediaSelect' id='selectMicInput'></select><br>
-            </td>
             <td align='center'>
                 username:<br>
                 <textarea rows=1 cols=16 id='userName'>user123</textarea>
                 <button onclick='location="login.html"' id='login'>login</button>
                 <button onclick='logout();' id='logout'>logout</button>
            </td>
+            <td align='center'>
+                camera enabled: <input type='checkbox' id='enableVideoCheckbox' /><br>
+                video:<select class='mediaSelect' id='selectCamInput'></select><br>
+                audio:<select class='mediaSelect' id='selectMicInput'></select><br>
+            </td>
         </tr>
         <tr style='height:32px;'>
             <td style='border-width:0px;' align='right'>
@@ -49,18 +49,17 @@ data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxQUEhYTFBQXFxYYGh4cG
                 -->
             </td>
         </tr>
-        <tr style='height:32px;'>
-            <th colspan=1>Meeting Room</th><th colspan=1>Chat</th>
-        </tr>
         <tr class='chatRow' valign=top>
-            <td align='top' id="thPresenter">
+            <td align='top' id="thPresenter" colspan=2>
                 <table id="videoMainContainer" class="videoMainContainer">
                     <!-- new video elements will appear here (see popup.js) -->
                 </table>
                 <p id="emptyRoomLabel" class="emptyRoomLabel">Nobody else here...<br>did anyone check "enable camera"<br>before joining this room?
             </td>
 
-            <td class="chat">
+        </tr> 
+        <tr>
+            <td class="chat" colspan=2>
                 <iframe name='chatFrame' class='chatFrame' src='chat.html' />
                 </iframe>
             </td>

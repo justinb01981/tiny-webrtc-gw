@@ -535,7 +535,7 @@ connection_worker(void* p)
 
     peers[peer->subscriptionID].subscribed = 1;
     // force broadcaster to refresh 
-    for(int r = 0; r < PEER_RTP_CTX_COUNT; r++) peers[peer->subscriptionID].srtp[r].pli_last = 0;
+    for(int r = 0; r < PEER_RTP_CTX_COUNT; r++) peers[peer->subscriptionID].srtp[r].pli_last = time_ms - 8000;
 
     peer->running = 1;
 
@@ -962,7 +962,7 @@ connection_worker(void* p)
                                     //  tell peer of underrun
                                     peer_session_t* peerpub = &peers[peer->subscriptionID];
                                     peerpub->underrun_signal = 1;
-                                    peerpub->srtp[report_rtp_idx].pli_last = 0; // force picture loss
+                                    //peerpub->srtp[report_rtp_idx].pli_last = 0; // force picture loss
 
                                     printf("WARN: peer reports stream underrun (jitter).. signal underrun\n");
                                     // treat this as temporary pkt loss but increase buffer temporarily
