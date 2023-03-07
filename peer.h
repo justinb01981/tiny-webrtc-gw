@@ -33,7 +33,7 @@
 #define EPOLL_TIMEOUT_MS 5
 
 
-// TODO: artififially low to smooth jitter calculations and prevent bursts?
+// TODO: artififially low to smooth jitter calculations and prevent bursts + more fairly schedule?
 #define RECVMSG_NUM (/*128*/ 8)
 
 //
@@ -93,6 +93,34 @@ typedef struct {
     unsigned int candidate_id;
 } stun_ice_st_t;
 
+typedef struct {
+    srtp_policy_t policy;
+    srtp_ctx_t ctx;
+    srtp_t session;
+    char keybuf[64];
+    u32 ssrc_offer;
+    u32 ssrc_answer;
+    int idx_write;
+    int offset_subscription;
+    unsigned long timestamp_subscription;
+    u16 seq_counter;
+    int inited;
+    u32 ts_last_unprotect;
+    int ffwd_done;
+    unsigned long recv_time_avg;
+    unsigned long ts_last;
+    u32 recv_report_seqlast;
+    u32 recv_report_tslast;
+    unsigned long last_sr;
+    unsigned long pkt_lost;
+    
+    long receiver_report_jitter_last;
+    long receiver_report_sr_last;
+    long receiver_report_sr_delay_last;
+
+    time_t pli_last;
+} srtp_sess_t;
+
 struct peer_session_t;
 
 typedef struct peer_session_t
@@ -120,33 +148,7 @@ typedef struct peer_session_t
         int use_membio;
     } dtls;
 
-    struct {
-        srtp_policy_t policy;
-        srtp_ctx_t ctx;
-        srtp_t session;
-        char keybuf[64];
-        u32 ssrc_offer;
-        u32 ssrc_answer;
-        int idx_write;
-        int offset_subscription;
-        unsigned long timestamp_subscription;
-        u16 seq_counter;
-        int inited;
-        u32 ts_last_unprotect;
-        int ffwd_done;
-        unsigned long recv_time_avg;
-        unsigned long ts_last;
-        u32 recv_report_seqlast;
-        u32 recv_report_tslast;
-        unsigned long last_sr;
-        unsigned long pkt_lost;
-        
-        long receiver_report_jitter_last;
-        long receiver_report_sr_last;
-        long receiver_report_sr_delay_last;
-
-        time_t pli_last;
-    } srtp[PEER_RTP_CTX_COUNT];
+    srtp_sess_t srtp[PEER_RTP_CTX_COUNT];
 
     struct {
         char cookie[256];

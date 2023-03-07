@@ -250,6 +250,26 @@ void peer_send_block(peer_session_t* peer, char* buf, int len)
     int r = sendto(peer->sock, buf, len, 0, (struct sockaddr*)&(peer->addr), sizeof(peer->addr));
 }
 
+static struct {
+    srtp_sess_t srtp[PEER_RTP_CTX_COUNT];
+} stor[MAX_PEERS];
+
+srtp_sess_t* peer_dstsrtp_protect(int peerid)
+{
+    PEER_LOCK(peerid);
+    memcpy(&stor[peerid].srtp, &peers[peerid].srtp, sizeof(peers[peerid].srtp));
+    PEER_UNLOCK(peerid);
+
+    return &stor[peerid].srtp;
+}
+
+void peer_dstsrtp_give(int peerid)
+{
+    PEER_LOCK(peerid);
+    memcpy(&peers[peerid].srtp, &stor[peerid].srtp, sizeof(peers[peerid].srtp));
+    PEER_UNLOCK(peerid);
+}
+
 void DIAG_PEER(peer_session_t* peer)
 {   
     size_t m = 0, tot = 0, used = 0;
@@ -514,6 +534,8 @@ connection_worker(void* p)
         peers[peer->subscriptionID].name, peers[peer->subscriptionID].id);
 
     peers[peer->subscriptionID].subscribed = 1;
+    // force broadcaster to refresh 
+    for(int r = 0; r < PEER_RTP_CTX_COUNT; r++) peers[peer->subscriptionID].srtp[r].pli_last = 0;
 
     peer->running = 1;
 
@@ -959,19 +981,17 @@ connection_worker(void* p)
                         {
                             u32 protect_len = unprotect_len;
 
-                            if(!peers[p].alive)
-                            {
-                                continue;
-                            }
-
-                            if(
-                                /*peers[p].running && */
-                               ((is_sender_report && peers[p].subscriptionID == peer->id)
-                                || (is_receiver_report && peers[p].id == peer->subscriptionID)
+                            if(peers[p].alive && peers[p].subscriptionID != p &&
+                               (
+                                (is_sender_report && peers[p].subscriptionID == peer->id && !peers[p].send_only)
+                                 || (is_receiver_report && peers[p].id == peer->subscriptionID)
                                )
                                && peers[p].srtp[rtp_idx].inited)
                             {
-                                if(p != peer->id) PEER_LOCK(p);
+//                                PEER_UNLOCK(peer->id);
+//                                srtp_sess_t* ps = peer_dstsrtp_protect(p);
+//                                PEER_LOCK(peer->id);
+                                srtp_sess_t* ps = peers[p].srtp;
 
                                 int ssrc_matched = 0;
                                 unsigned char reportPeer[PEER_BUFFER_NODE_BUFLEN];
@@ -1026,10 +1046,12 @@ connection_worker(void* p)
                                 rtp_frame_t *rtp_frame_out = (rtp_frame_t*) reportPeer;
                                 long timestamp_new = ntohl(rtp_frame_out->hdr.timestamp);
                                 rtp_frame_out->hdr.timestamp = htonl(timestamp_new);
+                                
+                                srtp_sess_t* sess = &peers[p].srtp[rtp_idx_write];
 
                                 // MARK: -- srtp_protect_rtcp + send to one of peer subscribers
                                 if(protect_len > 0 &&
-                                   srtp_protect_rtcp(peers[p].srtp[rtp_idx_write].session, reportPeer, &protect_len) == srtp_err_status_ok) 
+                                    sess->inited && srtp_protect_rtcp(sess->session, reportPeer, &protect_len) == srtp_err_status_ok) 
                                 {  
                                     //printf("srtp_protect_rtcp+fwd: @[%d] lengthPeer:%d", p, protect_len);
 
@@ -1046,12 +1068,14 @@ connection_worker(void* p)
                                 }
                                 else if(protect_len > 0)
                                 {
+                                    //printf("srtp_protect_rtcp failed for RTCP report\n");
                                     peer->stats.stat[10]++;
-                                    //iprintf("srtp_protect_rtcp failed for RTCP report\n");
                                 }
-                            }
 
-                            if(p != peer->id) PEER_UNLOCK(p); 
+                                //PEER_UNLOCK(peer->id);
+                                //peer_dstsrtp_give(p);
+                                //PEER_LOCK(peer->id);
+                            }
                         }
 
                         goto peer_again;
@@ -1079,7 +1103,7 @@ connection_worker(void* p)
 
                     if(srtp_unprotect(psrtpsess, rtpFrame, &unprotect_len) != srtp_err_status_ok)
                     {
-                        //printf("%s:%d srtp_unprotect failed %d bytes rtp_idx %d\n", __func__, __LINE__, was_len, rtp_idx);
+                        printf("%s:%d srtp_unprotect failed %d bytes rtp_idx %d\n", __func__, __LINE__, was_len, rtp_idx);
                         peer->stats.stat[11]++;
                         goto peer_again;
                     }
@@ -1108,18 +1132,18 @@ connection_worker(void* p)
                         // MARK: -- distributing this rtp packet to subscribers 
                         for(p = 0; p < MAX_PEERS; p++)
                         {
-                            if(p != peer->id) PEER_LOCK(p);
-
-                            if(!peers[p].alive) 
-                            {
-                                PEER_UNLOCK(p);
-                                continue;
-                            }
+                            /*
+                            PEER_UNLOCK(peer->id);
+                            srtp_sess_t *ps = peer_dstsrtp_protect(p);
+                            PEER_LOCK(peer->id);
+                            */
 
                             //printf("srtp_unprotect total + peer: %d %d..", total_protected, rtp_idx);
-                            if(!peers[p].send_only &&
+                            if(peers[p].alive && 
+                               !peers[p].send_only &&
+                               p != peer->id &&
                                peers[p].subscriptionID == peer->id &&
-                               peers[p].srtp[rtp_idx].inited)
+                               /*ps[rtp_idx].inited*/ peers[p].srtp[rtp_idx].inited)
                             {
                                 int rtp_idx_write = rtp_idx + PEER_RTP_CTX_WRITE;
 
@@ -1141,9 +1165,10 @@ connection_worker(void* p)
                                 long timestamp_new = ntohl(rtp_frame_out->hdr.timestamp);
                                 rtp_frame_out->hdr.timestamp = htonl(timestamp_new);
 
-                                srtp_t sess = peers[p].srtp[rtp_idx_write].session;
+                                srtp_sess_t *sess = &peers[p].srtp[rtp_idx_write];
 
-                                if(srtp_protect(sess, rtp_frame_out, &lengthPeer) == srtp_err_status_ok)
+                                // MARK: -- srtp_protect
+                                if(sess->inited && srtp_protect(sess->session, rtp_frame_out, &lengthPeer) == srtp_err_status_ok)
                                 {
                                     //printf("srtp_protect+fwd: @[%d] lengthPeer:%d", p, lengthPeer);
                                     //printf("srtp_protect: ok + sent\n");
@@ -1156,6 +1181,8 @@ connection_worker(void* p)
                                 }
                                 else
                                 {
+
+
                                     peers[p].stats.stat[10] += 1;
                                     //printf("srtp_protect peer[%d]: failed with rtp_idx %d\n", p, rtp_idx);
                                     //peers[p].subscriptionID = PEER_IDX_INVALID;
@@ -1166,7 +1193,11 @@ connection_worker(void* p)
                                 //printf("peers[%d]:nonsub %dB (%d,%d,%d)", p, length, peers[p].send_only, peers[p].subscriptionID, peers[p].srtp[rtp_idx].inited);
                             }
 
-                            if(p != peer->id) PEER_UNLOCK(p);
+                            /*
+                            PEER_UNLOCK(peer->id);
+                            peer_dstsrtp_give(p);
+                            PEER_LOCK(peer->id);
+                            */
                         }
                     }
 
@@ -1187,8 +1218,7 @@ connection_worker(void* p)
                         report_pli.seq_src_id = htonl(offer_ssrc[rtp_idx]);
                         report_pli.seq_src_id_ref = htonl(answer_ssrc[rtp_idx]);
 
-                        /* send picture-loss-indicator to request full-frame refresh */
-                       
+                        /* MARK: send picture-loss-indicator to request full-frame refresh */
                         if(srtp_protect_rtcp(peer->srtp[rtp_idx_write].session, &report_pli, &report_len) == srtp_err_status_ok)
                         {
                             peer_send_block(peer, (char*) &report_pli, report_len);
@@ -1850,21 +1880,21 @@ int main( int argc, char* argv[] ) {
 
                     PEER_UNLOCK(i);
                     pthread_join(peers[i].thread, NULL);
-                    PEER_LOCK(i);
                     peers[i].thread = 0;
-
 
                     // let other threads get the message...
 
                     assert(!peers[i].running);
                     printf("...stopped\n");
+
+                    // leave unlocked if not alive
                 }
 
                 peers[i].cb_restart(&peers[i]);
                 printf("restart_done[%d]: = 1 ..", i);
             }
 
-            PEER_UNLOCK(i);
+            if(peers[i].alive) PEER_UNLOCK(i);
 
             i++;
         }

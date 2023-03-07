@@ -514,7 +514,6 @@ function prepareVideo(containerTable, labelText)
     var labelToAdd = document.createTextNode(labelText);
     var paraToAdd = document.createElement('p');
     var stopButton = document.createElement('button');
-    var retryButton = document.createElement('button');
     var loadingButton = document.createElement('button');
 
     paraToAdd.appendChild(labelToAdd);
@@ -523,7 +522,6 @@ function prepareVideo(containerTable, labelText)
     videoContainerParent.className = 'videoContainerDiv';
 
     stopButton.className = 'stopButton';
-    retryButton.className = 'retryButton';
     loadingButton.className = 'loadingButton';
 
     stopButton.onclick = function () {
@@ -541,7 +539,8 @@ function prepareVideo(containerTable, labelText)
         }
     }
 
-    retryButton.appendChild(document.createTextNode('reconnect'));
+    // TODO: this replaces the video elem with a fresh one (removing because restart not necessary
+    /*
     retryButton.onclick = function() {
         console.debug('retry clicked '+labelText);
 
@@ -549,6 +548,7 @@ function prepareVideo(containerTable, labelText)
         reprepareVideo(containerTable, preparedVid, labelText);
         videoElemToAdd.closeAction();
     }
+    */
 
     loadingButton.appendChild(document.createTextNode('loading... please wait'));
     deleteElementAfter(loadingButton, videoContainer, 3000);
@@ -561,7 +561,6 @@ function prepareVideo(containerTable, labelText)
     col.appendChild(videoContainerParent);
     col.className = 'videoCell';
     paraToAdd.appendChild(stopButton);
-    paraToAdd.appendChild(retryButton);
     row.className = 'videoCellRow';
     row.appendChild(col);
 
