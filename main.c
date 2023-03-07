@@ -1623,11 +1623,10 @@ int main( int argc, char* argv[] ) {
 
             stun_username(buffer, length, stun_uname);
 
+            // TODO: -- i think this is dead code
             /* webserver has created a "pending" peer with stun fields set based on SDP */
             for(p = 0; strlen(stun_uname) > 1 && p < MAX_PEERS; p++)
             {
-                PEER_LOCK(p);
-
                 sprintf(stun_uname_expected, "%s:%s", peers[p].stun_ice.ufrag_offer, peers[p].stun_ice.ufrag_answer);
 
                 if(strlen(stun_uname_expected) > 0 &&
@@ -1635,19 +1634,12 @@ int main( int argc, char* argv[] ) {
                 {
                     sidx = p;
                     printf("stun_locate: found peer %s has uname: %s\n", peers[sidx].name, stun_uname);
-                    if(!peers[p].alive) {
-                        printf("PROBABLYAHACK: peers[%d]/%s coming alive with name %s\n", sidx, stun_uname, peers[sidx].name);
-
-                        peers[p].alive = 1; // at last
-                        // this completes everything needed to consider thread_inited? logic #statefulmuch #poorlynamed
-                    }
                     peers[p].time_pkt_last = time_ms;
                     break;
                 }
                 else
                 {
                     //printf("stun_locate: \"%s\" != \"%s\"\n", stun_uname, stun_uname_expected);
-                    PEER_UNLOCK(p);
                 }
             }
 

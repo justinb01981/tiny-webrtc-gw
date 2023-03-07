@@ -551,7 +551,7 @@ function prepareVideo(containerTable, labelText)
     */
 
     loadingButton.appendChild(document.createTextNode('loading... please wait'));
-    deleteElementAfter(loadingButton, videoContainer, 3000);
+    deleteElementAfter(loadingButton, videoContainer, 5000);
 
     videoContainerParent.appendChild(videoContainer);
     videoContainer.className = 'videoContainerFake';
@@ -567,6 +567,7 @@ function prepareVideo(containerTable, labelText)
     videoElemToAdd.className = 'videoMain';
     videoElemToAdd.autoplay = true;
     videoElemToAdd.muted = true;
+    videoElemToAdd.controls = true;
     videoElemToAdd.setAttribute('playsinline', 'true');
     videoElemToAdd.setAttribute('webkit-playsinline', 'webkit-playsinline');
     videoElemToAdd.id = 'video' + Math.random();
