@@ -254,22 +254,6 @@ static struct {
     srtp_sess_t srtp[PEER_RTP_CTX_COUNT];
 } stor[MAX_PEERS];
 
-srtp_sess_t* peer_dstsrtp_protect(int peerid)
-{
-    PEER_LOCK(peerid);
-    memcpy(&stor[peerid].srtp, &peers[peerid].srtp, sizeof(peers[peerid].srtp));
-    PEER_UNLOCK(peerid);
-
-    return &stor[peerid].srtp;
-}
-
-void peer_dstsrtp_give(int peerid)
-{
-    PEER_LOCK(peerid);
-    memcpy(&peers[peerid].srtp, &stor[peerid].srtp, sizeof(peers[peerid].srtp));
-    PEER_UNLOCK(peerid);
-}
-
 void DIAG_PEER(peer_session_t* peer)
 {   
     size_t m = 0, tot = 0, used = 0;
@@ -962,7 +946,7 @@ connection_worker(void* p)
                                     //  tell peer of underrun
                                     peer_session_t* peerpub = &peers[peer->subscriptionID];
                                     peerpub->underrun_signal = 1;
-                                    //peerpub->srtp[report_rtp_idx].pli_last = 0; // force picture loss
+                                    peerpub->srtp[report_rtp_idx].pli_last = time_ms - 9500; // force picture loss
 
                                     printf("WARN: peer reports stream underrun (jitter).. signal underrun\n");
                                     // treat this as temporary pkt loss but increase buffer temporarily
@@ -988,9 +972,6 @@ connection_worker(void* p)
                                )
                                && peers[p].srtp[rtp_idx].inited)
                             {
-//                                PEER_UNLOCK(peer->id);
-//                                srtp_sess_t* ps = peer_dstsrtp_protect(p);
-//                                PEER_LOCK(peer->id);
                                 srtp_sess_t* ps = peers[p].srtp;
 
                                 int ssrc_matched = 0;
@@ -1071,10 +1052,6 @@ connection_worker(void* p)
                                     //printf("srtp_protect_rtcp failed for RTCP report\n");
                                     peer->stats.stat[10]++;
                                 }
-
-                                //PEER_UNLOCK(peer->id);
-                                //peer_dstsrtp_give(p);
-                                //PEER_LOCK(peer->id);
                             }
                         }
 
@@ -1132,12 +1109,6 @@ connection_worker(void* p)
                         // MARK: -- distributing this rtp packet to subscribers 
                         for(p = 0; p < MAX_PEERS; p++)
                         {
-                            /*
-                            PEER_UNLOCK(peer->id);
-                            srtp_sess_t *ps = peer_dstsrtp_protect(p);
-                            PEER_LOCK(peer->id);
-                            */
-
                             //printf("srtp_unprotect total + peer: %d %d..", total_protected, rtp_idx);
                             if(peers[p].alive && 
                                !peers[p].send_only &&
@@ -1192,12 +1163,6 @@ connection_worker(void* p)
                             {
                                 //printf("peers[%d]:nonsub %dB (%d,%d,%d)", p, length, peers[p].send_only, peers[p].subscriptionID, peers[p].srtp[rtp_idx].inited);
                             }
-
-                            /*
-                            PEER_UNLOCK(peer->id);
-                            peer_dstsrtp_give(p);
-                            PEER_LOCK(peer->id);
-                            */
                         }
                     }
 
@@ -1319,7 +1284,6 @@ connection_worker(void* p)
             {
                 // slow and accum. buffer
                 bufferingM = 1;
-                if(signal_under) sleep_msec(backlog_target_ms);
             }
             else if(peer->buffer_count >= PEER_RECV_BUFFER_COUNT - PEER_RECV_BUFFER_COUNT/4)
             {
@@ -1689,8 +1653,10 @@ int main( int argc, char* argv[] ) {
         node = peers[sidx].in_buffers_head.tail;
         if(!node)
         {
-            printf("epoll_memcpy: in_buffers_head.tail = 0!  (SHOULDNT HAPPEN unless this is a tolerable race cond)\n");
-            node = peers[sidx].in_buffers_head.tail = peers[sidx].in_buffers_head.next;
+            PEER_UNLOCK(sidx);
+            // TODO: very hard to do but I did hit the below assert when this happened so i
+            printf("epoll_memcpy: in_buffers_head.tail = 0!  (TODO: SHOULDNT HAPPEN unless this is a tolerable race cond?)\n");
+            goto select_timeout;
         }
 
         // sanity check

@@ -22,7 +22,6 @@ td.chat {
 }
 
 tr.videoCellRow {
-    aspect-ratio:4/3;
     height:20%;
 }
 
@@ -52,7 +51,7 @@ video {
     height:100%;
     controls:true;
     object-fit:contain;
-    aspect-ratio:4/3;
+    /*aspect-ratio:4/3;*/
 }
 
 table.localPreviewTable {
