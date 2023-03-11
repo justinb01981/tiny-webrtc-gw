@@ -498,7 +498,7 @@ const char* sdp_offer_create(peer_session_t* peer)
     "\"o=mozilla...THIS_IS_SDPARTA-38.0.1_cookiea8f73130 1702670192771025677 0 IN IP4 0.0.0.0\\n\" + \n"
     "\"s=-\\n\" + \n"
     "\"t=0 0\\n\" + \n"
-    "\"a=fingerprint:sha-256 5C:FF:65:F6:7E:39:38:E6:CF:49:08:E5:73:2C:93:0E:59:13:24:23:22:37:10:50:6E:F1:9E:4A:45:DB:25:F4\\n\" + \n"
+    "\"a=fingerprint:sha-256 %s\\n\" + \n"
     "\"a=group:BUNDLE sdparta_0 sdparta_1\\n\" + \n"
     "\"a=ice-options:trickle\\n\" + \n"
     "\"a=msid-semantic:WMS *\\n\" + \n"
@@ -559,6 +559,7 @@ const char* sdp_offer_create(peer_session_t* peer)
     sprintf(sdp_offer_table.t.offer_js,
             // ufrag, ssrc1, ufrag, ssrc2
             offer_template,
+            get_config("dtls_fingerprint="),
             sdp_offer_table.t.iceufrag,
             ssrc1,
             sdp_offer_table.t.iceufrag,
@@ -592,8 +593,9 @@ const char* sdp_offer_create(peer_session_t* peer)
     }
 
     sprintf(sdp_offer_table.t.offer,
-            // ufrag, ssrc1, ufrag, ssrc2
+            // ufrag, ssrc1, ufrag, ssrc2,
             offer_template_clean,
+            get_config("dtls_fingerprint="),
             sdp_offer_table.t.iceufrag,
             ssrc1,
             sdp_offer_table.t.iceufrag,
