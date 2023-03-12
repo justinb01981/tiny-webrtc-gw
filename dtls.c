@@ -287,26 +287,21 @@ void DTLS_sock_init(unsigned short listen_port)
     // TODO: revisit this and switch statement in main.c srtp init which crashes if you remove it ;-)
     SSL_CTX_set_tlsext_use_srtp(ctx, "SRTP_AES128_CM_SHA1_80");
 
-	//if (!SSL_CTX_use_certificate_file(ctx, "certs/server-cert.pem", SSL_FILETYPE_PEM))
-	//	printf("\nERROR: no certificate found!");
     if (!SSL_CTX_use_certificate(ctx, x5))
         printf("\nError: loading certificate");
 
 	if (!SSL_CTX_use_PrivateKey_file(ctx, "certs/server-key.pem", SSL_FILETYPE_PEM))
 		printf("\nERROR: no private key found!");
 
-    // I give up - no fucking idea how to correctly calculate the hash fingerprint of the x509 cert that agrees with that openssl prints
-    // making this a config-file argument for now
     EVP_PKEY* x5key = X509_get_pubkey(x5);
     if (!x5key) assert(0);
 
     // fingerprint is sha256 of the cert NOT THE PUBLIC KEY
-    RSA* rsa = EVP_PKEY_get1_RSA(x5key); // remove?
+    RSA* rsa = EVP_PKEY_get1_RSA(x5key); // remove? not being used yet
 
     if (!i2d_X509_bio(mem, x5)) assert(0);
 
     // bio now holds DER encoded cert
-     
     char *x5der = NULL;
     long hlen = BIO_get_mem_data(mem, &x5der);
     sha256_bytes(x5der, hlen, dtls_fingerprint);
@@ -317,7 +312,7 @@ void DTLS_sock_init(unsigned short listen_port)
     BIO_free(pkbio);
     BIO_free(mem);
 
-    printf("USING FINGERPRINT:\n%s\n", dtls_fingerprint);
+    printf("USING certs/server-cert.pem FINGERPRINT:\n%s\n", dtls_fingerprint);
 
 	if (!SSL_CTX_check_private_key (ctx))
 		printf("\nERROR: invalid private key!");

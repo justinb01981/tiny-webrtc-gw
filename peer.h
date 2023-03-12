@@ -16,8 +16,6 @@
 //#define PEER_RTP_SEQ_MIN_RECLAIMABLE 128
 #define PEER_RTP_SEQ_MIN_RECLAIMABLE 0
 
-//#define CERT_HAX
-
 #define PEER_LOCK(j) { pthread_mutex_lock(&peers[(int) (j)].mutex); }
 #define PEER_UNLOCK(j) { pthread_mutex_unlock(&peers[(j)].mutex); }
 
@@ -33,8 +31,6 @@
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 10000
 
 #define EPOLL_TIMEOUT_MS 5
-
-//#define CERT_HAX 1
 
 extern char* dtls_fingerprint;
 
