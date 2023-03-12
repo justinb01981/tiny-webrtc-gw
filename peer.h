@@ -34,6 +34,10 @@
 
 #define EPOLL_TIMEOUT_MS 5
 
+//#define CERT_HAX 1
+
+extern char* dtls_fingerprint;
+
 
 // TODO: artififially low to smooth jitter calculations and prevent bursts + more fairly schedule?
 #define RECVMSG_NUM (/*128*/ 8)
@@ -593,6 +597,8 @@ const char* sdp_offer_create(peer_session_t* peer)
         }
         p_write++;
     }
+
+    extern char* dtls_fingerprint;
 
     sprintf(sdp_offer_table.t.offer,
             // ufrag, ssrc1, ufrag, ssrc2,

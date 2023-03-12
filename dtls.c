@@ -267,8 +267,6 @@ void DTLS_sock_init(unsigned short listen_port)
 {
     dtls_listen_port = listen_port;
 
-
-
     BIO *pkbio = BIO_new(BIO_s_file());
 
     BIO *mem = BIO_new(BIO_s_mem());
@@ -299,9 +297,6 @@ void DTLS_sock_init(unsigned short listen_port)
 
     // I give up - no fucking idea how to correctly calculate the hash fingerprint of the x509 cert that agrees with that openssl prints
     // making this a config-file argument for now
-#ifdef CERT_HAX
-    strcpy(dtls_fingerprint, get_config("dtls_fingerprint="));
-#else
     EVP_PKEY* x5key = X509_get_pubkey(x5);
     if (!x5key) assert(0);
 
@@ -319,7 +314,6 @@ void DTLS_sock_init(unsigned short listen_port)
     EVP_PKEY_free(x5key);
     RSA_free(rsa);
 
-#endif
     BIO_free(pkbio);
     BIO_free(mem);
 
