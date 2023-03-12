@@ -22,6 +22,7 @@
 extern int listen_port_base;
 extern peer_session_t peers[];
 extern int stun_binding_response_count;
+extern char* dtls_fingerprint;
 
 const static unsigned long SPIN_WAIT_USEC = 1000;
 
@@ -234,6 +235,7 @@ webserver_worker(void* p)
     char *tag_logout = "logout.html";
     char *tag_sdp = "%$SDP_OFFER$%";
     char *tag_authcookie = "%$AUTHCOOKIE$%";
+    char *tag_dtlsfingerprint = "%$DTLSFINGERPRINT$%";
     const size_t buf_size = 4096;
     int use_user_fragment_prefix = 1;
     webserver_worker_args* args = (webserver_worker_args*) p;
@@ -667,6 +669,8 @@ webserver_worker(void* p)
                     response = macro_str_expand(response, tag_chatlogtsvalue, tmp);
 
                     response = macro_str_expand(response, tag_authcookie, cookieset);
+
+                    response = macro_str_expand(response, tag_dtlsfingerprint, dtls_fingerprint);
                 }
                 else
                 {

@@ -16,8 +16,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/decrepit.dir/ssl/ssl_decrepit.c.o"
   "CMakeFiles/decrepit.dir/x509/x509_decrepit.c.o"
   "CMakeFiles/decrepit.dir/xts/xts.c.o"
-  "libdecrepit.pdb"
   "libdecrepit.a"
+  "libdecrepit.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

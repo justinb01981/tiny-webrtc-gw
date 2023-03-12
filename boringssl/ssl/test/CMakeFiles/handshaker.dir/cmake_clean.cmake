@@ -7,8 +7,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/handshaker.dir/settings_writer.cc.o"
   "CMakeFiles/handshaker.dir/test_config.cc.o"
   "CMakeFiles/handshaker.dir/test_state.cc.o"
-  "handshaker.pdb"
   "handshaker"
+  "handshaker.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

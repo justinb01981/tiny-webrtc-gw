@@ -7,6 +7,8 @@
 #IncludeRegexTransform: 
 
 /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
+openssl/crypto.h
+-
 openssl/ex_data.h
 -
 openssl/stack.h
@@ -19,6 +21,8 @@ string.h
 -
 valgrind/memcheck.h
 -
+stdlib.h
+-
 stdalign.h
 -
 pthread.h
@@ -26,52 +30,6 @@ pthread.h
 windows.h
 -
 stdlib.h
--
-
-/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/./file_test.h
-openssl/base.h
--
-stdint.h
--
-functional
--
-map
--
-memory
--
-set
--
-string
--
-vector
--
-
-/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/./test_util.h
-stddef.h
--
-stdint.h
--
-stdio.h
--
-string.h
--
-iosfwd
--
-string
--
-vector
--
-openssl/span.h
--
-../internal.h
-/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/internal.h
-
-/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/./wycheproof_util.h
-openssl/base.h
--
-string
--
-vector
 -
 
 /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/abi_test.cc
@@ -143,6 +101,8 @@ ctype.h
 -
 errno.h
 -
+limits.h
+-
 stdarg.h
 -
 stdio.h
@@ -153,10 +113,12 @@ string.h
 -
 openssl/err.h
 -
+openssl/mem.h
+-
 ../internal.h
 /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 ./test_util.h
-/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/./test_util.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/test_util.h
 
 /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/file_test.h
 openssl/base.h
@@ -174,24 +136,6 @@ set
 string
 -
 vector
--
-
-/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/malloc.cc
-openssl/base.h
--
-errno.h
--
-signal.h
--
-stdint.h
--
-stdio.h
--
-stdlib.h
--
-unistd.h
--
-new
 -
 
 /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/test_util.cc
@@ -224,7 +168,9 @@ openssl/span.h
 
 /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/wycheproof_util.cc
 ./wycheproof_util.h
-/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/./wycheproof_util.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/wycheproof_util.h
+limits.h
+-
 stdlib.h
 -
 algorithm
@@ -238,9 +184,17 @@ openssl/ec.h
 openssl/nid.h
 -
 ./file_test.h
-/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/./file_test.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/file_test.h
 
-crypto/../include/openssl/base.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/wycheproof_util.h
+openssl/base.h
+-
+string
+-
+vector
+-
+
+include/openssl/base.h
 stddef.h
 -
 stdint.h
@@ -260,7 +214,7 @@ boringssl_prefix_symbols.h
 memory
 -
 
-crypto/../include/openssl/bn.h
+include/openssl/bn.h
 openssl/base.h
 -
 openssl/thread.h
@@ -270,17 +224,27 @@ inttypes.h
 stdio.h
 -
 
-crypto/../include/openssl/digest.h
+include/openssl/crypto.h
+openssl/base.h
+-
+openssl/sha.h
+-
+openssl/mem.h
+-
+openssl/thread.h
+-
+
+include/openssl/digest.h
 openssl/base.h
 -
 
-crypto/../include/openssl/ec.h
+include/openssl/ec.h
 openssl/base.h
 -
 openssl/ec_key.h
 -
 
-crypto/../include/openssl/ec_key.h
+include/openssl/ec_key.h
 openssl/base.h
 -
 openssl/ec.h
@@ -290,25 +254,25 @@ openssl/engine.h
 openssl/ex_data.h
 -
 
-crypto/../include/openssl/engine.h
+include/openssl/engine.h
 openssl/base.h
 -
 
-crypto/../include/openssl/err.h
+include/openssl/err.h
 stdio.h
 -
 openssl/base.h
 -
 
-crypto/../include/openssl/ex_data.h
+include/openssl/ex_data.h
 openssl/base.h
 -
 openssl/stack.h
 -
 
-crypto/../include/openssl/is_boringssl.h
+include/openssl/is_boringssl.h
 
-crypto/../include/openssl/mem.h
+include/openssl/mem.h
 openssl/base.h
 -
 stdlib.h
@@ -316,41 +280,39 @@ stdlib.h
 stdarg.h
 -
 
-crypto/../include/openssl/nid.h
+include/openssl/nid.h
 openssl/base.h
 -
 
-crypto/../include/openssl/opensslconf.h
+include/openssl/opensslconf.h
 
-crypto/../include/openssl/rand.h
+include/openssl/rand.h
 openssl/base.h
 -
 
-crypto/../include/openssl/span.h
+include/openssl/sha.h
 openssl/base.h
+-
+
+include/openssl/span.h
+openssl/base.h
+-
+stdlib.h
 -
 algorithm
 -
-cstdlib
--
 type_traits
 -
 
-crypto/../include/openssl/stack.h
+include/openssl/stack.h
 openssl/base.h
 -
-openssl/type_check.h
--
 type_traits
 -
 
-crypto/../include/openssl/thread.h
+include/openssl/thread.h
 sys/types.h
 -
-openssl/base.h
--
-
-crypto/../include/openssl/type_check.h
 openssl/base.h
 -
 
@@ -365,6 +327,8 @@ ostream
 -
 string
 -
+type_traits
+-
 gtest/gtest-printers.h
 third_party/googletest/include/gtest/gtest/gtest-printers.h
 gtest/internal/gtest-internal.h
@@ -377,10 +341,14 @@ limits
 -
 memory
 -
+sstream
+-
 gtest/internal/gtest-port.h
 third_party/googletest/include/gtest/gtest/internal/gtest-port.h
 
 third_party/googletest/include/gtest/gtest-param-test.h
+iterator
+-
 utility
 -
 gtest/internal/gtest-internal.h
@@ -411,12 +379,6 @@ gtest/internal/gtest-internal.h
 third_party/googletest/include/gtest/gtest/internal/gtest-internal.h
 gtest/internal/gtest-port.h
 third_party/googletest/include/gtest/gtest/internal/gtest-port.h
-absl/strings/string_view.h
-third_party/googletest/include/gtest/absl/strings/string_view.h
-absl/types/optional.h
-third_party/googletest/include/gtest/absl/types/optional.h
-absl/types/variant.h
-third_party/googletest/include/gtest/absl/types/variant.h
 gtest/internal/custom/gtest-printers.h
 third_party/googletest/include/gtest/gtest/internal/custom/gtest-printers.h
 
@@ -431,6 +393,8 @@ gtest/internal/gtest-string.h
 third_party/googletest/include/gtest/gtest/internal/gtest-string.h
 
 third_party/googletest/include/gtest/gtest-typed-test.h
+gtest/internal/gtest-internal.h
+third_party/googletest/include/gtest/gtest/internal/gtest-internal.h
 gtest/internal/gtest-port.h
 third_party/googletest/include/gtest/gtest/internal/gtest-port.h
 gtest/internal/gtest-type-util.h
@@ -515,6 +479,8 @@ float.h
 -
 string.h
 -
+cstdint
+-
 iomanip
 -
 limits
@@ -551,6 +517,8 @@ set
 -
 tuple
 -
+type_traits
+-
 utility
 -
 vector
@@ -561,9 +529,13 @@ gtest/internal/gtest-port.h
 third_party/googletest/include/gtest/internal/gtest/internal/gtest-port.h
 gtest/gtest-printers.h
 third_party/googletest/include/gtest/internal/gtest/gtest-printers.h
+gtest/gtest-test-part.h
+third_party/googletest/include/gtest/internal/gtest/gtest-test-part.h
 
 third_party/googletest/include/gtest/internal/gtest-port-arch.h
 winapifamily.h
+-
+TargetConditionals.h
 -
 
 third_party/googletest/include/gtest/internal/gtest-port.h
@@ -577,7 +549,11 @@ stdlib.h
 -
 string.h
 -
-memory
+cerrno
+-
+cstdint
+-
+limits
 -
 type_traits
 -
@@ -589,24 +565,22 @@ AvailabilityMacros.h
 -
 TargetConditionals.h
 -
-algorithm
--
 iostream
 -
-sstream
+locale
+-
+memory
 -
 string
 -
 tuple
 -
-utility
--
 vector
 -
-gtest/internal/gtest-port-arch.h
-third_party/googletest/include/gtest/internal/gtest/internal/gtest-port-arch.h
 gtest/internal/custom/gtest-port.h
 third_party/googletest/include/gtest/internal/gtest/internal/custom/gtest-port.h
+gtest/internal/gtest-port-arch.h
+third_party/googletest/include/gtest/internal/gtest/internal/gtest-port-arch.h
 direct.h
 -
 io.h
@@ -625,11 +599,29 @@ pthread.h
 -
 time.h
 -
+absl/types/any.h
+third_party/googletest/include/gtest/internal/absl/types/any.h
+any
+-
+absl/types/optional.h
+third_party/googletest/include/gtest/internal/absl/types/optional.h
+optional
+-
+absl/strings/string_view.h
+third_party/googletest/include/gtest/internal/absl/strings/string_view.h
+string_view
+-
+absl/types/variant.h
+third_party/googletest/include/gtest/internal/absl/types/variant.h
+variant
+-
 
 third_party/googletest/include/gtest/internal/gtest-string.h
 mem.h
 -
 string.h
+-
+cstdint
 -
 string
 -

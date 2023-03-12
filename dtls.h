@@ -5,6 +5,8 @@
 
 const unsigned int dtls_frame_head_len = 13;
 
+extern char* dtls_fingerprint;
+
 typedef struct {
     u8 content_type;
     u16 vers;

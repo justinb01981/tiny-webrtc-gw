@@ -1656,6 +1656,7 @@ int main( int argc, char* argv[] ) {
             PEER_UNLOCK(sidx);
             // TODO: very hard to do but I did hit the below assert when this happened so i
             printf("epoll_memcpy: in_buffers_head.tail = 0!  (TODO: SHOULDNT HAPPEN unless this is a tolerable race cond?)\n");
+            peers[sidx].in_buffers_head.tail = peers[sidx].in_buffers_head.next;
             goto select_timeout;
         }
 

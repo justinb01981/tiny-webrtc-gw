@@ -127,12 +127,7 @@ static void bio_destroy_pair(BIO *bio) {
 }
 
 static int bio_free(BIO *bio) {
-  struct bio_bio_st *b;
-
-  if (bio == NULL) {
-    return 0;
-  }
-  b = bio->ptr;
+  struct bio_bio_st *b = bio->ptr;
 
   assert(b != NULL);
 
@@ -322,7 +317,6 @@ static int bio_make_pair(BIO *bio1, BIO *bio2, size_t writebuf1_len,
     }
     b1->buf = OPENSSL_malloc(b1->size);
     if (b1->buf == NULL) {
-      OPENSSL_PUT_ERROR(BIO, ERR_R_MALLOC_FAILURE);
       return 0;
     }
     b1->len = 0;
@@ -335,7 +329,6 @@ static int bio_make_pair(BIO *bio1, BIO *bio2, size_t writebuf1_len,
     }
     b2->buf = OPENSSL_malloc(b2->size);
     if (b2->buf == NULL) {
-      OPENSSL_PUT_ERROR(BIO, ERR_R_MALLOC_FAILURE);
       return 0;
     }
     b2->len = 0;
@@ -484,5 +477,5 @@ size_t BIO_ctrl_get_write_guarantee(BIO *bio) {
 }
 
 int BIO_shutdown_wr(BIO *bio) {
-  return BIO_ctrl(bio, BIO_C_SHUTDOWN_WR, 0, NULL);
+  return (int)BIO_ctrl(bio, BIO_C_SHUTDOWN_WR, 0, NULL);
 }
