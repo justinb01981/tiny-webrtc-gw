@@ -273,10 +273,9 @@ void DTLS_sock_init(unsigned short listen_port)
 
     BIO *mem = BIO_new(BIO_s_mem());
 
-    //if (!BIO_read_filename(pkbio, "certs/server-cert.pem")) assert(0);
-    //X509* x5 = PEM_read_bio_X509(pkbio, NULL, NULL, NULL);
-    //if(!x5) assert(0);
-
+    if (!BIO_read_filename(pkbio, "certs/server-cert.pem")) assert(0);
+    X509* x5 = PEM_read_bio_X509(pkbio, NULL, NULL, NULL);
+    if(!x5) assert(0);
 
     SSL_CTX *ctx = SSL_CTX_new(DTLSv1_2_server_method());
 
@@ -287,12 +286,13 @@ void DTLS_sock_init(unsigned short listen_port)
 
     SSL_CTX_set_options(ctx, SSL_OP_NO_TICKET);
 
+    // TODO: revisit this and switch statement in main.c srtp init which crashes if you remove it ;-)
     SSL_CTX_set_tlsext_use_srtp(ctx, "SRTP_AES128_CM_SHA1_80");
 
-	if (!SSL_CTX_use_certificate_file(ctx, "certs/server-cert.pem", SSL_FILETYPE_PEM))
-		printf("\nERROR: no certificate found!");
-    //if (!SSL_CTX_use_certificate(ctx, x5))
-    //    printf("\nError: loading certificate");
+	//if (!SSL_CTX_use_certificate_file(ctx, "certs/server-cert.pem", SSL_FILETYPE_PEM))
+	//	printf("\nERROR: no certificate found!");
+    if (!SSL_CTX_use_certificate(ctx, x5))
+        printf("\nError: loading certificate");
 
 	if (!SSL_CTX_use_PrivateKey_file(ctx, "certs/server-key.pem", SSL_FILETYPE_PEM))
 		printf("\nERROR: no private key found!");
@@ -302,11 +302,11 @@ void DTLS_sock_init(unsigned short listen_port)
 #ifdef CERT_HAX
     strcpy(dtls_fingerprint, get_config("dtls_fingerprint="));
 #else
-    //EVP_PKEY* x5key = X509_get_pubkey(x5);
-    //if (!x5key) assert(0);
+    EVP_PKEY* x5key = X509_get_pubkey(x5);
+    if (!x5key) assert(0);
 
     // fingerprint is sha256 of the cert NOT THE PUBLIC KEY
-    //RSA* rsa = EVP_PKEY_get1_RSA(x5key); // remove?
+    RSA* rsa = EVP_PKEY_get1_RSA(x5key); // remove?
 
     if (!i2d_X509_bio(mem, x5)) assert(0);
 
@@ -314,10 +314,10 @@ void DTLS_sock_init(unsigned short listen_port)
      
     char *x5der = NULL;
     long hlen = BIO_get_mem_data(mem, &x5der);
-    //sha256_bytes(x5der, hlen, dtls_fingerprint);
+    sha256_bytes(x5der, hlen, dtls_fingerprint);
 
-    //EVP_PKEY_free(x5key);
-    //RSA_free(rsa);
+    EVP_PKEY_free(x5key);
+    RSA_free(rsa);
 
 #endif
     BIO_free(pkbio);

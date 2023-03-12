@@ -6,7 +6,37 @@
 
 #IncludeRegexTransform: 
 
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/ec_extra/internal.h
+openssl/ec.h
+-
+../fipsmodule/ec/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ec/internal.h
+
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/internal.h
+openssl/bn.h
+-
+intrin.h
+-
+../../internal.h
 /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
+
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ec/internal.h
+openssl/base.h
+-
+assert.h
+-
+openssl/bn.h
+-
+openssl/ec.h
+-
+openssl/ex_data.h
+-
+../bn/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/internal.h
+
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
+openssl/crypto.h
+-
 openssl/ex_data.h
 -
 openssl/stack.h
@@ -19,6 +49,8 @@ string.h
 -
 valgrind/memcheck.h
 -
+stdlib.h
+-
 stdalign.h
 -
 pthread.h
@@ -28,10 +60,26 @@ windows.h
 stdlib.h
 -
 
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/trust_token/internal.h
+openssl/base.h
+-
+openssl/ec.h
+-
+openssl/ec_key.h
+-
+openssl/nid.h
+-
+../fipsmodule/ec/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ec/internal.h
+openssl/trust_token.h
+-
+
 /home/pi/workspace/tiny-webrtc-gw/boringssl/tool/args.cc
 string
 -
 vector
+-
+errno.h
 -
 limits.h
 -
@@ -122,12 +170,56 @@ openssl/digest.h
 internal.h
 /home/pi/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
 
-/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/file.cc
+/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/fd.cc
+openssl/base.h
+-
+errno.h
+-
+limits.h
+-
 stdio.h
 -
 algorithm
 -
+internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
+io.h
+-
+fcntl.h
+-
+unistd.h
+-
+
+/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/file.cc
+openssl/bytestring.h
+-
+errno.h
+-
+stdio.h
+-
+string.h
+-
+algorithm
+-
 vector
+-
+internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
+
+/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/generate_ech.cc
+stdio.h
+-
+limits
+-
+vector
+-
+openssl/bytestring.h
+-
+openssl/hpke.h
+-
+openssl/span.h
+-
+openssl/ssl.h
 -
 internal.h
 /home/pi/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
@@ -161,7 +253,11 @@ internal.h
 /home/pi/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
 openssl/base.h
 -
+openssl/span.h
+-
 string
+-
+utility
 -
 vector
 -
@@ -231,6 +327,8 @@ memory
 -
 openssl/err.h
 -
+openssl/hpke.h
+-
 openssl/rand.h
 -
 openssl/ssl.h
@@ -269,6 +367,8 @@ assert.h
 -
 errno.h
 -
+inttypes.h
+-
 stdint.h
 -
 stdlib.h
@@ -279,9 +379,13 @@ openssl/aead.h
 -
 openssl/aes.h
 -
+openssl/base64.h
+-
 openssl/bn.h
 -
 openssl/curve25519.h
+-
+openssl/crypto.h
 -
 openssl/digest.h
 -
@@ -297,11 +401,17 @@ openssl/evp.h
 -
 openssl/hrss.h
 -
+openssl/mem.h
+-
 openssl/nid.h
 -
 openssl/rand.h
 -
 openssl/rsa.h
+-
+openssl/siphash.h
+-
+openssl/trust_token.h
 -
 windows.h
 -
@@ -309,8 +419,14 @@ sys/time.h
 -
 time.h
 -
+../crypto/ec_extra/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/ec_extra/internal.h
+../crypto/fipsmodule/ec/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ec/internal.h
 ../crypto/internal.h
 /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
+../crypto/trust_token/internal.h
+/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/trust_token/internal.h
 internal.h
 /home/pi/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
 
@@ -330,6 +446,8 @@ fcntl.h
 io.h
 -
 libgen.h
+-
+signal.h
 -
 internal.h
 /home/pi/workspace/tiny-webrtc-gw/boringssl/tool/internal.h
@@ -408,27 +526,27 @@ string.h
 string
 -
 
-tool/../include/openssl/aead.h
+include/openssl/aead.h
 openssl/base.h
 -
 
-tool/../include/openssl/aes.h
+include/openssl/aes.h
 openssl/base.h
 -
 
-tool/../include/openssl/asn1.h
+include/openssl/asn1.h
 openssl/base.h
 -
 time.h
 -
 openssl/bio.h
 -
-openssl/stack.h
--
 openssl/bn.h
 -
+openssl/stack.h
+-
 
-tool/../include/openssl/base.h
+include/openssl/base.h
 stddef.h
 -
 stdint.h
@@ -448,11 +566,11 @@ boringssl_prefix_symbols.h
 memory
 -
 
-tool/../include/openssl/base64.h
+include/openssl/base64.h
 openssl/base.h
 -
 
-tool/../include/openssl/bio.h
+include/openssl/bio.h
 openssl/base.h
 -
 stdio.h
@@ -468,7 +586,7 @@ openssl/stack.h
 openssl/thread.h
 -
 
-tool/../include/openssl/bn.h
+include/openssl/bn.h
 openssl/base.h
 -
 openssl/thread.h
@@ -478,25 +596,27 @@ inttypes.h
 stdio.h
 -
 
-tool/../include/openssl/buf.h
+include/openssl/buf.h
 openssl/base.h
 -
 
-tool/../include/openssl/buffer.h
+include/openssl/buffer.h
 buf.h
-tool/../include/openssl/buf.h
+include/openssl/buf.h
 
-tool/../include/openssl/bytestring.h
+include/openssl/bytestring.h
 openssl/base.h
 -
 openssl/span.h
 -
+time.h
+-
 
-tool/../include/openssl/cipher.h
+include/openssl/cipher.h
 openssl/base.h
 -
 
-tool/../include/openssl/crypto.h
+include/openssl/crypto.h
 openssl/base.h
 -
 openssl/sha.h
@@ -506,23 +626,21 @@ openssl/mem.h
 openssl/thread.h
 -
 
-tool/../include/openssl/curve25519.h
+include/openssl/curve25519.h
 openssl/base.h
 -
 
-tool/../include/openssl/dh.h
+include/openssl/dh.h
 openssl/base.h
--
-openssl/ex_data.h
 -
 openssl/thread.h
 -
 
-tool/../include/openssl/digest.h
+include/openssl/digest.h
 openssl/base.h
 -
 
-tool/../include/openssl/dsa.h
+include/openssl/dsa.h
 openssl/base.h
 -
 openssl/engine.h
@@ -532,13 +650,13 @@ openssl/ex_data.h
 openssl/thread.h
 -
 
-tool/../include/openssl/ec.h
+include/openssl/ec.h
 openssl/base.h
 -
 openssl/ec_key.h
 -
 
-tool/../include/openssl/ec_key.h
+include/openssl/ec_key.h
 openssl/base.h
 -
 openssl/ec.h
@@ -548,30 +666,32 @@ openssl/engine.h
 openssl/ex_data.h
 -
 
-tool/../include/openssl/ecdh.h
+include/openssl/ecdh.h
 openssl/base.h
 -
 openssl/ec_key.h
 -
 
-tool/../include/openssl/ecdsa.h
+include/openssl/ecdsa.h
 openssl/base.h
 -
 openssl/ec_key.h
 -
 
-tool/../include/openssl/engine.h
+include/openssl/engine.h
 openssl/base.h
 -
 
-tool/../include/openssl/err.h
+include/openssl/err.h
 stdio.h
 -
 openssl/base.h
 -
 
-tool/../include/openssl/evp.h
+include/openssl/evp.h
 openssl/base.h
+-
+openssl/evp_errors.h
 -
 openssl/thread.h
 -
@@ -586,25 +706,31 @@ openssl/digest.h
 openssl/nid.h
 -
 
-tool/../include/openssl/ex_data.h
+include/openssl/evp_errors.h
+
+include/openssl/ex_data.h
 openssl/base.h
 -
 openssl/stack.h
 -
 
-tool/../include/openssl/hmac.h
+include/openssl/hpke.h
+openssl/aead.h
+-
 openssl/base.h
+-
+openssl/curve25519.h
 -
 openssl/digest.h
 -
 
-tool/../include/openssl/hrss.h
+include/openssl/hrss.h
 openssl/base.h
 -
 
-tool/../include/openssl/is_boringssl.h
+include/openssl/is_boringssl.h
 
-tool/../include/openssl/mem.h
+include/openssl/mem.h
 openssl/base.h
 -
 stdlib.h
@@ -612,11 +738,11 @@ stdlib.h
 stdarg.h
 -
 
-tool/../include/openssl/nid.h
+include/openssl/nid.h
 openssl/base.h
 -
 
-tool/../include/openssl/obj.h
+include/openssl/obj.h
 openssl/base.h
 -
 openssl/bytestring.h
@@ -624,9 +750,9 @@ openssl/bytestring.h
 openssl/nid.h
 -
 
-tool/../include/openssl/opensslconf.h
+include/openssl/opensslconf.h
 
-tool/../include/openssl/pem.h
+include/openssl/pem.h
 openssl/base64.h
 -
 openssl/bio.h
@@ -637,38 +763,38 @@ openssl/digest.h
 -
 openssl/evp.h
 -
-openssl/stack.h
--
 openssl/pkcs7.h
+-
+openssl/stack.h
 -
 openssl/x509.h
 -
 openssl/crypto.h
 -
 
-tool/../include/openssl/pkcs7.h
+include/openssl/pkcs7.h
 openssl/base.h
 -
 openssl/stack.h
 -
 
-tool/../include/openssl/pkcs8.h
+include/openssl/pkcs8.h
 openssl/base.h
 -
 openssl/x509.h
 -
 
-tool/../include/openssl/pool.h
+include/openssl/pool.h
 openssl/base.h
 -
 openssl/stack.h
 -
 
-tool/../include/openssl/rand.h
+include/openssl/rand.h
 openssl/base.h
 -
 
-tool/../include/openssl/rsa.h
+include/openssl/rsa.h
 openssl/base.h
 -
 openssl/engine.h
@@ -678,21 +804,25 @@ openssl/ex_data.h
 openssl/thread.h
 -
 
-tool/../include/openssl/sha.h
+include/openssl/sha.h
 openssl/base.h
 -
 
-tool/../include/openssl/span.h
+include/openssl/siphash.h
 openssl/base.h
 -
-algorithm
+
+include/openssl/span.h
+openssl/base.h
 -
-cstdlib
+stdlib.h
+-
+algorithm
 -
 type_traits
 -
 
-tool/../include/openssl/ssl.h
+include/openssl/ssl.h
 openssl/base.h
 -
 openssl/bio.h
@@ -713,43 +843,37 @@ openssl/x509.h
 -
 sys/time.h
 -
-openssl/hmac.h
--
 
-tool/../include/openssl/ssl3.h
+include/openssl/ssl3.h
 openssl/aead.h
 -
-openssl/type_check.h
--
 
-tool/../include/openssl/stack.h
+include/openssl/stack.h
 openssl/base.h
--
-openssl/type_check.h
 -
 type_traits
 -
 
-tool/../include/openssl/thread.h
+include/openssl/thread.h
 sys/types.h
 -
 openssl/base.h
 -
 
-tool/../include/openssl/tls1.h
+include/openssl/tls1.h
 openssl/base.h
 -
 
-tool/../include/openssl/type_check.h
+include/openssl/trust_token.h
 openssl/base.h
+-
+openssl/stack.h
 -
 
-tool/../include/openssl/x509.h
-openssl/base.h
--
-time.h
--
+include/openssl/x509.h
 openssl/asn1.h
+-
+openssl/base.h
 -
 openssl/bio.h
 -
@@ -759,11 +883,11 @@ openssl/dh.h
 -
 openssl/dsa.h
 -
+openssl/ec.h
+-
 openssl/ecdh.h
 -
 openssl/ecdsa.h
--
-openssl/ec.h
 -
 openssl/evp.h
 -
@@ -781,12 +905,6 @@ openssl/stack.h
 -
 openssl/thread.h
 -
-openssl/x509_vfy.h
--
-
-tool/../include/openssl/x509_vfy.h
-openssl/x509.h
--
-openssl/thread.h
+time.h
 -
 

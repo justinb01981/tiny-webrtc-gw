@@ -2,7 +2,7 @@
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/usr/local")
+  set(CMAKE_INSTALL_PREFIX "/home/pi/workspace/tiny-webrtc-gw/boringssl/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -37,13 +37,40 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
   set(CMAKE_CROSSCOMPILING "FALSE")
 endif()
 
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/home/pi/workspace/tiny-webrtc-gw/boringssl/include/")
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/OpenSSL/OpenSSLTargets.cmake")
+    file(DIFFERENT EXPORT_FILE_CHANGED FILES
+         "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/OpenSSL/OpenSSLTargets.cmake"
+         "/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles/Export/lib/cmake/OpenSSL/OpenSSLTargets.cmake")
+    if(EXPORT_FILE_CHANGED)
+      file(GLOB OLD_CONFIG_FILES "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/OpenSSL/OpenSSLTargets-*.cmake")
+      if(OLD_CONFIG_FILES)
+        message(STATUS "Old export file \"$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/OpenSSL/OpenSSLTargets.cmake\" will be replaced.  Removing files [${OLD_CONFIG_FILES}].")
+        file(REMOVE ${OLD_CONFIG_FILES})
+      endif()
+    endif()
+  endif()
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/OpenSSL" TYPE FILE FILES "/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles/Export/lib/cmake/OpenSSL/OpenSSLTargets.cmake")
+  if("${CMAKE_INSTALL_CONFIG_NAME}" MATCHES "^()$")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/OpenSSL" TYPE FILE FILES "/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles/Export/lib/cmake/OpenSSL/OpenSSLTargets-noconfig.cmake")
+  endif()
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/OpenSSL" TYPE FILE FILES "/home/pi/workspace/tiny-webrtc-gw/boringssl/cmake/OpenSSLConfig.cmake")
+endif()
+
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
   include("/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/cmake_install.cmake")
   include("/home/pi/workspace/tiny-webrtc-gw/boringssl/ssl/cmake_install.cmake")
   include("/home/pi/workspace/tiny-webrtc-gw/boringssl/ssl/test/cmake_install.cmake")
   include("/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/cmake_install.cmake")
-  include("/home/pi/workspace/tiny-webrtc-gw/boringssl/util/fipstools/cavp/cmake_install.cmake")
+  include("/home/pi/workspace/tiny-webrtc-gw/boringssl/util/fipstools/cmake_install.cmake")
   include("/home/pi/workspace/tiny-webrtc-gw/boringssl/util/fipstools/acvp/modulewrapper/cmake_install.cmake")
   include("/home/pi/workspace/tiny-webrtc-gw/boringssl/decrepit/cmake_install.cmake")
 

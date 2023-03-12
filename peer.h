@@ -3,6 +3,7 @@
 
 #include "stun_callback.h"
 #include "srtp_key_len.h"
+#include "dtls.h"
 
 #define SDP_OFFER_VP8 1
 
@@ -15,7 +16,7 @@
 //#define PEER_RTP_SEQ_MIN_RECLAIMABLE 128
 #define PEER_RTP_SEQ_MIN_RECLAIMABLE 0
 
-#define CERT_HAX
+//#define CERT_HAX
 
 #define PEER_LOCK(j) { pthread_mutex_lock(&peers[(int) (j)].mutex); }
 #define PEER_UNLOCK(j) { pthread_mutex_unlock(&peers[(j)].mutex); }
@@ -560,7 +561,7 @@ const char* sdp_offer_create(peer_session_t* peer)
     sprintf(sdp_offer_table.t.offer_js,
             // ufrag, ssrc1, ufrag, ssrc2
             offer_template,
-            get_config("dtls_fingerprint="),
+            dtls_fingerprint,
             sdp_offer_table.t.iceufrag,
             ssrc1,
             sdp_offer_table.t.iceufrag,
@@ -596,7 +597,7 @@ const char* sdp_offer_create(peer_session_t* peer)
     sprintf(sdp_offer_table.t.offer,
             // ufrag, ssrc1, ufrag, ssrc2,
             offer_template_clean,
-            get_config("dtls_fingerprint="),
+            dtls_fingerprint,
             sdp_offer_table.t.iceufrag,
             ssrc1,
             sdp_offer_table.t.iceufrag,
