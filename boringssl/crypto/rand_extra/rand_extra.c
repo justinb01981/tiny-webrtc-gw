@@ -63,12 +63,8 @@ RAND_METHOD *RAND_SSLeay(void) {
   return (RAND_METHOD*) &kSSLeayMethod;
 }
 
-RAND_METHOD *RAND_OpenSSL(void) {
-  return RAND_SSLeay();
-}
-
 const RAND_METHOD *RAND_get_rand_method(void) { return RAND_SSLeay(); }
 
-int RAND_set_rand_method(const RAND_METHOD *method) { return 1; }
+void RAND_set_rand_method(const RAND_METHOD *method) {}
 
 void RAND_cleanup(void) {}

@@ -56,41 +56,6 @@ CMAKE_BINARY_DIR = /home/pi/workspace/tiny-webrtc-gw/boringssl
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target install/strip
-install/strip: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip
-
-# Special rule for the target install/strip
-install/strip/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip/fast
-
-# Special rule for the target edit_cache
-edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
-.PHONY : edit_cache
-
-# Special rule for the target edit_cache
-edit_cache/fast: edit_cache
-
-.PHONY : edit_cache/fast
-
-# Special rule for the target install
-install: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/usr/bin/cmake -P cmake_install.cmake
-.PHONY : install
-
-# Special rule for the target install
-install/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/usr/bin/cmake -P cmake_install.cmake
-.PHONY : install/fast
-
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
@@ -102,27 +67,16 @@ rebuild_cache/fast: rebuild_cache
 
 .PHONY : rebuild_cache/fast
 
-# Special rule for the target list_install_components
-list_install_components:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
-.PHONY : list_install_components
+# Special rule for the target edit_cache
+edit_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
+	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+.PHONY : edit_cache
 
-# Special rule for the target list_install_components
-list_install_components/fast: list_install_components
+# Special rule for the target edit_cache
+edit_cache/fast: edit_cache
 
-.PHONY : list_install_components/fast
-
-# Special rule for the target install/local
-install/local: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local
-
-# Special rule for the target install/local
-install/local/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local/fast
+.PHONY : edit_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -171,176 +125,23 @@ fipsmodule/fast:
 	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build
 .PHONY : fipsmodule/fast
 
-aesni-gcm-x86_64-apple.o: aesni-gcm-x86_64-apple.S.o
+aesv8-armx.o: aesv8-armx.S.o
 
-.PHONY : aesni-gcm-x86_64-apple.o
-
-# target to build an object file
-aesni-gcm-x86_64-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-gcm-x86_64-apple.S.o
-.PHONY : aesni-gcm-x86_64-apple.S.o
-
-aesni-gcm-x86_64-linux.o: aesni-gcm-x86_64-linux.S.o
-
-.PHONY : aesni-gcm-x86_64-linux.o
+.PHONY : aesv8-armx.o
 
 # target to build an object file
-aesni-gcm-x86_64-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-gcm-x86_64-linux.S.o
-.PHONY : aesni-gcm-x86_64-linux.S.o
+aesv8-armx.S.o:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armx.S.o
+.PHONY : aesv8-armx.S.o
 
-aesni-x86-apple.o: aesni-x86-apple.S.o
+armv4-mont.o: armv4-mont.S.o
 
-.PHONY : aesni-x86-apple.o
-
-# target to build an object file
-aesni-x86-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-x86-apple.S.o
-.PHONY : aesni-x86-apple.S.o
-
-aesni-x86-linux.o: aesni-x86-linux.S.o
-
-.PHONY : aesni-x86-linux.o
+.PHONY : armv4-mont.o
 
 # target to build an object file
-aesni-x86-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-x86-linux.S.o
-.PHONY : aesni-x86-linux.S.o
-
-aesni-x86_64-apple.o: aesni-x86_64-apple.S.o
-
-.PHONY : aesni-x86_64-apple.o
-
-# target to build an object file
-aesni-x86_64-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-x86_64-apple.S.o
-.PHONY : aesni-x86_64-apple.S.o
-
-aesni-x86_64-linux.o: aesni-x86_64-linux.S.o
-
-.PHONY : aesni-x86_64-linux.o
-
-# target to build an object file
-aesni-x86_64-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-x86_64-linux.S.o
-.PHONY : aesni-x86_64-linux.S.o
-
-aesv8-armv7-apple.o: aesv8-armv7-apple.S.o
-
-.PHONY : aesv8-armv7-apple.o
-
-# target to build an object file
-aesv8-armv7-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv7-apple.S.o
-.PHONY : aesv8-armv7-apple.S.o
-
-aesv8-armv7-linux.o: aesv8-armv7-linux.S.o
-
-.PHONY : aesv8-armv7-linux.o
-
-# target to build an object file
-aesv8-armv7-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv7-linux.S.o
-.PHONY : aesv8-armv7-linux.S.o
-
-aesv8-armv8-apple.o: aesv8-armv8-apple.S.o
-
-.PHONY : aesv8-armv8-apple.o
-
-# target to build an object file
-aesv8-armv8-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv8-apple.S.o
-.PHONY : aesv8-armv8-apple.S.o
-
-aesv8-armv8-linux.o: aesv8-armv8-linux.S.o
-
-.PHONY : aesv8-armv8-linux.o
-
-# target to build an object file
-aesv8-armv8-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv8-linux.S.o
-.PHONY : aesv8-armv8-linux.S.o
-
-aesv8-armv8-win.o: aesv8-armv8-win.S.o
-
-.PHONY : aesv8-armv8-win.o
-
-# target to build an object file
-aesv8-armv8-win.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv8-win.S.o
-.PHONY : aesv8-armv8-win.S.o
-
-aesv8-gcm-armv8-apple.o: aesv8-gcm-armv8-apple.S.o
-
-.PHONY : aesv8-gcm-armv8-apple.o
-
-# target to build an object file
-aesv8-gcm-armv8-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-gcm-armv8-apple.S.o
-.PHONY : aesv8-gcm-armv8-apple.S.o
-
-aesv8-gcm-armv8-linux.o: aesv8-gcm-armv8-linux.S.o
-
-.PHONY : aesv8-gcm-armv8-linux.o
-
-# target to build an object file
-aesv8-gcm-armv8-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-gcm-armv8-linux.S.o
-.PHONY : aesv8-gcm-armv8-linux.S.o
-
-aesv8-gcm-armv8-win.o: aesv8-gcm-armv8-win.S.o
-
-.PHONY : aesv8-gcm-armv8-win.o
-
-# target to build an object file
-aesv8-gcm-armv8-win.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-gcm-armv8-win.S.o
-.PHONY : aesv8-gcm-armv8-win.S.o
-
-armv4-mont-apple.o: armv4-mont-apple.S.o
-
-.PHONY : armv4-mont-apple.o
-
-# target to build an object file
-armv4-mont-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv4-mont-apple.S.o
-.PHONY : armv4-mont-apple.S.o
-
-armv4-mont-linux.o: armv4-mont-linux.S.o
-
-.PHONY : armv4-mont-linux.o
-
-# target to build an object file
-armv4-mont-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv4-mont-linux.S.o
-.PHONY : armv4-mont-linux.S.o
-
-armv8-mont-apple.o: armv8-mont-apple.S.o
-
-.PHONY : armv8-mont-apple.o
-
-# target to build an object file
-armv8-mont-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv8-mont-apple.S.o
-.PHONY : armv8-mont-apple.S.o
-
-armv8-mont-linux.o: armv8-mont-linux.S.o
-
-.PHONY : armv8-mont-linux.o
-
-# target to build an object file
-armv8-mont-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv8-mont-linux.S.o
-.PHONY : armv8-mont-linux.S.o
-
-armv8-mont-win.o: armv8-mont-win.S.o
-
-.PHONY : armv8-mont-win.o
-
-# target to build an object file
-armv8-mont-win.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv8-mont-win.S.o
-.PHONY : armv8-mont-win.S.o
+armv4-mont.S.o:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv4-mont.S.o
+.PHONY : armv4-mont.S.o
 
 bcm.o: bcm.c.o
 
@@ -369,86 +170,14 @@ bcm.c.s:
 	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bcm.c.s
 .PHONY : bcm.c.s
 
-bn-586-apple.o: bn-586-apple.S.o
+bsaes-armv7.o: bsaes-armv7.S.o
 
-.PHONY : bn-586-apple.o
-
-# target to build an object file
-bn-586-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-586-apple.S.o
-.PHONY : bn-586-apple.S.o
-
-bn-586-linux.o: bn-586-linux.S.o
-
-.PHONY : bn-586-linux.o
+.PHONY : bsaes-armv7.o
 
 # target to build an object file
-bn-586-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-586-linux.S.o
-.PHONY : bn-586-linux.S.o
-
-bn-armv8-apple.o: bn-armv8-apple.S.o
-
-.PHONY : bn-armv8-apple.o
-
-# target to build an object file
-bn-armv8-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-armv8-apple.S.o
-.PHONY : bn-armv8-apple.S.o
-
-bn-armv8-linux.o: bn-armv8-linux.S.o
-
-.PHONY : bn-armv8-linux.o
-
-# target to build an object file
-bn-armv8-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-armv8-linux.S.o
-.PHONY : bn-armv8-linux.S.o
-
-bn-armv8-win.o: bn-armv8-win.S.o
-
-.PHONY : bn-armv8-win.o
-
-# target to build an object file
-bn-armv8-win.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-armv8-win.S.o
-.PHONY : bn-armv8-win.S.o
-
-bsaes-armv7-apple.o: bsaes-armv7-apple.S.o
-
-.PHONY : bsaes-armv7-apple.o
-
-# target to build an object file
-bsaes-armv7-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bsaes-armv7-apple.S.o
-.PHONY : bsaes-armv7-apple.S.o
-
-bsaes-armv7-linux.o: bsaes-armv7-linux.S.o
-
-.PHONY : bsaes-armv7-linux.o
-
-# target to build an object file
-bsaes-armv7-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bsaes-armv7-linux.S.o
-.PHONY : bsaes-armv7-linux.S.o
-
-co-586-apple.o: co-586-apple.S.o
-
-.PHONY : co-586-apple.o
-
-# target to build an object file
-co-586-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/co-586-apple.S.o
-.PHONY : co-586-apple.S.o
-
-co-586-linux.o: co-586-linux.S.o
-
-.PHONY : co-586-linux.o
-
-# target to build an object file
-co-586-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/co-586-linux.S.o
-.PHONY : co-586-linux.S.o
+bsaes-armv7.S.o:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bsaes-armv7.S.o
+.PHONY : bsaes-armv7.S.o
 
 fips_shared_support.o: fips_shared_support.c.o
 
@@ -477,707 +206,86 @@ fips_shared_support.c.s:
 	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/fips_shared_support.c.s
 .PHONY : fips_shared_support.c.s
 
-ghash-armv4-apple.o: ghash-armv4-apple.S.o
+ghash-armv4.o: ghash-armv4.S.o
 
-.PHONY : ghash-armv4-apple.o
+.PHONY : ghash-armv4.o
 
 # target to build an object file
-ghash-armv4-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-armv4-apple.S.o
-.PHONY : ghash-armv4-apple.S.o
+ghash-armv4.S.o:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-armv4.S.o
+.PHONY : ghash-armv4.S.o
 
-ghash-armv4-linux.o: ghash-armv4-linux.S.o
+ghashv8-armx.o: ghashv8-armx.S.o
 
-.PHONY : ghash-armv4-linux.o
+.PHONY : ghashv8-armx.o
 
 # target to build an object file
-ghash-armv4-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-armv4-linux.S.o
-.PHONY : ghash-armv4-linux.S.o
+ghashv8-armx.S.o:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armx.S.o
+.PHONY : ghashv8-armx.S.o
 
-ghash-neon-armv8-apple.o: ghash-neon-armv8-apple.S.o
+is_fips.o: is_fips.c.o
 
-.PHONY : ghash-neon-armv8-apple.o
+.PHONY : is_fips.o
 
 # target to build an object file
-ghash-neon-armv8-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-neon-armv8-apple.S.o
-.PHONY : ghash-neon-armv8-apple.S.o
+is_fips.c.o:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/is_fips.c.o
+.PHONY : is_fips.c.o
 
-ghash-neon-armv8-linux.o: ghash-neon-armv8-linux.S.o
+is_fips.i: is_fips.c.i
 
-.PHONY : ghash-neon-armv8-linux.o
+.PHONY : is_fips.i
 
-# target to build an object file
-ghash-neon-armv8-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-neon-armv8-linux.S.o
-.PHONY : ghash-neon-armv8-linux.S.o
-
-ghash-neon-armv8-win.o: ghash-neon-armv8-win.S.o
-
-.PHONY : ghash-neon-armv8-win.o
-
-# target to build an object file
-ghash-neon-armv8-win.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-neon-armv8-win.S.o
-.PHONY : ghash-neon-armv8-win.S.o
-
-ghash-ssse3-x86-apple.o: ghash-ssse3-x86-apple.S.o
-
-.PHONY : ghash-ssse3-x86-apple.o
-
-# target to build an object file
-ghash-ssse3-x86-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-ssse3-x86-apple.S.o
-.PHONY : ghash-ssse3-x86-apple.S.o
-
-ghash-ssse3-x86-linux.o: ghash-ssse3-x86-linux.S.o
-
-.PHONY : ghash-ssse3-x86-linux.o
-
-# target to build an object file
-ghash-ssse3-x86-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-ssse3-x86-linux.S.o
-.PHONY : ghash-ssse3-x86-linux.S.o
-
-ghash-ssse3-x86_64-apple.o: ghash-ssse3-x86_64-apple.S.o
-
-.PHONY : ghash-ssse3-x86_64-apple.o
-
-# target to build an object file
-ghash-ssse3-x86_64-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-ssse3-x86_64-apple.S.o
-.PHONY : ghash-ssse3-x86_64-apple.S.o
-
-ghash-ssse3-x86_64-linux.o: ghash-ssse3-x86_64-linux.S.o
-
-.PHONY : ghash-ssse3-x86_64-linux.o
-
-# target to build an object file
-ghash-ssse3-x86_64-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-ssse3-x86_64-linux.S.o
-.PHONY : ghash-ssse3-x86_64-linux.S.o
-
-ghash-x86-apple.o: ghash-x86-apple.S.o
-
-.PHONY : ghash-x86-apple.o
-
-# target to build an object file
-ghash-x86-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-x86-apple.S.o
-.PHONY : ghash-x86-apple.S.o
-
-ghash-x86-linux.o: ghash-x86-linux.S.o
-
-.PHONY : ghash-x86-linux.o
-
-# target to build an object file
-ghash-x86-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-x86-linux.S.o
-.PHONY : ghash-x86-linux.S.o
-
-ghash-x86_64-apple.o: ghash-x86_64-apple.S.o
-
-.PHONY : ghash-x86_64-apple.o
-
-# target to build an object file
-ghash-x86_64-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-x86_64-apple.S.o
-.PHONY : ghash-x86_64-apple.S.o
-
-ghash-x86_64-linux.o: ghash-x86_64-linux.S.o
-
-.PHONY : ghash-x86_64-linux.o
-
-# target to build an object file
-ghash-x86_64-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-x86_64-linux.S.o
-.PHONY : ghash-x86_64-linux.S.o
-
-ghashv8-armv7-apple.o: ghashv8-armv7-apple.S.o
-
-.PHONY : ghashv8-armv7-apple.o
-
-# target to build an object file
-ghashv8-armv7-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv7-apple.S.o
-.PHONY : ghashv8-armv7-apple.S.o
-
-ghashv8-armv7-linux.o: ghashv8-armv7-linux.S.o
-
-.PHONY : ghashv8-armv7-linux.o
-
-# target to build an object file
-ghashv8-armv7-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv7-linux.S.o
-.PHONY : ghashv8-armv7-linux.S.o
-
-ghashv8-armv8-apple.o: ghashv8-armv8-apple.S.o
-
-.PHONY : ghashv8-armv8-apple.o
-
-# target to build an object file
-ghashv8-armv8-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv8-apple.S.o
-.PHONY : ghashv8-armv8-apple.S.o
-
-ghashv8-armv8-linux.o: ghashv8-armv8-linux.S.o
-
-.PHONY : ghashv8-armv8-linux.o
-
-# target to build an object file
-ghashv8-armv8-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv8-linux.S.o
-.PHONY : ghashv8-armv8-linux.S.o
-
-ghashv8-armv8-win.o: ghashv8-armv8-win.S.o
-
-.PHONY : ghashv8-armv8-win.o
-
-# target to build an object file
-ghashv8-armv8-win.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv8-win.S.o
-.PHONY : ghashv8-armv8-win.S.o
-
-md5-586-apple.o: md5-586-apple.S.o
-
-.PHONY : md5-586-apple.o
-
-# target to build an object file
-md5-586-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/md5-586-apple.S.o
-.PHONY : md5-586-apple.S.o
-
-md5-586-linux.o: md5-586-linux.S.o
-
-.PHONY : md5-586-linux.o
-
-# target to build an object file
-md5-586-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/md5-586-linux.S.o
-.PHONY : md5-586-linux.S.o
-
-md5-x86_64-apple.o: md5-x86_64-apple.S.o
-
-.PHONY : md5-x86_64-apple.o
-
-# target to build an object file
-md5-x86_64-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/md5-x86_64-apple.S.o
-.PHONY : md5-x86_64-apple.S.o
-
-md5-x86_64-linux.o: md5-x86_64-linux.S.o
-
-.PHONY : md5-x86_64-linux.o
-
-# target to build an object file
-md5-x86_64-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/md5-x86_64-linux.S.o
-.PHONY : md5-x86_64-linux.S.o
-
-p256-armv8-asm-apple.o: p256-armv8-asm-apple.S.o
-
-.PHONY : p256-armv8-asm-apple.o
-
-# target to build an object file
-p256-armv8-asm-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-armv8-asm-apple.S.o
-.PHONY : p256-armv8-asm-apple.S.o
-
-p256-armv8-asm-linux.o: p256-armv8-asm-linux.S.o
-
-.PHONY : p256-armv8-asm-linux.o
-
-# target to build an object file
-p256-armv8-asm-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-armv8-asm-linux.S.o
-.PHONY : p256-armv8-asm-linux.S.o
-
-p256-armv8-asm-win.o: p256-armv8-asm-win.S.o
-
-.PHONY : p256-armv8-asm-win.o
-
-# target to build an object file
-p256-armv8-asm-win.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-armv8-asm-win.S.o
-.PHONY : p256-armv8-asm-win.S.o
-
-p256-x86_64-asm-apple.o: p256-x86_64-asm-apple.S.o
-
-.PHONY : p256-x86_64-asm-apple.o
-
-# target to build an object file
-p256-x86_64-asm-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-x86_64-asm-apple.S.o
-.PHONY : p256-x86_64-asm-apple.S.o
-
-p256-x86_64-asm-linux.o: p256-x86_64-asm-linux.S.o
-
-.PHONY : p256-x86_64-asm-linux.o
-
-# target to build an object file
-p256-x86_64-asm-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-x86_64-asm-linux.S.o
-.PHONY : p256-x86_64-asm-linux.S.o
-
-p256_beeu-armv8-asm-apple.o: p256_beeu-armv8-asm-apple.S.o
-
-.PHONY : p256_beeu-armv8-asm-apple.o
-
-# target to build an object file
-p256_beeu-armv8-asm-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-armv8-asm-apple.S.o
-.PHONY : p256_beeu-armv8-asm-apple.S.o
-
-p256_beeu-armv8-asm-linux.o: p256_beeu-armv8-asm-linux.S.o
-
-.PHONY : p256_beeu-armv8-asm-linux.o
-
-# target to build an object file
-p256_beeu-armv8-asm-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-armv8-asm-linux.S.o
-.PHONY : p256_beeu-armv8-asm-linux.S.o
-
-p256_beeu-armv8-asm-win.o: p256_beeu-armv8-asm-win.S.o
-
-.PHONY : p256_beeu-armv8-asm-win.o
-
-# target to build an object file
-p256_beeu-armv8-asm-win.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-armv8-asm-win.S.o
-.PHONY : p256_beeu-armv8-asm-win.S.o
-
-p256_beeu-x86_64-asm-apple.o: p256_beeu-x86_64-asm-apple.S.o
-
-.PHONY : p256_beeu-x86_64-asm-apple.o
-
-# target to build an object file
-p256_beeu-x86_64-asm-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-x86_64-asm-apple.S.o
-.PHONY : p256_beeu-x86_64-asm-apple.S.o
-
-p256_beeu-x86_64-asm-linux.o: p256_beeu-x86_64-asm-linux.S.o
-
-.PHONY : p256_beeu-x86_64-asm-linux.o
-
-# target to build an object file
-p256_beeu-x86_64-asm-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-x86_64-asm-linux.S.o
-.PHONY : p256_beeu-x86_64-asm-linux.S.o
-
-rdrand-x86_64-apple.o: rdrand-x86_64-apple.S.o
-
-.PHONY : rdrand-x86_64-apple.o
-
-# target to build an object file
-rdrand-x86_64-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rdrand-x86_64-apple.S.o
-.PHONY : rdrand-x86_64-apple.S.o
-
-rdrand-x86_64-linux.o: rdrand-x86_64-linux.S.o
-
-.PHONY : rdrand-x86_64-linux.o
-
-# target to build an object file
-rdrand-x86_64-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rdrand-x86_64-linux.S.o
-.PHONY : rdrand-x86_64-linux.S.o
-
-rsaz-avx2-apple.o: rsaz-avx2-apple.S.o
-
-.PHONY : rsaz-avx2-apple.o
-
-# target to build an object file
-rsaz-avx2-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rsaz-avx2-apple.S.o
-.PHONY : rsaz-avx2-apple.S.o
-
-rsaz-avx2-linux.o: rsaz-avx2-linux.S.o
-
-.PHONY : rsaz-avx2-linux.o
-
-# target to build an object file
-rsaz-avx2-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rsaz-avx2-linux.S.o
-.PHONY : rsaz-avx2-linux.S.o
-
-sha1-586-apple.o: sha1-586-apple.S.o
-
-.PHONY : sha1-586-apple.o
-
-# target to build an object file
-sha1-586-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-586-apple.S.o
-.PHONY : sha1-586-apple.S.o
-
-sha1-586-linux.o: sha1-586-linux.S.o
-
-.PHONY : sha1-586-linux.o
-
-# target to build an object file
-sha1-586-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-586-linux.S.o
-.PHONY : sha1-586-linux.S.o
-
-sha1-armv4-large-apple.o: sha1-armv4-large-apple.S.o
-
-.PHONY : sha1-armv4-large-apple.o
+# target to preprocess a source file
+is_fips.c.i:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/is_fips.c.i
+.PHONY : is_fips.c.i
 
-# target to build an object file
-sha1-armv4-large-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv4-large-apple.S.o
-.PHONY : sha1-armv4-large-apple.S.o
-
-sha1-armv4-large-linux.o: sha1-armv4-large-linux.S.o
-
-.PHONY : sha1-armv4-large-linux.o
-
-# target to build an object file
-sha1-armv4-large-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv4-large-linux.S.o
-.PHONY : sha1-armv4-large-linux.S.o
-
-sha1-armv8-apple.o: sha1-armv8-apple.S.o
-
-.PHONY : sha1-armv8-apple.o
-
-# target to build an object file
-sha1-armv8-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv8-apple.S.o
-.PHONY : sha1-armv8-apple.S.o
-
-sha1-armv8-linux.o: sha1-armv8-linux.S.o
-
-.PHONY : sha1-armv8-linux.o
-
-# target to build an object file
-sha1-armv8-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv8-linux.S.o
-.PHONY : sha1-armv8-linux.S.o
-
-sha1-armv8-win.o: sha1-armv8-win.S.o
-
-.PHONY : sha1-armv8-win.o
-
-# target to build an object file
-sha1-armv8-win.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv8-win.S.o
-.PHONY : sha1-armv8-win.S.o
-
-sha1-x86_64-apple.o: sha1-x86_64-apple.S.o
-
-.PHONY : sha1-x86_64-apple.o
-
-# target to build an object file
-sha1-x86_64-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-x86_64-apple.S.o
-.PHONY : sha1-x86_64-apple.S.o
-
-sha1-x86_64-linux.o: sha1-x86_64-linux.S.o
-
-.PHONY : sha1-x86_64-linux.o
-
-# target to build an object file
-sha1-x86_64-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-x86_64-linux.S.o
-.PHONY : sha1-x86_64-linux.S.o
-
-sha256-586-apple.o: sha256-586-apple.S.o
-
-.PHONY : sha256-586-apple.o
-
-# target to build an object file
-sha256-586-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-586-apple.S.o
-.PHONY : sha256-586-apple.S.o
-
-sha256-586-linux.o: sha256-586-linux.S.o
-
-.PHONY : sha256-586-linux.o
-
-# target to build an object file
-sha256-586-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-586-linux.S.o
-.PHONY : sha256-586-linux.S.o
-
-sha256-armv4-apple.o: sha256-armv4-apple.S.o
-
-.PHONY : sha256-armv4-apple.o
-
-# target to build an object file
-sha256-armv4-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv4-apple.S.o
-.PHONY : sha256-armv4-apple.S.o
-
-sha256-armv4-linux.o: sha256-armv4-linux.S.o
-
-.PHONY : sha256-armv4-linux.o
-
-# target to build an object file
-sha256-armv4-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv4-linux.S.o
-.PHONY : sha256-armv4-linux.S.o
-
-sha256-armv8-apple.o: sha256-armv8-apple.S.o
-
-.PHONY : sha256-armv8-apple.o
-
-# target to build an object file
-sha256-armv8-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv8-apple.S.o
-.PHONY : sha256-armv8-apple.S.o
-
-sha256-armv8-linux.o: sha256-armv8-linux.S.o
-
-.PHONY : sha256-armv8-linux.o
-
-# target to build an object file
-sha256-armv8-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv8-linux.S.o
-.PHONY : sha256-armv8-linux.S.o
-
-sha256-armv8-win.o: sha256-armv8-win.S.o
-
-.PHONY : sha256-armv8-win.o
-
-# target to build an object file
-sha256-armv8-win.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv8-win.S.o
-.PHONY : sha256-armv8-win.S.o
-
-sha256-x86_64-apple.o: sha256-x86_64-apple.S.o
-
-.PHONY : sha256-x86_64-apple.o
-
-# target to build an object file
-sha256-x86_64-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-x86_64-apple.S.o
-.PHONY : sha256-x86_64-apple.S.o
-
-sha256-x86_64-linux.o: sha256-x86_64-linux.S.o
-
-.PHONY : sha256-x86_64-linux.o
-
-# target to build an object file
-sha256-x86_64-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-x86_64-linux.S.o
-.PHONY : sha256-x86_64-linux.S.o
-
-sha512-586-apple.o: sha512-586-apple.S.o
-
-.PHONY : sha512-586-apple.o
-
-# target to build an object file
-sha512-586-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-586-apple.S.o
-.PHONY : sha512-586-apple.S.o
-
-sha512-586-linux.o: sha512-586-linux.S.o
-
-.PHONY : sha512-586-linux.o
-
-# target to build an object file
-sha512-586-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-586-linux.S.o
-.PHONY : sha512-586-linux.S.o
+is_fips.s: is_fips.c.s
 
-sha512-armv4-apple.o: sha512-armv4-apple.S.o
+.PHONY : is_fips.s
 
-.PHONY : sha512-armv4-apple.o
-
-# target to build an object file
-sha512-armv4-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv4-apple.S.o
-.PHONY : sha512-armv4-apple.S.o
-
-sha512-armv4-linux.o: sha512-armv4-linux.S.o
-
-.PHONY : sha512-armv4-linux.o
-
-# target to build an object file
-sha512-armv4-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv4-linux.S.o
-.PHONY : sha512-armv4-linux.S.o
-
-sha512-armv8-apple.o: sha512-armv8-apple.S.o
-
-.PHONY : sha512-armv8-apple.o
-
-# target to build an object file
-sha512-armv8-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv8-apple.S.o
-.PHONY : sha512-armv8-apple.S.o
-
-sha512-armv8-linux.o: sha512-armv8-linux.S.o
-
-.PHONY : sha512-armv8-linux.o
-
-# target to build an object file
-sha512-armv8-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv8-linux.S.o
-.PHONY : sha512-armv8-linux.S.o
-
-sha512-armv8-win.o: sha512-armv8-win.S.o
-
-.PHONY : sha512-armv8-win.o
-
-# target to build an object file
-sha512-armv8-win.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv8-win.S.o
-.PHONY : sha512-armv8-win.S.o
-
-sha512-x86_64-apple.o: sha512-x86_64-apple.S.o
-
-.PHONY : sha512-x86_64-apple.o
-
-# target to build an object file
-sha512-x86_64-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-x86_64-apple.S.o
-.PHONY : sha512-x86_64-apple.S.o
-
-sha512-x86_64-linux.o: sha512-x86_64-linux.S.o
-
-.PHONY : sha512-x86_64-linux.o
-
-# target to build an object file
-sha512-x86_64-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-x86_64-linux.S.o
-.PHONY : sha512-x86_64-linux.S.o
-
-vpaes-armv7-apple.o: vpaes-armv7-apple.S.o
-
-.PHONY : vpaes-armv7-apple.o
-
-# target to build an object file
-vpaes-armv7-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv7-apple.S.o
-.PHONY : vpaes-armv7-apple.S.o
-
-vpaes-armv7-linux.o: vpaes-armv7-linux.S.o
-
-.PHONY : vpaes-armv7-linux.o
-
-# target to build an object file
-vpaes-armv7-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv7-linux.S.o
-.PHONY : vpaes-armv7-linux.S.o
-
-vpaes-armv8-apple.o: vpaes-armv8-apple.S.o
-
-.PHONY : vpaes-armv8-apple.o
-
-# target to build an object file
-vpaes-armv8-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv8-apple.S.o
-.PHONY : vpaes-armv8-apple.S.o
-
-vpaes-armv8-linux.o: vpaes-armv8-linux.S.o
-
-.PHONY : vpaes-armv8-linux.o
-
-# target to build an object file
-vpaes-armv8-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv8-linux.S.o
-.PHONY : vpaes-armv8-linux.S.o
-
-vpaes-armv8-win.o: vpaes-armv8-win.S.o
-
-.PHONY : vpaes-armv8-win.o
-
-# target to build an object file
-vpaes-armv8-win.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv8-win.S.o
-.PHONY : vpaes-armv8-win.S.o
-
-vpaes-x86-apple.o: vpaes-x86-apple.S.o
-
-.PHONY : vpaes-x86-apple.o
-
-# target to build an object file
-vpaes-x86-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-x86-apple.S.o
-.PHONY : vpaes-x86-apple.S.o
-
-vpaes-x86-linux.o: vpaes-x86-linux.S.o
-
-.PHONY : vpaes-x86-linux.o
-
-# target to build an object file
-vpaes-x86-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-x86-linux.S.o
-.PHONY : vpaes-x86-linux.S.o
-
-vpaes-x86_64-apple.o: vpaes-x86_64-apple.S.o
-
-.PHONY : vpaes-x86_64-apple.o
-
-# target to build an object file
-vpaes-x86_64-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-x86_64-apple.S.o
-.PHONY : vpaes-x86_64-apple.S.o
-
-vpaes-x86_64-linux.o: vpaes-x86_64-linux.S.o
-
-.PHONY : vpaes-x86_64-linux.o
-
-# target to build an object file
-vpaes-x86_64-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-x86_64-linux.S.o
-.PHONY : vpaes-x86_64-linux.S.o
-
-x86-mont-apple.o: x86-mont-apple.S.o
-
-.PHONY : x86-mont-apple.o
-
-# target to build an object file
-x86-mont-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86-mont-apple.S.o
-.PHONY : x86-mont-apple.S.o
-
-x86-mont-linux.o: x86-mont-linux.S.o
-
-.PHONY : x86-mont-linux.o
-
-# target to build an object file
-x86-mont-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86-mont-linux.S.o
-.PHONY : x86-mont-linux.S.o
+# target to generate assembly for a file
+is_fips.c.s:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/is_fips.c.s
+.PHONY : is_fips.c.s
 
-x86_64-mont-apple.o: x86_64-mont-apple.S.o
+sha1-armv4-large.o: sha1-armv4-large.S.o
 
-.PHONY : x86_64-mont-apple.o
+.PHONY : sha1-armv4-large.o
 
 # target to build an object file
-x86_64-mont-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont-apple.S.o
-.PHONY : x86_64-mont-apple.S.o
+sha1-armv4-large.S.o:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv4-large.S.o
+.PHONY : sha1-armv4-large.S.o
 
-x86_64-mont-linux.o: x86_64-mont-linux.S.o
+sha256-armv4.o: sha256-armv4.S.o
 
-.PHONY : x86_64-mont-linux.o
+.PHONY : sha256-armv4.o
 
 # target to build an object file
-x86_64-mont-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont-linux.S.o
-.PHONY : x86_64-mont-linux.S.o
+sha256-armv4.S.o:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv4.S.o
+.PHONY : sha256-armv4.S.o
 
-x86_64-mont5-apple.o: x86_64-mont5-apple.S.o
+sha512-armv4.o: sha512-armv4.S.o
 
-.PHONY : x86_64-mont5-apple.o
+.PHONY : sha512-armv4.o
 
 # target to build an object file
-x86_64-mont5-apple.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont5-apple.S.o
-.PHONY : x86_64-mont5-apple.S.o
+sha512-armv4.S.o:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv4.S.o
+.PHONY : sha512-armv4.S.o
 
-x86_64-mont5-linux.o: x86_64-mont5-linux.S.o
+vpaes-armv7.o: vpaes-armv7.S.o
 
-.PHONY : x86_64-mont5-linux.o
+.PHONY : vpaes-armv7.o
 
 # target to build an object file
-x86_64-mont5-linux.S.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont5-linux.S.o
-.PHONY : x86_64-mont5-linux.S.o
+vpaes-armv7.S.o:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv7.S.o
+.PHONY : vpaes-armv7.S.o
 
 # Help Target
 help:
@@ -1185,125 +293,27 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... install/strip"
-	@echo "... edit_cache"
-	@echo "... fipsmodule"
-	@echo "... install"
 	@echo "... rebuild_cache"
-	@echo "... list_install_components"
-	@echo "... install/local"
-	@echo "... aesni-gcm-x86_64-apple.o"
-	@echo "... aesni-gcm-x86_64-linux.o"
-	@echo "... aesni-x86-apple.o"
-	@echo "... aesni-x86-linux.o"
-	@echo "... aesni-x86_64-apple.o"
-	@echo "... aesni-x86_64-linux.o"
-	@echo "... aesv8-armv7-apple.o"
-	@echo "... aesv8-armv7-linux.o"
-	@echo "... aesv8-armv8-apple.o"
-	@echo "... aesv8-armv8-linux.o"
-	@echo "... aesv8-armv8-win.o"
-	@echo "... aesv8-gcm-armv8-apple.o"
-	@echo "... aesv8-gcm-armv8-linux.o"
-	@echo "... aesv8-gcm-armv8-win.o"
-	@echo "... armv4-mont-apple.o"
-	@echo "... armv4-mont-linux.o"
-	@echo "... armv8-mont-apple.o"
-	@echo "... armv8-mont-linux.o"
-	@echo "... armv8-mont-win.o"
+	@echo "... fipsmodule"
+	@echo "... edit_cache"
+	@echo "... aesv8-armx.o"
+	@echo "... armv4-mont.o"
 	@echo "... bcm.o"
 	@echo "... bcm.i"
 	@echo "... bcm.s"
-	@echo "... bn-586-apple.o"
-	@echo "... bn-586-linux.o"
-	@echo "... bn-armv8-apple.o"
-	@echo "... bn-armv8-linux.o"
-	@echo "... bn-armv8-win.o"
-	@echo "... bsaes-armv7-apple.o"
-	@echo "... bsaes-armv7-linux.o"
-	@echo "... co-586-apple.o"
-	@echo "... co-586-linux.o"
+	@echo "... bsaes-armv7.o"
 	@echo "... fips_shared_support.o"
 	@echo "... fips_shared_support.i"
 	@echo "... fips_shared_support.s"
-	@echo "... ghash-armv4-apple.o"
-	@echo "... ghash-armv4-linux.o"
-	@echo "... ghash-neon-armv8-apple.o"
-	@echo "... ghash-neon-armv8-linux.o"
-	@echo "... ghash-neon-armv8-win.o"
-	@echo "... ghash-ssse3-x86-apple.o"
-	@echo "... ghash-ssse3-x86-linux.o"
-	@echo "... ghash-ssse3-x86_64-apple.o"
-	@echo "... ghash-ssse3-x86_64-linux.o"
-	@echo "... ghash-x86-apple.o"
-	@echo "... ghash-x86-linux.o"
-	@echo "... ghash-x86_64-apple.o"
-	@echo "... ghash-x86_64-linux.o"
-	@echo "... ghashv8-armv7-apple.o"
-	@echo "... ghashv8-armv7-linux.o"
-	@echo "... ghashv8-armv8-apple.o"
-	@echo "... ghashv8-armv8-linux.o"
-	@echo "... ghashv8-armv8-win.o"
-	@echo "... md5-586-apple.o"
-	@echo "... md5-586-linux.o"
-	@echo "... md5-x86_64-apple.o"
-	@echo "... md5-x86_64-linux.o"
-	@echo "... p256-armv8-asm-apple.o"
-	@echo "... p256-armv8-asm-linux.o"
-	@echo "... p256-armv8-asm-win.o"
-	@echo "... p256-x86_64-asm-apple.o"
-	@echo "... p256-x86_64-asm-linux.o"
-	@echo "... p256_beeu-armv8-asm-apple.o"
-	@echo "... p256_beeu-armv8-asm-linux.o"
-	@echo "... p256_beeu-armv8-asm-win.o"
-	@echo "... p256_beeu-x86_64-asm-apple.o"
-	@echo "... p256_beeu-x86_64-asm-linux.o"
-	@echo "... rdrand-x86_64-apple.o"
-	@echo "... rdrand-x86_64-linux.o"
-	@echo "... rsaz-avx2-apple.o"
-	@echo "... rsaz-avx2-linux.o"
-	@echo "... sha1-586-apple.o"
-	@echo "... sha1-586-linux.o"
-	@echo "... sha1-armv4-large-apple.o"
-	@echo "... sha1-armv4-large-linux.o"
-	@echo "... sha1-armv8-apple.o"
-	@echo "... sha1-armv8-linux.o"
-	@echo "... sha1-armv8-win.o"
-	@echo "... sha1-x86_64-apple.o"
-	@echo "... sha1-x86_64-linux.o"
-	@echo "... sha256-586-apple.o"
-	@echo "... sha256-586-linux.o"
-	@echo "... sha256-armv4-apple.o"
-	@echo "... sha256-armv4-linux.o"
-	@echo "... sha256-armv8-apple.o"
-	@echo "... sha256-armv8-linux.o"
-	@echo "... sha256-armv8-win.o"
-	@echo "... sha256-x86_64-apple.o"
-	@echo "... sha256-x86_64-linux.o"
-	@echo "... sha512-586-apple.o"
-	@echo "... sha512-586-linux.o"
-	@echo "... sha512-armv4-apple.o"
-	@echo "... sha512-armv4-linux.o"
-	@echo "... sha512-armv8-apple.o"
-	@echo "... sha512-armv8-linux.o"
-	@echo "... sha512-armv8-win.o"
-	@echo "... sha512-x86_64-apple.o"
-	@echo "... sha512-x86_64-linux.o"
-	@echo "... vpaes-armv7-apple.o"
-	@echo "... vpaes-armv7-linux.o"
-	@echo "... vpaes-armv8-apple.o"
-	@echo "... vpaes-armv8-linux.o"
-	@echo "... vpaes-armv8-win.o"
-	@echo "... vpaes-x86-apple.o"
-	@echo "... vpaes-x86-linux.o"
-	@echo "... vpaes-x86_64-apple.o"
-	@echo "... vpaes-x86_64-linux.o"
-	@echo "... x86-mont-apple.o"
-	@echo "... x86-mont-linux.o"
-	@echo "... x86_64-mont-apple.o"
-	@echo "... x86_64-mont-linux.o"
-	@echo "... x86_64-mont5-apple.o"
-	@echo "... x86_64-mont5-linux.o"
+	@echo "... ghash-armv4.o"
+	@echo "... ghashv8-armx.o"
+	@echo "... is_fips.o"
+	@echo "... is_fips.i"
+	@echo "... is_fips.s"
+	@echo "... sha1-armv4-large.o"
+	@echo "... sha256-armv4.o"
+	@echo "... sha512-armv4.o"
+	@echo "... vpaes-armv7.o"
 .PHONY : help
 
 

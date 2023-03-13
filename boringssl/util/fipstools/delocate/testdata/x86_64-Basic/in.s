@@ -47,4 +47,3 @@ foo:
 .L4: .L5:	movq %rbx, %rax # This is also legal.
 .size	foo, .-foo
 .type	foo, @function
-.uleb128 .foo-1-.bar

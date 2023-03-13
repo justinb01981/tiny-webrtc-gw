@@ -184,6 +184,7 @@ ssl/test/bssl_shim: ssl/test/CMakeFiles/bssl_shim.dir/settings_writer.cc.o
 ssl/test/bssl_shim: ssl/test/CMakeFiles/bssl_shim.dir/test_config.cc.o
 ssl/test/bssl_shim: ssl/test/CMakeFiles/bssl_shim.dir/test_state.cc.o
 ssl/test/bssl_shim: ssl/test/CMakeFiles/bssl_shim.dir/build.make
+ssl/test/bssl_shim: crypto/test/libtest_support_lib.a
 ssl/test/bssl_shim: ssl/libssl.a
 ssl/test/bssl_shim: crypto/libcrypto.a
 ssl/test/bssl_shim: ssl/test/CMakeFiles/bssl_shim.dir/link.txt

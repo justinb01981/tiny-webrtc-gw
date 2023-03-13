@@ -46,11 +46,12 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  * ==================================================================== */
 
+#include <openssl/type_check.h>
+
 #include <assert.h>
 #include <string.h>
 
 #include "internal.h"
-#include "../../internal.h"
 
 
 // NOTE: the IV/counter CTR mode is big-endian.  The code itself
@@ -68,8 +69,8 @@ static void ctr128_inc(uint8_t *counter) {
   } while (n);
 }
 
-static_assert(16 % sizeof(crypto_word_t) == 0,
-              "block cannot be divided into crypto_word_t");
+OPENSSL_STATIC_ASSERT(16 % sizeof(size_t) == 0,
+                      "block cannot be divided into size_t");
 
 // The input encrypted as though 128bit counter mode is being used.  The extra
 // state information to record how much of the 128bit block we have used is
@@ -101,9 +102,9 @@ void CRYPTO_ctr128_encrypt(const uint8_t *in, uint8_t *out, size_t len,
   while (len >= 16) {
     (*block)(ivec, ecount_buf, key);
     ctr128_inc(ivec);
-    for (n = 0; n < 16; n += sizeof(crypto_word_t)) {
-      CRYPTO_store_word_le(out + n, CRYPTO_load_word_le(in + n) ^
-                                        CRYPTO_load_word_le(ecount_buf + n));
+    for (n = 0; n < 16; n += sizeof(size_t)) {
+      store_word_le(out + n,
+                    load_word_le(in + n) ^ load_word_le(ecount_buf + n));
     }
     len -= 16;
     out += 16;
@@ -151,7 +152,7 @@ void CRYPTO_ctr128_encrypt_ctr32(const uint8_t *in, uint8_t *out, size_t len,
     n = (n + 1) % 16;
   }
 
-  ctr32 = CRYPTO_load_u32_be(ivec + 12);
+  ctr32 = GETU32(ivec + 12);
   while (len >= 16) {
     size_t blocks = len / 16;
     // 1<<28 is just a not-so-small yet not-so-large number...
@@ -171,7 +172,7 @@ void CRYPTO_ctr128_encrypt_ctr32(const uint8_t *in, uint8_t *out, size_t len,
     }
     (*func)(in, out, blocks, key, ivec);
     // (*func) does not update ivec, caller does:
-    CRYPTO_store_u32_be(ivec + 12, ctr32);
+    PUTU32(ivec + 12, ctr32);
     // ... overflow was detected, propogate carry.
     if (ctr32 == 0) {
       ctr96_inc(ivec);
@@ -185,7 +186,7 @@ void CRYPTO_ctr128_encrypt_ctr32(const uint8_t *in, uint8_t *out, size_t len,
     OPENSSL_memset(ecount_buf, 0, 16);
     (*func)(ecount_buf, ecount_buf, 1, key, ivec);
     ++ctr32;
-    CRYPTO_store_u32_be(ivec + 12, ctr32);
+    PUTU32(ivec + 12, ctr32);
     if (ctr32 == 0) {
       ctr96_inc(ivec);
     }

@@ -63,7 +63,6 @@
 #include <openssl/mem.h>
 
 #include "../../internal.h"
-#include "../service_indicator/internal.h"
 
 
 uint8_t *HMAC(const EVP_MD *evp_md, const void *key, size_t key_len,
@@ -71,22 +70,13 @@ uint8_t *HMAC(const EVP_MD *evp_md, const void *key, size_t key_len,
               unsigned int *out_len) {
   HMAC_CTX ctx;
   HMAC_CTX_init(&ctx);
-
-  // The underlying hash functions should not set the FIPS service indicator
-  // until all operations have completed.
-  FIPS_service_indicator_lock_state();
-  const int ok = HMAC_Init_ex(&ctx, key, key_len, evp_md, NULL) &&
-                 HMAC_Update(&ctx, data, data_len) &&
-                 HMAC_Final(&ctx, out, out_len);
-  FIPS_service_indicator_unlock_state();
-
-  HMAC_CTX_cleanup(&ctx);
-
-  if (!ok) {
-    return NULL;
+  if (!HMAC_Init_ex(&ctx, key, key_len, evp_md, NULL) ||
+      !HMAC_Update(&ctx, data, data_len) ||
+      !HMAC_Final(&ctx, out, out_len)) {
+    out = NULL;
   }
 
-  HMAC_verify_service_indicator(evp_md);
+  HMAC_CTX_cleanup(&ctx);
   return out;
 }
 
@@ -112,13 +102,6 @@ void HMAC_CTX_cleanup(HMAC_CTX *ctx) {
   OPENSSL_cleanse(ctx, sizeof(HMAC_CTX));
 }
 
-void HMAC_CTX_cleanse(HMAC_CTX *ctx) {
-  EVP_MD_CTX_cleanse(&ctx->i_ctx);
-  EVP_MD_CTX_cleanse(&ctx->o_ctx);
-  EVP_MD_CTX_cleanse(&ctx->md_ctx);
-  OPENSSL_cleanse(ctx, sizeof(HMAC_CTX));
-}
-
 void HMAC_CTX_free(HMAC_CTX *ctx) {
   if (ctx == NULL) {
     return;
@@ -130,9 +113,6 @@ void HMAC_CTX_free(HMAC_CTX *ctx) {
 
 int HMAC_Init_ex(HMAC_CTX *ctx, const void *key, size_t key_len,
                  const EVP_MD *md, ENGINE *impl) {
-  int ret = 0;
-  FIPS_service_indicator_lock_state();
-
   if (md == NULL) {
     md = ctx->md;
   }
@@ -156,7 +136,7 @@ int HMAC_Init_ex(HMAC_CTX *ctx, const void *key, size_t key_len,
       if (!EVP_DigestInit_ex(&ctx->md_ctx, md, impl) ||
           !EVP_DigestUpdate(&ctx->md_ctx, key, key_len) ||
           !EVP_DigestFinal_ex(&ctx->md_ctx, key_block, &key_block_len)) {
-        goto out;
+        return 0;
       }
     } else {
       assert(key_len <= sizeof(key_block));
@@ -173,7 +153,7 @@ int HMAC_Init_ex(HMAC_CTX *ctx, const void *key, size_t key_len,
     }
     if (!EVP_DigestInit_ex(&ctx->i_ctx, md, impl) ||
         !EVP_DigestUpdate(&ctx->i_ctx, pad, EVP_MD_block_size(md))) {
-      goto out;
+      return 0;
     }
 
     for (size_t i = 0; i < EVP_MAX_MD_BLOCK_SIZE; i++) {
@@ -181,17 +161,17 @@ int HMAC_Init_ex(HMAC_CTX *ctx, const void *key, size_t key_len,
     }
     if (!EVP_DigestInit_ex(&ctx->o_ctx, md, impl) ||
         !EVP_DigestUpdate(&ctx->o_ctx, pad, EVP_MD_block_size(md))) {
-      goto out;
+      return 0;
     }
 
     ctx->md = md;
   }
 
-  ret = EVP_MD_CTX_copy_ex(&ctx->md_ctx, &ctx->i_ctx);
+  if (!EVP_MD_CTX_copy_ex(&ctx->md_ctx, &ctx->i_ctx)) {
+    return 0;
+  }
 
-out:
-  FIPS_service_indicator_unlock_state();
-  return ret;
+  return 1;
 }
 
 int HMAC_Update(HMAC_CTX *ctx, const uint8_t *data, size_t data_len) {
@@ -199,11 +179,9 @@ int HMAC_Update(HMAC_CTX *ctx, const uint8_t *data, size_t data_len) {
 }
 
 int HMAC_Final(HMAC_CTX *ctx, uint8_t *out, unsigned int *out_len) {
-  int ret = 0;
   unsigned int i;
   uint8_t buf[EVP_MAX_MD_SIZE];
 
-  FIPS_service_indicator_lock_state();
   // TODO(davidben): The only thing that can officially fail here is
   // |EVP_MD_CTX_copy_ex|, but even that should be impossible in this case.
   if (!EVP_DigestFinal_ex(&ctx->md_ctx, buf, &i) ||
@@ -211,22 +189,15 @@ int HMAC_Final(HMAC_CTX *ctx, uint8_t *out, unsigned int *out_len) {
       !EVP_DigestUpdate(&ctx->md_ctx, buf, i) ||
       !EVP_DigestFinal_ex(&ctx->md_ctx, out, out_len)) {
     *out_len = 0;
-    goto out;
+    return 0;
   }
 
-  ret = 1;
-
- out:
-  FIPS_service_indicator_unlock_state();
-  if (ret) {
-    HMAC_verify_service_indicator(ctx->md);
-  }
-  return ret;
+  return 1;
 }
 
-size_t HMAC_size(const HMAC_CTX *ctx) { return EVP_MD_size(ctx->md); }
-
-const EVP_MD *HMAC_CTX_get_md(const HMAC_CTX *ctx) { return ctx->md; }
+size_t HMAC_size(const HMAC_CTX *ctx) {
+  return EVP_MD_size(ctx->md);
+}
 
 int HMAC_CTX_copy_ex(HMAC_CTX *dest, const HMAC_CTX *src) {
   if (!EVP_MD_CTX_copy_ex(&dest->i_ctx, &src->i_ctx) ||

@@ -312,6 +312,8 @@ connection_srtp_init(peer_session_t* peer, int rtp_idx, u32 ssid, u32 write_ssrc
         srtp_crypto_policy_set_aes_cm_128_hmac_sha1_32(&(srtp_policy->rtp));   // rtp is 32,
         srtp_crypto_policy_set_aes_cm_128_hmac_sha1_80(&(srtp_policy->rtcp));  // rtcp still 80
         break;
+    default:
+        assert(0);
     }
 
     /*

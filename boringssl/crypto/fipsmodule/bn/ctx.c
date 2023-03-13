@@ -108,6 +108,7 @@ struct bignum_ctx {
 BN_CTX *BN_CTX_new(void) {
   BN_CTX *ret = OPENSSL_malloc(sizeof(BN_CTX));
   if (!ret) {
+    OPENSSL_PUT_ERROR(BN, ERR_R_MALLOC_FAILURE);
     return NULL;
   }
 
@@ -161,6 +162,7 @@ BIGNUM *BN_CTX_get(BN_CTX *ctx) {
   if (ctx->bignums == NULL) {
     ctx->bignums = sk_BIGNUM_new_null();
     if (ctx->bignums == NULL) {
+      OPENSSL_PUT_ERROR(BN, ERR_R_MALLOC_FAILURE);
       ctx->error = 1;
       return NULL;
     }

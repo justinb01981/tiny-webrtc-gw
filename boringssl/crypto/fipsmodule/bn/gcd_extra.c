@@ -157,11 +157,10 @@ int bn_lcm_consttime(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx) {
   BN_CTX_start(ctx);
   unsigned shift;
   BIGNUM *gcd = BN_CTX_get(ctx);
-  int ret = gcd != NULL &&  //
+  int ret = gcd != NULL &&
             bn_mul_consttime(r, a, b, ctx) &&
             bn_gcd_consttime(gcd, &shift, a, b, ctx) &&
-            // |gcd| has a secret bit width.
-            bn_div_consttime(r, NULL, r, gcd, /*divisor_min_bits=*/0, ctx) &&
+            bn_div_consttime(r, NULL, r, gcd, ctx) &&
             bn_rshift_secret_shift(r, r, shift, ctx);
   BN_CTX_end(ctx);
   return ret;
@@ -240,10 +239,8 @@ int bn_mod_inverse_consttime(BIGNUM *r, int *out_no_inverse, const BIGNUM *a,
 
   // Each loop iteration halves at least one of |u| and |v|. Thus we need at
   // most the combined bit width of inputs for at least one value to be zero.
-  // |a_bits| and |n_bits| cannot overflow because |bn_wexpand| ensures bit
-  // counts fit in even |int|.
-  size_t a_bits = a_width * BN_BITS2, n_bits = n_width * BN_BITS2;
-  size_t num_iters = a_bits + n_bits;
+  unsigned a_bits = a_width * BN_BITS2, n_bits = n_width * BN_BITS2;
+  unsigned num_iters = a_bits + n_bits;
   if (num_iters < a_bits) {
     OPENSSL_PUT_ERROR(BN, BN_R_BIGNUM_TOO_LONG);
     goto err;
@@ -262,7 +259,7 @@ int bn_mod_inverse_consttime(BIGNUM *r, int *out_no_inverse, const BIGNUM *a,
   //
   // After each loop iteration, u and v only get smaller, and at least one of
   // them shrinks by at least a factor of two.
-  for (size_t i = 0; i < num_iters; i++) {
+  for (unsigned i = 0; i < num_iters; i++) {
     BN_ULONG both_odd = word_is_odd_mask(u->d[0]) & word_is_odd_mask(v->d[0]);
 
     // If both |u| and |v| are odd, subtract the smaller from the larger.

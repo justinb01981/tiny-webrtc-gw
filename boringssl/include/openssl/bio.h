@@ -199,10 +199,6 @@ OPENSSL_EXPORT int BIO_should_io_special(const BIO *bio);
 // retried. The return value is one of the |BIO_RR_*| values.
 OPENSSL_EXPORT int BIO_get_retry_reason(const BIO *bio);
 
-// BIO_set_retry_reason sets the special I/O operation that needs to be retried
-// to |reason|, which should be one of the |BIO_RR_*| values.
-OPENSSL_EXPORT void BIO_set_retry_reason(BIO *bio, int reason);
-
 // BIO_clear_flags ANDs |bio->flags| with the bitwise-complement of |flags|.
 OPENSSL_EXPORT void BIO_clear_flags(BIO *bio, int flags);
 
@@ -328,7 +324,7 @@ OPENSSL_EXPORT int BIO_printf(BIO *bio, const char *format, ...)
 OPENSSL_EXPORT int BIO_indent(BIO *bio, unsigned indent, unsigned max_indent);
 
 // BIO_hexdump writes a hex dump of |data| to |bio|. Each line will be indented
-// by |indent| spaces. It returns one on success and zero otherwise.
+// by |indent| spaces.
 OPENSSL_EXPORT int BIO_hexdump(BIO *bio, const uint8_t *data, size_t len,
                                unsigned indent);
 
@@ -377,13 +373,11 @@ OPENSSL_EXPORT int BIO_read_asn1(BIO *bio, uint8_t **out, size_t *out_len,
 OPENSSL_EXPORT const BIO_METHOD *BIO_s_mem(void);
 
 // BIO_new_mem_buf creates read-only BIO that reads from |len| bytes at |buf|.
-// It returns the BIO or NULL on error. This function does not copy or take
-// ownership of |buf|. The caller must ensure the memory pointed to by |buf|
-// outlives the |BIO|.
+// It does not take ownership of |buf|. It returns the BIO or NULL on error.
 //
 // If |len| is negative, then |buf| is treated as a NUL-terminated string, but
 // don't depend on this in new code.
-OPENSSL_EXPORT BIO *BIO_new_mem_buf(const void *buf, ossl_ssize_t len);
+OPENSSL_EXPORT BIO *BIO_new_mem_buf(const void *buf, int len);
 
 // BIO_mem_contents sets |*out_contents| to point to the current contents of
 // |bio| and |*out_len| to contain the length of that data. It returns one on
@@ -507,25 +501,6 @@ OPENSSL_EXPORT int BIO_append_filename(BIO *bio, const char *filename);
 // as the |FILE| for |bio|. It returns one on success and zero otherwise. The
 // |FILE| will be closed when |bio| is freed.
 OPENSSL_EXPORT int BIO_rw_filename(BIO *bio, const char *filename);
-
-// BIO_tell returns the file offset of |bio|, or a negative number on error or
-// if |bio| does not support the operation.
-//
-// TODO(https://crbug.com/boringssl/465): On platforms where |long| is 32-bit,
-// this function cannot report 64-bit offsets.
-OPENSSL_EXPORT long BIO_tell(BIO *bio);
-
-// BIO_seek sets the file offset of |bio| to |offset|. It returns a non-negative
-// number on success and a negative number on error. If |bio| is a file
-// descriptor |BIO|, it returns the resulting file offset on success. If |bio|
-// is a file |BIO|, it returns zero on success.
-//
-// WARNING: This function's return value conventions differs from most functions
-// in this library.
-//
-// TODO(https://crbug.com/boringssl/465): On platforms where |long| is 32-bit,
-// this function cannot handle 64-bit offsets.
-OPENSSL_EXPORT long BIO_seek(BIO *bio, long offset);
 
 
 // Socket BIOs.

@@ -17,7 +17,7 @@
 
 #include <stdlib.h>
 
-#include "../../internal.h"
+#include <openssl/cpu.h>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -30,14 +30,18 @@ extern "C" {
 #define HWAES
 #define HWAES_ECB
 
-OPENSSL_INLINE int hwaes_capable(void) { return CRYPTO_is_AESNI_capable(); }
+OPENSSL_INLINE int hwaes_capable(void) {
+  return (OPENSSL_ia32cap_get()[1] & (1 << (57 - 32))) != 0;
+}
 
 #define VPAES
 #if defined(OPENSSL_X86_64)
 #define VPAES_CTR32
 #endif
 #define VPAES_CBC
-OPENSSL_INLINE int vpaes_capable(void) { return CRYPTO_is_SSSE3_capable(); }
+OPENSSL_INLINE int vpaes_capable(void) {
+  return (OPENSSL_ia32cap_get()[1] & (1 << (41 - 32))) != 0;
+}
 
 #elif defined(OPENSSL_ARM) || defined(OPENSSL_AARCH64)
 #define HWAES
@@ -59,6 +63,12 @@ OPENSSL_INLINE int vpaes_capable(void) { return CRYPTO_is_NEON_capable(); }
 OPENSSL_INLINE int vpaes_capable(void) { return CRYPTO_is_NEON_capable(); }
 #endif
 
+#elif defined(OPENSSL_PPC64LE)
+#define HWAES
+
+OPENSSL_INLINE int hwaes_capable(void) {
+  return CRYPTO_is_PPC64LE_vcrypto_capable();
+}
 #endif
 
 #endif  // !NO_ASM

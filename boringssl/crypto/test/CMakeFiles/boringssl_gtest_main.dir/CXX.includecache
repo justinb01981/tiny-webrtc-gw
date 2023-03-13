@@ -7,8 +7,6 @@
 #IncludeRegexTransform: 
 
 /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
-openssl/crypto.h
--
 openssl/ex_data.h
 -
 openssl/stack.h
@@ -20,8 +18,6 @@ assert.h
 string.h
 -
 valgrind/memcheck.h
--
-stdlib.h
 -
 stdalign.h
 -
@@ -53,6 +49,8 @@ string.h
 -
 gtest/gtest.h
 -
+openssl/cpu.h
+-
 openssl/rand.h
 -
 abi_test.h
@@ -79,8 +77,6 @@ winsock2.h
 -
 signal.h
 -
-../internal.h
-/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/internal.h
 
 include/openssl/arm_arch.h
 
@@ -102,6 +98,10 @@ openssl/opensslconf.h
 boringssl_prefix_symbols.h
 -
 memory
+-
+
+include/openssl/cpu.h
+openssl/base.h
 -
 
 include/openssl/crypto.h
@@ -149,12 +149,18 @@ openssl/base.h
 include/openssl/stack.h
 openssl/base.h
 -
+openssl/type_check.h
+-
 type_traits
 -
 
 include/openssl/thread.h
 sys/types.h
 -
+openssl/base.h
+-
+
+include/openssl/type_check.h
 openssl/base.h
 -
 
@@ -169,8 +175,6 @@ ostream
 -
 string
 -
-type_traits
--
 gtest/gtest-printers.h
 third_party/googletest/include/gtest/gtest/gtest-printers.h
 gtest/internal/gtest-internal.h
@@ -183,14 +187,10 @@ limits
 -
 memory
 -
-sstream
--
 gtest/internal/gtest-port.h
 third_party/googletest/include/gtest/gtest/internal/gtest-port.h
 
 third_party/googletest/include/gtest/gtest-param-test.h
-iterator
--
 utility
 -
 gtest/internal/gtest-internal.h
@@ -221,6 +221,12 @@ gtest/internal/gtest-internal.h
 third_party/googletest/include/gtest/gtest/internal/gtest-internal.h
 gtest/internal/gtest-port.h
 third_party/googletest/include/gtest/gtest/internal/gtest-port.h
+absl/strings/string_view.h
+third_party/googletest/include/gtest/absl/strings/string_view.h
+absl/types/optional.h
+third_party/googletest/include/gtest/absl/types/optional.h
+absl/types/variant.h
+third_party/googletest/include/gtest/absl/types/variant.h
 gtest/internal/custom/gtest-printers.h
 third_party/googletest/include/gtest/gtest/internal/custom/gtest-printers.h
 
@@ -235,8 +241,6 @@ gtest/internal/gtest-string.h
 third_party/googletest/include/gtest/gtest/internal/gtest-string.h
 
 third_party/googletest/include/gtest/gtest-typed-test.h
-gtest/internal/gtest-internal.h
-third_party/googletest/include/gtest/gtest/internal/gtest-internal.h
 gtest/internal/gtest-port.h
 third_party/googletest/include/gtest/gtest/internal/gtest-port.h
 gtest/internal/gtest-type-util.h
@@ -321,8 +325,6 @@ float.h
 -
 string.h
 -
-cstdint
--
 iomanip
 -
 limits
@@ -359,8 +361,6 @@ set
 -
 tuple
 -
-type_traits
--
 utility
 -
 vector
@@ -371,13 +371,9 @@ gtest/internal/gtest-port.h
 third_party/googletest/include/gtest/internal/gtest/internal/gtest-port.h
 gtest/gtest-printers.h
 third_party/googletest/include/gtest/internal/gtest/gtest-printers.h
-gtest/gtest-test-part.h
-third_party/googletest/include/gtest/internal/gtest/gtest-test-part.h
 
 third_party/googletest/include/gtest/internal/gtest-port-arch.h
 winapifamily.h
--
-TargetConditionals.h
 -
 
 third_party/googletest/include/gtest/internal/gtest-port.h
@@ -391,11 +387,7 @@ stdlib.h
 -
 string.h
 -
-cerrno
--
-cstdint
--
-limits
+memory
 -
 type_traits
 -
@@ -407,22 +399,24 @@ AvailabilityMacros.h
 -
 TargetConditionals.h
 -
+algorithm
+-
 iostream
 -
-locale
--
-memory
+sstream
 -
 string
 -
 tuple
 -
+utility
+-
 vector
 -
-gtest/internal/custom/gtest-port.h
-third_party/googletest/include/gtest/internal/gtest/internal/custom/gtest-port.h
 gtest/internal/gtest-port-arch.h
 third_party/googletest/include/gtest/internal/gtest/internal/gtest-port-arch.h
+gtest/internal/custom/gtest-port.h
+third_party/googletest/include/gtest/internal/gtest/internal/custom/gtest-port.h
 direct.h
 -
 io.h
@@ -441,29 +435,11 @@ pthread.h
 -
 time.h
 -
-absl/types/any.h
-third_party/googletest/include/gtest/internal/absl/types/any.h
-any
--
-absl/types/optional.h
-third_party/googletest/include/gtest/internal/absl/types/optional.h
-optional
--
-absl/strings/string_view.h
-third_party/googletest/include/gtest/internal/absl/strings/string_view.h
-string_view
--
-absl/types/variant.h
-third_party/googletest/include/gtest/internal/absl/types/variant.h
-variant
--
 
 third_party/googletest/include/gtest/internal/gtest-string.h
 mem.h
 -
 string.h
--
-cstdint
 -
 string
 -

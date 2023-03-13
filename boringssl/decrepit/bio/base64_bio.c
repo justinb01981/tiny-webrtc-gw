@@ -513,10 +513,17 @@ static long b64_ctrl(BIO *b, int cmd, long num, void *ptr) {
 }
 
 static long b64_callback_ctrl(BIO *b, int cmd, bio_info_cb fp) {
+  long ret = 1;
+
   if (b->next_bio == NULL) {
     return 0;
   }
-  return BIO_callback_ctrl(b->next_bio, cmd, fp);
+  switch (cmd) {
+    default:
+      ret = BIO_callback_ctrl(b->next_bio, cmd, fp);
+      break;
+  }
+  return ret;
 }
 
 static const BIO_METHOD b64_method = {

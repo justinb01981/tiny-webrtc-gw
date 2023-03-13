@@ -25,7 +25,7 @@
 //#define PEERS_TABLE_UNLOCK() { pthread_mutex_unlock(&peers_table_lock); }
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&peers[x].mcond, &peers[x].mutex)
 #define PEER_BUFFER_NODE_BUFLEN 1500
-#define OFFER_SDP_SIZE 4096
+#define OFFER_SDP_SIZE 8000
 #define PEER_RECV_BUFFER_COUNT_MS (200)
 #define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*4)
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 10000
@@ -174,7 +174,7 @@ typedef struct peer_session_t
     } bufs;
 
     struct {
-        char buf[4096];
+        char buf[8000];
         int len;
     } cleartext;
 
@@ -238,7 +238,6 @@ typedef struct peer_session_t
         char offer[OFFER_SDP_SIZE];
         char answer[OFFER_SDP_SIZE];
     } sdp;
-    int pad3[256];
 
     struct {
         char raddr[64];

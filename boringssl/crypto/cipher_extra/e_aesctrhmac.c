@@ -13,9 +13,6 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #include <openssl/aead.h>
-
-#include <assert.h>
-
 #include <openssl/cipher.h>
 #include <openssl/crypto.h>
 #include <openssl/err.h>
@@ -38,12 +35,14 @@ struct aead_aes_ctr_hmac_sha256_ctx {
   SHA256_CTX outer_init_state;
 };
 
-static_assert(sizeof(((EVP_AEAD_CTX *)NULL)->state) >=
-                  sizeof(struct aead_aes_ctr_hmac_sha256_ctx),
-              "AEAD state is too small");
-static_assert(alignof(union evp_aead_ctx_st_state) >=
-                  alignof(struct aead_aes_ctr_hmac_sha256_ctx),
-              "AEAD state has insufficient alignment");
+OPENSSL_STATIC_ASSERT(sizeof(((EVP_AEAD_CTX *)NULL)->state) >=
+                          sizeof(struct aead_aes_ctr_hmac_sha256_ctx),
+                      "AEAD state is too small");
+#if defined(__GNUC__) || defined(__clang__)
+OPENSSL_STATIC_ASSERT(alignof(union evp_aead_ctx_st_state) >=
+                          alignof(struct aead_aes_ctr_hmac_sha256_ctx),
+                      "AEAD state has insufficient alignment");
+#endif
 
 static void hmac_init(SHA256_CTX *out_inner, SHA256_CTX *out_outer,
                       const uint8_t hmac_key[32]) {

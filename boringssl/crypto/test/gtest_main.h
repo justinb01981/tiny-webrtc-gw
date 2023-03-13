@@ -31,15 +31,13 @@ OPENSSL_MSVC_PRAGMA(warning(pop))
 #include <signal.h>
 #endif
 
-#include "../internal.h"
-
 
 BSSL_NAMESPACE_BEGIN
 
-class TestEventListener : public testing::EmptyTestEventListener {
+class ErrorTestEventListener : public testing::EmptyTestEventListener {
  public:
-  TestEventListener() {}
-  ~TestEventListener() override {}
+  ErrorTestEventListener() {}
+  ~ErrorTestEventListener() override {}
 
   void OnTestEnd(const testing::TestInfo &test_info) override {
     if (test_info.result()->Failed()) {
@@ -50,13 +48,6 @@ class TestEventListener : public testing::EmptyTestEventListener {
       // error queue without printing.
       ERR_clear_error();
     }
-
-    // Malloc failure testing is quadratic in the number of mallocs. Running
-    // multiple tests sequentially thus scales badly. Reset the malloc counter
-    // between tests. This way we will test, each test with the first allocation
-    // failing, then the second, and so on, until the test with the most
-    // allocations runs out.
-    OPENSSL_reset_malloc_counter_for_testing();
   }
 };
 
@@ -84,7 +75,8 @@ inline void SetupGoogleTest() {
   signal(SIGPIPE, SIG_IGN);
 #endif
 
-  testing::UnitTest::GetInstance()->listeners().Append(new TestEventListener);
+  testing::UnitTest::GetInstance()->listeners().Append(
+      new ErrorTestEventListener);
 }
 
 BSSL_NAMESPACE_END

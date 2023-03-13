@@ -40,6 +40,12 @@
 #include "internal.h"
 
 
+#if defined(OPENSSL_WINDOWS)
+typedef int read_result_t;
+#else
+typedef ssize_t read_result_t;
+#endif
+
 static const struct argument kArguments[] = {
     {
      "-dump", kOptionalArgument,
@@ -59,52 +65,51 @@ bool DoPKCS12(const std::vector<std::string> &args) {
     return false;
   }
 
-  ScopedFD fd = OpenFD(args_map["-dump"].c_str(), O_RDONLY);
-  if (!fd) {
+  int fd = BORINGSSL_OPEN(args_map["-dump"].c_str(), O_RDONLY);
+  if (fd < 0) {
     perror("open");
     return false;
   }
 
   struct stat st;
-  if (fstat(fd.get(), &st)) {
+  if (fstat(fd, &st)) {
     perror("fstat");
+    BORINGSSL_CLOSE(fd);
     return false;
   }
   const size_t size = st.st_size;
 
   std::unique_ptr<uint8_t[]> contents(new uint8_t[size]);
+  read_result_t n;
   size_t off = 0;
-  while (off < size) {
-    size_t bytes_read;
-    if (!ReadFromFD(fd.get(), &bytes_read, contents.get() + off, size - off)) {
-      perror("read");
-      return false;
+  do {
+    n = BORINGSSL_READ(fd, &contents[off], size - off);
+    if (n >= 0) {
+      off += static_cast<size_t>(n);
     }
-    if (bytes_read == 0) {
-      fprintf(stderr, "Unexpected EOF\n");
-      return false;
-    }
-    off += bytes_read;
+  } while ((n > 0 && off < size) || (n == -1 && errno == EINTR));
+
+  if (off != size) {
+    perror("read");
+    BORINGSSL_CLOSE(fd);
+    return false;
   }
+
+  BORINGSSL_CLOSE(fd);
 
   printf("Enter password: ");
   fflush(stdout);
 
   char password[256];
   off = 0;
-  while (off < sizeof(password) - 1) {
-    size_t bytes_read;
-    if (!ReadFromFD(0, &bytes_read, password + off,
-                    sizeof(password) - 1 - off)) {
-      perror("read");
-      return false;
+  do {
+    n = BORINGSSL_READ(0, &password[off], sizeof(password) - 1 - off);
+    if (n >= 0) {
+      off += static_cast<size_t>(n);
     }
-
-    off += bytes_read;
-    if (bytes_read == 0 || OPENSSL_memchr(password, '\n', off) != nullptr) {
-      break;
-    }
-  }
+  } while ((n > 0 && OPENSSL_memchr(password, '\n', off) == NULL &&
+            off < sizeof(password) - 1) ||
+           (n == -1 && errno == EINTR));
 
   char *newline = reinterpret_cast<char *>(OPENSSL_memchr(password, '\n', off));
   if (newline == NULL) {

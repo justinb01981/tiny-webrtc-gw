@@ -116,6 +116,7 @@
 #include <openssl/err.h>
 #include <openssl/mem.h>
 #include <openssl/thread.h>
+#include <openssl/type_check.h>
 
 #include "internal.h"
 #include "../../internal.h"
@@ -172,10 +173,6 @@ static int bn_mont_ctx_set_N_and_n0(BN_MONT_CTX *mont, const BIGNUM *mod) {
     OPENSSL_PUT_ERROR(BN, BN_R_NEGATIVE_NUMBER);
     return 0;
   }
-  if (!bn_fits_in_words(mod, BN_MONTGOMERY_MAX_WORDS)) {
-    OPENSSL_PUT_ERROR(BN, BN_R_BIGNUM_TOO_LONG);
-    return 0;
-  }
 
   // Save the modulus.
   if (!BN_copy(&mont->N, mod)) {
@@ -193,10 +190,11 @@ static int bn_mont_ctx_set_N_and_n0(BN_MONT_CTX *mont, const BIGNUM *mod) {
   // others, we could use a shorter R value and use faster |BN_ULONG|-based
   // math instead of |uint64_t|-based math, which would be double-precision.
   // However, currently only the assembler files know which is which.
-  static_assert(BN_MONT_CTX_N0_LIMBS == 1 || BN_MONT_CTX_N0_LIMBS == 2,
-                "BN_MONT_CTX_N0_LIMBS value is invalid");
-  static_assert(sizeof(BN_ULONG) * BN_MONT_CTX_N0_LIMBS == sizeof(uint64_t),
-                "uint64_t is insufficient precision for n0");
+  OPENSSL_STATIC_ASSERT(BN_MONT_CTX_N0_LIMBS == 1 || BN_MONT_CTX_N0_LIMBS == 2,
+                        "BN_MONT_CTX_N0_LIMBS value is invalid");
+  OPENSSL_STATIC_ASSERT(
+      sizeof(BN_ULONG) * BN_MONT_CTX_N0_LIMBS == sizeof(uint64_t),
+      "uint64_t is insufficient precision for n0");
   uint64_t n0 = bn_mont_n0(&mont->N);
   mont->n0[0] = (BN_ULONG)n0;
 #if BN_MONT_CTX_N0_LIMBS == 2
@@ -432,9 +430,6 @@ int BN_mod_mul_montgomery(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     if (!bn_wexpand(r, num)) {
       return 0;
     }
-    // This bound is implied by |bn_mont_ctx_set_N_and_n0|. |bn_mul_mont|
-    // allocates |num| words on the stack, so |num| cannot be too large.
-    assert((size_t)num <= BN_MONTGOMERY_MAX_WORDS);
     if (!bn_mul_mont(r->d, a->d, b->d, mont->N.d, mont->n0, num)) {
       // The check above ensures this won't happen.
       assert(0);
@@ -460,18 +455,18 @@ void bn_to_montgomery_small(BN_ULONG *r, const BN_ULONG *a, size_t num,
   bn_mod_mul_montgomery_small(r, a, mont->RR.d, num, mont);
 }
 
-void bn_from_montgomery_small(BN_ULONG *r, size_t num_r, const BN_ULONG *a,
-                              size_t num_a, const BN_MONT_CTX *mont) {
-  if (num_r != (size_t)mont->N.width || num_r > BN_SMALL_MAX_WORDS ||
-      num_a > 2 * num_r) {
+void bn_from_montgomery_small(BN_ULONG *r, const BN_ULONG *a, size_t num,
+                              const BN_MONT_CTX *mont) {
+  if (num != (size_t)mont->N.width || num > BN_SMALL_MAX_WORDS) {
     abort();
   }
-  BN_ULONG tmp[BN_SMALL_MAX_WORDS * 2] = {0};
-  OPENSSL_memcpy(tmp, a, num_a * sizeof(BN_ULONG));
-  if (!bn_from_montgomery_in_place(r, num_r, tmp, 2 * num_r, mont)) {
+  BN_ULONG tmp[BN_SMALL_MAX_WORDS * 2];
+  OPENSSL_memcpy(tmp, a, num * sizeof(BN_ULONG));
+  OPENSSL_memset(tmp + num, 0, num * sizeof(BN_ULONG));
+  if (!bn_from_montgomery_in_place(r, num, tmp, 2 * num, mont)) {
     abort();
   }
-  OPENSSL_cleanse(tmp, 2 * num_r * sizeof(BN_ULONG));
+  OPENSSL_cleanse(tmp, 2 * num * sizeof(BN_ULONG));
 }
 
 void bn_mod_mul_montgomery_small(BN_ULONG *r, const BN_ULONG *a,

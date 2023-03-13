@@ -77,13 +77,14 @@ typedef struct crypto_mutex_st {
 typedef union crypto_mutex_st {
   void *handle;
 } CRYPTO_MUTEX;
-#elif !defined(__GLIBC__)
+#elif defined(__MACH__) && defined(__APPLE__)
 typedef pthread_rwlock_t CRYPTO_MUTEX;
 #else
-// On glibc, |pthread_rwlock_t| is hidden under feature flags, and we can't
-// ensure that we'll be able to get it from a public header. It's statically
-// asserted that this structure is large enough to contain a |pthread_rwlock_t|
-// by thread_pthread.c.
+// It is reasonable to include pthread.h on non-Windows systems, however the
+// |pthread_rwlock_t| that we need is hidden under feature flags, and we can't
+// ensure that we'll be able to get it. It's statically asserted that this
+// structure is large enough to contain a |pthread_rwlock_t| by
+// thread_pthread.c.
 typedef union crypto_mutex_st {
   double alignment;
   uint8_t padding[3*sizeof(int) + 5*sizeof(unsigned) + 16 + 8];

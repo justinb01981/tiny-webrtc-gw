@@ -8,6 +8,7 @@ crypto/test/CMakeFiles/boringssl_gtest_main.dir/gtest_main.cc.o
  /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/gtest_main.h
  include/openssl/arm_arch.h
  include/openssl/base.h
+ include/openssl/cpu.h
  include/openssl/crypto.h
  include/openssl/err.h
  include/openssl/ex_data.h
@@ -18,6 +19,7 @@ crypto/test/CMakeFiles/boringssl_gtest_main.dir/gtest_main.cc.o
  include/openssl/sha.h
  include/openssl/stack.h
  include/openssl/thread.h
+ include/openssl/type_check.h
  third_party/googletest/include/gtest/gtest-death-test.h
  third_party/googletest/include/gtest/gtest-matchers.h
  third_party/googletest/include/gtest/gtest-message.h

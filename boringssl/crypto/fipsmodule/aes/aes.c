@@ -50,6 +50,8 @@
 
 #include <assert.h>
 
+#include <openssl/cpu.h>
+
 #include "internal.h"
 #include "../modes/internal.h"
 

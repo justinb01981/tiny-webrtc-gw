@@ -6,7 +6,6 @@ tool/CMakeFiles/bssl.dir/args.cc.o: tool/internal.h
 tool/CMakeFiles/bssl.dir/args.cc.o: include/openssl/base.h
 tool/CMakeFiles/bssl.dir/args.cc.o: include/openssl/is_boringssl.h
 tool/CMakeFiles/bssl.dir/args.cc.o: include/openssl/opensslconf.h
-tool/CMakeFiles/bssl.dir/args.cc.o: include/openssl/span.h
 
 tool/CMakeFiles/bssl.dir/ciphers.cc.o: tool/ciphers.cc
 tool/CMakeFiles/bssl.dir/ciphers.cc.o: tool/internal.h
@@ -31,8 +30,8 @@ tool/CMakeFiles/bssl.dir/ciphers.cc.o: include/openssl/ecdsa.h
 tool/CMakeFiles/bssl.dir/ciphers.cc.o: include/openssl/engine.h
 tool/CMakeFiles/bssl.dir/ciphers.cc.o: include/openssl/err.h
 tool/CMakeFiles/bssl.dir/ciphers.cc.o: include/openssl/evp.h
-tool/CMakeFiles/bssl.dir/ciphers.cc.o: include/openssl/evp_errors.h
 tool/CMakeFiles/bssl.dir/ciphers.cc.o: include/openssl/ex_data.h
+tool/CMakeFiles/bssl.dir/ciphers.cc.o: include/openssl/hmac.h
 tool/CMakeFiles/bssl.dir/ciphers.cc.o: include/openssl/is_boringssl.h
 tool/CMakeFiles/bssl.dir/ciphers.cc.o: include/openssl/mem.h
 tool/CMakeFiles/bssl.dir/ciphers.cc.o: include/openssl/nid.h
@@ -49,7 +48,9 @@ tool/CMakeFiles/bssl.dir/ciphers.cc.o: include/openssl/ssl3.h
 tool/CMakeFiles/bssl.dir/ciphers.cc.o: include/openssl/stack.h
 tool/CMakeFiles/bssl.dir/ciphers.cc.o: include/openssl/thread.h
 tool/CMakeFiles/bssl.dir/ciphers.cc.o: include/openssl/tls1.h
+tool/CMakeFiles/bssl.dir/ciphers.cc.o: include/openssl/type_check.h
 tool/CMakeFiles/bssl.dir/ciphers.cc.o: include/openssl/x509.h
+tool/CMakeFiles/bssl.dir/ciphers.cc.o: include/openssl/x509_vfy.h
 
 tool/CMakeFiles/bssl.dir/client.cc.o: crypto/internal.h
 tool/CMakeFiles/bssl.dir/client.cc.o: tool/client.cc
@@ -76,8 +77,8 @@ tool/CMakeFiles/bssl.dir/client.cc.o: include/openssl/ecdsa.h
 tool/CMakeFiles/bssl.dir/client.cc.o: include/openssl/engine.h
 tool/CMakeFiles/bssl.dir/client.cc.o: include/openssl/err.h
 tool/CMakeFiles/bssl.dir/client.cc.o: include/openssl/evp.h
-tool/CMakeFiles/bssl.dir/client.cc.o: include/openssl/evp_errors.h
 tool/CMakeFiles/bssl.dir/client.cc.o: include/openssl/ex_data.h
+tool/CMakeFiles/bssl.dir/client.cc.o: include/openssl/hmac.h
 tool/CMakeFiles/bssl.dir/client.cc.o: include/openssl/is_boringssl.h
 tool/CMakeFiles/bssl.dir/client.cc.o: include/openssl/mem.h
 tool/CMakeFiles/bssl.dir/client.cc.o: include/openssl/nid.h
@@ -94,14 +95,15 @@ tool/CMakeFiles/bssl.dir/client.cc.o: include/openssl/ssl3.h
 tool/CMakeFiles/bssl.dir/client.cc.o: include/openssl/stack.h
 tool/CMakeFiles/bssl.dir/client.cc.o: include/openssl/thread.h
 tool/CMakeFiles/bssl.dir/client.cc.o: include/openssl/tls1.h
+tool/CMakeFiles/bssl.dir/client.cc.o: include/openssl/type_check.h
 tool/CMakeFiles/bssl.dir/client.cc.o: include/openssl/x509.h
+tool/CMakeFiles/bssl.dir/client.cc.o: include/openssl/x509_vfy.h
 
 tool/CMakeFiles/bssl.dir/const.cc.o: tool/const.cc
 tool/CMakeFiles/bssl.dir/const.cc.o: tool/internal.h
 tool/CMakeFiles/bssl.dir/const.cc.o: include/openssl/base.h
 tool/CMakeFiles/bssl.dir/const.cc.o: include/openssl/is_boringssl.h
 tool/CMakeFiles/bssl.dir/const.cc.o: include/openssl/opensslconf.h
-tool/CMakeFiles/bssl.dir/const.cc.o: include/openssl/span.h
 
 tool/CMakeFiles/bssl.dir/digest.cc.o: tool/digest.cc
 tool/CMakeFiles/bssl.dir/digest.cc.o: tool/internal.h
@@ -109,67 +111,12 @@ tool/CMakeFiles/bssl.dir/digest.cc.o: include/openssl/base.h
 tool/CMakeFiles/bssl.dir/digest.cc.o: include/openssl/digest.h
 tool/CMakeFiles/bssl.dir/digest.cc.o: include/openssl/is_boringssl.h
 tool/CMakeFiles/bssl.dir/digest.cc.o: include/openssl/opensslconf.h
-tool/CMakeFiles/bssl.dir/digest.cc.o: include/openssl/span.h
-
-tool/CMakeFiles/bssl.dir/fd.cc.o: tool/fd.cc
-tool/CMakeFiles/bssl.dir/fd.cc.o: tool/internal.h
-tool/CMakeFiles/bssl.dir/fd.cc.o: include/openssl/base.h
-tool/CMakeFiles/bssl.dir/fd.cc.o: include/openssl/is_boringssl.h
-tool/CMakeFiles/bssl.dir/fd.cc.o: include/openssl/opensslconf.h
-tool/CMakeFiles/bssl.dir/fd.cc.o: include/openssl/span.h
 
 tool/CMakeFiles/bssl.dir/file.cc.o: tool/file.cc
 tool/CMakeFiles/bssl.dir/file.cc.o: tool/internal.h
 tool/CMakeFiles/bssl.dir/file.cc.o: include/openssl/base.h
-tool/CMakeFiles/bssl.dir/file.cc.o: include/openssl/bytestring.h
 tool/CMakeFiles/bssl.dir/file.cc.o: include/openssl/is_boringssl.h
 tool/CMakeFiles/bssl.dir/file.cc.o: include/openssl/opensslconf.h
-tool/CMakeFiles/bssl.dir/file.cc.o: include/openssl/span.h
-
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: tool/generate_ech.cc
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: tool/internal.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/aead.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/asn1.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/base.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/base64.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/bio.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/bn.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/buf.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/buffer.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/bytestring.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/cipher.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/crypto.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/curve25519.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/dh.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/digest.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/dsa.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/ec.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/ec_key.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/ecdh.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/ecdsa.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/engine.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/err.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/evp.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/evp_errors.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/ex_data.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/hpke.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/is_boringssl.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/mem.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/nid.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/obj.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/opensslconf.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/pem.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/pkcs7.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/pool.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/rsa.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/sha.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/span.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/ssl.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/ssl3.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/stack.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/thread.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/tls1.h
-tool/CMakeFiles/bssl.dir/generate_ech.cc.o: include/openssl/x509.h
 
 tool/CMakeFiles/bssl.dir/generate_ed25519.cc.o: tool/generate_ed25519.cc
 tool/CMakeFiles/bssl.dir/generate_ed25519.cc.o: tool/internal.h
@@ -177,7 +124,6 @@ tool/CMakeFiles/bssl.dir/generate_ed25519.cc.o: include/openssl/base.h
 tool/CMakeFiles/bssl.dir/generate_ed25519.cc.o: include/openssl/curve25519.h
 tool/CMakeFiles/bssl.dir/generate_ed25519.cc.o: include/openssl/is_boringssl.h
 tool/CMakeFiles/bssl.dir/generate_ed25519.cc.o: include/openssl/opensslconf.h
-tool/CMakeFiles/bssl.dir/generate_ed25519.cc.o: include/openssl/span.h
 
 tool/CMakeFiles/bssl.dir/genrsa.cc.o: tool/genrsa.cc
 tool/CMakeFiles/bssl.dir/genrsa.cc.o: tool/internal.h
@@ -202,7 +148,6 @@ tool/CMakeFiles/bssl.dir/genrsa.cc.o: include/openssl/ecdsa.h
 tool/CMakeFiles/bssl.dir/genrsa.cc.o: include/openssl/engine.h
 tool/CMakeFiles/bssl.dir/genrsa.cc.o: include/openssl/err.h
 tool/CMakeFiles/bssl.dir/genrsa.cc.o: include/openssl/evp.h
-tool/CMakeFiles/bssl.dir/genrsa.cc.o: include/openssl/evp_errors.h
 tool/CMakeFiles/bssl.dir/genrsa.cc.o: include/openssl/ex_data.h
 tool/CMakeFiles/bssl.dir/genrsa.cc.o: include/openssl/is_boringssl.h
 tool/CMakeFiles/bssl.dir/genrsa.cc.o: include/openssl/mem.h
@@ -217,7 +162,9 @@ tool/CMakeFiles/bssl.dir/genrsa.cc.o: include/openssl/sha.h
 tool/CMakeFiles/bssl.dir/genrsa.cc.o: include/openssl/span.h
 tool/CMakeFiles/bssl.dir/genrsa.cc.o: include/openssl/stack.h
 tool/CMakeFiles/bssl.dir/genrsa.cc.o: include/openssl/thread.h
+tool/CMakeFiles/bssl.dir/genrsa.cc.o: include/openssl/type_check.h
 tool/CMakeFiles/bssl.dir/genrsa.cc.o: include/openssl/x509.h
+tool/CMakeFiles/bssl.dir/genrsa.cc.o: include/openssl/x509_vfy.h
 
 tool/CMakeFiles/bssl.dir/pkcs12.cc.o: crypto/internal.h
 tool/CMakeFiles/bssl.dir/pkcs12.cc.o: tool/internal.h
@@ -243,7 +190,6 @@ tool/CMakeFiles/bssl.dir/pkcs12.cc.o: include/openssl/ecdsa.h
 tool/CMakeFiles/bssl.dir/pkcs12.cc.o: include/openssl/engine.h
 tool/CMakeFiles/bssl.dir/pkcs12.cc.o: include/openssl/err.h
 tool/CMakeFiles/bssl.dir/pkcs12.cc.o: include/openssl/evp.h
-tool/CMakeFiles/bssl.dir/pkcs12.cc.o: include/openssl/evp_errors.h
 tool/CMakeFiles/bssl.dir/pkcs12.cc.o: include/openssl/ex_data.h
 tool/CMakeFiles/bssl.dir/pkcs12.cc.o: include/openssl/is_boringssl.h
 tool/CMakeFiles/bssl.dir/pkcs12.cc.o: include/openssl/mem.h
@@ -259,7 +205,9 @@ tool/CMakeFiles/bssl.dir/pkcs12.cc.o: include/openssl/sha.h
 tool/CMakeFiles/bssl.dir/pkcs12.cc.o: include/openssl/span.h
 tool/CMakeFiles/bssl.dir/pkcs12.cc.o: include/openssl/stack.h
 tool/CMakeFiles/bssl.dir/pkcs12.cc.o: include/openssl/thread.h
+tool/CMakeFiles/bssl.dir/pkcs12.cc.o: include/openssl/type_check.h
 tool/CMakeFiles/bssl.dir/pkcs12.cc.o: include/openssl/x509.h
+tool/CMakeFiles/bssl.dir/pkcs12.cc.o: include/openssl/x509_vfy.h
 
 tool/CMakeFiles/bssl.dir/rand.cc.o: tool/internal.h
 tool/CMakeFiles/bssl.dir/rand.cc.o: tool/rand.cc
@@ -267,7 +215,6 @@ tool/CMakeFiles/bssl.dir/rand.cc.o: include/openssl/base.h
 tool/CMakeFiles/bssl.dir/rand.cc.o: include/openssl/is_boringssl.h
 tool/CMakeFiles/bssl.dir/rand.cc.o: include/openssl/opensslconf.h
 tool/CMakeFiles/bssl.dir/rand.cc.o: include/openssl/rand.h
-tool/CMakeFiles/bssl.dir/rand.cc.o: include/openssl/span.h
 
 tool/CMakeFiles/bssl.dir/server.cc.o: tool/internal.h
 tool/CMakeFiles/bssl.dir/server.cc.o: tool/server.cc
@@ -283,7 +230,6 @@ tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/buffer.h
 tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/bytestring.h
 tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/cipher.h
 tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/crypto.h
-tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/curve25519.h
 tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/dh.h
 tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/digest.h
 tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/dsa.h
@@ -294,9 +240,8 @@ tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/ecdsa.h
 tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/engine.h
 tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/err.h
 tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/evp.h
-tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/evp_errors.h
 tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/ex_data.h
-tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/hpke.h
+tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/hmac.h
 tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/is_boringssl.h
 tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/mem.h
 tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/nid.h
@@ -314,7 +259,9 @@ tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/ssl3.h
 tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/stack.h
 tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/thread.h
 tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/tls1.h
+tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/type_check.h
 tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/x509.h
+tool/CMakeFiles/bssl.dir/server.cc.o: include/openssl/x509_vfy.h
 
 tool/CMakeFiles/bssl.dir/sign.cc.o: tool/internal.h
 tool/CMakeFiles/bssl.dir/sign.cc.o: tool/sign.cc
@@ -339,7 +286,6 @@ tool/CMakeFiles/bssl.dir/sign.cc.o: include/openssl/ecdsa.h
 tool/CMakeFiles/bssl.dir/sign.cc.o: include/openssl/engine.h
 tool/CMakeFiles/bssl.dir/sign.cc.o: include/openssl/err.h
 tool/CMakeFiles/bssl.dir/sign.cc.o: include/openssl/evp.h
-tool/CMakeFiles/bssl.dir/sign.cc.o: include/openssl/evp_errors.h
 tool/CMakeFiles/bssl.dir/sign.cc.o: include/openssl/ex_data.h
 tool/CMakeFiles/bssl.dir/sign.cc.o: include/openssl/is_boringssl.h
 tool/CMakeFiles/bssl.dir/sign.cc.o: include/openssl/mem.h
@@ -354,13 +300,11 @@ tool/CMakeFiles/bssl.dir/sign.cc.o: include/openssl/sha.h
 tool/CMakeFiles/bssl.dir/sign.cc.o: include/openssl/span.h
 tool/CMakeFiles/bssl.dir/sign.cc.o: include/openssl/stack.h
 tool/CMakeFiles/bssl.dir/sign.cc.o: include/openssl/thread.h
+tool/CMakeFiles/bssl.dir/sign.cc.o: include/openssl/type_check.h
 tool/CMakeFiles/bssl.dir/sign.cc.o: include/openssl/x509.h
+tool/CMakeFiles/bssl.dir/sign.cc.o: include/openssl/x509_vfy.h
 
-tool/CMakeFiles/bssl.dir/speed.cc.o: crypto/ec_extra/internal.h
-tool/CMakeFiles/bssl.dir/speed.cc.o: crypto/fipsmodule/bn/internal.h
-tool/CMakeFiles/bssl.dir/speed.cc.o: crypto/fipsmodule/ec/internal.h
 tool/CMakeFiles/bssl.dir/speed.cc.o: crypto/internal.h
-tool/CMakeFiles/bssl.dir/speed.cc.o: crypto/trust_token/internal.h
 tool/CMakeFiles/bssl.dir/speed.cc.o: tool/internal.h
 tool/CMakeFiles/bssl.dir/speed.cc.o: tool/speed.cc
 tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/aead.h
@@ -369,7 +313,6 @@ tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/base.h
 tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/base64.h
 tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/bn.h
 tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/cipher.h
-tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/crypto.h
 tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/curve25519.h
 tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/digest.h
 tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/ec.h
@@ -378,21 +321,16 @@ tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/ecdsa.h
 tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/engine.h
 tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/err.h
 tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/evp.h
-tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/evp_errors.h
 tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/ex_data.h
 tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/hrss.h
 tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/is_boringssl.h
-tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/mem.h
 tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/nid.h
 tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/opensslconf.h
 tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/rand.h
 tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/rsa.h
-tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/sha.h
-tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/siphash.h
-tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/span.h
 tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/stack.h
 tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/thread.h
-tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/trust_token.h
+tool/CMakeFiles/bssl.dir/speed.cc.o: include/openssl/type_check.h
 
 tool/CMakeFiles/bssl.dir/tool.cc.o: tool/internal.h
 tool/CMakeFiles/bssl.dir/tool.cc.o: tool/tool.cc
@@ -417,8 +355,8 @@ tool/CMakeFiles/bssl.dir/tool.cc.o: include/openssl/ecdsa.h
 tool/CMakeFiles/bssl.dir/tool.cc.o: include/openssl/engine.h
 tool/CMakeFiles/bssl.dir/tool.cc.o: include/openssl/err.h
 tool/CMakeFiles/bssl.dir/tool.cc.o: include/openssl/evp.h
-tool/CMakeFiles/bssl.dir/tool.cc.o: include/openssl/evp_errors.h
 tool/CMakeFiles/bssl.dir/tool.cc.o: include/openssl/ex_data.h
+tool/CMakeFiles/bssl.dir/tool.cc.o: include/openssl/hmac.h
 tool/CMakeFiles/bssl.dir/tool.cc.o: include/openssl/is_boringssl.h
 tool/CMakeFiles/bssl.dir/tool.cc.o: include/openssl/mem.h
 tool/CMakeFiles/bssl.dir/tool.cc.o: include/openssl/nid.h
@@ -435,7 +373,9 @@ tool/CMakeFiles/bssl.dir/tool.cc.o: include/openssl/ssl3.h
 tool/CMakeFiles/bssl.dir/tool.cc.o: include/openssl/stack.h
 tool/CMakeFiles/bssl.dir/tool.cc.o: include/openssl/thread.h
 tool/CMakeFiles/bssl.dir/tool.cc.o: include/openssl/tls1.h
+tool/CMakeFiles/bssl.dir/tool.cc.o: include/openssl/type_check.h
 tool/CMakeFiles/bssl.dir/tool.cc.o: include/openssl/x509.h
+tool/CMakeFiles/bssl.dir/tool.cc.o: include/openssl/x509_vfy.h
 
 tool/CMakeFiles/bssl.dir/transport_common.cc.o: crypto/internal.h
 tool/CMakeFiles/bssl.dir/transport_common.cc.o: tool/internal.h
@@ -462,8 +402,8 @@ tool/CMakeFiles/bssl.dir/transport_common.cc.o: include/openssl/ecdsa.h
 tool/CMakeFiles/bssl.dir/transport_common.cc.o: include/openssl/engine.h
 tool/CMakeFiles/bssl.dir/transport_common.cc.o: include/openssl/err.h
 tool/CMakeFiles/bssl.dir/transport_common.cc.o: include/openssl/evp.h
-tool/CMakeFiles/bssl.dir/transport_common.cc.o: include/openssl/evp_errors.h
 tool/CMakeFiles/bssl.dir/transport_common.cc.o: include/openssl/ex_data.h
+tool/CMakeFiles/bssl.dir/transport_common.cc.o: include/openssl/hmac.h
 tool/CMakeFiles/bssl.dir/transport_common.cc.o: include/openssl/is_boringssl.h
 tool/CMakeFiles/bssl.dir/transport_common.cc.o: include/openssl/mem.h
 tool/CMakeFiles/bssl.dir/transport_common.cc.o: include/openssl/nid.h
@@ -480,5 +420,7 @@ tool/CMakeFiles/bssl.dir/transport_common.cc.o: include/openssl/ssl3.h
 tool/CMakeFiles/bssl.dir/transport_common.cc.o: include/openssl/stack.h
 tool/CMakeFiles/bssl.dir/transport_common.cc.o: include/openssl/thread.h
 tool/CMakeFiles/bssl.dir/transport_common.cc.o: include/openssl/tls1.h
+tool/CMakeFiles/bssl.dir/transport_common.cc.o: include/openssl/type_check.h
 tool/CMakeFiles/bssl.dir/transport_common.cc.o: include/openssl/x509.h
+tool/CMakeFiles/bssl.dir/transport_common.cc.o: include/openssl/x509_vfy.h
 

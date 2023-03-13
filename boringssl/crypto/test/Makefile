@@ -56,51 +56,6 @@ CMAKE_BINARY_DIR = /home/pi/workspace/tiny-webrtc-gw/boringssl
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target install/local
-install/local: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local
-
-# Special rule for the target install/local
-install/local/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local/fast
-
-# Special rule for the target install/strip
-install/strip: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip
-
-# Special rule for the target install/strip
-install/strip/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip/fast
-
-# Special rule for the target rebuild_cache
-rebuild_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/bin/cmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : rebuild_cache
-
-# Special rule for the target rebuild_cache
-rebuild_cache/fast: rebuild_cache
-
-.PHONY : rebuild_cache/fast
-
-# Special rule for the target list_install_components
-list_install_components:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
-.PHONY : list_install_components
-
-# Special rule for the target list_install_components
-list_install_components/fast: list_install_components
-
-.PHONY : list_install_components/fast
-
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
@@ -112,17 +67,16 @@ edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
 
-# Special rule for the target install
-install: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/usr/bin/cmake -P cmake_install.cmake
-.PHONY : install
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
+	/usr/bin/cmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
 
-# Special rule for the target install
-install/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/usr/bin/cmake -P cmake_install.cmake
-.PHONY : install/fast
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
+
+.PHONY : rebuild_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -157,21 +111,6 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-crypto/test/CMakeFiles/boringssl_gtest_main.dir/rule:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f CMakeFiles/Makefile2 crypto/test/CMakeFiles/boringssl_gtest_main.dir/rule
-.PHONY : crypto/test/CMakeFiles/boringssl_gtest_main.dir/rule
-
-# Convenience name for target.
-boringssl_gtest_main: crypto/test/CMakeFiles/boringssl_gtest_main.dir/rule
-
-.PHONY : boringssl_gtest_main
-
-# fast build rule for target.
-boringssl_gtest_main/fast:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/test/CMakeFiles/boringssl_gtest_main.dir/build.make crypto/test/CMakeFiles/boringssl_gtest_main.dir/build
-.PHONY : boringssl_gtest_main/fast
-
-# Convenience name for target.
 crypto/test/CMakeFiles/test_support_lib.dir/rule:
 	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f CMakeFiles/Makefile2 crypto/test/CMakeFiles/test_support_lib.dir/rule
 .PHONY : crypto/test/CMakeFiles/test_support_lib.dir/rule
@@ -185,6 +124,21 @@ test_support_lib: crypto/test/CMakeFiles/test_support_lib.dir/rule
 test_support_lib/fast:
 	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/test/CMakeFiles/test_support_lib.dir/build.make crypto/test/CMakeFiles/test_support_lib.dir/build
 .PHONY : test_support_lib/fast
+
+# Convenience name for target.
+crypto/test/CMakeFiles/boringssl_gtest_main.dir/rule:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f CMakeFiles/Makefile2 crypto/test/CMakeFiles/boringssl_gtest_main.dir/rule
+.PHONY : crypto/test/CMakeFiles/boringssl_gtest_main.dir/rule
+
+# Convenience name for target.
+boringssl_gtest_main: crypto/test/CMakeFiles/boringssl_gtest_main.dir/rule
+
+.PHONY : boringssl_gtest_main
+
+# fast build rule for target.
+boringssl_gtest_main/fast:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/test/CMakeFiles/boringssl_gtest_main.dir/build.make crypto/test/CMakeFiles/boringssl_gtest_main.dir/build
+.PHONY : boringssl_gtest_main/fast
 
 abi_test.o: abi_test.cc.o
 
@@ -267,6 +221,33 @@ gtest_main.cc.s:
 	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/test/CMakeFiles/boringssl_gtest_main.dir/build.make crypto/test/CMakeFiles/boringssl_gtest_main.dir/gtest_main.cc.s
 .PHONY : gtest_main.cc.s
 
+malloc.o: malloc.cc.o
+
+.PHONY : malloc.o
+
+# target to build an object file
+malloc.cc.o:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/test/CMakeFiles/test_support_lib.dir/build.make crypto/test/CMakeFiles/test_support_lib.dir/malloc.cc.o
+.PHONY : malloc.cc.o
+
+malloc.i: malloc.cc.i
+
+.PHONY : malloc.i
+
+# target to preprocess a source file
+malloc.cc.i:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/test/CMakeFiles/test_support_lib.dir/build.make crypto/test/CMakeFiles/test_support_lib.dir/malloc.cc.i
+.PHONY : malloc.cc.i
+
+malloc.s: malloc.cc.s
+
+.PHONY : malloc.s
+
+# target to generate assembly for a file
+malloc.cc.s:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f crypto/test/CMakeFiles/test_support_lib.dir/build.make crypto/test/CMakeFiles/test_support_lib.dir/malloc.cc.s
+.PHONY : malloc.cc.s
+
 test_util.o: test_util.cc.o
 
 .PHONY : test_util.o
@@ -327,14 +308,10 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... install/local"
-	@echo "... install/strip"
-	@echo "... boringssl_gtest_main"
-	@echo "... rebuild_cache"
-	@echo "... list_install_components"
-	@echo "... test_support_lib"
 	@echo "... edit_cache"
-	@echo "... install"
+	@echo "... test_support_lib"
+	@echo "... rebuild_cache"
+	@echo "... boringssl_gtest_main"
 	@echo "... abi_test.o"
 	@echo "... abi_test.i"
 	@echo "... abi_test.s"
@@ -344,6 +321,9 @@ help:
 	@echo "... gtest_main.o"
 	@echo "... gtest_main.i"
 	@echo "... gtest_main.s"
+	@echo "... malloc.o"
+	@echo "... malloc.i"
+	@echo "... malloc.s"
 	@echo "... test_util.o"
 	@echo "... test_util.i"
 	@echo "... test_util.s"

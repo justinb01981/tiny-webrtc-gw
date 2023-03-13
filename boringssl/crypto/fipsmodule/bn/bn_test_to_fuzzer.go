@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -138,7 +139,7 @@ func checkKeys(t test, keys ...string) bool {
 		}
 	}
 
-	for k := range t.Values {
+	for k, _ := range t.Values {
 		var found bool
 		for _, k2 := range keys {
 			if k == k2 {
@@ -220,8 +221,8 @@ func main() {
 
 		if len(fuzzer) != 0 {
 			hash := sha1.Sum(b)
-			path := filepath.Join(fuzzerDir, fuzzer+"_corpus", hex.EncodeToString(hash[:]))
-			if err := os.WriteFile(path, b, 0666); err != nil {
+			path := filepath.Join(fuzzerDir, fuzzer + "_corpus", hex.EncodeToString(hash[:]))
+			if err := ioutil.WriteFile(path, b, 0666); err != nil {
 				fmt.Fprintf(os.Stderr, "Error writing to %s: %s.\n", path, err)
 				os.Exit(1)
 			}

@@ -56,7 +56,7 @@ int verbose = 0;
 int veryverbose = 0;
 unsigned char cookie_secret[COOKIE_SECRET_LENGTH];
 int cookie_initialized=0;
-char dtls_fingerprint_st[128];
+char dtls_fingerprint_st[256];
 char *dtls_fingerprint = dtls_fingerprint_st;
 
 struct sockaddr_storage peer_pending;
@@ -265,6 +265,8 @@ static void str_insert(char* dst, unsigned int off, const char ins)
 
 void DTLS_sock_init(unsigned short listen_port)
 {
+    EVP_PKEY* x5key = NULL;
+    RSA* rsa = NULL;
     dtls_listen_port = listen_port;
 
     BIO *pkbio = BIO_new(BIO_s_file());
@@ -277,15 +279,15 @@ void DTLS_sock_init(unsigned short listen_port)
 
     SSL_CTX *ctx = SSL_CTX_new(DTLSv1_2_server_method());
 
-    //SSL_CTX_set_cipher_list(ctx, "ALL:NULL:eNULL:aNULL");
-    //SSL_CTX_set_cipher_list(ctx, "TLSv1.2+FIPS:kRSA+FIPS:!eNULL:!aNULL");
+    SSL_CTX_set_cipher_list(ctx, 
+        /*"ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH"*/ 
+        /*i"DEFAULT:!NULL:!aNULL:!SHA256:!SHA384:!aECDH:!AESGCM+AES256:!aPSK"*/
+        "ALL:NULL:eNULL:aNULL"
+    );
 
     SSL_CTX_set_session_cache_mode(ctx, SSL_SESS_CACHE_OFF);
 
     SSL_CTX_set_options(ctx, SSL_OP_NO_TICKET);
-
-    // TODO: revisit this and switch statement in main.c srtp init which crashes if you remove it ;-)
-    SSL_CTX_set_tlsext_use_srtp(ctx, "SRTP_AES128_CM_SHA1_80");
 
     if (!SSL_CTX_use_certificate(ctx, x5))
         printf("\nError: loading certificate");
@@ -293,11 +295,14 @@ void DTLS_sock_init(unsigned short listen_port)
 	if (!SSL_CTX_use_PrivateKey_file(ctx, "certs/server-key.pem", SSL_FILETYPE_PEM))
 		printf("\nERROR: no private key found!");
 
-    EVP_PKEY* x5key = X509_get_pubkey(x5);
-    if (!x5key) assert(0);
+    // TODO: revisit this and switch statement in main.c srtp init which crashes if you remove it ;-)
+    SSL_CTX_set_tlsext_use_srtp(ctx, "SRTP_AES128_CM_SHA1_80"); // https://gitee.com/FogVDN/Node-janus-first/blob/master/dtls.c -- janus
+
+    //x5key = X509_get_pubkey(x5);
+    //if (!x5key) assert(0);
 
     // fingerprint is sha256 of the cert NOT THE PUBLIC KEY
-    RSA* rsa = EVP_PKEY_get1_RSA(x5key); // remove? not being used yet
+    //rsa = EVP_PKEY_get1_RSA(x5key); // remove? not being used yet
 
     if (!i2d_X509_bio(mem, x5)) assert(0);
 
@@ -306,8 +311,8 @@ void DTLS_sock_init(unsigned short listen_port)
     long hlen = BIO_get_mem_data(mem, &x5der);
     sha256_bytes(x5der, hlen, dtls_fingerprint);
 
-    EVP_PKEY_free(x5key);
-    RSA_free(rsa);
+    if(x5key) EVP_PKEY_free(x5key);
+    if(rsa) RSA_free(rsa);
 
     BIO_free(pkbio);
     BIO_free(mem);
@@ -317,15 +322,12 @@ void DTLS_sock_init(unsigned short listen_port)
 	if (!SSL_CTX_check_private_key (ctx))
 		printf("\nERROR: invalid private key!");
 
-    SSL_CTX_set_read_ahead(ctx, 1);
-
 	/* Client has to authenticate */
 	//SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, dtls_verify_callback);
 
     /*https://code.google.com/p/webrtc/issues/detail?id=4201*/
     SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, dtls_verify_callback);
     SSL_CTX_set_verify_depth(ctx, 4);
-    SSL_CTX_set_cipher_list(ctx, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
 
     DTLS_ssl_ctx_global = ctx;
 }

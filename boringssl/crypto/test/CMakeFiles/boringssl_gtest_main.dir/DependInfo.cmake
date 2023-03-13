@@ -17,14 +17,11 @@ set(CMAKE_TARGET_DEFINITIONS_CXX
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "third_party/googletest/include"
-  "include"
+  "crypto/../include"
   )
 
 # Targets to which this target links.
 set(CMAKE_TARGET_LINKED_INFO_FILES
-  "/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles/boringssl_gtest.dir/DependInfo.cmake"
-  "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/CMakeFiles/crypto.dir/DependInfo.cmake"
-  "/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/CMakeFiles/test_support_lib.dir/DependInfo.cmake"
   )
 
 # Fortran module output directory.

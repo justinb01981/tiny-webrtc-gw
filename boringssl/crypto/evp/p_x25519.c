@@ -27,6 +27,7 @@ static int pkey_x25519_copy(EVP_PKEY_CTX *dst, EVP_PKEY_CTX *src) { return 1; }
 static int pkey_x25519_keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey) {
   X25519_KEY *key = OPENSSL_malloc(sizeof(X25519_KEY));
   if (key == NULL) {
+    OPENSSL_PUT_ERROR(EVP, ERR_R_MALLOC_FAILURE);
     return 0;
   }
 
@@ -38,8 +39,8 @@ static int pkey_x25519_keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey) {
   X25519_keypair(key->pub, key->priv);
   key->has_private = 1;
 
-  OPENSSL_free(pkey->pkey);
-  pkey->pkey = key;
+  OPENSSL_free(pkey->pkey.ptr);
+  pkey->pkey.ptr = key;
   return 1;
 }
 
@@ -50,8 +51,8 @@ static int pkey_x25519_derive(EVP_PKEY_CTX *ctx, uint8_t *out,
     return 0;
   }
 
-  const X25519_KEY *our_key = ctx->pkey->pkey;
-  const X25519_KEY *peer_key = ctx->peerkey->pkey;
+  const X25519_KEY *our_key = ctx->pkey->pkey.ptr;
+  const X25519_KEY *peer_key = ctx->peerkey->pkey.ptr;
   if (our_key == NULL || peer_key == NULL) {
     OPENSSL_PUT_ERROR(EVP, EVP_R_KEYS_NOT_SET);
     return 0;

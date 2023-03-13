@@ -5,16 +5,15 @@ crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o: crypto/internal.h
 crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o: crypto/test/abi_test.cc
 crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o: crypto/test/abi_test.h
 crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o: include/openssl/base.h
-crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o: include/openssl/crypto.h
 crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o: include/openssl/ex_data.h
 crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o: include/openssl/is_boringssl.h
 crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o: include/openssl/mem.h
 crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o: include/openssl/opensslconf.h
 crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o: include/openssl/rand.h
-crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o: include/openssl/sha.h
 crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o: include/openssl/span.h
 crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o: include/openssl/stack.h
 crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o: include/openssl/thread.h
+crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o: include/openssl/type_check.h
 crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o: third_party/googletest/include/gtest/gtest-death-test.h
 crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o: third_party/googletest/include/gtest/gtest-matchers.h
 crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o: third_party/googletest/include/gtest/gtest-message.h
@@ -37,38 +36,39 @@ crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o: third_party/googletes
 crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o: third_party/googletest/include/gtest/internal/gtest-type-util.h
 
 crypto/test/CMakeFiles/test_support_lib.dir/file_test.cc.o: crypto/internal.h
+crypto/test/CMakeFiles/test_support_lib.dir/file_test.cc.o: crypto/test/./test_util.h
 crypto/test/CMakeFiles/test_support_lib.dir/file_test.cc.o: crypto/test/file_test.cc
 crypto/test/CMakeFiles/test_support_lib.dir/file_test.cc.o: crypto/test/file_test.h
-crypto/test/CMakeFiles/test_support_lib.dir/file_test.cc.o: crypto/test/test_util.h
 crypto/test/CMakeFiles/test_support_lib.dir/file_test.cc.o: include/openssl/base.h
-crypto/test/CMakeFiles/test_support_lib.dir/file_test.cc.o: include/openssl/crypto.h
 crypto/test/CMakeFiles/test_support_lib.dir/file_test.cc.o: include/openssl/err.h
 crypto/test/CMakeFiles/test_support_lib.dir/file_test.cc.o: include/openssl/ex_data.h
 crypto/test/CMakeFiles/test_support_lib.dir/file_test.cc.o: include/openssl/is_boringssl.h
-crypto/test/CMakeFiles/test_support_lib.dir/file_test.cc.o: include/openssl/mem.h
 crypto/test/CMakeFiles/test_support_lib.dir/file_test.cc.o: include/openssl/opensslconf.h
-crypto/test/CMakeFiles/test_support_lib.dir/file_test.cc.o: include/openssl/sha.h
 crypto/test/CMakeFiles/test_support_lib.dir/file_test.cc.o: include/openssl/span.h
 crypto/test/CMakeFiles/test_support_lib.dir/file_test.cc.o: include/openssl/stack.h
 crypto/test/CMakeFiles/test_support_lib.dir/file_test.cc.o: include/openssl/thread.h
+crypto/test/CMakeFiles/test_support_lib.dir/file_test.cc.o: include/openssl/type_check.h
+
+crypto/test/CMakeFiles/test_support_lib.dir/malloc.cc.o: crypto/test/malloc.cc
+crypto/test/CMakeFiles/test_support_lib.dir/malloc.cc.o: include/openssl/base.h
+crypto/test/CMakeFiles/test_support_lib.dir/malloc.cc.o: include/openssl/is_boringssl.h
+crypto/test/CMakeFiles/test_support_lib.dir/malloc.cc.o: include/openssl/opensslconf.h
 
 crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.o: crypto/internal.h
 crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.o: crypto/test/test_util.cc
 crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.o: crypto/test/test_util.h
 crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.o: include/openssl/base.h
-crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.o: include/openssl/crypto.h
 crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.o: include/openssl/ex_data.h
 crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.o: include/openssl/is_boringssl.h
-crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.o: include/openssl/mem.h
 crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.o: include/openssl/opensslconf.h
-crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.o: include/openssl/sha.h
 crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.o: include/openssl/span.h
 crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.o: include/openssl/stack.h
 crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.o: include/openssl/thread.h
+crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.o: include/openssl/type_check.h
 
-crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o: crypto/test/file_test.h
+crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o: crypto/test/./file_test.h
+crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o: crypto/test/./wycheproof_util.h
 crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o: crypto/test/wycheproof_util.cc
-crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o: crypto/test/wycheproof_util.h
 crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o: include/openssl/base.h
 crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o: include/openssl/bn.h
 crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o: include/openssl/digest.h
@@ -81,4 +81,5 @@ crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o: include/openss
 crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o: include/openssl/opensslconf.h
 crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o: include/openssl/stack.h
 crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o: include/openssl/thread.h
+crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o: include/openssl/type_check.h
 

@@ -108,17 +108,16 @@
 
 #include <openssl/bn.h>
 
-#include <assert.h>
 #include <limits.h>
 #include <string.h>
 
 #include <openssl/err.h>
 #include <openssl/rand.h>
+#include <openssl/type_check.h>
 
+#include "internal.h"
 #include "../../internal.h"
 #include "../rand/internal.h"
-#include "../service_indicator/internal.h"
-#include "internal.h"
 
 
 int BN_rand(BIGNUM *rnd, int bits, int top, int bottom) {
@@ -156,10 +155,7 @@ int BN_rand(BIGNUM *rnd, int bits, int top, int bottom) {
     return 0;
   }
 
-  FIPS_service_indicator_lock_state();
   RAND_bytes((uint8_t *)rnd->d, words * sizeof(BN_ULONG));
-  FIPS_service_indicator_unlock_state();
-
   rnd->d[words - 1] &= mask;
   if (top != BN_RAND_TOP_ANY) {
     if (top == BN_RAND_TOP_TWO && bits > 1) {
@@ -199,8 +195,8 @@ static crypto_word_t bn_less_than_word_mask(const BN_ULONG *a, size_t len,
   }
 
   // |a| < |b| iff a[1..len-1] are all zero and a[0] < b.
-  static_assert(sizeof(BN_ULONG) <= sizeof(crypto_word_t),
-                "crypto_word_t is too small");
+  OPENSSL_STATIC_ASSERT(sizeof(BN_ULONG) <= sizeof(crypto_word_t),
+                        "crypto_word_t is too small");
   crypto_word_t mask = 0;
   for (size_t i = 1; i < len; i++) {
     mask |= a[i];
@@ -274,10 +270,8 @@ int bn_rand_range_words(BN_ULONG *out, BN_ULONG min_inclusive,
 
     // Steps 4 and 5. Use |words| and |mask| together to obtain a string of N
     // bits, where N is the bit length of |max_exclusive|.
-    FIPS_service_indicator_lock_state();
     RAND_bytes_with_additional_data((uint8_t *)out, words * sizeof(BN_ULONG),
                                     additional_data);
-    FIPS_service_indicator_unlock_state();
     out[words - 1] &= mask;
 
     // If out >= max_exclusive or out < min_inclusive, retry. This implements
@@ -319,9 +313,7 @@ int bn_rand_secret_range(BIGNUM *r, int *out_is_uniform, BN_ULONG min_inclusive,
   }
 
   // Select a uniform random number with num_bits(max_exclusive) bits.
-  FIPS_service_indicator_lock_state();
   RAND_bytes((uint8_t *)r->d, words * sizeof(BN_ULONG));
-  FIPS_service_indicator_unlock_state();
   r->d[words - 1] &= mask;
 
   // Check, in constant-time, if the value is in range.
@@ -336,7 +328,7 @@ int bn_rand_secret_range(BIGNUM *r, int *out_is_uniform, BN_ULONG min_inclusive,
   assert(bn_in_range_words(r->d, min_inclusive, max_exclusive->d, words));
 
   r->neg = 0;
-  r->width = (int)words;
+  r->width = words;
   return 1;
 }
 

@@ -10,7 +10,7 @@
 // SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
 // WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
 // OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
-// CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+// CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 // inject_hash parses an archive containing a file object file. It finds a FIPS
 // module inside that object, calculates its hash and replaces the default hash
@@ -21,12 +21,14 @@ import (
 	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
+	"crypto/sha512"
 	"debug/elf"
 	"encoding/binary"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"strings"
 
@@ -34,7 +36,7 @@ import (
 	"boringssl.googlesource.com/boringssl/util/fipstools/fipscommon"
 )
 
-func do(outPath, oInput string, arInput string) error {
+func do(outPath, oInput string, arInput string, useSHA256 bool) error {
 	var objectBytes []byte
 	var isStatic bool
 	var perm os.FileMode
@@ -77,7 +79,7 @@ func do(outPath, oInput string, arInput string) error {
 		}
 		perm = fi.Mode()
 
-		if objectBytes, err = os.ReadFile(oInput); err != nil {
+		if objectBytes, err = ioutil.ReadFile(oInput); err != nil {
 			return err
 		}
 		isStatic = strings.HasSuffix(oInput, ".o")
@@ -214,7 +216,11 @@ func do(outPath, oInput string, arInput string) error {
 	}
 
 	var zeroKey [64]byte
-	mac := hmac.New(sha256.New, zeroKey[:])
+	hashFunc := sha512.New
+	if useSHA256 {
+		hashFunc = sha256.New
+	}
+	mac := hmac.New(hashFunc, zeroKey[:])
 
 	if moduleROData != nil {
 		var lengthBytes [8]byte
@@ -244,17 +250,18 @@ func do(outPath, oInput string, arInput string) error {
 
 	copy(objectBytes[offset:], calculated)
 
-	return os.WriteFile(outPath, objectBytes, perm&0777)
+	return ioutil.WriteFile(outPath, objectBytes, perm & 0777)
 }
 
 func main() {
 	arInput := flag.String("in-archive", "", "Path to a .a file")
 	oInput := flag.String("in-object", "", "Path to a .o file")
 	outPath := flag.String("o", "", "Path to output object")
+	sha256 := flag.Bool("sha256", false, "Whether to use SHA-256 over SHA-512. This must match what the compiled module expects.")
 
 	flag.Parse()
 
-	if err := do(*outPath, *oInput, *arInput); err != nil {
+	if err := do(*outPath, *oInput, *arInput, *sha256); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
 	}

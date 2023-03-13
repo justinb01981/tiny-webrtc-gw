@@ -56,41 +56,6 @@ CMAKE_BINARY_DIR = /home/pi/workspace/tiny-webrtc-gw/boringssl
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target install/strip
-install/strip: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip
-
-# Special rule for the target install/strip
-install/strip/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip/fast
-
-# Special rule for the target install/local
-install/local: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local
-
-# Special rule for the target install/local
-install/local/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local/fast
-
-# Special rule for the target edit_cache
-edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
-.PHONY : edit_cache
-
-# Special rule for the target edit_cache
-edit_cache/fast: edit_cache
-
-.PHONY : edit_cache/fast
-
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
@@ -102,27 +67,16 @@ rebuild_cache/fast: rebuild_cache
 
 .PHONY : rebuild_cache/fast
 
-# Special rule for the target list_install_components
-list_install_components:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
-.PHONY : list_install_components
+# Special rule for the target edit_cache
+edit_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
+	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+.PHONY : edit_cache
 
-# Special rule for the target list_install_components
-list_install_components/fast: list_install_components
+# Special rule for the target edit_cache
+edit_cache/fast: edit_cache
 
-.PHONY : list_install_components/fast
-
-# Special rule for the target install
-install: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/usr/bin/cmake -P cmake_install.cmake
-.PHONY : install
-
-# Special rule for the target install
-install/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/usr/bin/cmake -P cmake_install.cmake
-.PHONY : install/fast
+.PHONY : edit_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -157,21 +111,6 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-ssl/CMakeFiles/ssl_test.dir/rule:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f CMakeFiles/Makefile2 ssl/CMakeFiles/ssl_test.dir/rule
-.PHONY : ssl/CMakeFiles/ssl_test.dir/rule
-
-# Convenience name for target.
-ssl_test: ssl/CMakeFiles/ssl_test.dir/rule
-
-.PHONY : ssl_test
-
-# fast build rule for target.
-ssl_test/fast:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f ssl/CMakeFiles/ssl_test.dir/build.make ssl/CMakeFiles/ssl_test.dir/build
-.PHONY : ssl_test/fast
-
-# Convenience name for target.
 ssl/CMakeFiles/ssl.dir/rule:
 	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f CMakeFiles/Makefile2 ssl/CMakeFiles/ssl.dir/rule
 .PHONY : ssl/CMakeFiles/ssl.dir/rule
@@ -185,6 +124,21 @@ ssl: ssl/CMakeFiles/ssl.dir/rule
 ssl/fast:
 	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f ssl/CMakeFiles/ssl.dir/build.make ssl/CMakeFiles/ssl.dir/build
 .PHONY : ssl/fast
+
+# Convenience name for target.
+ssl/CMakeFiles/ssl_test.dir/rule:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f CMakeFiles/Makefile2 ssl/CMakeFiles/ssl_test.dir/rule
+.PHONY : ssl/CMakeFiles/ssl_test.dir/rule
+
+# Convenience name for target.
+ssl_test: ssl/CMakeFiles/ssl_test.dir/rule
+
+.PHONY : ssl_test
+
+# fast build rule for target.
+ssl_test/fast:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f ssl/CMakeFiles/ssl_test.dir/build.make ssl/CMakeFiles/ssl_test.dir/build
+.PHONY : ssl_test/fast
 
 bio_ssl.o: bio_ssl.cc.o
 
@@ -374,60 +328,6 @@ dtls_record.s: dtls_record.cc.s
 dtls_record.cc.s:
 	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f ssl/CMakeFiles/ssl.dir/build.make ssl/CMakeFiles/ssl.dir/dtls_record.cc.s
 .PHONY : dtls_record.cc.s
-
-encrypted_client_hello.o: encrypted_client_hello.cc.o
-
-.PHONY : encrypted_client_hello.o
-
-# target to build an object file
-encrypted_client_hello.cc.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f ssl/CMakeFiles/ssl.dir/build.make ssl/CMakeFiles/ssl.dir/encrypted_client_hello.cc.o
-.PHONY : encrypted_client_hello.cc.o
-
-encrypted_client_hello.i: encrypted_client_hello.cc.i
-
-.PHONY : encrypted_client_hello.i
-
-# target to preprocess a source file
-encrypted_client_hello.cc.i:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f ssl/CMakeFiles/ssl.dir/build.make ssl/CMakeFiles/ssl.dir/encrypted_client_hello.cc.i
-.PHONY : encrypted_client_hello.cc.i
-
-encrypted_client_hello.s: encrypted_client_hello.cc.s
-
-.PHONY : encrypted_client_hello.s
-
-# target to generate assembly for a file
-encrypted_client_hello.cc.s:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f ssl/CMakeFiles/ssl.dir/build.make ssl/CMakeFiles/ssl.dir/encrypted_client_hello.cc.s
-.PHONY : encrypted_client_hello.cc.s
-
-extensions.o: extensions.cc.o
-
-.PHONY : extensions.o
-
-# target to build an object file
-extensions.cc.o:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f ssl/CMakeFiles/ssl.dir/build.make ssl/CMakeFiles/ssl.dir/extensions.cc.o
-.PHONY : extensions.cc.o
-
-extensions.i: extensions.cc.i
-
-.PHONY : extensions.i
-
-# target to preprocess a source file
-extensions.cc.i:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f ssl/CMakeFiles/ssl.dir/build.make ssl/CMakeFiles/ssl.dir/extensions.cc.i
-.PHONY : extensions.cc.i
-
-extensions.s: extensions.cc.s
-
-.PHONY : extensions.s
-
-# target to generate assembly for a file
-extensions.cc.s:
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f ssl/CMakeFiles/ssl.dir/build.make ssl/CMakeFiles/ssl.dir/extensions.cc.s
-.PHONY : extensions.cc.s
 
 handoff.o: handoff.cc.o
 
@@ -1104,6 +1004,33 @@ t1_enc.cc.s:
 	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f ssl/CMakeFiles/ssl.dir/build.make ssl/CMakeFiles/ssl.dir/t1_enc.cc.s
 .PHONY : t1_enc.cc.s
 
+t1_lib.o: t1_lib.cc.o
+
+.PHONY : t1_lib.o
+
+# target to build an object file
+t1_lib.cc.o:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f ssl/CMakeFiles/ssl.dir/build.make ssl/CMakeFiles/ssl.dir/t1_lib.cc.o
+.PHONY : t1_lib.cc.o
+
+t1_lib.i: t1_lib.cc.i
+
+.PHONY : t1_lib.i
+
+# target to preprocess a source file
+t1_lib.cc.i:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f ssl/CMakeFiles/ssl.dir/build.make ssl/CMakeFiles/ssl.dir/t1_lib.cc.i
+.PHONY : t1_lib.cc.i
+
+t1_lib.s: t1_lib.cc.s
+
+.PHONY : t1_lib.s
+
+# target to generate assembly for a file
+t1_lib.cc.s:
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(MAKE) -f ssl/CMakeFiles/ssl.dir/build.make ssl/CMakeFiles/ssl.dir/t1_lib.cc.s
+.PHONY : t1_lib.cc.s
+
 tls13_both.o: tls13_both.cc.o
 
 .PHONY : tls13_both.o
@@ -1272,14 +1199,10 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... install/strip"
-	@echo "... install/local"
-	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... ssl_test"
 	@echo "... ssl"
-	@echo "... list_install_components"
-	@echo "... install"
+	@echo "... edit_cache"
+	@echo "... ssl_test"
 	@echo "... bio_ssl.o"
 	@echo "... bio_ssl.i"
 	@echo "... bio_ssl.s"
@@ -1301,12 +1224,6 @@ help:
 	@echo "... dtls_record.o"
 	@echo "... dtls_record.i"
 	@echo "... dtls_record.s"
-	@echo "... encrypted_client_hello.o"
-	@echo "... encrypted_client_hello.i"
-	@echo "... encrypted_client_hello.s"
-	@echo "... extensions.o"
-	@echo "... extensions.i"
-	@echo "... extensions.s"
 	@echo "... handoff.o"
 	@echo "... handoff.i"
 	@echo "... handoff.s"
@@ -1382,6 +1299,9 @@ help:
 	@echo "... t1_enc.o"
 	@echo "... t1_enc.i"
 	@echo "... t1_enc.s"
+	@echo "... t1_lib.o"
+	@echo "... t1_lib.i"
+	@echo "... t1_lib.s"
 	@echo "... tls13_both.o"
 	@echo "... tls13_both.i"
 	@echo "... tls13_both.s"

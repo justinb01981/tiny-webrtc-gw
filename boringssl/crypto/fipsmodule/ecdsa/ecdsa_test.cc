@@ -66,7 +66,6 @@
 
 #include "../ec/internal.h"
 #include "../../test/file_test.h"
-#include "../../test/test_util.h"
 
 
 static bssl::UniquePtr<BIGNUM> HexToBIGNUM(const char *hex) {
@@ -228,15 +227,6 @@ TEST(ECDSATest, BuiltinCurves) {
     ASSERT_TRUE(
         ECDSA_sign(0, digest, 20, signature.data(), &sig_len, eckey.get()));
     signature.resize(sig_len);
-
-    // ECDSA signing should be non-deterministic. This does not verify k is
-    // generated securely but at least checks it was randomized at all.
-    sig_len = ECDSA_size(eckey.get());
-    std::vector<uint8_t> signature2(sig_len);
-    ASSERT_TRUE(
-        ECDSA_sign(0, digest, 20, signature2.data(), &sig_len, eckey.get()));
-    signature2.resize(sig_len);
-    EXPECT_NE(Bytes(signature), Bytes(signature2));
 
     // Verify the signature.
     EXPECT_TRUE(ECDSA_verify(0, digest, 20, signature.data(), signature.size(),
@@ -434,8 +424,8 @@ TEST(ECDSATest, SignTestVectors) {
       ASSERT_TRUE(x);
       bssl::UniquePtr<BIGNUM> y = GetBIGNUM(t, "Y");
       ASSERT_TRUE(y);
-      std::vector<uint8_t> k;
-      ASSERT_TRUE(t->GetBytes(&k, "K"));
+      bssl::UniquePtr<BIGNUM> k = GetBIGNUM(t, "K");
+      ASSERT_TRUE(k);
       bssl::UniquePtr<BIGNUM> r = GetBIGNUM(t, "R");
       ASSERT_TRUE(r);
       bssl::UniquePtr<BIGNUM> s = GetBIGNUM(t, "S");
@@ -454,9 +444,10 @@ TEST(ECDSATest, SignTestVectors) {
       ASSERT_TRUE(EC_KEY_set_public_key(key.get(), pub_key.get()));
       ASSERT_TRUE(EC_KEY_check_key(key.get()));
 
+      // Set the fixed k for testing purposes.
+      key->fixed_k = k.release();
       bssl::UniquePtr<ECDSA_SIG> sig(
-          ECDSA_sign_with_nonce_and_leak_private_key_for_testing(
-              digest.data(), digest.size(), key.get(), k.data(), k.size()));
+          ECDSA_do_sign(digest.data(), digest.size(), key.get()));
       ASSERT_TRUE(sig);
 
       EXPECT_EQ(0, BN_cmp(r.get(), sig->r));

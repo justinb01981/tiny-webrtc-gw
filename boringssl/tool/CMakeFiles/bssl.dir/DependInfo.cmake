@@ -9,9 +9,7 @@ set(CMAKE_DEPENDS_CHECK_CXX
   "/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/client.cc" "/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/client.cc.o"
   "/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/const.cc" "/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/const.cc.o"
   "/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/digest.cc" "/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/digest.cc.o"
-  "/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/fd.cc" "/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/fd.cc.o"
   "/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/file.cc" "/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/file.cc.o"
-  "/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/generate_ech.cc" "/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/generate_ech.cc.o"
   "/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/generate_ed25519.cc" "/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/generate_ed25519.cc.o"
   "/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/genrsa.cc" "/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/genrsa.cc.o"
   "/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/pkcs12.cc" "/home/pi/workspace/tiny-webrtc-gw/boringssl/tool/CMakeFiles/bssl.dir/pkcs12.cc.o"
@@ -32,7 +30,8 @@ set(CMAKE_TARGET_DEFINITIONS_CXX
 
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
-  "include"
+  "third_party/googletest/include"
+  "tool/../include"
   )
 
 # Targets to which this target links.

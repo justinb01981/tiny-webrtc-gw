@@ -26,8 +26,7 @@
 
 
 int CBB_finish_i2d(CBB *cbb, uint8_t **outp) {
-  assert(!cbb->is_child);
-  assert(cbb->u.base.can_resize);
+  assert(cbb->base->can_resize);
 
   uint8_t *der;
   size_t der_len;

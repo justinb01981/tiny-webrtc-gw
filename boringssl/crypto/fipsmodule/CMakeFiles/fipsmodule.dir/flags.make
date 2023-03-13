@@ -7,11 +7,11 @@ ASM_FLAGS =  -Wa,--noexecstack -Wa,-g
 
 ASM_DEFINES = -DBORINGSSL_DISPATCH_TEST -DBORINGSSL_IMPLEMENTATION
 
-ASM_INCLUDES = -I/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/../../include 
+ASM_INCLUDES = -I/home/pi/workspace/tiny-webrtc-gw/boringssl/third_party/googletest/include -I/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/../include -I/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/../../include 
 
-C_FLAGS =  -latomic -Werror -Wformat=2 -Wsign-compare -Wmissing-field-initializers -Wwrite-strings -Wvla -Wshadow -Wtype-limits -ggdb -Wall -fvisibility=hidden -fno-common -Wno-free-nonheap-object -Wimplicit-fallthrough -Wformat-signedness -Wmissing-prototypes -Wold-style-definition -Wstrict-prototypes -D_XOPEN_SOURCE=700   -std=gnu11
+C_FLAGS =  -Wformat=2 -Wsign-compare -Wmissing-field-initializers -Wwrite-strings -Wvla -ggdb -Wall -fvisibility=hidden -fno-common -Wno-free-nonheap-object -Wimplicit-fallthrough -Wmissing-prototypes -Wold-style-definition -Wstrict-prototypes -Wshadow -std=c11 -D_XOPEN_SOURCE=700  
 
 C_DEFINES = -DBORINGSSL_DISPATCH_TEST -DBORINGSSL_IMPLEMENTATION
 
-C_INCLUDES = -I/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/../../include 
+C_INCLUDES = -I/home/pi/workspace/tiny-webrtc-gw/boringssl/third_party/googletest/include -I/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/../include -I/home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/../../include 
 

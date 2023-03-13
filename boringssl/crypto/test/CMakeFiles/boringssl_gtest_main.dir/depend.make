@@ -7,6 +7,7 @@ crypto/test/CMakeFiles/boringssl_gtest_main.dir/gtest_main.cc.o: crypto/test/gte
 crypto/test/CMakeFiles/boringssl_gtest_main.dir/gtest_main.cc.o: crypto/test/gtest_main.h
 crypto/test/CMakeFiles/boringssl_gtest_main.dir/gtest_main.cc.o: include/openssl/arm_arch.h
 crypto/test/CMakeFiles/boringssl_gtest_main.dir/gtest_main.cc.o: include/openssl/base.h
+crypto/test/CMakeFiles/boringssl_gtest_main.dir/gtest_main.cc.o: include/openssl/cpu.h
 crypto/test/CMakeFiles/boringssl_gtest_main.dir/gtest_main.cc.o: include/openssl/crypto.h
 crypto/test/CMakeFiles/boringssl_gtest_main.dir/gtest_main.cc.o: include/openssl/err.h
 crypto/test/CMakeFiles/boringssl_gtest_main.dir/gtest_main.cc.o: include/openssl/ex_data.h
@@ -17,6 +18,7 @@ crypto/test/CMakeFiles/boringssl_gtest_main.dir/gtest_main.cc.o: include/openssl
 crypto/test/CMakeFiles/boringssl_gtest_main.dir/gtest_main.cc.o: include/openssl/sha.h
 crypto/test/CMakeFiles/boringssl_gtest_main.dir/gtest_main.cc.o: include/openssl/stack.h
 crypto/test/CMakeFiles/boringssl_gtest_main.dir/gtest_main.cc.o: include/openssl/thread.h
+crypto/test/CMakeFiles/boringssl_gtest_main.dir/gtest_main.cc.o: include/openssl/type_check.h
 crypto/test/CMakeFiles/boringssl_gtest_main.dir/gtest_main.cc.o: third_party/googletest/include/gtest/gtest-death-test.h
 crypto/test/CMakeFiles/boringssl_gtest_main.dir/gtest_main.cc.o: third_party/googletest/include/gtest/gtest-matchers.h
 crypto/test/CMakeFiles/boringssl_gtest_main.dir/gtest_main.cc.o: third_party/googletest/include/gtest/gtest-message.h

@@ -85,26 +85,29 @@ bool SettingsWriter::Commit() {
 }
 
 bool SettingsWriter::WriteHandoff(bssl::Span<const uint8_t> handoff) {
-  return WriteData(kHandoffTag, handoff);
-}
-
-bool SettingsWriter::WriteHandback(bssl::Span<const uint8_t> handback) {
-  return WriteData(kHandbackTag, handback);
-}
-
-bool SettingsWriter::WriteHints(bssl::Span<const uint8_t> hints) {
-  return WriteData(kHintsTag, hints);
-}
-
-bool SettingsWriter::WriteData(uint16_t tag, bssl::Span<const uint8_t> data) {
   if (path_.empty()) {
     return true;
   }
 
   CBB child;
-  if (!CBB_add_u16(cbb_.get(), tag) ||
+  if (!CBB_add_u16(cbb_.get(), kHandoffTag) ||
       !CBB_add_u24_length_prefixed(cbb_.get(), &child) ||
-      !CBB_add_bytes(&child, data.data(), data.size()) ||
+      !CBB_add_bytes(&child, handoff.data(), handoff.size()) ||
+      !CBB_flush(cbb_.get())) {
+    return false;
+  }
+  return true;
+}
+
+bool SettingsWriter::WriteHandback(bssl::Span<const uint8_t> handback) {
+  if (path_.empty()) {
+    return true;
+  }
+
+  CBB child;
+  if (!CBB_add_u16(cbb_.get(), kHandbackTag) ||
+      !CBB_add_u24_length_prefixed(cbb_.get(), &child) ||
+      !CBB_add_bytes(&child, handback.data(), handback.size()) ||
       !CBB_flush(cbb_.get())) {
     return false;
   }

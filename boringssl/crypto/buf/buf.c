@@ -69,6 +69,7 @@ BUF_MEM *BUF_MEM_new(void) {
 
   ret = OPENSSL_malloc(sizeof(BUF_MEM));
   if (ret == NULL) {
+    OPENSSL_PUT_ERROR(BUF, ERR_R_MALLOC_FAILURE);
     return NULL;
   }
 
@@ -92,18 +93,21 @@ int BUF_MEM_reserve(BUF_MEM *buf, size_t cap) {
 
   size_t n = cap + 3;
   if (n < cap) {
-    OPENSSL_PUT_ERROR(BUF, ERR_R_OVERFLOW);
+    // overflow
+    OPENSSL_PUT_ERROR(BUF, ERR_R_MALLOC_FAILURE);
     return 0;
   }
   n = n / 3;
   size_t alloc_size = n * 4;
   if (alloc_size / 4 != n) {
-    OPENSSL_PUT_ERROR(BUF, ERR_R_OVERFLOW);
+    // overflow
+    OPENSSL_PUT_ERROR(BUF, ERR_R_MALLOC_FAILURE);
     return 0;
   }
 
   char *new_buf = OPENSSL_realloc(buf->data, alloc_size);
   if (new_buf == NULL) {
+    OPENSSL_PUT_ERROR(BUF, ERR_R_MALLOC_FAILURE);
     return 0;
   }
 

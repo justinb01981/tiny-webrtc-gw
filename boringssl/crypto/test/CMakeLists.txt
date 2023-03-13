@@ -5,6 +5,7 @@ add_library(
 
   abi_test.cc
   file_test.cc
+  malloc.cc
   test_util.cc
   wycheproof_util.cc
 )
@@ -17,7 +18,14 @@ endif()
 if(WIN32)
   target_link_libraries(test_support_lib dbghelp)
 endif()
-target_link_libraries(test_support_lib boringssl_gtest crypto)
+add_dependencies(test_support_lib global_target)
 
-add_library(boringssl_gtest_main STATIC gtest_main.cc)
-target_link_libraries(boringssl_gtest_main boringssl_gtest crypto test_support_lib)
+add_library(
+  boringssl_gtest_main
+
+  OBJECT
+
+  gtest_main.cc
+)
+
+add_dependencies(boringssl_gtest_main global_target)

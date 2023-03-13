@@ -83,9 +83,22 @@ crypto/test/CMakeFiles/test_support_lib.dir/file_test.cc.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/test_support_lib.dir/file_test.cc.s"
 	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/file_test.cc -o CMakeFiles/test_support_lib.dir/file_test.cc.s
 
+crypto/test/CMakeFiles/test_support_lib.dir/malloc.cc.o: crypto/test/CMakeFiles/test_support_lib.dir/flags.make
+crypto/test/CMakeFiles/test_support_lib.dir/malloc.cc.o: crypto/test/malloc.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object crypto/test/CMakeFiles/test_support_lib.dir/malloc.cc.o"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/test_support_lib.dir/malloc.cc.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/malloc.cc
+
+crypto/test/CMakeFiles/test_support_lib.dir/malloc.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/test_support_lib.dir/malloc.cc.i"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/malloc.cc > CMakeFiles/test_support_lib.dir/malloc.cc.i
+
+crypto/test/CMakeFiles/test_support_lib.dir/malloc.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/test_support_lib.dir/malloc.cc.s"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/malloc.cc -o CMakeFiles/test_support_lib.dir/malloc.cc.s
+
 crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.o: crypto/test/CMakeFiles/test_support_lib.dir/flags.make
 crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.o: crypto/test/test_util.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.o"
 	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/test_support_lib.dir/test_util.cc.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/test_util.cc
 
 crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.i: cmake_force
@@ -98,7 +111,7 @@ crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.s: cmake_force
 
 crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o: crypto/test/CMakeFiles/test_support_lib.dir/flags.make
 crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o: crypto/test/wycheproof_util.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o"
 	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test/wycheproof_util.cc
 
 crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.i: cmake_force
@@ -113,6 +126,7 @@ crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.s: cmake_force
 test_support_lib_OBJECTS = \
 "CMakeFiles/test_support_lib.dir/abi_test.cc.o" \
 "CMakeFiles/test_support_lib.dir/file_test.cc.o" \
+"CMakeFiles/test_support_lib.dir/malloc.cc.o" \
 "CMakeFiles/test_support_lib.dir/test_util.cc.o" \
 "CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o"
 
@@ -121,11 +135,12 @@ test_support_lib_EXTERNAL_OBJECTS =
 
 crypto/test/libtest_support_lib.a: crypto/test/CMakeFiles/test_support_lib.dir/abi_test.cc.o
 crypto/test/libtest_support_lib.a: crypto/test/CMakeFiles/test_support_lib.dir/file_test.cc.o
+crypto/test/libtest_support_lib.a: crypto/test/CMakeFiles/test_support_lib.dir/malloc.cc.o
 crypto/test/libtest_support_lib.a: crypto/test/CMakeFiles/test_support_lib.dir/test_util.cc.o
 crypto/test/libtest_support_lib.a: crypto/test/CMakeFiles/test_support_lib.dir/wycheproof_util.cc.o
 crypto/test/libtest_support_lib.a: crypto/test/CMakeFiles/test_support_lib.dir/build.make
 crypto/test/libtest_support_lib.a: crypto/test/CMakeFiles/test_support_lib.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX static library libtest_support_lib.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX static library libtest_support_lib.a"
 	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test && $(CMAKE_COMMAND) -P CMakeFiles/test_support_lib.dir/cmake_clean_target.cmake
 	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/test && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/test_support_lib.dir/link.txt --verbose=$(VERBOSE)
 

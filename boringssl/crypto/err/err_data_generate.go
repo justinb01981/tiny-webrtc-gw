@@ -1,16 +1,16 @@
-// Copyright (c) 2015, Google Inc.
-//
-// Permission to use, copy, modify, and/or distribute this software for any
-// purpose with or without fee is hereby granted, provided that the above
-// copyright notice and this permission notice appear in all copies.
-//
-// THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-// WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-// MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
-// SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-// WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
-// OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
-// CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+/* Copyright (c) 2015, Google Inc.
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+ * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
+ * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+ * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 package main
 
@@ -63,8 +63,8 @@ var libraryNames = []string{
 	"DIGEST",
 	"CIPHER",
 	"HKDF",
-	"TRUST_TOKEN",
 	"USER",
+	"TRUST_TOKEN",
 }
 
 // stringList is a map from uint32 -> string which can output data for a sorted
@@ -270,15 +270,15 @@ func main() {
 
 #include <openssl/base.h>
 #include <openssl/err.h>
+#include <openssl/type_check.h>
 
-#include <assert.h>
 
 `)
 
 	for i, name := range libraryNames {
-		fmt.Fprintf(out, "static_assert(ERR_LIB_%s == %d, \"library value changed\");\n", name, i+1)
+		fmt.Fprintf(out, "OPENSSL_STATIC_ASSERT(ERR_LIB_%s == %d, \"library value changed\");\n", name, i+1)
 	}
-	fmt.Fprintf(out, "static_assert(ERR_NUM_LIBS == %d, \"number of libraries changed\");\n", len(libraryNames)+1)
+	fmt.Fprintf(out, "OPENSSL_STATIC_ASSERT(ERR_NUM_LIBS == %d, \"number of libraries changed\");\n", len(libraryNames)+1)
 	out.WriteString("\n")
 
 	e.reasons.WriteTo(out, "Reason")

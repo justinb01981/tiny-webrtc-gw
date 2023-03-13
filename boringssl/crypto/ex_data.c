@@ -109,8 +109,6 @@
 #include <openssl/ex_data.h>
 
 #include <assert.h>
-#include <limits.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include <openssl/crypto.h>
@@ -137,6 +135,7 @@ int CRYPTO_get_ex_new_index(CRYPTO_EX_DATA_CLASS *ex_data_class, int *out_index,
 
   funcs = OPENSSL_malloc(sizeof(CRYPTO_EX_DATA_FUNCS));
   if (funcs == NULL) {
+    OPENSSL_PUT_ERROR(CRYPTO, ERR_R_MALLOC_FAILURE);
     return 0;
   }
 
@@ -150,55 +149,44 @@ int CRYPTO_get_ex_new_index(CRYPTO_EX_DATA_CLASS *ex_data_class, int *out_index,
     ex_data_class->meth = sk_CRYPTO_EX_DATA_FUNCS_new_null();
   }
 
-  if (ex_data_class->meth == NULL) {
+  if (ex_data_class->meth == NULL ||
+      !sk_CRYPTO_EX_DATA_FUNCS_push(ex_data_class->meth, funcs)) {
+    OPENSSL_PUT_ERROR(CRYPTO, ERR_R_MALLOC_FAILURE);
+    OPENSSL_free(funcs);
     goto err;
   }
 
-  // The index must fit in |int|.
-  if (sk_CRYPTO_EX_DATA_FUNCS_num(ex_data_class->meth) >
-          (size_t)(INT_MAX - ex_data_class->num_reserved)) {
-    OPENSSL_PUT_ERROR(CRYPTO, ERR_R_OVERFLOW);
-    goto err;
-  }
-
-  if (!sk_CRYPTO_EX_DATA_FUNCS_push(ex_data_class->meth, funcs)) {
-    goto err;
-  }
-  funcs = NULL;  // |sk_CRYPTO_EX_DATA_FUNCS_push| takes ownership.
-
-  *out_index = (int)sk_CRYPTO_EX_DATA_FUNCS_num(ex_data_class->meth) - 1 +
+  *out_index = sk_CRYPTO_EX_DATA_FUNCS_num(ex_data_class->meth) - 1 +
                ex_data_class->num_reserved;
   ret = 1;
 
 err:
   CRYPTO_STATIC_MUTEX_unlock_write(&ex_data_class->lock);
-  OPENSSL_free(funcs);
   return ret;
 }
 
 int CRYPTO_set_ex_data(CRYPTO_EX_DATA *ad, int index, void *val) {
-  if (index < 0) {
-    // A caller that can accidentally pass in an invalid index into this
-    // function will hit an memory error if |index| happened to be valid, and
-    // expected |val| to be of a different type.
-    abort();
-  }
+  int n, i;
 
   if (ad->sk == NULL) {
     ad->sk = sk_void_new_null();
     if (ad->sk == NULL) {
+      OPENSSL_PUT_ERROR(CRYPTO, ERR_R_MALLOC_FAILURE);
       return 0;
     }
   }
+
+  n = sk_void_num(ad->sk);
 
   // Add NULL values until the stack is long enough.
-  for (size_t i = sk_void_num(ad->sk); i <= (size_t)index; i++) {
+  for (i = n; i <= index; i++) {
     if (!sk_void_push(ad->sk, NULL)) {
+      OPENSSL_PUT_ERROR(CRYPTO, ERR_R_MALLOC_FAILURE);
       return 0;
     }
   }
 
-  sk_void_set(ad->sk, (size_t)index, val);
+  sk_void_set(ad->sk, index, val);
   return 1;
 }
 
@@ -230,6 +218,7 @@ static int get_func_pointers(STACK_OF(CRYPTO_EX_DATA_FUNCS) **out,
   CRYPTO_STATIC_MUTEX_unlock_read(&ex_data_class->lock);
 
   if (n > 0 && *out == NULL) {
+    OPENSSL_PUT_ERROR(CRYPTO, ERR_R_MALLOC_FAILURE);
     return 0;
   }
 
@@ -253,10 +242,7 @@ void CRYPTO_free_ex_data(CRYPTO_EX_DATA_CLASS *ex_data_class, void *obj,
     return;
   }
 
-  // |CRYPTO_get_ex_new_index| will not allocate indices beyond |INT_MAX|.
-  assert(sk_CRYPTO_EX_DATA_FUNCS_num(func_pointers) <=
-         (size_t)(INT_MAX - ex_data_class->num_reserved));
-  for (int i = 0; i < (int)sk_CRYPTO_EX_DATA_FUNCS_num(func_pointers); i++) {
+  for (size_t i = 0; i < sk_CRYPTO_EX_DATA_FUNCS_num(func_pointers); i++) {
     CRYPTO_EX_DATA_FUNCS *func_pointer =
         sk_CRYPTO_EX_DATA_FUNCS_value(func_pointers, i);
     if (func_pointer->free_func) {

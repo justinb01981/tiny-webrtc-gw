@@ -27,6 +27,7 @@ static int pkey_ed25519_copy(EVP_PKEY_CTX *dst, EVP_PKEY_CTX *src) { return 1; }
 static int pkey_ed25519_keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey) {
   ED25519_KEY *key = OPENSSL_malloc(sizeof(ED25519_KEY));
   if (key == NULL) {
+    OPENSSL_PUT_ERROR(EVP, ERR_R_MALLOC_FAILURE);
     return 0;
   }
 
@@ -36,18 +37,18 @@ static int pkey_ed25519_keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey) {
   }
 
   uint8_t pubkey_unused[32];
-  ED25519_keypair(pubkey_unused, key->key);
+  ED25519_keypair(pubkey_unused, key->key.priv);
   key->has_private = 1;
 
-  OPENSSL_free(pkey->pkey);
-  pkey->pkey = key;
+  OPENSSL_free(pkey->pkey.ptr);
+  pkey->pkey.ptr = key;
   return 1;
 }
 
 static int pkey_ed25519_sign_message(EVP_PKEY_CTX *ctx, uint8_t *sig,
                                      size_t *siglen, const uint8_t *tbs,
                                      size_t tbslen) {
-  const ED25519_KEY *key = ctx->pkey->pkey;
+  ED25519_KEY *key = ctx->pkey->pkey.ptr;
   if (!key->has_private) {
     OPENSSL_PUT_ERROR(EVP, EVP_R_NOT_A_PRIVATE_KEY);
     return 0;
@@ -63,7 +64,7 @@ static int pkey_ed25519_sign_message(EVP_PKEY_CTX *ctx, uint8_t *sig,
     return 0;
   }
 
-  if (!ED25519_sign(sig, tbs, tbslen, key->key)) {
+  if (!ED25519_sign(sig, tbs, tbslen, key->key.priv)) {
     return 0;
   }
 
@@ -74,9 +75,9 @@ static int pkey_ed25519_sign_message(EVP_PKEY_CTX *ctx, uint8_t *sig,
 static int pkey_ed25519_verify_message(EVP_PKEY_CTX *ctx, const uint8_t *sig,
                                        size_t siglen, const uint8_t *tbs,
                                        size_t tbslen) {
-  const ED25519_KEY *key = ctx->pkey->pkey;
+  ED25519_KEY *key = ctx->pkey->pkey.ptr;
   if (siglen != 64 ||
-      !ED25519_verify(tbs, tbslen, sig, key->key + ED25519_PUBLIC_KEY_OFFSET)) {
+      !ED25519_verify(tbs, tbslen, sig, key->key.pub.value)) {
     OPENSSL_PUT_ERROR(EVP, EVP_R_INVALID_SIGNATURE);
     return 0;
   }

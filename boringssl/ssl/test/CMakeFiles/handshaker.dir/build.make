@@ -184,6 +184,7 @@ ssl/test/handshaker: ssl/test/CMakeFiles/handshaker.dir/settings_writer.cc.o
 ssl/test/handshaker: ssl/test/CMakeFiles/handshaker.dir/test_config.cc.o
 ssl/test/handshaker: ssl/test/CMakeFiles/handshaker.dir/test_state.cc.o
 ssl/test/handshaker: ssl/test/CMakeFiles/handshaker.dir/build.make
+ssl/test/handshaker: crypto/test/libtest_support_lib.a
 ssl/test/handshaker: ssl/libssl.a
 ssl/test/handshaker: crypto/libcrypto.a
 ssl/test/handshaker: ssl/test/CMakeFiles/handshaker.dir/link.txt

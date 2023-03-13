@@ -56,9 +56,8 @@
 
 #include <openssl/bn.h>
 
-#include <assert.h>
-
 #include <openssl/mem.h>
+#include <openssl/type_check.h>
 
 #include "internal.h"
 #include "../../internal.h"
@@ -66,8 +65,8 @@
 
 static int bn_cmp_words_consttime(const BN_ULONG *a, size_t a_len,
                                   const BN_ULONG *b, size_t b_len) {
-  static_assert(sizeof(BN_ULONG) <= sizeof(crypto_word_t),
-                "crypto_word_t is too small");
+  OPENSSL_STATIC_ASSERT(sizeof(BN_ULONG) <= sizeof(crypto_word_t),
+                        "crypto_word_t is too small");
   int ret = 0;
   // Process the common words in little-endian order.
   size_t min = a_len < b_len ? a_len : b_len;

@@ -32,26 +32,25 @@ static void TestStateExFree(void *parent, void *ptr, CRYPTO_EX_DATA *ad,
   delete ((TestState *)ptr);
 }
 
-static bool InitGlobals() {
-  CRYPTO_once(&g_once, [] {
-    g_state_index =
-        SSL_get_ex_new_index(0, nullptr, nullptr, nullptr, TestStateExFree);
-  });
-  return g_state_index >= 0;
+static void init_once() {
+  g_state_index = SSL_get_ex_new_index(0, NULL, NULL, NULL, TestStateExFree);
+  if (g_state_index < 0) {
+    abort();
+  }
 }
 
 struct timeval *GetClock() {
+  CRYPTO_once(&g_once, init_once);
   return &g_clock;
 }
 
 void AdvanceClock(unsigned seconds) {
+  CRYPTO_once(&g_once, init_once);
   g_clock.tv_sec += seconds;
 }
 
 bool SetTestState(SSL *ssl, std::unique_ptr<TestState> state) {
-  if (!InitGlobals()) {
-    return false;
-  }
+  CRYPTO_once(&g_once, init_once);
   // |SSL_set_ex_data| takes ownership of |state| only on success.
   if (SSL_set_ex_data(ssl, g_state_index, state.get()) == 1) {
     state.release();
@@ -61,10 +60,8 @@ bool SetTestState(SSL *ssl, std::unique_ptr<TestState> state) {
 }
 
 TestState *GetTestState(const SSL *ssl) {
-  if (!InitGlobals()) {
-    return nullptr;
-  }
-  return static_cast<TestState *>(SSL_get_ex_data(ssl, g_state_index));
+  CRYPTO_once(&g_once, init_once);
+  return (TestState *)SSL_get_ex_data(ssl, g_state_index);
 }
 
 static void ssl_ctx_add_session(SSL_SESSION *session, void *void_param) {

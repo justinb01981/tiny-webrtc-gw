@@ -57,1175 +57,117 @@ include crypto/fipsmodule/CMakeFiles/fipsmodule.dir/progress.make
 # Include the compile flags for this target's objects.
 include crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
 
-crypto/fipsmodule/aesv8-armv8-apple.S: crypto/fipsmodule/aes/asm/aesv8-armx.pl
-crypto/fipsmodule/aesv8-armv8-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/aesv8-armv8-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/aesv8-armv8-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/aesv8-armv8-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/aesv8-armv8-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/aesv8-armv8-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating aesv8-armv8-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/aesv8-armx.pl ios64 aesv8-armv8-apple.S
-
-crypto/fipsmodule/aesv8-armv8-linux.S: crypto/fipsmodule/aes/asm/aesv8-armx.pl
-crypto/fipsmodule/aesv8-armv8-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/aesv8-armv8-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/aesv8-armv8-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/aesv8-armv8-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/aesv8-armv8-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/aesv8-armv8-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating aesv8-armv8-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/aesv8-armx.pl linux64 aesv8-armv8-linux.S
-
-crypto/fipsmodule/aesv8-armv8-win.S: crypto/fipsmodule/aes/asm/aesv8-armx.pl
-crypto/fipsmodule/aesv8-armv8-win.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/aesv8-armv8-win.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/aesv8-armv8-win.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/aesv8-armv8-win.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/aesv8-armv8-win.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/aesv8-armv8-win.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating aesv8-armv8-win.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/aesv8-armx.pl win64 aesv8-armv8-win.S
-
-crypto/fipsmodule/aesv8-gcm-armv8-apple.S: crypto/fipsmodule/modes/asm/aesv8-gcm-armv8.pl
-crypto/fipsmodule/aesv8-gcm-armv8-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/aesv8-gcm-armv8-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/aesv8-gcm-armv8-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/aesv8-gcm-armv8-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/aesv8-gcm-armv8-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/aesv8-gcm-armv8-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Generating aesv8-gcm-armv8-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/aesv8-gcm-armv8.pl ios64 aesv8-gcm-armv8-apple.S
-
-crypto/fipsmodule/aesv8-gcm-armv8-linux.S: crypto/fipsmodule/modes/asm/aesv8-gcm-armv8.pl
-crypto/fipsmodule/aesv8-gcm-armv8-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/aesv8-gcm-armv8-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/aesv8-gcm-armv8-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/aesv8-gcm-armv8-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/aesv8-gcm-armv8-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/aesv8-gcm-armv8-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Generating aesv8-gcm-armv8-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/aesv8-gcm-armv8.pl linux64 aesv8-gcm-armv8-linux.S
-
-crypto/fipsmodule/aesv8-gcm-armv8-win.S: crypto/fipsmodule/modes/asm/aesv8-gcm-armv8.pl
-crypto/fipsmodule/aesv8-gcm-armv8-win.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/aesv8-gcm-armv8-win.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/aesv8-gcm-armv8-win.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/aesv8-gcm-armv8-win.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/aesv8-gcm-armv8-win.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/aesv8-gcm-armv8-win.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Generating aesv8-gcm-armv8-win.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/aesv8-gcm-armv8.pl win64 aesv8-gcm-armv8-win.S
-
-crypto/fipsmodule/armv8-mont-apple.S: crypto/fipsmodule/bn/asm/armv8-mont.pl
-crypto/fipsmodule/armv8-mont-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/armv8-mont-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/armv8-mont-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/armv8-mont-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/armv8-mont-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/armv8-mont-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Generating armv8-mont-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/asm/armv8-mont.pl ios64 armv8-mont-apple.S
-
-crypto/fipsmodule/armv8-mont-linux.S: crypto/fipsmodule/bn/asm/armv8-mont.pl
-crypto/fipsmodule/armv8-mont-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/armv8-mont-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/armv8-mont-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/armv8-mont-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/armv8-mont-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/armv8-mont-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Generating armv8-mont-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/asm/armv8-mont.pl linux64 armv8-mont-linux.S
-
-crypto/fipsmodule/armv8-mont-win.S: crypto/fipsmodule/bn/asm/armv8-mont.pl
-crypto/fipsmodule/armv8-mont-win.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/armv8-mont-win.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/armv8-mont-win.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/armv8-mont-win.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/armv8-mont-win.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/armv8-mont-win.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Generating armv8-mont-win.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/asm/armv8-mont.pl win64 armv8-mont-win.S
-
-crypto/fipsmodule/bn-armv8-apple.S: crypto/fipsmodule/bn/asm/bn-armv8.pl
-crypto/fipsmodule/bn-armv8-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/bn-armv8-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/bn-armv8-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/bn-armv8-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/bn-armv8-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/bn-armv8-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Generating bn-armv8-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/asm/bn-armv8.pl ios64 bn-armv8-apple.S
-
-crypto/fipsmodule/bn-armv8-linux.S: crypto/fipsmodule/bn/asm/bn-armv8.pl
-crypto/fipsmodule/bn-armv8-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/bn-armv8-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/bn-armv8-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/bn-armv8-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/bn-armv8-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/bn-armv8-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Generating bn-armv8-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/asm/bn-armv8.pl linux64 bn-armv8-linux.S
-
-crypto/fipsmodule/bn-armv8-win.S: crypto/fipsmodule/bn/asm/bn-armv8.pl
-crypto/fipsmodule/bn-armv8-win.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/bn-armv8-win.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/bn-armv8-win.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/bn-armv8-win.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/bn-armv8-win.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/bn-armv8-win.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Generating bn-armv8-win.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/asm/bn-armv8.pl win64 bn-armv8-win.S
-
-crypto/fipsmodule/ghash-neon-armv8-apple.S: crypto/fipsmodule/modes/asm/ghash-neon-armv8.pl
-crypto/fipsmodule/ghash-neon-armv8-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/ghash-neon-armv8-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/ghash-neon-armv8-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/ghash-neon-armv8-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/ghash-neon-armv8-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/ghash-neon-armv8-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Generating ghash-neon-armv8-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/ghash-neon-armv8.pl ios64 ghash-neon-armv8-apple.S
-
-crypto/fipsmodule/ghash-neon-armv8-linux.S: crypto/fipsmodule/modes/asm/ghash-neon-armv8.pl
-crypto/fipsmodule/ghash-neon-armv8-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/ghash-neon-armv8-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/ghash-neon-armv8-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/ghash-neon-armv8-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/ghash-neon-armv8-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/ghash-neon-armv8-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Generating ghash-neon-armv8-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/ghash-neon-armv8.pl linux64 ghash-neon-armv8-linux.S
-
-crypto/fipsmodule/ghash-neon-armv8-win.S: crypto/fipsmodule/modes/asm/ghash-neon-armv8.pl
-crypto/fipsmodule/ghash-neon-armv8-win.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/ghash-neon-armv8-win.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/ghash-neon-armv8-win.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/ghash-neon-armv8-win.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/ghash-neon-armv8-win.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/ghash-neon-armv8-win.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Generating ghash-neon-armv8-win.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/ghash-neon-armv8.pl win64 ghash-neon-armv8-win.S
-
-crypto/fipsmodule/ghashv8-armv8-apple.S: crypto/fipsmodule/modes/asm/ghashv8-armx.pl
-crypto/fipsmodule/ghashv8-armv8-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/ghashv8-armv8-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/ghashv8-armv8-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/ghashv8-armv8-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/ghashv8-armv8-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/ghashv8-armv8-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Generating ghashv8-armv8-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/ghashv8-armx.pl ios64 ghashv8-armv8-apple.S
-
-crypto/fipsmodule/ghashv8-armv8-linux.S: crypto/fipsmodule/modes/asm/ghashv8-armx.pl
-crypto/fipsmodule/ghashv8-armv8-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/ghashv8-armv8-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/ghashv8-armv8-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/ghashv8-armv8-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/ghashv8-armv8-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/ghashv8-armv8-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Generating ghashv8-armv8-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/ghashv8-armx.pl linux64 ghashv8-armv8-linux.S
-
-crypto/fipsmodule/ghashv8-armv8-win.S: crypto/fipsmodule/modes/asm/ghashv8-armx.pl
-crypto/fipsmodule/ghashv8-armv8-win.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/ghashv8-armv8-win.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/ghashv8-armv8-win.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/ghashv8-armv8-win.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/ghashv8-armv8-win.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/ghashv8-armv8-win.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Generating ghashv8-armv8-win.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/ghashv8-armx.pl win64 ghashv8-armv8-win.S
-
-crypto/fipsmodule/p256_beeu-armv8-asm-apple.S: crypto/fipsmodule/ec/asm/p256_beeu-armv8-asm.pl
-crypto/fipsmodule/p256_beeu-armv8-asm-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/p256_beeu-armv8-asm-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/p256_beeu-armv8-asm-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/p256_beeu-armv8-asm-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/p256_beeu-armv8-asm-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/p256_beeu-armv8-asm-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Generating p256_beeu-armv8-asm-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ec/asm/p256_beeu-armv8-asm.pl ios64 p256_beeu-armv8-asm-apple.S
-
-crypto/fipsmodule/p256_beeu-armv8-asm-linux.S: crypto/fipsmodule/ec/asm/p256_beeu-armv8-asm.pl
-crypto/fipsmodule/p256_beeu-armv8-asm-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/p256_beeu-armv8-asm-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/p256_beeu-armv8-asm-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/p256_beeu-armv8-asm-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/p256_beeu-armv8-asm-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/p256_beeu-armv8-asm-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Generating p256_beeu-armv8-asm-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ec/asm/p256_beeu-armv8-asm.pl linux64 p256_beeu-armv8-asm-linux.S
-
-crypto/fipsmodule/p256_beeu-armv8-asm-win.S: crypto/fipsmodule/ec/asm/p256_beeu-armv8-asm.pl
-crypto/fipsmodule/p256_beeu-armv8-asm-win.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/p256_beeu-armv8-asm-win.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/p256_beeu-armv8-asm-win.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/p256_beeu-armv8-asm-win.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/p256_beeu-armv8-asm-win.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/p256_beeu-armv8-asm-win.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Generating p256_beeu-armv8-asm-win.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ec/asm/p256_beeu-armv8-asm.pl win64 p256_beeu-armv8-asm-win.S
-
-crypto/fipsmodule/p256-armv8-asm-apple.S: crypto/fipsmodule/ec/asm/p256-armv8-asm.pl
-crypto/fipsmodule/p256-armv8-asm-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/p256-armv8-asm-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/p256-armv8-asm-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/p256-armv8-asm-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/p256-armv8-asm-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/p256-armv8-asm-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_22) "Generating p256-armv8-asm-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ec/asm/p256-armv8-asm.pl ios64 p256-armv8-asm-apple.S
-
-crypto/fipsmodule/p256-armv8-asm-linux.S: crypto/fipsmodule/ec/asm/p256-armv8-asm.pl
-crypto/fipsmodule/p256-armv8-asm-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/p256-armv8-asm-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/p256-armv8-asm-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/p256-armv8-asm-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/p256-armv8-asm-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/p256-armv8-asm-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_23) "Generating p256-armv8-asm-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ec/asm/p256-armv8-asm.pl linux64 p256-armv8-asm-linux.S
-
-crypto/fipsmodule/p256-armv8-asm-win.S: crypto/fipsmodule/ec/asm/p256-armv8-asm.pl
-crypto/fipsmodule/p256-armv8-asm-win.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/p256-armv8-asm-win.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/p256-armv8-asm-win.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/p256-armv8-asm-win.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/p256-armv8-asm-win.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/p256-armv8-asm-win.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_24) "Generating p256-armv8-asm-win.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ec/asm/p256-armv8-asm.pl win64 p256-armv8-asm-win.S
-
-crypto/fipsmodule/sha1-armv8-apple.S: crypto/fipsmodule/sha/asm/sha1-armv8.pl
-crypto/fipsmodule/sha1-armv8-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha1-armv8-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha1-armv8-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha1-armv8-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha1-armv8-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha1-armv8-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_25) "Generating sha1-armv8-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha1-armv8.pl ios64 sha1-armv8-apple.S
-
-crypto/fipsmodule/sha1-armv8-linux.S: crypto/fipsmodule/sha/asm/sha1-armv8.pl
-crypto/fipsmodule/sha1-armv8-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha1-armv8-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha1-armv8-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha1-armv8-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha1-armv8-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha1-armv8-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_26) "Generating sha1-armv8-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha1-armv8.pl linux64 sha1-armv8-linux.S
-
-crypto/fipsmodule/sha1-armv8-win.S: crypto/fipsmodule/sha/asm/sha1-armv8.pl
-crypto/fipsmodule/sha1-armv8-win.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha1-armv8-win.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha1-armv8-win.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha1-armv8-win.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha1-armv8-win.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha1-armv8-win.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_27) "Generating sha1-armv8-win.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha1-armv8.pl win64 sha1-armv8-win.S
-
-crypto/fipsmodule/sha256-armv8-apple.S: crypto/fipsmodule/sha/asm/sha512-armv8.pl
-crypto/fipsmodule/sha256-armv8-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha256-armv8-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha256-armv8-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha256-armv8-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha256-armv8-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha256-armv8-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_28) "Generating sha256-armv8-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha512-armv8.pl ios64 sha256-armv8-apple.S
-
-crypto/fipsmodule/sha256-armv8-linux.S: crypto/fipsmodule/sha/asm/sha512-armv8.pl
-crypto/fipsmodule/sha256-armv8-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha256-armv8-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha256-armv8-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha256-armv8-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha256-armv8-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha256-armv8-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_29) "Generating sha256-armv8-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha512-armv8.pl linux64 sha256-armv8-linux.S
-
-crypto/fipsmodule/sha256-armv8-win.S: crypto/fipsmodule/sha/asm/sha512-armv8.pl
-crypto/fipsmodule/sha256-armv8-win.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha256-armv8-win.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha256-armv8-win.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha256-armv8-win.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha256-armv8-win.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha256-armv8-win.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_30) "Generating sha256-armv8-win.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha512-armv8.pl win64 sha256-armv8-win.S
-
-crypto/fipsmodule/sha512-armv8-apple.S: crypto/fipsmodule/sha/asm/sha512-armv8.pl
-crypto/fipsmodule/sha512-armv8-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha512-armv8-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha512-armv8-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha512-armv8-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha512-armv8-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha512-armv8-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_31) "Generating sha512-armv8-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha512-armv8.pl ios64 sha512-armv8-apple.S
-
-crypto/fipsmodule/sha512-armv8-linux.S: crypto/fipsmodule/sha/asm/sha512-armv8.pl
-crypto/fipsmodule/sha512-armv8-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha512-armv8-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha512-armv8-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha512-armv8-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha512-armv8-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha512-armv8-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_32) "Generating sha512-armv8-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha512-armv8.pl linux64 sha512-armv8-linux.S
-
-crypto/fipsmodule/sha512-armv8-win.S: crypto/fipsmodule/sha/asm/sha512-armv8.pl
-crypto/fipsmodule/sha512-armv8-win.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha512-armv8-win.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha512-armv8-win.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha512-armv8-win.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha512-armv8-win.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha512-armv8-win.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_33) "Generating sha512-armv8-win.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha512-armv8.pl win64 sha512-armv8-win.S
-
-crypto/fipsmodule/vpaes-armv8-apple.S: crypto/fipsmodule/aes/asm/vpaes-armv8.pl
-crypto/fipsmodule/vpaes-armv8-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/vpaes-armv8-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/vpaes-armv8-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/vpaes-armv8-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/vpaes-armv8-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/vpaes-armv8-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_34) "Generating vpaes-armv8-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/vpaes-armv8.pl ios64 vpaes-armv8-apple.S
-
-crypto/fipsmodule/vpaes-armv8-linux.S: crypto/fipsmodule/aes/asm/vpaes-armv8.pl
-crypto/fipsmodule/vpaes-armv8-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/vpaes-armv8-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/vpaes-armv8-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/vpaes-armv8-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/vpaes-armv8-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/vpaes-armv8-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_35) "Generating vpaes-armv8-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/vpaes-armv8.pl linux64 vpaes-armv8-linux.S
-
-crypto/fipsmodule/vpaes-armv8-win.S: crypto/fipsmodule/aes/asm/vpaes-armv8.pl
-crypto/fipsmodule/vpaes-armv8-win.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/vpaes-armv8-win.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/vpaes-armv8-win.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/vpaes-armv8-win.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/vpaes-armv8-win.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/vpaes-armv8-win.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_36) "Generating vpaes-armv8-win.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/vpaes-armv8.pl win64 vpaes-armv8-win.S
-
-crypto/fipsmodule/aesv8-armv7-apple.S: crypto/fipsmodule/aes/asm/aesv8-armx.pl
-crypto/fipsmodule/aesv8-armv7-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/aesv8-armv7-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/aesv8-armv7-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/aesv8-armv7-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/aesv8-armv7-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/aesv8-armv7-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_37) "Generating aesv8-armv7-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/aesv8-armx.pl ios32 aesv8-armv7-apple.S
-
-crypto/fipsmodule/aesv8-armv7-linux.S: crypto/fipsmodule/aes/asm/aesv8-armx.pl
-crypto/fipsmodule/aesv8-armv7-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/aesv8-armv7-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/aesv8-armv7-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/aesv8-armv7-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/aesv8-armv7-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/aesv8-armv7-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_38) "Generating aesv8-armv7-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/aesv8-armx.pl linux32 aesv8-armv7-linux.S
-
-crypto/fipsmodule/armv4-mont-apple.S: crypto/fipsmodule/bn/asm/armv4-mont.pl
-crypto/fipsmodule/armv4-mont-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/armv4-mont-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/armv4-mont-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/armv4-mont-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/armv4-mont-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/armv4-mont-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_39) "Generating armv4-mont-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/asm/armv4-mont.pl ios32 armv4-mont-apple.S
-
-crypto/fipsmodule/armv4-mont-linux.S: crypto/fipsmodule/bn/asm/armv4-mont.pl
-crypto/fipsmodule/armv4-mont-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/armv4-mont-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/armv4-mont-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/armv4-mont-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/armv4-mont-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/armv4-mont-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_40) "Generating armv4-mont-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/asm/armv4-mont.pl linux32 armv4-mont-linux.S
-
-crypto/fipsmodule/bsaes-armv7-apple.S: crypto/fipsmodule/aes/asm/bsaes-armv7.pl
-crypto/fipsmodule/bsaes-armv7-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/bsaes-armv7-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/bsaes-armv7-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/bsaes-armv7-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/bsaes-armv7-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/bsaes-armv7-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_41) "Generating bsaes-armv7-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/bsaes-armv7.pl ios32 bsaes-armv7-apple.S
-
-crypto/fipsmodule/bsaes-armv7-linux.S: crypto/fipsmodule/aes/asm/bsaes-armv7.pl
-crypto/fipsmodule/bsaes-armv7-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/bsaes-armv7-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/bsaes-armv7-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/bsaes-armv7-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/bsaes-armv7-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/bsaes-armv7-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_42) "Generating bsaes-armv7-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/bsaes-armv7.pl linux32 bsaes-armv7-linux.S
-
-crypto/fipsmodule/ghash-armv4-apple.S: crypto/fipsmodule/modes/asm/ghash-armv4.pl
-crypto/fipsmodule/ghash-armv4-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/ghash-armv4-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/ghash-armv4-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/ghash-armv4-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/ghash-armv4-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/ghash-armv4-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_43) "Generating ghash-armv4-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/ghash-armv4.pl ios32 ghash-armv4-apple.S
-
-crypto/fipsmodule/ghash-armv4-linux.S: crypto/fipsmodule/modes/asm/ghash-armv4.pl
-crypto/fipsmodule/ghash-armv4-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/ghash-armv4-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/ghash-armv4-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/ghash-armv4-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/ghash-armv4-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/ghash-armv4-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_44) "Generating ghash-armv4-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/ghash-armv4.pl linux32 ghash-armv4-linux.S
-
-crypto/fipsmodule/ghashv8-armv7-apple.S: crypto/fipsmodule/modes/asm/ghashv8-armx.pl
-crypto/fipsmodule/ghashv8-armv7-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/ghashv8-armv7-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/ghashv8-armv7-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/ghashv8-armv7-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/ghashv8-armv7-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/ghashv8-armv7-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_45) "Generating ghashv8-armv7-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/ghashv8-armx.pl ios32 ghashv8-armv7-apple.S
-
-crypto/fipsmodule/ghashv8-armv7-linux.S: crypto/fipsmodule/modes/asm/ghashv8-armx.pl
-crypto/fipsmodule/ghashv8-armv7-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/ghashv8-armv7-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/ghashv8-armv7-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/ghashv8-armv7-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/ghashv8-armv7-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/ghashv8-armv7-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_46) "Generating ghashv8-armv7-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/ghashv8-armx.pl linux32 ghashv8-armv7-linux.S
-
-crypto/fipsmodule/sha1-armv4-large-apple.S: crypto/fipsmodule/sha/asm/sha1-armv4-large.pl
-crypto/fipsmodule/sha1-armv4-large-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha1-armv4-large-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha1-armv4-large-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha1-armv4-large-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha1-armv4-large-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha1-armv4-large-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_47) "Generating sha1-armv4-large-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha1-armv4-large.pl ios32 sha1-armv4-large-apple.S
-
-crypto/fipsmodule/sha1-armv4-large-linux.S: crypto/fipsmodule/sha/asm/sha1-armv4-large.pl
-crypto/fipsmodule/sha1-armv4-large-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha1-armv4-large-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha1-armv4-large-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha1-armv4-large-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha1-armv4-large-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha1-armv4-large-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_48) "Generating sha1-armv4-large-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha1-armv4-large.pl linux32 sha1-armv4-large-linux.S
-
-crypto/fipsmodule/sha256-armv4-apple.S: crypto/fipsmodule/sha/asm/sha256-armv4.pl
-crypto/fipsmodule/sha256-armv4-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha256-armv4-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha256-armv4-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha256-armv4-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha256-armv4-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha256-armv4-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_49) "Generating sha256-armv4-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha256-armv4.pl ios32 sha256-armv4-apple.S
-
-crypto/fipsmodule/sha256-armv4-linux.S: crypto/fipsmodule/sha/asm/sha256-armv4.pl
-crypto/fipsmodule/sha256-armv4-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha256-armv4-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha256-armv4-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha256-armv4-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha256-armv4-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha256-armv4-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_50) "Generating sha256-armv4-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha256-armv4.pl linux32 sha256-armv4-linux.S
-
-crypto/fipsmodule/sha512-armv4-apple.S: crypto/fipsmodule/sha/asm/sha512-armv4.pl
-crypto/fipsmodule/sha512-armv4-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha512-armv4-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha512-armv4-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha512-armv4-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha512-armv4-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha512-armv4-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_51) "Generating sha512-armv4-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha512-armv4.pl ios32 sha512-armv4-apple.S
-
-crypto/fipsmodule/sha512-armv4-linux.S: crypto/fipsmodule/sha/asm/sha512-armv4.pl
-crypto/fipsmodule/sha512-armv4-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha512-armv4-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha512-armv4-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha512-armv4-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha512-armv4-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha512-armv4-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_52) "Generating sha512-armv4-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha512-armv4.pl linux32 sha512-armv4-linux.S
-
-crypto/fipsmodule/vpaes-armv7-apple.S: crypto/fipsmodule/aes/asm/vpaes-armv7.pl
-crypto/fipsmodule/vpaes-armv7-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/vpaes-armv7-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/vpaes-armv7-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/vpaes-armv7-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/vpaes-armv7-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/vpaes-armv7-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_53) "Generating vpaes-armv7-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/vpaes-armv7.pl ios32 vpaes-armv7-apple.S
-
-crypto/fipsmodule/vpaes-armv7-linux.S: crypto/fipsmodule/aes/asm/vpaes-armv7.pl
-crypto/fipsmodule/vpaes-armv7-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/vpaes-armv7-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/vpaes-armv7-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/vpaes-armv7-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/vpaes-armv7-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/vpaes-armv7-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_54) "Generating vpaes-armv7-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/vpaes-armv7.pl linux32 vpaes-armv7-linux.S
-
-crypto/fipsmodule/aesni-x86-apple.S: crypto/fipsmodule/aes/asm/aesni-x86.pl
-crypto/fipsmodule/aesni-x86-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/aesni-x86-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/aesni-x86-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/aesni-x86-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/aesni-x86-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/aesni-x86-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_55) "Generating aesni-x86-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/aesni-x86.pl macosx -fPIC -DOPENSSL_IA32_SSE2 aesni-x86-apple.S
-
-crypto/fipsmodule/aesni-x86-linux.S: crypto/fipsmodule/aes/asm/aesni-x86.pl
-crypto/fipsmodule/aesni-x86-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/aesni-x86-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/aesni-x86-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/aesni-x86-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/aesni-x86-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/aesni-x86-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_56) "Generating aesni-x86-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/aesni-x86.pl elf -fPIC -DOPENSSL_IA32_SSE2 aesni-x86-linux.S
-
-crypto/fipsmodule/bn-586-apple.S: crypto/fipsmodule/bn/asm/bn-586.pl
-crypto/fipsmodule/bn-586-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/bn-586-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/bn-586-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/bn-586-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/bn-586-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/bn-586-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_57) "Generating bn-586-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/asm/bn-586.pl macosx -fPIC -DOPENSSL_IA32_SSE2 bn-586-apple.S
-
-crypto/fipsmodule/bn-586-linux.S: crypto/fipsmodule/bn/asm/bn-586.pl
-crypto/fipsmodule/bn-586-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/bn-586-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/bn-586-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/bn-586-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/bn-586-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/bn-586-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_58) "Generating bn-586-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/asm/bn-586.pl elf -fPIC -DOPENSSL_IA32_SSE2 bn-586-linux.S
-
-crypto/fipsmodule/co-586-apple.S: crypto/fipsmodule/bn/asm/co-586.pl
-crypto/fipsmodule/co-586-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/co-586-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/co-586-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/co-586-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/co-586-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/co-586-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_59) "Generating co-586-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/asm/co-586.pl macosx -fPIC -DOPENSSL_IA32_SSE2 co-586-apple.S
-
-crypto/fipsmodule/co-586-linux.S: crypto/fipsmodule/bn/asm/co-586.pl
-crypto/fipsmodule/co-586-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/co-586-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/co-586-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/co-586-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/co-586-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/co-586-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_60) "Generating co-586-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/asm/co-586.pl elf -fPIC -DOPENSSL_IA32_SSE2 co-586-linux.S
-
-crypto/fipsmodule/ghash-ssse3-x86-apple.S: crypto/fipsmodule/modes/asm/ghash-ssse3-x86.pl
-crypto/fipsmodule/ghash-ssse3-x86-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/ghash-ssse3-x86-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/ghash-ssse3-x86-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/ghash-ssse3-x86-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/ghash-ssse3-x86-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/ghash-ssse3-x86-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_61) "Generating ghash-ssse3-x86-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/ghash-ssse3-x86.pl macosx -fPIC -DOPENSSL_IA32_SSE2 ghash-ssse3-x86-apple.S
-
-crypto/fipsmodule/ghash-ssse3-x86-linux.S: crypto/fipsmodule/modes/asm/ghash-ssse3-x86.pl
-crypto/fipsmodule/ghash-ssse3-x86-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/ghash-ssse3-x86-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/ghash-ssse3-x86-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/ghash-ssse3-x86-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/ghash-ssse3-x86-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/ghash-ssse3-x86-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_62) "Generating ghash-ssse3-x86-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/ghash-ssse3-x86.pl elf -fPIC -DOPENSSL_IA32_SSE2 ghash-ssse3-x86-linux.S
-
-crypto/fipsmodule/ghash-x86-apple.S: crypto/fipsmodule/modes/asm/ghash-x86.pl
-crypto/fipsmodule/ghash-x86-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/ghash-x86-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/ghash-x86-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/ghash-x86-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/ghash-x86-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/ghash-x86-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_63) "Generating ghash-x86-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/ghash-x86.pl macosx -fPIC -DOPENSSL_IA32_SSE2 ghash-x86-apple.S
-
-crypto/fipsmodule/ghash-x86-linux.S: crypto/fipsmodule/modes/asm/ghash-x86.pl
-crypto/fipsmodule/ghash-x86-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/ghash-x86-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/ghash-x86-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/ghash-x86-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/ghash-x86-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/ghash-x86-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_64) "Generating ghash-x86-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/ghash-x86.pl elf -fPIC -DOPENSSL_IA32_SSE2 ghash-x86-linux.S
-
-crypto/fipsmodule/md5-586-apple.S: crypto/fipsmodule/md5/asm/md5-586.pl
-crypto/fipsmodule/md5-586-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/md5-586-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/md5-586-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/md5-586-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/md5-586-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/md5-586-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_65) "Generating md5-586-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/md5/asm/md5-586.pl macosx -fPIC -DOPENSSL_IA32_SSE2 md5-586-apple.S
-
-crypto/fipsmodule/md5-586-linux.S: crypto/fipsmodule/md5/asm/md5-586.pl
-crypto/fipsmodule/md5-586-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/md5-586-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/md5-586-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/md5-586-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/md5-586-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/md5-586-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_66) "Generating md5-586-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/md5/asm/md5-586.pl elf -fPIC -DOPENSSL_IA32_SSE2 md5-586-linux.S
-
-crypto/fipsmodule/sha1-586-apple.S: crypto/fipsmodule/sha/asm/sha1-586.pl
-crypto/fipsmodule/sha1-586-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha1-586-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha1-586-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha1-586-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha1-586-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha1-586-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_67) "Generating sha1-586-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha1-586.pl macosx -fPIC -DOPENSSL_IA32_SSE2 sha1-586-apple.S
-
-crypto/fipsmodule/sha1-586-linux.S: crypto/fipsmodule/sha/asm/sha1-586.pl
-crypto/fipsmodule/sha1-586-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha1-586-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha1-586-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha1-586-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha1-586-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha1-586-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_68) "Generating sha1-586-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha1-586.pl elf -fPIC -DOPENSSL_IA32_SSE2 sha1-586-linux.S
-
-crypto/fipsmodule/sha256-586-apple.S: crypto/fipsmodule/sha/asm/sha256-586.pl
-crypto/fipsmodule/sha256-586-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha256-586-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha256-586-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha256-586-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha256-586-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha256-586-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_69) "Generating sha256-586-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha256-586.pl macosx -fPIC -DOPENSSL_IA32_SSE2 sha256-586-apple.S
-
-crypto/fipsmodule/sha256-586-linux.S: crypto/fipsmodule/sha/asm/sha256-586.pl
-crypto/fipsmodule/sha256-586-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha256-586-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha256-586-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha256-586-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha256-586-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha256-586-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_70) "Generating sha256-586-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha256-586.pl elf -fPIC -DOPENSSL_IA32_SSE2 sha256-586-linux.S
-
-crypto/fipsmodule/sha512-586-apple.S: crypto/fipsmodule/sha/asm/sha512-586.pl
-crypto/fipsmodule/sha512-586-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha512-586-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha512-586-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha512-586-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha512-586-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha512-586-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_71) "Generating sha512-586-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha512-586.pl macosx -fPIC -DOPENSSL_IA32_SSE2 sha512-586-apple.S
-
-crypto/fipsmodule/sha512-586-linux.S: crypto/fipsmodule/sha/asm/sha512-586.pl
-crypto/fipsmodule/sha512-586-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha512-586-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha512-586-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha512-586-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha512-586-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha512-586-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_72) "Generating sha512-586-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha512-586.pl elf -fPIC -DOPENSSL_IA32_SSE2 sha512-586-linux.S
-
-crypto/fipsmodule/vpaes-x86-apple.S: crypto/fipsmodule/aes/asm/vpaes-x86.pl
-crypto/fipsmodule/vpaes-x86-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/vpaes-x86-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/vpaes-x86-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/vpaes-x86-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/vpaes-x86-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/vpaes-x86-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_73) "Generating vpaes-x86-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/vpaes-x86.pl macosx -fPIC -DOPENSSL_IA32_SSE2 vpaes-x86-apple.S
-
-crypto/fipsmodule/vpaes-x86-linux.S: crypto/fipsmodule/aes/asm/vpaes-x86.pl
-crypto/fipsmodule/vpaes-x86-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/vpaes-x86-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/vpaes-x86-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/vpaes-x86-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/vpaes-x86-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/vpaes-x86-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_74) "Generating vpaes-x86-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/vpaes-x86.pl elf -fPIC -DOPENSSL_IA32_SSE2 vpaes-x86-linux.S
-
-crypto/fipsmodule/x86-mont-apple.S: crypto/fipsmodule/bn/asm/x86-mont.pl
-crypto/fipsmodule/x86-mont-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/x86-mont-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/x86-mont-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/x86-mont-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/x86-mont-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/x86-mont-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_75) "Generating x86-mont-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/asm/x86-mont.pl macosx -fPIC -DOPENSSL_IA32_SSE2 x86-mont-apple.S
-
-crypto/fipsmodule/x86-mont-linux.S: crypto/fipsmodule/bn/asm/x86-mont.pl
-crypto/fipsmodule/x86-mont-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/x86-mont-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/x86-mont-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/x86-mont-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/x86-mont-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/x86-mont-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_76) "Generating x86-mont-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/asm/x86-mont.pl elf -fPIC -DOPENSSL_IA32_SSE2 x86-mont-linux.S
-
-crypto/fipsmodule/aesni-gcm-x86_64-apple.S: crypto/fipsmodule/modes/asm/aesni-gcm-x86_64.pl
-crypto/fipsmodule/aesni-gcm-x86_64-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/aesni-gcm-x86_64-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/aesni-gcm-x86_64-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/aesni-gcm-x86_64-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/aesni-gcm-x86_64-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/aesni-gcm-x86_64-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_77) "Generating aesni-gcm-x86_64-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/aesni-gcm-x86_64.pl macosx aesni-gcm-x86_64-apple.S
-
-crypto/fipsmodule/aesni-gcm-x86_64-linux.S: crypto/fipsmodule/modes/asm/aesni-gcm-x86_64.pl
-crypto/fipsmodule/aesni-gcm-x86_64-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/aesni-gcm-x86_64-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/aesni-gcm-x86_64-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/aesni-gcm-x86_64-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/aesni-gcm-x86_64-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/aesni-gcm-x86_64-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_78) "Generating aesni-gcm-x86_64-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/aesni-gcm-x86_64.pl elf aesni-gcm-x86_64-linux.S
-
-crypto/fipsmodule/aesni-x86_64-apple.S: crypto/fipsmodule/aes/asm/aesni-x86_64.pl
-crypto/fipsmodule/aesni-x86_64-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/aesni-x86_64-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/aesni-x86_64-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/aesni-x86_64-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/aesni-x86_64-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/aesni-x86_64-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_79) "Generating aesni-x86_64-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/aesni-x86_64.pl macosx aesni-x86_64-apple.S
-
-crypto/fipsmodule/aesni-x86_64-linux.S: crypto/fipsmodule/aes/asm/aesni-x86_64.pl
-crypto/fipsmodule/aesni-x86_64-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/aesni-x86_64-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/aesni-x86_64-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/aesni-x86_64-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/aesni-x86_64-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/aesni-x86_64-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_80) "Generating aesni-x86_64-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/aesni-x86_64.pl elf aesni-x86_64-linux.S
-
-crypto/fipsmodule/ghash-ssse3-x86_64-apple.S: crypto/fipsmodule/modes/asm/ghash-ssse3-x86_64.pl
-crypto/fipsmodule/ghash-ssse3-x86_64-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/ghash-ssse3-x86_64-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/ghash-ssse3-x86_64-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/ghash-ssse3-x86_64-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/ghash-ssse3-x86_64-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/ghash-ssse3-x86_64-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_81) "Generating ghash-ssse3-x86_64-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/ghash-ssse3-x86_64.pl macosx ghash-ssse3-x86_64-apple.S
-
-crypto/fipsmodule/ghash-ssse3-x86_64-linux.S: crypto/fipsmodule/modes/asm/ghash-ssse3-x86_64.pl
-crypto/fipsmodule/ghash-ssse3-x86_64-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/ghash-ssse3-x86_64-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/ghash-ssse3-x86_64-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/ghash-ssse3-x86_64-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/ghash-ssse3-x86_64-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/ghash-ssse3-x86_64-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_82) "Generating ghash-ssse3-x86_64-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/ghash-ssse3-x86_64.pl elf ghash-ssse3-x86_64-linux.S
-
-crypto/fipsmodule/ghash-x86_64-apple.S: crypto/fipsmodule/modes/asm/ghash-x86_64.pl
-crypto/fipsmodule/ghash-x86_64-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/ghash-x86_64-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/ghash-x86_64-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/ghash-x86_64-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/ghash-x86_64-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/ghash-x86_64-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_83) "Generating ghash-x86_64-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/ghash-x86_64.pl macosx ghash-x86_64-apple.S
-
-crypto/fipsmodule/ghash-x86_64-linux.S: crypto/fipsmodule/modes/asm/ghash-x86_64.pl
-crypto/fipsmodule/ghash-x86_64-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/ghash-x86_64-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/ghash-x86_64-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/ghash-x86_64-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/ghash-x86_64-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/ghash-x86_64-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_84) "Generating ghash-x86_64-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/ghash-x86_64.pl elf ghash-x86_64-linux.S
-
-crypto/fipsmodule/md5-x86_64-apple.S: crypto/fipsmodule/md5/asm/md5-x86_64.pl
-crypto/fipsmodule/md5-x86_64-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/md5-x86_64-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/md5-x86_64-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/md5-x86_64-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/md5-x86_64-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/md5-x86_64-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_85) "Generating md5-x86_64-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/md5/asm/md5-x86_64.pl macosx md5-x86_64-apple.S
-
-crypto/fipsmodule/md5-x86_64-linux.S: crypto/fipsmodule/md5/asm/md5-x86_64.pl
-crypto/fipsmodule/md5-x86_64-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/md5-x86_64-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/md5-x86_64-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/md5-x86_64-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/md5-x86_64-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/md5-x86_64-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_86) "Generating md5-x86_64-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/md5/asm/md5-x86_64.pl elf md5-x86_64-linux.S
-
-crypto/fipsmodule/p256_beeu-x86_64-asm-apple.S: crypto/fipsmodule/ec/asm/p256_beeu-x86_64-asm.pl
-crypto/fipsmodule/p256_beeu-x86_64-asm-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/p256_beeu-x86_64-asm-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/p256_beeu-x86_64-asm-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/p256_beeu-x86_64-asm-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/p256_beeu-x86_64-asm-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/p256_beeu-x86_64-asm-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_87) "Generating p256_beeu-x86_64-asm-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ec/asm/p256_beeu-x86_64-asm.pl macosx p256_beeu-x86_64-asm-apple.S
-
-crypto/fipsmodule/p256_beeu-x86_64-asm-linux.S: crypto/fipsmodule/ec/asm/p256_beeu-x86_64-asm.pl
-crypto/fipsmodule/p256_beeu-x86_64-asm-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/p256_beeu-x86_64-asm-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/p256_beeu-x86_64-asm-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/p256_beeu-x86_64-asm-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/p256_beeu-x86_64-asm-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/p256_beeu-x86_64-asm-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_88) "Generating p256_beeu-x86_64-asm-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ec/asm/p256_beeu-x86_64-asm.pl elf p256_beeu-x86_64-asm-linux.S
-
-crypto/fipsmodule/p256-x86_64-asm-apple.S: crypto/fipsmodule/ec/asm/p256-x86_64-asm.pl
-crypto/fipsmodule/p256-x86_64-asm-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/p256-x86_64-asm-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/p256-x86_64-asm-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/p256-x86_64-asm-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/p256-x86_64-asm-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/p256-x86_64-asm-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_89) "Generating p256-x86_64-asm-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ec/asm/p256-x86_64-asm.pl macosx p256-x86_64-asm-apple.S
-
-crypto/fipsmodule/p256-x86_64-asm-linux.S: crypto/fipsmodule/ec/asm/p256-x86_64-asm.pl
-crypto/fipsmodule/p256-x86_64-asm-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/p256-x86_64-asm-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/p256-x86_64-asm-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/p256-x86_64-asm-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/p256-x86_64-asm-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/p256-x86_64-asm-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_90) "Generating p256-x86_64-asm-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ec/asm/p256-x86_64-asm.pl elf p256-x86_64-asm-linux.S
-
-crypto/fipsmodule/rdrand-x86_64-apple.S: crypto/fipsmodule/rand/asm/rdrand-x86_64.pl
-crypto/fipsmodule/rdrand-x86_64-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/rdrand-x86_64-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/rdrand-x86_64-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/rdrand-x86_64-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/rdrand-x86_64-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/rdrand-x86_64-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_91) "Generating rdrand-x86_64-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/rand/asm/rdrand-x86_64.pl macosx rdrand-x86_64-apple.S
-
-crypto/fipsmodule/rdrand-x86_64-linux.S: crypto/fipsmodule/rand/asm/rdrand-x86_64.pl
-crypto/fipsmodule/rdrand-x86_64-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/rdrand-x86_64-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/rdrand-x86_64-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/rdrand-x86_64-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/rdrand-x86_64-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/rdrand-x86_64-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_92) "Generating rdrand-x86_64-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/rand/asm/rdrand-x86_64.pl elf rdrand-x86_64-linux.S
-
-crypto/fipsmodule/rsaz-avx2-apple.S: crypto/fipsmodule/bn/asm/rsaz-avx2.pl
-crypto/fipsmodule/rsaz-avx2-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/rsaz-avx2-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/rsaz-avx2-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/rsaz-avx2-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/rsaz-avx2-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/rsaz-avx2-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_93) "Generating rsaz-avx2-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/asm/rsaz-avx2.pl macosx rsaz-avx2-apple.S
-
-crypto/fipsmodule/rsaz-avx2-linux.S: crypto/fipsmodule/bn/asm/rsaz-avx2.pl
-crypto/fipsmodule/rsaz-avx2-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/rsaz-avx2-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/rsaz-avx2-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/rsaz-avx2-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/rsaz-avx2-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/rsaz-avx2-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_94) "Generating rsaz-avx2-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/asm/rsaz-avx2.pl elf rsaz-avx2-linux.S
-
-crypto/fipsmodule/sha1-x86_64-apple.S: crypto/fipsmodule/sha/asm/sha1-x86_64.pl
-crypto/fipsmodule/sha1-x86_64-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha1-x86_64-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha1-x86_64-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha1-x86_64-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha1-x86_64-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha1-x86_64-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_95) "Generating sha1-x86_64-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha1-x86_64.pl macosx sha1-x86_64-apple.S
-
-crypto/fipsmodule/sha1-x86_64-linux.S: crypto/fipsmodule/sha/asm/sha1-x86_64.pl
-crypto/fipsmodule/sha1-x86_64-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha1-x86_64-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha1-x86_64-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha1-x86_64-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha1-x86_64-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha1-x86_64-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_96) "Generating sha1-x86_64-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha1-x86_64.pl elf sha1-x86_64-linux.S
-
-crypto/fipsmodule/sha256-x86_64-apple.S: crypto/fipsmodule/sha/asm/sha512-x86_64.pl
-crypto/fipsmodule/sha256-x86_64-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha256-x86_64-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha256-x86_64-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha256-x86_64-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha256-x86_64-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha256-x86_64-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_97) "Generating sha256-x86_64-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha512-x86_64.pl macosx sha256-x86_64-apple.S
-
-crypto/fipsmodule/sha256-x86_64-linux.S: crypto/fipsmodule/sha/asm/sha512-x86_64.pl
-crypto/fipsmodule/sha256-x86_64-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha256-x86_64-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha256-x86_64-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha256-x86_64-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha256-x86_64-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha256-x86_64-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_98) "Generating sha256-x86_64-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha512-x86_64.pl elf sha256-x86_64-linux.S
-
-crypto/fipsmodule/sha512-x86_64-apple.S: crypto/fipsmodule/sha/asm/sha512-x86_64.pl
-crypto/fipsmodule/sha512-x86_64-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha512-x86_64-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha512-x86_64-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha512-x86_64-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha512-x86_64-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha512-x86_64-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_99) "Generating sha512-x86_64-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha512-x86_64.pl macosx sha512-x86_64-apple.S
-
-crypto/fipsmodule/sha512-x86_64-linux.S: crypto/fipsmodule/sha/asm/sha512-x86_64.pl
-crypto/fipsmodule/sha512-x86_64-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/sha512-x86_64-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/sha512-x86_64-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/sha512-x86_64-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/sha512-x86_64-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/sha512-x86_64-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_100) "Generating sha512-x86_64-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha512-x86_64.pl elf sha512-x86_64-linux.S
-
-crypto/fipsmodule/vpaes-x86_64-apple.S: crypto/fipsmodule/aes/asm/vpaes-x86_64.pl
-crypto/fipsmodule/vpaes-x86_64-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/vpaes-x86_64-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/vpaes-x86_64-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/vpaes-x86_64-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/vpaes-x86_64-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/vpaes-x86_64-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_101) "Generating vpaes-x86_64-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/vpaes-x86_64.pl macosx vpaes-x86_64-apple.S
-
-crypto/fipsmodule/vpaes-x86_64-linux.S: crypto/fipsmodule/aes/asm/vpaes-x86_64.pl
-crypto/fipsmodule/vpaes-x86_64-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/vpaes-x86_64-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/vpaes-x86_64-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/vpaes-x86_64-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/vpaes-x86_64-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/vpaes-x86_64-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_102) "Generating vpaes-x86_64-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/vpaes-x86_64.pl elf vpaes-x86_64-linux.S
-
-crypto/fipsmodule/x86_64-mont-apple.S: crypto/fipsmodule/bn/asm/x86_64-mont.pl
-crypto/fipsmodule/x86_64-mont-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/x86_64-mont-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/x86_64-mont-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/x86_64-mont-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/x86_64-mont-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/x86_64-mont-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_103) "Generating x86_64-mont-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/asm/x86_64-mont.pl macosx x86_64-mont-apple.S
-
-crypto/fipsmodule/x86_64-mont-linux.S: crypto/fipsmodule/bn/asm/x86_64-mont.pl
-crypto/fipsmodule/x86_64-mont-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/x86_64-mont-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/x86_64-mont-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/x86_64-mont-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/x86_64-mont-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/x86_64-mont-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_104) "Generating x86_64-mont-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/asm/x86_64-mont.pl elf x86_64-mont-linux.S
-
-crypto/fipsmodule/x86_64-mont5-apple.S: crypto/fipsmodule/bn/asm/x86_64-mont5.pl
-crypto/fipsmodule/x86_64-mont5-apple.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/x86_64-mont5-apple.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/x86_64-mont5-apple.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/x86_64-mont5-apple.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/x86_64-mont5-apple.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/x86_64-mont5-apple.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_105) "Generating x86_64-mont5-apple.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/asm/x86_64-mont5.pl macosx x86_64-mont5-apple.S
-
-crypto/fipsmodule/x86_64-mont5-linux.S: crypto/fipsmodule/bn/asm/x86_64-mont5.pl
-crypto/fipsmodule/x86_64-mont5-linux.S: crypto/perlasm/arm-xlate.pl
-crypto/fipsmodule/x86_64-mont5-linux.S: crypto/perlasm/x86_64-xlate.pl
-crypto/fipsmodule/x86_64-mont5-linux.S: crypto/perlasm/x86asm.pl
-crypto/fipsmodule/x86_64-mont5-linux.S: crypto/perlasm/x86gas.pl
-crypto/fipsmodule/x86_64-mont5-linux.S: crypto/perlasm/x86masm.pl
-crypto/fipsmodule/x86_64-mont5-linux.S: crypto/perlasm/x86nasm.pl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_106) "Generating x86_64-mont5-linux.S"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/asm/x86_64-mont5.pl elf x86_64-mont5-linux.S
+crypto/fipsmodule/aesv8-armx.S: crypto/fipsmodule/aes/asm/aesv8-armx.pl
+crypto/fipsmodule/aesv8-armx.S: crypto/perlasm/arm-xlate.pl
+crypto/fipsmodule/aesv8-armx.S: crypto/perlasm/ppc-xlate.pl
+crypto/fipsmodule/aesv8-armx.S: crypto/perlasm/x86_64-xlate.pl
+crypto/fipsmodule/aesv8-armx.S: crypto/perlasm/x86asm.pl
+crypto/fipsmodule/aesv8-armx.S: crypto/perlasm/x86gas.pl
+crypto/fipsmodule/aesv8-armx.S: crypto/perlasm/x86masm.pl
+crypto/fipsmodule/aesv8-armx.S: crypto/perlasm/x86nasm.pl
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating aesv8-armx.S"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/aesv8-armx.pl linux32 aesv8-armx.S
+
+crypto/fipsmodule/armv4-mont.S: crypto/fipsmodule/bn/asm/armv4-mont.pl
+crypto/fipsmodule/armv4-mont.S: crypto/perlasm/arm-xlate.pl
+crypto/fipsmodule/armv4-mont.S: crypto/perlasm/ppc-xlate.pl
+crypto/fipsmodule/armv4-mont.S: crypto/perlasm/x86_64-xlate.pl
+crypto/fipsmodule/armv4-mont.S: crypto/perlasm/x86asm.pl
+crypto/fipsmodule/armv4-mont.S: crypto/perlasm/x86gas.pl
+crypto/fipsmodule/armv4-mont.S: crypto/perlasm/x86masm.pl
+crypto/fipsmodule/armv4-mont.S: crypto/perlasm/x86nasm.pl
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating armv4-mont.S"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn/asm/armv4-mont.pl linux32 armv4-mont.S
+
+crypto/fipsmodule/bsaes-armv7.S: crypto/fipsmodule/aes/asm/bsaes-armv7.pl
+crypto/fipsmodule/bsaes-armv7.S: crypto/perlasm/arm-xlate.pl
+crypto/fipsmodule/bsaes-armv7.S: crypto/perlasm/ppc-xlate.pl
+crypto/fipsmodule/bsaes-armv7.S: crypto/perlasm/x86_64-xlate.pl
+crypto/fipsmodule/bsaes-armv7.S: crypto/perlasm/x86asm.pl
+crypto/fipsmodule/bsaes-armv7.S: crypto/perlasm/x86gas.pl
+crypto/fipsmodule/bsaes-armv7.S: crypto/perlasm/x86masm.pl
+crypto/fipsmodule/bsaes-armv7.S: crypto/perlasm/x86nasm.pl
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating bsaes-armv7.S"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/bsaes-armv7.pl linux32 bsaes-armv7.S
+
+crypto/fipsmodule/ghash-armv4.S: crypto/fipsmodule/modes/asm/ghash-armv4.pl
+crypto/fipsmodule/ghash-armv4.S: crypto/perlasm/arm-xlate.pl
+crypto/fipsmodule/ghash-armv4.S: crypto/perlasm/ppc-xlate.pl
+crypto/fipsmodule/ghash-armv4.S: crypto/perlasm/x86_64-xlate.pl
+crypto/fipsmodule/ghash-armv4.S: crypto/perlasm/x86asm.pl
+crypto/fipsmodule/ghash-armv4.S: crypto/perlasm/x86gas.pl
+crypto/fipsmodule/ghash-armv4.S: crypto/perlasm/x86masm.pl
+crypto/fipsmodule/ghash-armv4.S: crypto/perlasm/x86nasm.pl
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Generating ghash-armv4.S"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/ghash-armv4.pl linux32 ghash-armv4.S
+
+crypto/fipsmodule/ghashv8-armx.S: crypto/fipsmodule/modes/asm/ghashv8-armx.pl
+crypto/fipsmodule/ghashv8-armx.S: crypto/perlasm/arm-xlate.pl
+crypto/fipsmodule/ghashv8-armx.S: crypto/perlasm/ppc-xlate.pl
+crypto/fipsmodule/ghashv8-armx.S: crypto/perlasm/x86_64-xlate.pl
+crypto/fipsmodule/ghashv8-armx.S: crypto/perlasm/x86asm.pl
+crypto/fipsmodule/ghashv8-armx.S: crypto/perlasm/x86gas.pl
+crypto/fipsmodule/ghashv8-armx.S: crypto/perlasm/x86masm.pl
+crypto/fipsmodule/ghashv8-armx.S: crypto/perlasm/x86nasm.pl
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Generating ghashv8-armx.S"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/modes/asm/ghashv8-armx.pl linux32 ghashv8-armx.S
+
+crypto/fipsmodule/sha1-armv4-large.S: crypto/fipsmodule/sha/asm/sha1-armv4-large.pl
+crypto/fipsmodule/sha1-armv4-large.S: crypto/perlasm/arm-xlate.pl
+crypto/fipsmodule/sha1-armv4-large.S: crypto/perlasm/ppc-xlate.pl
+crypto/fipsmodule/sha1-armv4-large.S: crypto/perlasm/x86_64-xlate.pl
+crypto/fipsmodule/sha1-armv4-large.S: crypto/perlasm/x86asm.pl
+crypto/fipsmodule/sha1-armv4-large.S: crypto/perlasm/x86gas.pl
+crypto/fipsmodule/sha1-armv4-large.S: crypto/perlasm/x86masm.pl
+crypto/fipsmodule/sha1-armv4-large.S: crypto/perlasm/x86nasm.pl
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Generating sha1-armv4-large.S"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha1-armv4-large.pl linux32 sha1-armv4-large.S
+
+crypto/fipsmodule/sha256-armv4.S: crypto/fipsmodule/sha/asm/sha256-armv4.pl
+crypto/fipsmodule/sha256-armv4.S: crypto/perlasm/arm-xlate.pl
+crypto/fipsmodule/sha256-armv4.S: crypto/perlasm/ppc-xlate.pl
+crypto/fipsmodule/sha256-armv4.S: crypto/perlasm/x86_64-xlate.pl
+crypto/fipsmodule/sha256-armv4.S: crypto/perlasm/x86asm.pl
+crypto/fipsmodule/sha256-armv4.S: crypto/perlasm/x86gas.pl
+crypto/fipsmodule/sha256-armv4.S: crypto/perlasm/x86masm.pl
+crypto/fipsmodule/sha256-armv4.S: crypto/perlasm/x86nasm.pl
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Generating sha256-armv4.S"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha256-armv4.pl linux32 sha256-armv4.S
+
+crypto/fipsmodule/sha512-armv4.S: crypto/fipsmodule/sha/asm/sha512-armv4.pl
+crypto/fipsmodule/sha512-armv4.S: crypto/perlasm/arm-xlate.pl
+crypto/fipsmodule/sha512-armv4.S: crypto/perlasm/ppc-xlate.pl
+crypto/fipsmodule/sha512-armv4.S: crypto/perlasm/x86_64-xlate.pl
+crypto/fipsmodule/sha512-armv4.S: crypto/perlasm/x86asm.pl
+crypto/fipsmodule/sha512-armv4.S: crypto/perlasm/x86gas.pl
+crypto/fipsmodule/sha512-armv4.S: crypto/perlasm/x86masm.pl
+crypto/fipsmodule/sha512-armv4.S: crypto/perlasm/x86nasm.pl
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Generating sha512-armv4.S"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha/asm/sha512-armv4.pl linux32 sha512-armv4.S
+
+crypto/fipsmodule/vpaes-armv7.S: crypto/fipsmodule/aes/asm/vpaes-armv7.pl
+crypto/fipsmodule/vpaes-armv7.S: crypto/perlasm/arm-xlate.pl
+crypto/fipsmodule/vpaes-armv7.S: crypto/perlasm/ppc-xlate.pl
+crypto/fipsmodule/vpaes-armv7.S: crypto/perlasm/x86_64-xlate.pl
+crypto/fipsmodule/vpaes-armv7.S: crypto/perlasm/x86asm.pl
+crypto/fipsmodule/vpaes-armv7.S: crypto/perlasm/x86gas.pl
+crypto/fipsmodule/vpaes-armv7.S: crypto/perlasm/x86masm.pl
+crypto/fipsmodule/vpaes-armv7.S: crypto/perlasm/x86nasm.pl
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Generating vpaes-armv7.S"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cmake -E make_directory .
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/perl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aes/asm/vpaes-armv7.pl linux32 vpaes-armv7.S
 
 crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bcm.c.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
 crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bcm.c.o: crypto/fipsmodule/bcm.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_107) "Building C object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bcm.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building C object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bcm.c.o"
 	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/fipsmodule.dir/bcm.c.o   -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bcm.c
 
 crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bcm.c.i: cmake_force
@@ -1238,7 +180,7 @@ crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bcm.c.s: cmake_force
 
 crypto/fipsmodule/CMakeFiles/fipsmodule.dir/fips_shared_support.c.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
 crypto/fipsmodule/CMakeFiles/fipsmodule.dir/fips_shared_support.c.o: crypto/fipsmodule/fips_shared_support.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_108) "Building C object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/fips_shared_support.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building C object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/fips_shared_support.c.o"
 	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/fipsmodule.dir/fips_shared_support.c.o   -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/fips_shared_support.c
 
 crypto/fipsmodule/CMakeFiles/fipsmodule.dir/fips_shared_support.c.i: cmake_force
@@ -1249,644 +191,76 @@ crypto/fipsmodule/CMakeFiles/fipsmodule.dir/fips_shared_support.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/fipsmodule.dir/fips_shared_support.c.s"
 	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/fips_shared_support.c -o CMakeFiles/fipsmodule.dir/fips_shared_support.c.s
 
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv8-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv8-apple.S.o: crypto/fipsmodule/aesv8-armv8-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_109) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv8-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/aesv8-armv8-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aesv8-armv8-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv8-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv8-linux.S.o: crypto/fipsmodule/aesv8-armv8-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_110) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv8-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/aesv8-armv8-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aesv8-armv8-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv8-win.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv8-win.S.o: crypto/fipsmodule/aesv8-armv8-win.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_111) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv8-win.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/aesv8-armv8-win.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aesv8-armv8-win.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-gcm-armv8-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-gcm-armv8-apple.S.o: crypto/fipsmodule/aesv8-gcm-armv8-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_112) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-gcm-armv8-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/aesv8-gcm-armv8-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aesv8-gcm-armv8-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-gcm-armv8-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-gcm-armv8-linux.S.o: crypto/fipsmodule/aesv8-gcm-armv8-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_113) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-gcm-armv8-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/aesv8-gcm-armv8-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aesv8-gcm-armv8-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-gcm-armv8-win.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-gcm-armv8-win.S.o: crypto/fipsmodule/aesv8-gcm-armv8-win.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_114) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-gcm-armv8-win.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/aesv8-gcm-armv8-win.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aesv8-gcm-armv8-win.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv8-mont-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv8-mont-apple.S.o: crypto/fipsmodule/armv8-mont-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_115) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv8-mont-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/armv8-mont-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/armv8-mont-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv8-mont-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv8-mont-linux.S.o: crypto/fipsmodule/armv8-mont-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_116) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv8-mont-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/armv8-mont-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/armv8-mont-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv8-mont-win.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv8-mont-win.S.o: crypto/fipsmodule/armv8-mont-win.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_117) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv8-mont-win.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/armv8-mont-win.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/armv8-mont-win.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-armv8-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-armv8-apple.S.o: crypto/fipsmodule/bn-armv8-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_118) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-armv8-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/bn-armv8-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn-armv8-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-armv8-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-armv8-linux.S.o: crypto/fipsmodule/bn-armv8-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_119) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-armv8-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/bn-armv8-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn-armv8-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-armv8-win.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-armv8-win.S.o: crypto/fipsmodule/bn-armv8-win.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_120) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-armv8-win.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/bn-armv8-win.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn-armv8-win.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-neon-armv8-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-neon-armv8-apple.S.o: crypto/fipsmodule/ghash-neon-armv8-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_121) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-neon-armv8-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/ghash-neon-armv8-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghash-neon-armv8-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-neon-armv8-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-neon-armv8-linux.S.o: crypto/fipsmodule/ghash-neon-armv8-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_122) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-neon-armv8-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/ghash-neon-armv8-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghash-neon-armv8-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-neon-armv8-win.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-neon-armv8-win.S.o: crypto/fipsmodule/ghash-neon-armv8-win.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_123) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-neon-armv8-win.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/ghash-neon-armv8-win.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghash-neon-armv8-win.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv8-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv8-apple.S.o: crypto/fipsmodule/ghashv8-armv8-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_124) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv8-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/ghashv8-armv8-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghashv8-armv8-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv8-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv8-linux.S.o: crypto/fipsmodule/ghashv8-armv8-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_125) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv8-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/ghashv8-armv8-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghashv8-armv8-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv8-win.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv8-win.S.o: crypto/fipsmodule/ghashv8-armv8-win.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_126) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv8-win.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/ghashv8-armv8-win.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghashv8-armv8-win.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-armv8-asm-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-armv8-asm-apple.S.o: crypto/fipsmodule/p256_beeu-armv8-asm-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_127) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-armv8-asm-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/p256_beeu-armv8-asm-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/p256_beeu-armv8-asm-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-armv8-asm-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-armv8-asm-linux.S.o: crypto/fipsmodule/p256_beeu-armv8-asm-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_128) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-armv8-asm-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/p256_beeu-armv8-asm-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/p256_beeu-armv8-asm-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-armv8-asm-win.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-armv8-asm-win.S.o: crypto/fipsmodule/p256_beeu-armv8-asm-win.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_129) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-armv8-asm-win.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/p256_beeu-armv8-asm-win.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/p256_beeu-armv8-asm-win.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-armv8-asm-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-armv8-asm-apple.S.o: crypto/fipsmodule/p256-armv8-asm-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_130) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-armv8-asm-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/p256-armv8-asm-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/p256-armv8-asm-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-armv8-asm-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-armv8-asm-linux.S.o: crypto/fipsmodule/p256-armv8-asm-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_131) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-armv8-asm-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/p256-armv8-asm-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/p256-armv8-asm-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-armv8-asm-win.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-armv8-asm-win.S.o: crypto/fipsmodule/p256-armv8-asm-win.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_132) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-armv8-asm-win.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/p256-armv8-asm-win.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/p256-armv8-asm-win.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv8-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv8-apple.S.o: crypto/fipsmodule/sha1-armv8-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_133) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv8-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha1-armv8-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha1-armv8-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv8-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv8-linux.S.o: crypto/fipsmodule/sha1-armv8-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_134) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv8-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha1-armv8-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha1-armv8-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv8-win.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv8-win.S.o: crypto/fipsmodule/sha1-armv8-win.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_135) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv8-win.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha1-armv8-win.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha1-armv8-win.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv8-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv8-apple.S.o: crypto/fipsmodule/sha256-armv8-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_136) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv8-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha256-armv8-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha256-armv8-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv8-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv8-linux.S.o: crypto/fipsmodule/sha256-armv8-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_137) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv8-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha256-armv8-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha256-armv8-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv8-win.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv8-win.S.o: crypto/fipsmodule/sha256-armv8-win.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_138) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv8-win.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha256-armv8-win.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha256-armv8-win.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv8-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv8-apple.S.o: crypto/fipsmodule/sha512-armv8-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_139) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv8-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha512-armv8-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha512-armv8-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv8-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv8-linux.S.o: crypto/fipsmodule/sha512-armv8-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_140) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv8-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha512-armv8-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha512-armv8-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv8-win.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv8-win.S.o: crypto/fipsmodule/sha512-armv8-win.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_141) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv8-win.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha512-armv8-win.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha512-armv8-win.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv8-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv8-apple.S.o: crypto/fipsmodule/vpaes-armv8-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_142) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv8-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/vpaes-armv8-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/vpaes-armv8-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv8-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv8-linux.S.o: crypto/fipsmodule/vpaes-armv8-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_143) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv8-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/vpaes-armv8-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/vpaes-armv8-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv8-win.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv8-win.S.o: crypto/fipsmodule/vpaes-armv8-win.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_144) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv8-win.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/vpaes-armv8-win.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/vpaes-armv8-win.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv7-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv7-apple.S.o: crypto/fipsmodule/aesv8-armv7-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_145) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv7-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/aesv8-armv7-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aesv8-armv7-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv7-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv7-linux.S.o: crypto/fipsmodule/aesv8-armv7-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_146) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv7-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/aesv8-armv7-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aesv8-armv7-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv4-mont-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv4-mont-apple.S.o: crypto/fipsmodule/armv4-mont-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_147) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv4-mont-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/armv4-mont-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/armv4-mont-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv4-mont-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv4-mont-linux.S.o: crypto/fipsmodule/armv4-mont-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_148) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv4-mont-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/armv4-mont-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/armv4-mont-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bsaes-armv7-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bsaes-armv7-apple.S.o: crypto/fipsmodule/bsaes-armv7-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_149) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bsaes-armv7-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/bsaes-armv7-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bsaes-armv7-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bsaes-armv7-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bsaes-armv7-linux.S.o: crypto/fipsmodule/bsaes-armv7-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_150) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bsaes-armv7-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/bsaes-armv7-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bsaes-armv7-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-armv4-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-armv4-apple.S.o: crypto/fipsmodule/ghash-armv4-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_151) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-armv4-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/ghash-armv4-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghash-armv4-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-armv4-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-armv4-linux.S.o: crypto/fipsmodule/ghash-armv4-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_152) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-armv4-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/ghash-armv4-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghash-armv4-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv7-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv7-apple.S.o: crypto/fipsmodule/ghashv8-armv7-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_153) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv7-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/ghashv8-armv7-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghashv8-armv7-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv7-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv7-linux.S.o: crypto/fipsmodule/ghashv8-armv7-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_154) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv7-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/ghashv8-armv7-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghashv8-armv7-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv4-large-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv4-large-apple.S.o: crypto/fipsmodule/sha1-armv4-large-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_155) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv4-large-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha1-armv4-large-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha1-armv4-large-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv4-large-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv4-large-linux.S.o: crypto/fipsmodule/sha1-armv4-large-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_156) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv4-large-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha1-armv4-large-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha1-armv4-large-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv4-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv4-apple.S.o: crypto/fipsmodule/sha256-armv4-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_157) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv4-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha256-armv4-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha256-armv4-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv4-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv4-linux.S.o: crypto/fipsmodule/sha256-armv4-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_158) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv4-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha256-armv4-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha256-armv4-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv4-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv4-apple.S.o: crypto/fipsmodule/sha512-armv4-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_159) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv4-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha512-armv4-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha512-armv4-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv4-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv4-linux.S.o: crypto/fipsmodule/sha512-armv4-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_160) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv4-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha512-armv4-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha512-armv4-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv7-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv7-apple.S.o: crypto/fipsmodule/vpaes-armv7-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_161) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv7-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/vpaes-armv7-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/vpaes-armv7-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv7-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv7-linux.S.o: crypto/fipsmodule/vpaes-armv7-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_162) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv7-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/vpaes-armv7-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/vpaes-armv7-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-x86-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-x86-apple.S.o: crypto/fipsmodule/aesni-x86-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_163) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-x86-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/aesni-x86-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aesni-x86-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-x86-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-x86-linux.S.o: crypto/fipsmodule/aesni-x86-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_164) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-x86-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/aesni-x86-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aesni-x86-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-586-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-586-apple.S.o: crypto/fipsmodule/bn-586-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_165) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-586-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/bn-586-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn-586-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-586-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-586-linux.S.o: crypto/fipsmodule/bn-586-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_166) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-586-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/bn-586-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bn-586-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/co-586-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/co-586-apple.S.o: crypto/fipsmodule/co-586-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_167) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/co-586-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/co-586-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/co-586-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/co-586-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/co-586-linux.S.o: crypto/fipsmodule/co-586-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_168) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/co-586-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/co-586-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/co-586-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-ssse3-x86-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-ssse3-x86-apple.S.o: crypto/fipsmodule/ghash-ssse3-x86-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_169) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-ssse3-x86-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/ghash-ssse3-x86-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghash-ssse3-x86-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-ssse3-x86-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-ssse3-x86-linux.S.o: crypto/fipsmodule/ghash-ssse3-x86-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_170) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-ssse3-x86-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/ghash-ssse3-x86-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghash-ssse3-x86-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-x86-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-x86-apple.S.o: crypto/fipsmodule/ghash-x86-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_171) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-x86-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/ghash-x86-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghash-x86-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-x86-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-x86-linux.S.o: crypto/fipsmodule/ghash-x86-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_172) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-x86-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/ghash-x86-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghash-x86-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/md5-586-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/md5-586-apple.S.o: crypto/fipsmodule/md5-586-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_173) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/md5-586-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/md5-586-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/md5-586-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/md5-586-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/md5-586-linux.S.o: crypto/fipsmodule/md5-586-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_174) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/md5-586-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/md5-586-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/md5-586-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-586-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-586-apple.S.o: crypto/fipsmodule/sha1-586-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_175) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-586-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha1-586-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha1-586-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-586-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-586-linux.S.o: crypto/fipsmodule/sha1-586-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_176) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-586-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha1-586-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha1-586-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-586-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-586-apple.S.o: crypto/fipsmodule/sha256-586-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_177) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-586-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha256-586-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha256-586-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-586-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-586-linux.S.o: crypto/fipsmodule/sha256-586-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_178) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-586-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha256-586-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha256-586-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-586-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-586-apple.S.o: crypto/fipsmodule/sha512-586-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_179) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-586-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha512-586-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha512-586-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-586-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-586-linux.S.o: crypto/fipsmodule/sha512-586-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_180) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-586-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha512-586-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha512-586-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-x86-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-x86-apple.S.o: crypto/fipsmodule/vpaes-x86-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_181) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-x86-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/vpaes-x86-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/vpaes-x86-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-x86-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-x86-linux.S.o: crypto/fipsmodule/vpaes-x86-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_182) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-x86-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/vpaes-x86-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/vpaes-x86-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86-mont-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86-mont-apple.S.o: crypto/fipsmodule/x86-mont-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_183) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86-mont-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/x86-mont-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/x86-mont-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86-mont-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86-mont-linux.S.o: crypto/fipsmodule/x86-mont-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_184) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86-mont-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/x86-mont-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/x86-mont-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-gcm-x86_64-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-gcm-x86_64-apple.S.o: crypto/fipsmodule/aesni-gcm-x86_64-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_185) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-gcm-x86_64-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/aesni-gcm-x86_64-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aesni-gcm-x86_64-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-gcm-x86_64-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-gcm-x86_64-linux.S.o: crypto/fipsmodule/aesni-gcm-x86_64-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_186) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-gcm-x86_64-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/aesni-gcm-x86_64-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aesni-gcm-x86_64-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-x86_64-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-x86_64-apple.S.o: crypto/fipsmodule/aesni-x86_64-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_187) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-x86_64-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/aesni-x86_64-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aesni-x86_64-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-x86_64-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-x86_64-linux.S.o: crypto/fipsmodule/aesni-x86_64-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_188) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-x86_64-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/aesni-x86_64-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aesni-x86_64-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-ssse3-x86_64-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-ssse3-x86_64-apple.S.o: crypto/fipsmodule/ghash-ssse3-x86_64-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_189) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-ssse3-x86_64-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/ghash-ssse3-x86_64-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghash-ssse3-x86_64-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-ssse3-x86_64-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-ssse3-x86_64-linux.S.o: crypto/fipsmodule/ghash-ssse3-x86_64-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_190) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-ssse3-x86_64-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/ghash-ssse3-x86_64-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghash-ssse3-x86_64-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-x86_64-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-x86_64-apple.S.o: crypto/fipsmodule/ghash-x86_64-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_191) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-x86_64-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/ghash-x86_64-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghash-x86_64-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-x86_64-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-x86_64-linux.S.o: crypto/fipsmodule/ghash-x86_64-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_192) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-x86_64-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/ghash-x86_64-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghash-x86_64-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/md5-x86_64-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/md5-x86_64-apple.S.o: crypto/fipsmodule/md5-x86_64-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_193) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/md5-x86_64-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/md5-x86_64-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/md5-x86_64-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/md5-x86_64-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/md5-x86_64-linux.S.o: crypto/fipsmodule/md5-x86_64-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_194) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/md5-x86_64-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/md5-x86_64-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/md5-x86_64-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-x86_64-asm-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-x86_64-asm-apple.S.o: crypto/fipsmodule/p256_beeu-x86_64-asm-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_195) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-x86_64-asm-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/p256_beeu-x86_64-asm-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/p256_beeu-x86_64-asm-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-x86_64-asm-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-x86_64-asm-linux.S.o: crypto/fipsmodule/p256_beeu-x86_64-asm-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_196) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-x86_64-asm-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/p256_beeu-x86_64-asm-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/p256_beeu-x86_64-asm-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-x86_64-asm-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-x86_64-asm-apple.S.o: crypto/fipsmodule/p256-x86_64-asm-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_197) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-x86_64-asm-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/p256-x86_64-asm-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/p256-x86_64-asm-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-x86_64-asm-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-x86_64-asm-linux.S.o: crypto/fipsmodule/p256-x86_64-asm-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_198) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-x86_64-asm-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/p256-x86_64-asm-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/p256-x86_64-asm-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rdrand-x86_64-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rdrand-x86_64-apple.S.o: crypto/fipsmodule/rdrand-x86_64-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_199) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rdrand-x86_64-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/rdrand-x86_64-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/rdrand-x86_64-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rdrand-x86_64-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rdrand-x86_64-linux.S.o: crypto/fipsmodule/rdrand-x86_64-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_200) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rdrand-x86_64-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/rdrand-x86_64-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/rdrand-x86_64-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rsaz-avx2-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rsaz-avx2-apple.S.o: crypto/fipsmodule/rsaz-avx2-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_201) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rsaz-avx2-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/rsaz-avx2-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/rsaz-avx2-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rsaz-avx2-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rsaz-avx2-linux.S.o: crypto/fipsmodule/rsaz-avx2-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_202) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rsaz-avx2-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/rsaz-avx2-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/rsaz-avx2-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-x86_64-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-x86_64-apple.S.o: crypto/fipsmodule/sha1-x86_64-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_203) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-x86_64-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha1-x86_64-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha1-x86_64-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-x86_64-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-x86_64-linux.S.o: crypto/fipsmodule/sha1-x86_64-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_204) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-x86_64-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha1-x86_64-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha1-x86_64-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-x86_64-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-x86_64-apple.S.o: crypto/fipsmodule/sha256-x86_64-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_205) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-x86_64-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha256-x86_64-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha256-x86_64-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-x86_64-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-x86_64-linux.S.o: crypto/fipsmodule/sha256-x86_64-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_206) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-x86_64-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha256-x86_64-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha256-x86_64-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-x86_64-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-x86_64-apple.S.o: crypto/fipsmodule/sha512-x86_64-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_207) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-x86_64-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha512-x86_64-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha512-x86_64-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-x86_64-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-x86_64-linux.S.o: crypto/fipsmodule/sha512-x86_64-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_208) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-x86_64-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha512-x86_64-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha512-x86_64-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-x86_64-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-x86_64-apple.S.o: crypto/fipsmodule/vpaes-x86_64-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_209) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-x86_64-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/vpaes-x86_64-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/vpaes-x86_64-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-x86_64-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-x86_64-linux.S.o: crypto/fipsmodule/vpaes-x86_64-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_210) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-x86_64-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/vpaes-x86_64-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/vpaes-x86_64-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont-apple.S.o: crypto/fipsmodule/x86_64-mont-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_211) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/x86_64-mont-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/x86_64-mont-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont-linux.S.o: crypto/fipsmodule/x86_64-mont-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_212) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/x86_64-mont-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/x86_64-mont-linux.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont5-apple.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont5-apple.S.o: crypto/fipsmodule/x86_64-mont5-apple.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_213) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont5-apple.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/x86_64-mont5-apple.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/x86_64-mont5-apple.S
-
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont5-linux.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont5-linux.S.o: crypto/fipsmodule/x86_64-mont5-linux.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_214) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont5-linux.S.o"
-	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/x86_64-mont5-linux.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/x86_64-mont5-linux.S
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/is_fips.c.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/is_fips.c.o: crypto/fipsmodule/is_fips.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building C object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/is_fips.c.o"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/fipsmodule.dir/is_fips.c.o   -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/is_fips.c
+
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/is_fips.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/fipsmodule.dir/is_fips.c.i"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/is_fips.c > CMakeFiles/fipsmodule.dir/is_fips.c.i
+
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/is_fips.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/fipsmodule.dir/is_fips.c.s"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/is_fips.c -o CMakeFiles/fipsmodule.dir/is_fips.c.s
+
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armx.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armx.S.o: crypto/fipsmodule/aesv8-armx.S
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armx.S.o"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/aesv8-armx.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/aesv8-armx.S
+
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv4-mont.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv4-mont.S.o: crypto/fipsmodule/armv4-mont.S
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv4-mont.S.o"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/armv4-mont.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/armv4-mont.S
+
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bsaes-armv7.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bsaes-armv7.S.o: crypto/fipsmodule/bsaes-armv7.S
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bsaes-armv7.S.o"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/bsaes-armv7.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/bsaes-armv7.S
+
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-armv4.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-armv4.S.o: crypto/fipsmodule/ghash-armv4.S
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-armv4.S.o"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/ghash-armv4.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghash-armv4.S
+
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armx.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armx.S.o: crypto/fipsmodule/ghashv8-armx.S
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armx.S.o"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/ghashv8-armx.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/ghashv8-armx.S
+
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv4-large.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv4-large.S.o: crypto/fipsmodule/sha1-armv4-large.S
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv4-large.S.o"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha1-armv4-large.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha1-armv4-large.S
+
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv4.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv4.S.o: crypto/fipsmodule/sha256-armv4.S
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv4.S.o"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha256-armv4.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha256-armv4.S
+
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv4.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv4.S.o: crypto/fipsmodule/sha512-armv4.S
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv4.S.o"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/sha512-armv4.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/sha512-armv4.S
+
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv7.S.o: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/flags.make
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv7.S.o: crypto/fipsmodule/vpaes-armv7.S
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/workspace/tiny-webrtc-gw/boringssl/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Building ASM object crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv7.S.o"
+	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && /usr/bin/cc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/fipsmodule.dir/vpaes-armv7.S.o -c /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/vpaes-armv7.S
 
 fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bcm.c.o
 fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/fips_shared_support.c.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv8-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv8-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv8-win.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-gcm-armv8-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-gcm-armv8-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-gcm-armv8-win.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv8-mont-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv8-mont-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv8-mont-win.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-armv8-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-armv8-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-armv8-win.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-neon-armv8-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-neon-armv8-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-neon-armv8-win.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv8-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv8-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv8-win.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-armv8-asm-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-armv8-asm-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-armv8-asm-win.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-armv8-asm-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-armv8-asm-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-armv8-asm-win.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv8-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv8-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv8-win.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv8-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv8-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv8-win.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv8-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv8-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv8-win.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv8-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv8-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv8-win.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv7-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armv7-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv4-mont-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv4-mont-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bsaes-armv7-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bsaes-armv7-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-armv4-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-armv4-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv7-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armv7-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv4-large-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv4-large-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv4-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv4-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv4-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv4-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv7-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv7-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-x86-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-x86-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-586-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bn-586-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/co-586-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/co-586-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-ssse3-x86-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-ssse3-x86-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-x86-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-x86-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/md5-586-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/md5-586-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-586-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-586-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-586-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-586-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-586-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-586-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-x86-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-x86-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86-mont-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86-mont-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-gcm-x86_64-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-gcm-x86_64-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-x86_64-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesni-x86_64-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-ssse3-x86_64-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-ssse3-x86_64-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-x86_64-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-x86_64-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/md5-x86_64-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/md5-x86_64-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-x86_64-asm-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256_beeu-x86_64-asm-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-x86_64-asm-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/p256-x86_64-asm-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rdrand-x86_64-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rdrand-x86_64-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rsaz-avx2-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/rsaz-avx2-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-x86_64-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-x86_64-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-x86_64-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-x86_64-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-x86_64-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-x86_64-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-x86_64-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-x86_64-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont-linux.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont5-apple.S.o
-fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/x86_64-mont5-linux.S.o
+fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/is_fips.c.o
+fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/aesv8-armx.S.o
+fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/armv4-mont.S.o
+fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/bsaes-armv7.S.o
+fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghash-armv4.S.o
+fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/ghashv8-armx.S.o
+fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha1-armv4-large.S.o
+fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha256-armv4.S.o
+fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/sha512-armv4.S.o
+fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/vpaes-armv7.S.o
 fipsmodule: crypto/fipsmodule/CMakeFiles/fipsmodule.dir/build.make
 
 .PHONY : fipsmodule
@@ -1900,112 +274,15 @@ crypto/fipsmodule/CMakeFiles/fipsmodule.dir/clean:
 	cd /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule && $(CMAKE_COMMAND) -P CMakeFiles/fipsmodule.dir/cmake_clean.cmake
 .PHONY : crypto/fipsmodule/CMakeFiles/fipsmodule.dir/clean
 
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/aesv8-armv8-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/aesv8-armv8-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/aesv8-armv8-win.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/aesv8-gcm-armv8-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/aesv8-gcm-armv8-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/aesv8-gcm-armv8-win.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/armv8-mont-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/armv8-mont-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/armv8-mont-win.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/bn-armv8-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/bn-armv8-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/bn-armv8-win.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/ghash-neon-armv8-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/ghash-neon-armv8-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/ghash-neon-armv8-win.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/ghashv8-armv8-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/ghashv8-armv8-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/ghashv8-armv8-win.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/p256_beeu-armv8-asm-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/p256_beeu-armv8-asm-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/p256_beeu-armv8-asm-win.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/p256-armv8-asm-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/p256-armv8-asm-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/p256-armv8-asm-win.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha1-armv8-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha1-armv8-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha1-armv8-win.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha256-armv8-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha256-armv8-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha256-armv8-win.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha512-armv8-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha512-armv8-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha512-armv8-win.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/vpaes-armv8-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/vpaes-armv8-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/vpaes-armv8-win.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/aesv8-armv7-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/aesv8-armv7-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/armv4-mont-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/armv4-mont-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/bsaes-armv7-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/bsaes-armv7-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/ghash-armv4-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/ghash-armv4-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/ghashv8-armv7-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/ghashv8-armv7-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha1-armv4-large-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha1-armv4-large-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha256-armv4-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha256-armv4-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha512-armv4-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha512-armv4-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/vpaes-armv7-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/vpaes-armv7-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/aesni-x86-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/aesni-x86-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/bn-586-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/bn-586-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/co-586-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/co-586-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/ghash-ssse3-x86-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/ghash-ssse3-x86-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/ghash-x86-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/ghash-x86-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/md5-586-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/md5-586-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha1-586-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha1-586-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha256-586-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha256-586-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha512-586-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha512-586-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/vpaes-x86-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/vpaes-x86-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/x86-mont-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/x86-mont-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/aesni-gcm-x86_64-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/aesni-gcm-x86_64-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/aesni-x86_64-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/aesni-x86_64-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/ghash-ssse3-x86_64-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/ghash-ssse3-x86_64-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/ghash-x86_64-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/ghash-x86_64-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/md5-x86_64-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/md5-x86_64-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/p256_beeu-x86_64-asm-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/p256_beeu-x86_64-asm-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/p256-x86_64-asm-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/p256-x86_64-asm-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/rdrand-x86_64-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/rdrand-x86_64-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/rsaz-avx2-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/rsaz-avx2-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha1-x86_64-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha1-x86_64-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha256-x86_64-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha256-x86_64-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha512-x86_64-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha512-x86_64-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/vpaes-x86_64-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/vpaes-x86_64-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/x86_64-mont-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/x86_64-mont-linux.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/x86_64-mont5-apple.S
-crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/x86_64-mont5-linux.S
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/aesv8-armx.S
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/armv4-mont.S
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/bsaes-armv7.S
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/ghash-armv4.S
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/ghashv8-armx.S
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha1-armv4-large.S
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha256-armv4.S
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/sha512-armv4.S
+crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend: crypto/fipsmodule/vpaes-armv7.S
 	cd /home/pi/workspace/tiny-webrtc-gw/boringssl && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/pi/workspace/tiny-webrtc-gw/boringssl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule /home/pi/workspace/tiny-webrtc-gw/boringssl /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule /home/pi/workspace/tiny-webrtc-gw/boringssl/crypto/fipsmodule/CMakeFiles/fipsmodule.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : crypto/fipsmodule/CMakeFiles/fipsmodule.dir/depend
 

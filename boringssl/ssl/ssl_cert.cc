@@ -142,9 +142,9 @@ CERT::~CERT() {
   x509_method->cert_free(this);
 }
 
-static CRYPTO_BUFFER *buffer_up_ref(const CRYPTO_BUFFER *buffer) {
-  CRYPTO_BUFFER_up_ref(const_cast<CRYPTO_BUFFER *>(buffer));
-  return const_cast<CRYPTO_BUFFER *>(buffer);
+static CRYPTO_BUFFER *buffer_up_ref(CRYPTO_BUFFER *buffer) {
+  CRYPTO_BUFFER_up_ref(buffer);
+  return buffer;
 }
 
 UniquePtr<CERT> ssl_cert_dup(CERT *cert) {
@@ -237,14 +237,14 @@ static enum leaf_cert_and_privkey_result_t check_leaf_cert_and_privkey(
     return leaf_cert_and_privkey_error;
   }
 
-  if (!ssl_is_key_type_supported(EVP_PKEY_id(pubkey.get()))) {
+  if (!ssl_is_key_type_supported(pubkey->type)) {
     OPENSSL_PUT_ERROR(SSL, SSL_R_UNKNOWN_CERTIFICATE_TYPE);
     return leaf_cert_and_privkey_error;
   }
 
   // An ECC certificate may be usable for ECDH or ECDSA. We only support ECDSA
   // certificates, so sanity-check the key usage extension.
-  if (EVP_PKEY_id(pubkey.get()) == EVP_PKEY_EC &&
+  if (pubkey->type == EVP_PKEY_EC &&
       !ssl_cert_check_key_usage(&cert_cbs, key_usage_digital_signature)) {
     OPENSSL_PUT_ERROR(SSL, SSL_R_UNKNOWN_CERTIFICATE_TYPE);
     return leaf_cert_and_privkey_error;
@@ -365,6 +365,7 @@ bool ssl_parse_cert_chain(uint8_t *out_alert,
   UniquePtr<STACK_OF(CRYPTO_BUFFER)> chain(sk_CRYPTO_BUFFER_new_null());
   if (!chain) {
     *out_alert = SSL_AD_INTERNAL_ERROR;
+    OPENSSL_PUT_ERROR(SSL, ERR_R_MALLOC_FAILURE);
     return false;
   }
 
@@ -396,6 +397,7 @@ bool ssl_parse_cert_chain(uint8_t *out_alert,
     if (!buf ||
         !PushToStack(chain.get(), std::move(buf))) {
       *out_alert = SSL_AD_INTERNAL_ERROR;
+      OPENSSL_PUT_ERROR(SSL, ERR_R_MALLOC_FAILURE);
       return false;
     }
   }
@@ -546,11 +548,13 @@ bool ssl_cert_check_key_usage(const CBS *in, enum ssl_key_usage_t bit) {
       // subjectPublicKeyInfo
       !CBS_get_asn1(&tbs_cert, NULL, CBS_ASN1_SEQUENCE) ||
       // issuerUniqueID
-      !CBS_get_optional_asn1(&tbs_cert, NULL, NULL,
-                             CBS_ASN1_CONTEXT_SPECIFIC | 1) ||
+      !CBS_get_optional_asn1(
+          &tbs_cert, NULL, NULL,
+          CBS_ASN1_CONSTRUCTED | CBS_ASN1_CONTEXT_SPECIFIC | 1) ||
       // subjectUniqueID
-      !CBS_get_optional_asn1(&tbs_cert, NULL, NULL,
-                             CBS_ASN1_CONTEXT_SPECIFIC | 2) ||
+      !CBS_get_optional_asn1(
+          &tbs_cert, NULL, NULL,
+          CBS_ASN1_CONSTRUCTED | CBS_ASN1_CONTEXT_SPECIFIC | 2) ||
       !CBS_get_optional_asn1(
           &tbs_cert, &outer_extensions, &has_extensions,
           CBS_ASN1_CONSTRUCTED | CBS_ASN1_CONTEXT_SPECIFIC | 3)) {
@@ -621,6 +625,7 @@ UniquePtr<STACK_OF(CRYPTO_BUFFER)> ssl_parse_client_CA_list(SSL *ssl,
   UniquePtr<STACK_OF(CRYPTO_BUFFER)> ret(sk_CRYPTO_BUFFER_new_null());
   if (!ret) {
     *out_alert = SSL_AD_INTERNAL_ERROR;
+    OPENSSL_PUT_ERROR(SSL, ERR_R_MALLOC_FAILURE);
     return nullptr;
   }
 
@@ -644,6 +649,7 @@ UniquePtr<STACK_OF(CRYPTO_BUFFER)> ssl_parse_client_CA_list(SSL *ssl,
     if (!buffer ||
         !PushToStack(ret.get(), std::move(buffer))) {
       *out_alert = SSL_AD_INTERNAL_ERROR;
+      OPENSSL_PUT_ERROR(SSL, ERR_R_MALLOC_FAILURE);
       return nullptr;
     }
   }
@@ -815,13 +821,16 @@ static bool ssl_can_serve_dc(const SSL_HANDSHAKE *hs) {
   }
 
   // Check that the DC signature algorithm is supported by the peer.
-  Span<const uint16_t> peer_sigalgs = hs->peer_delegated_credential_sigalgs;
+  Span<const uint16_t> peer_sigalgs = tls1_get_peer_verify_algorithms(hs);
+  bool sigalg_found = false;
   for (uint16_t peer_sigalg : peer_sigalgs) {
     if (dc->expected_cert_verify_algorithm == peer_sigalg) {
-      return true;
+      sigalg_found = true;
+      break;
     }
   }
-  return false;
+
+  return sigalg_found;
 }
 
 bool ssl_signing_with_dc(const SSL_HANDSHAKE *hs) {
@@ -885,10 +894,6 @@ int SSL_CTX_set_chain_and_key(SSL_CTX *ctx, CRYPTO_BUFFER *const *certs,
                               const SSL_PRIVATE_KEY_METHOD *privkey_method) {
   return cert_set_chain_and_key(ctx->cert.get(), certs, num_certs, privkey,
                                 privkey_method);
-}
-
-const STACK_OF(CRYPTO_BUFFER)* SSL_CTX_get0_chain(const SSL_CTX *ctx) {
-  return ctx->cert->chain.get();
 }
 
 int SSL_CTX_use_certificate_ASN1(SSL_CTX *ctx, size_t der_len,

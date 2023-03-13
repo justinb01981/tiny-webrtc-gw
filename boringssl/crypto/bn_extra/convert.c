@@ -81,6 +81,7 @@ char *BN_bn2hex(const BIGNUM *bn) {
   char *buf = OPENSSL_malloc(1 /* leading '-' */ + 1 /* zero is non-empty */ +
                              width * BN_BYTES * 2 + 1 /* trailing NUL */);
   if (buf == NULL) {
+    OPENSSL_PUT_ERROR(BN, ERR_R_MALLOC_FAILURE);
     return NULL;
   }
 
@@ -132,9 +133,18 @@ static int decode_hex(BIGNUM *bn, const char *in, int in_len) {
     BN_ULONG word = 0;
     int j;
     for (j = todo; j > 0; j--) {
-      uint8_t hex = 0;
-      if (!OPENSSL_fromxdigit(&hex, in[in_len - j])) {
-        // This shouldn't happen. The caller checks |OPENSSL_isxdigit|.
+      char c = in[in_len - j];
+
+      BN_ULONG hex;
+      if (c >= '0' && c <= '9') {
+        hex = c - '0';
+      } else if (c >= 'a' && c <= 'f') {
+        hex = c - 'a' + 10;
+      } else if (c >= 'A' && c <= 'F') {
+        hex = c - 'A' + 10;
+      } else {
+        hex = 0;
+        // This shouldn't happen. The caller checks |isxdigit|.
         assert(0);
       }
       word = (word << 4) | hex;
@@ -230,7 +240,7 @@ err:
 }
 
 int BN_hex2bn(BIGNUM **outp, const char *in) {
-  return bn_x2bn(outp, in, decode_hex, OPENSSL_isxdigit);
+  return bn_x2bn(outp, in, decode_hex, isxdigit);
 }
 
 char *BN_bn2dec(const BIGNUM *a) {
@@ -240,12 +250,12 @@ char *BN_bn2dec(const BIGNUM *a) {
   CBB cbb;
   if (!CBB_init(&cbb, 16) ||
       !CBB_add_u8(&cbb, 0 /* trailing NUL */)) {
-    goto err;
+    goto cbb_err;
   }
 
   if (BN_is_zero(a)) {
     if (!CBB_add_u8(&cbb, '0')) {
-      goto err;
+      goto cbb_err;
     }
   } else {
     copy = BN_dup(a);
@@ -262,7 +272,7 @@ char *BN_bn2dec(const BIGNUM *a) {
       const int add_leading_zeros = !BN_is_zero(copy);
       for (int i = 0; i < BN_DEC_NUM && (add_leading_zeros || word != 0); i++) {
         if (!CBB_add_u8(&cbb, '0' + word % 10)) {
-          goto err;
+          goto cbb_err;
         }
         word /= 10;
       }
@@ -272,13 +282,13 @@ char *BN_bn2dec(const BIGNUM *a) {
 
   if (BN_is_negative(a) &&
       !CBB_add_u8(&cbb, '-')) {
-    goto err;
+    goto cbb_err;
   }
 
   uint8_t *data;
   size_t len;
   if (!CBB_finish(&cbb, &data, &len)) {
-    goto err;
+    goto cbb_err;
   }
 
   // Reverse the buffer.
@@ -291,6 +301,8 @@ char *BN_bn2dec(const BIGNUM *a) {
   BN_free(copy);
   return (char *)data;
 
+cbb_err:
+  OPENSSL_PUT_ERROR(BN, ERR_R_MALLOC_FAILURE);
 err:
   BN_free(copy);
   CBB_cleanup(&cbb);
@@ -298,7 +310,7 @@ err:
 }
 
 int BN_dec2bn(BIGNUM **outp, const char *in) {
-  return bn_x2bn(outp, in, decode_dec, OPENSSL_isdigit);
+  return bn_x2bn(outp, in, decode_dec, isdigit);
 }
 
 int BN_asc2bn(BIGNUM **outp, const char *in) {
@@ -424,6 +436,7 @@ BIGNUM *BN_mpi2bn(const uint8_t *in, size_t len, BIGNUM *out) {
   if (out == NULL) {
     out = BN_new();
     if (out == NULL) {
+      OPENSSL_PUT_ERROR(BN, ERR_R_MALLOC_FAILURE);
       return NULL;
     }
     out_is_alloced = 1;

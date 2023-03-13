@@ -66,7 +66,7 @@
 #include "../internal.h"
 
 
-BIO *BIO_new_mem_buf(const void *buf, ossl_ssize_t len) {
+BIO *BIO_new_mem_buf(const void *buf, int len) {
   BIO *ret;
   BUF_MEM *b;
   const size_t size = len < 0 ? strlen((char *)buf) : (size_t)len;
@@ -116,11 +116,17 @@ static int mem_new(BIO *bio) {
 }
 
 static int mem_free(BIO *bio) {
+  BUF_MEM *b;
+
+  if (bio == NULL) {
+    return 0;
+  }
+
   if (!bio->shutdown || !bio->init || bio->ptr == NULL) {
     return 1;
   }
 
-  BUF_MEM *b = (BUF_MEM *)bio->ptr;
+  b = (BUF_MEM *)bio->ptr;
   if (bio->flags & BIO_FLAGS_MEM_RDONLY) {
     b->data = NULL;
   }
@@ -312,13 +318,13 @@ long BIO_get_mem_data(BIO *bio, char **contents) {
 }
 
 int BIO_get_mem_ptr(BIO *bio, BUF_MEM **out) {
-  return (int)BIO_ctrl(bio, BIO_C_GET_BUF_MEM_PTR, 0, (char *) out);
+  return BIO_ctrl(bio, BIO_C_GET_BUF_MEM_PTR, 0, (char *) out);
 }
 
 int BIO_set_mem_buf(BIO *bio, BUF_MEM *b, int take_ownership) {
-  return (int)BIO_ctrl(bio, BIO_C_SET_BUF_MEM, take_ownership, (char *) b);
+  return BIO_ctrl(bio, BIO_C_SET_BUF_MEM, take_ownership, (char *) b);
 }
 
 int BIO_set_mem_eof_return(BIO *bio, int eof_value) {
-  return (int)BIO_ctrl(bio, BIO_C_SET_BUF_MEM_EOF_RETURN, eof_value, NULL);
+  return BIO_ctrl(bio, BIO_C_SET_BUF_MEM_EOF_RETURN, eof_value, NULL);
 }
