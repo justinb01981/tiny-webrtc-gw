@@ -18,6 +18,12 @@
 /* Define this to use OpenSSL crypto. */
 #cmakedefine OPENSSL 1
 
+/* Define this to use MBEDTLS. */
+#cmakedefine MBEDTLS 1
+
+/* Define this to use NSS crypto. */
+#cmakedefine NSS 1
+
 /* Define this to use AES-GCM. */
 #cmakedefine GCM 1
 
@@ -75,6 +81,9 @@
 
 /* Define to 1 if you have the `inet_aton' function. */
 #cmakedefine HAVE_INET_ATON 1
+
+/* Define to 1 if you have the `inet_pton' function. */
+#cmakedefine HAVE_INET_PTON 1
 
 /* Define to 1 if you have the `sigaction' function. */
 #cmakedefine HAVE_SIGACTION 1

@@ -36,7 +36,7 @@ extern char* dtls_fingerprint;
 
 
 // TODO: artififially low to smooth jitter calculations and prevent bursts + more fairly schedule?
-#define RECVMSG_NUM (128 /*8*/)
+#define RECVMSG_NUM (128)
 
 //
 // -- fwiw i have never seen the buffers used go beyond 64 at 12mbitsec  on wifi on my pi 4

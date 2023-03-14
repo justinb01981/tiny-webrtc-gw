@@ -2,4 +2,4 @@ CMakeCache.txt
 CMakeFiles/
 *.o
 *.a
-boringssl/
+libsrtp

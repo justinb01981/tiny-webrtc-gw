@@ -271,6 +271,8 @@ void DIAG_PEER(peer_session_t* peer)
 void
 connection_srtp_init(peer_session_t* peer, int rtp_idx, u32 ssid, u32 write_ssrc)
 {
+    printf("connection_srtp_init: %d\n", peer->id);
+
     int rtp_idx_write = PEER_RTP_CTX_WRITE + rtp_idx;
     u32 timestamp_in = 0;
     u16 sequence_in = 0;
@@ -398,7 +400,7 @@ connection_worker(void* p)
     u32 answer_ssrc[PEER_RTP_CTX_WRITE] = {0, 0};
     u32 offer_ssrc[PEER_RTP_CTX_WRITE] = {0, 0};
     char str256[256];
-    char dtls_buf[2048];
+    char dtls_buf[8000];
     int nrecv, nwait = 0;
     int flush_outbuf_overrun = 0;
     int awaitStun = 16;
@@ -410,14 +412,12 @@ connection_worker(void* p)
 
     // this delay is not to allow for network traffic but to allow webserver_worker and main thread time to init
     // peer (working around a race condition)
-    sleep_msec(100);
+    sleep_msec(500);
 
     // blocking here while peer set up by main thread
     PEER_LOCK(peer->id);
 
     // TODO: would be nice to call cxn_callback here to fill stun info instead of during init_needed
-
-    //assert(peer->alive);
 
     printf("%s:%d stunID32: %lu\nsdp answer:\n %s\nsdp offer:\n%s\n", __func__, __LINE__, peer->stunID32, peer->sdp.answer, peer->sdp.offer);
 

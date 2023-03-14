@@ -1,3 +1,5 @@
+[![CMake Build](https://github.com/cisco/libsrtp/actions/workflows/cmake.yml/badge.svg)](https://github.com/cisco/libsrtp/actions/workflows/cmake.yml)
+[![Autotools Build](https://github.com/cisco/libsrtp/actions/workflows/autotools.yml/badge.svg)](https://github.com/cisco/libsrtp/actions/workflows/autotools.yml)
 [![Build Status](https://travis-ci.org/cisco/libsrtp.svg?branch=master)](https://travis-ci.org/cisco/libsrtp)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/14274/badge.svg)](https://scan.coverity.com/projects/cisco-libsrtp)
 [![OSS-Fuzz Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/systemd.svg)](https://oss-fuzz-build-logs.storage.googleapis.com/index.html#libsrtp)
@@ -13,10 +15,10 @@ and the library is in libsrtp2.a (after compilation).
 This document describes libSRTP, the Open Source Secure RTP library
 from Cisco Systems, Inc. RTP is the Real-time Transport Protocol, an
 IETF standard for the transport of real-time data such as telephony,
-audio, and video, defined by [RFC 3550](https://www.ietf.org/rfc/rfc3550.txt).
+audio, and video, defined by [RFC 3550](https://tools.ietf.org/html/rfc3550).
 Secure RTP (SRTP) is an RTP profile for providing confidentiality to RTP data
 and authentication to the RTP header and payload. SRTP is an IETF Standard,
-defined in [RFC 3711](https://www.ietf.org/rfc/rfc3711.txt), and was developed
+defined in [RFC 3711](https://tools.ietf.org/html/rfc3711), and was developed
 in the IETF Audio/Video Transport (AVT) Working Group. This library supports
 all of the mandatory features of SRTP, but not all of the optional features. See
 the [Supported Features](#supported-features) section for more detailed information.
@@ -197,7 +199,7 @@ in which a key is used for both inbound and outbound data.
 ## Supported Features
 
 This library supports all of the mandatory-to-implement features of
-SRTP (as defined in [RFC 3711](https://www.ietf.org/rfc/rfc3711.txt)). Some of these
+SRTP (as defined in [RFC 3711](https://tools.ietf.org/html/rfc3711)). Some of these
 features can be selected (or de-selected) at run time by setting an
 appropriate policy; this is done using the structure `srtp_policy_t`.
 Some other behaviors of the protocol can be adapted by defining an
@@ -214,15 +216,25 @@ supported. This includes
 The user should be aware that it is possible to misuse this libary,
 and that the result may be that the security level it provides is
 inadequate. If you are implementing a feature using this library, you
-will want to read the Security Considerations section of [RFC 3711](https://www.ietf.org/rfc/rfc3711.txt).
+will want to read the Security Considerations section of [RFC 3711](https://tools.ietf.org/html/rfc3711#section-9).
 In addition, it is important that you read and understand the
 terms outlined in the [License and Disclaimer](#license-and-disclaimer) section.
+
+This library also supports the AES-GCM Authenticated Encryption methods
+described in [RFC 7714](https://tools.ietf.org/html/rfc7714)
 
 --------------------------------------------------------------------------------
 
 <a name="implementation-notes"></a>
 ## Implementation Notes
 
+  * It is possible to configure which 3rd party (ie openssl/nss/etc) crypto backend
+    libSRTP will be built with. If no 3rd party backend is set then libSRTP provides
+    an internal implementation of AES and Sha1. The internal implementation only
+    supports AES-128 & AES-256, so to use AES-192 or the AES-GCM group of ciphers a
+    3rd party crypto backend must be configured. For this and performance reasons it
+    is highly recommended to use a 3rd party crypto backend.
+  
   * The `srtp_protect()` function assumes that the buffer holding the
     rtp packet has enough storage allocated that the authentication
     tag can be written to the end of that packet. If this assumption
@@ -281,11 +293,13 @@ Option                         | Description
 -------------------------------|--------------------
 \-\-help                   \-h | Display help
 \-\-enable-debug-logging       | Enable debug logging in all modules
-\-\-enable-log-stdout          | Enable logging to stdout
 \-\-enable-openssl             | Enable OpenSSL crypto engine
+\-\-enable-nss                 | Enable NSS crypto engine
 \-\-enable-openssl-kdf         | Enable OpenSSL KDF algorithm
-\-\-with-log-file              | Use file for logging
+\-\-enable-log-stdout          | Enable logging to stdout
 \-\-with-openssl-dir           | Location of OpenSSL installation
+\-\-with-nss-dir               | Location of NSS installation
+\-\-with-log-file              | Use file for logging
 
 By default there is no log output, logging can be enabled to be output to stdout
 or a given file using the configure options.
@@ -334,6 +348,36 @@ cmake .. -G "Visual Studio 15 2017"
 # Or for 64 bit project files
 cmake .. -G "Visual Studio 15 2017 Win64"
 ```
+
+--------------------------------------------------------------------------------
+<a name="using-meson"></a>
+## Using Meson
+
+On all platforms including Windows, one can build using [Meson](https://mesonbuild.org).
+Steps to download Meson are here: https://mesonbuild.com/Getting-meson.html
+
+To build with Meson, you can do something like:
+
+```
+# Setup the build subdirectory
+meson setup --prefix=/path/to/prefix builddir
+
+# Build the project
+meson compile -C builddir
+
+# Run tests
+meson test -C builddir
+
+# Optionally, install
+meson install -C builddir
+```
+
+To build with Visual Studio, run the above commands from inside a Visual Studio
+command prompt, or run `vcvarsall.bat` with the appropriate arguments inside
+a Command Prompt.
+
+Note that you can also replace the above commands with the appropriate `ninja`
+targets: `ninja -C build`, `ninja -C build test`, `ninja -C build install`.
 
 --------------------------------------------------------------------------------
 
@@ -497,13 +541,13 @@ Copyright 2001-2005 by David A. McGrew, Cisco Systems, Inc.
 SRTP and ICM References
 September, 2005
 
-Secure RTP is defined in [RFC 3711](https://www.ietf.org/rfc/rfc3711.txt).
-The counter mode definition is in Section 4.1.1.
+Secure RTP is defined in [RFC 3711](https://tools.ietf.org/html/rfc3711).
+The counter mode definition is in [Section 4.1.1](https://tools.ietf.org/html/rfc3711#section-4.1.1).
 
 SHA-1 is defined in [FIPS PUB 180-4](http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf).
 
-HMAC is defined in [RFC 2104](https://www.ietf.org/rfc/rfc2104.txt)
+HMAC is defined in [RFC 2104](https://tools.ietf.org/html/rfc2104)
 and HMAC-SHA1 test vectors are available
-in [RFC 2202](https://www.ietf.org/rfc/rfc2202.txt).
+in [RFC 2202](https://tools.ietf.org/html/rfc2202#section-3).
 
-AES-GCM usage in SRTP is defined in [RFC 7714](https://www.ietf.org/html/rfc7714)
+AES-GCM usage in SRTP is defined in [RFC 7714](https://tools.ietf.org/html/rfc7714)

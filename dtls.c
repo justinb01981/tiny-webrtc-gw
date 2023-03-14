@@ -277,7 +277,7 @@ void DTLS_sock_init(unsigned short listen_port)
     X509* x5 = PEM_read_bio_X509(pkbio, NULL, NULL, NULL);
     if(!x5) assert(0);
 
-    SSL_CTX *ctx = SSL_CTX_new(DTLSv1_2_server_method());
+    SSL_CTX *ctx = SSL_CTX_new(DTLS_method());
 
     SSL_CTX_set_cipher_list(ctx, 
         /*"ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH"*/ 

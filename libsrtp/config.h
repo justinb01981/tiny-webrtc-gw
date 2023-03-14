@@ -1,10 +1,10 @@
 /* clang-format off */
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_VERSION "2.4.0"
+#define PACKAGE_VERSION "2.6.0"
 
 /* Define to the version of this package. */
-#define PACKAGE_STRING "libsrtp2 2.4.0"
+#define PACKAGE_STRING "libsrtp2 2.6.0"
 
 /* Define to enabled debug logging for all mudules. */
 /* #undef ENABLE_DEBUG_LOGGING */
@@ -17,6 +17,12 @@
 
 /* Define this to use OpenSSL crypto. */
 /* #undef OPENSSL */
+
+/* Define this to use MBEDTLS. */
+/* #undef MBEDTLS */
+
+/* Define this to use NSS crypto. */
+/* #undef NSS */
 
 /* Define this to use AES-GCM. */
 /* #undef GCM */
@@ -75,6 +81,9 @@
 
 /* Define to 1 if you have the `inet_aton' function. */
 #define HAVE_INET_ATON 1
+
+/* Define to 1 if you have the `inet_pton' function. */
+#define HAVE_INET_PTON 1
 
 /* Define to 1 if you have the `sigaction' function. */
 #define HAVE_SIGACTION 1

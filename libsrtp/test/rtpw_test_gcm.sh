@@ -58,18 +58,19 @@ case $(uname -s) in
 esac
 
 RTPW=./rtpw$EXE
+[ -n "$MESON_EXE_WRAPPER" ] && RTPW="$MESON_EXE_WRAPPER $RTPW"
 DEST_PORT=9999
 DURATION=3
 
-# First, we run "killall" to get rid of all existing rtpw processes.
+# First, we run "pkill" to get rid of all existing rtpw processes.
 # This step also enables this script to clean up after itself; if this
 # script is interrupted after the rtpw processes are started but before
 # they are killed, those processes will linger.  Re-running the script
 # will get rid of them.
 
-killall rtpw 2>/dev/null
+pkill -x rtpw 2>/dev/null
 
-if test -x $RTPW; then
+if test -n $MESON_EXE_WRAPPER || test -x $RTPW; then
 
 GCMARGS128="-k 01234567890123456789012345678901234567890123456789012345 -g -e 128"
 echo  $0 ": starting GCM mode 128-bit rtpw receiver process... "

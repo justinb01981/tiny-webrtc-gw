@@ -147,9 +147,11 @@ extern volatile char sdp_file_prefix[64];
 extern volatile char sdp_file_prefix_offer[64];
 
 int sdp_prefix_set(const char* prefix) { strcpy(sdp_file_prefix, prefix); return 1; }
+/*
 char* get_offer_sdp(char* val) { return get_sdp_idx_file(sdp_file_prefix_offer, "sdp_offer.txt", val, 0, NULL); }
 char* get_offer_sdp_idx(char* val, unsigned int idx) { return get_sdp_idx_file(sdp_file_prefix_offer, "sdp_offer.txt", val, idx, NULL); }
 char* get_offer_sdp_idx2(char* val, unsigned int idx, char* begin_key) { return get_sdp_idx_file(sdp_file_prefix_offer, "sdp_offer.txt", val, idx, begin_key); }
+*/
 char* get_answer_sdp(char* val) { return get_sdp_idx_file(sdp_file_prefix, FILENAME_SDP_ANSWER, val, 0, NULL); }
 char* get_answer_sdp_idx(char* val, unsigned int idx) { return get_sdp_idx_file(sdp_file_prefix, FILENAME_SDP_ANSWER, val, idx, NULL); }
 char* get_answer_sdp_idx2(char* val, unsigned int idx, char* begin_key) { return get_sdp_idx_file(sdp_file_prefix, FILENAME_SDP_ANSWER, val, idx, begin_key); }
