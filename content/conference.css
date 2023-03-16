@@ -1,5 +1,5 @@
 body.outerBody {
-    color: green;
+    color: white;
     margin:8%;
 }
 
@@ -42,35 +42,32 @@ table.videoMainContainer {
     border-width:2px;
     overflow:hide;
     table-layout:auto;
-    background-color:black;
+    background-color:transparent;
     border-color:gray;
 }
 
 video {
-    width:100%;
-    height:100%;
     controls:true;
     object-fit:contain;
-    /*aspect-ratio:4/3;*/
 }
 
 table.localPreviewTable {
     border-width:2;
     overflow:hidden;
     table-layout:auto;
+    border-color:white;
     background-color:black;
-    border-color:gray;
-    width:128px;
-    height:96px;
 }
 
 video.videoMain {
+    min-width:320px;
+    max-width:1024px;
     object-fit:contain;
-    z-index: 1;
 }
 
 video.videoLocal {
-    height:10%;
+    width:128px;
+    height:72px;
 }
 
 video.videoChild {
@@ -80,10 +77,9 @@ t.videoNameText {
 }
 
 p.videoLabel {
-    font-family:monospace;
-    background-color:black;
-    color:green;
-    width:100px;
+    background-color:transparent;
+    color:white;
+    width:200px;
 }
 
 div.localPreview {
@@ -103,9 +99,9 @@ div.videoContainerDiv {
 }
 
 div.videoContainerFake {
-  background-color: white;
+  background-color: transparent;
   border-width:2px;
-  border-color:gray;
+  border-color:white;
 }
 
 div.topDiv {
@@ -118,8 +114,7 @@ p.controlsPara {
     left:0%;
     width:100%;
     height:0px;
-    background-color: white;
-    z-index: 2;
+    background-color:black;
     height:10%;
 }
 
@@ -182,7 +177,7 @@ select.selectUser {
 
 iframe.chatFrame {
     border-width:2px;
-    overflow:hidden;
+    overflow:scroll;
     width:100%;
     height:100%
 }
@@ -196,8 +191,15 @@ body.chatIframeBody {
     to {background-color: white;}
 }
 
+li.chatListElemLow {
+    background-color: transparent;
+    color:gray;
+}
+
+
 li.chatListElem {
     background-color: transparent;
+    color:white;
 }
 
 ul.chatLogParent {
@@ -206,4 +208,10 @@ ul.chatLogParent {
   padding-left:0;
   list-style:none;
   overflow:hidden;
+}
+
+img.backgroundImage {
+    width:128;
+    height:128;
+    z-index:3;
 }

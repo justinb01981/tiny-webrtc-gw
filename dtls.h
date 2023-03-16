@@ -3,6 +3,8 @@
 
 #include "stun_responder.h"
 
+#define DTLS_MAX_CERT_SIZE (8000)
+
 const unsigned int dtls_frame_head_len = 13;
 
 extern char* dtls_fingerprint;

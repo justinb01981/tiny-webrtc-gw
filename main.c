@@ -400,7 +400,7 @@ connection_worker(void* p)
     u32 answer_ssrc[PEER_RTP_CTX_WRITE] = {0, 0};
     u32 offer_ssrc[PEER_RTP_CTX_WRITE] = {0, 0};
     char str256[256];
-    char dtls_buf[8000];
+    char dtls_buf[DTLS_MAX_CERT_SIZE];
     int nrecv, nwait = 0;
     int flush_outbuf_overrun = 0;
     int awaitStun = 16;
@@ -449,6 +449,9 @@ connection_worker(void* p)
 
     peer->subscriptionID = /*peer->id*/ PEER_IDX_INVALID;
 
+    // TODO: -- make sure to handle case where this peer name is already in our peers table
+    // -- cant rely on frontend to block the user
+
     char* my_name = PEER_ANSWER_SDP_GET_ICE(peer, "a=myname=", 0);
     sprintf(peer->name, "%s%s", my_name, peer->recv_only ? "(watch)": "");
 
@@ -460,11 +463,6 @@ connection_worker(void* p)
     char* room_name = PEER_ANSWER_SDP_GET_ICE(peer, "a=roomname=", 0);
     sprintf(peer->roomname, "%s", room_name);
 
-    if(strcmp(peer->roomname, "mirror") == 0)
-    {
-        peer->subscriptionID = peer->id;
-    }
-
     /*
     snprintf(str256, sizeof(str256)-1,
         "server:%s %s in %s\n",
@@ -475,6 +473,7 @@ connection_worker(void* p)
     */
     chatlog_append("");
 
+    int foundx = -1;
     for(incoming = 1; incoming >= 0; incoming--)
     for(si = 0; si < MAX_PEERS; si++)
     {
@@ -491,25 +490,33 @@ connection_worker(void* p)
                     // schedule picutre-loss-indicator (full-frame-refresh
                     for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_COUNT; rtp_idx++)
                     {
-                        peer->srtp[rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL - 1);
+                        peers[si].srtp[rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL*10/8); // move up
                     }
-                    break;
+
+                    foundx = si;
                 }
             }
             else
             {
                 // connect any peers waiting for one matching this name
                 if(!peer->recv_only &&
-                   peers[si].subscriptionID == PEER_IDX_INVALID &&
+                   //peers[si].subscriptionID == PEER_IDX_INVALID &&
+                   !peers[si].send_only &&
                    strcmp(peers[si].watchname, peer->name) == 0)
                 {
                     printf("idle peer %d subscribed to peer %s\n", PEER_INDEX(peer), peers[si].watchname);
+
+
+                    // THIS IS DEAD REMOVE ME
+                    assert(0);
+
+
                     // also connect opposing/waiting peer (probably no matter since stream is incoming)
                     peers[si].subscriptionID = PEER_INDEX(peer);
                     // schedule picture-loss-indicator
                     for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_COUNT; rtp_idx++)
                     {
-                        peers[si].srtp[rtp_idx].pli_last = time_ms -  (RTP_PICT_LOSS_INDICATOR_INTERVAL-1); 
+                        peer->srtp[rtp_idx].pli_last = time_ms -  (RTP_PICT_LOSS_INDICATOR_INTERVAL*10/8); 
                     }
                 }
             }
@@ -1656,10 +1663,10 @@ int main( int argc, char* argv[] ) {
         if(!node)
         {
             // TODO: very hard to do but I did hit the below assert when this happened so i
+            peers[sidx].in_buffers_head.tail = peers[sidx].in_buffers_head.next;
+            PEER_UNLOCK(sidx);
             printf("epoll_memcpy: in_buffers_head.tail = 0!  (TODO: SHOULDNT HAPPEN unless this is a tolerable race cond?)\n");
-            node = peers[sidx].in_buffers_head.tail = peers[sidx].in_buffers_head.next;
-
-            assert(peers[sidx].in_buffers_head.tail);
+            goto select_timeout;
         }
 
         // sanity check
@@ -1774,16 +1781,16 @@ int main( int argc, char* argv[] ) {
 
                 int s;
 
-                printf("%s:%d timeout/reclaim peer %d\n", __func__, __LINE__, i);
+                printf("%s:%d %s peer %d\n", __func__, __LINE__, timed_out ? "timeout" : "reclaim", i);
 
                 //sprintf(strbuf, "%s ", peers[i].name);
                 //chatlog_append(strbuf);
 
                 /* TODO: reset all this peer's subscribers? */
+                PEER_UNLOCK(i);
                 for(s = 0; s < MAX_PEERS; s++) {
                     peer_session_t* peer = &peers[s];
-
-                    if(s == peer->id) continue;
+                    if(peer->id == i) continue;
 
                     PEER_LOCK(s);
 
@@ -1800,6 +1807,7 @@ int main( int argc, char* argv[] ) {
                     }
                     PEER_UNLOCK(s);
                 }
+                PEER_LOCK(i);
 
                 DTLS_peer_uninit(&peers[i]);
                 memset(&peers[i].dtls, 0, sizeof(peers[i].dtls));

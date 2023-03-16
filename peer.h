@@ -318,6 +318,12 @@ void peer_buffers_uninit(peer_session_t* peer)
     peer_buffer_node_list_free_all(&peer->in_buffers_head);
 }
 
+static void peer_cb_restart_crash(peer_session_t *p)
+{
+    printf("SHOULDNT HAPPEN impossible!: peer_cb_restart_crash\n");
+    p->time_pkt_last = 0;
+}
+
 void peer_init(peer_session_t* peer, int id)
 {
     peer->id = id;
@@ -338,6 +344,8 @@ void peer_init(peer_session_t* peer, int id)
     peer->time_pkt_last = get_time_ms();
     
     peer_cookie_init(peer, "");
+
+    peer->cb_restart = peer_cb_restart_crash;
 
     sprintf(peer->http.dynamic_js, "%s", PEER_DYNAMIC_JS_EMPTY);
 }
@@ -368,7 +376,7 @@ void
 peer_buffer_node_list_init(peer_buffer_node_t* head)
 {
     memset(head, 0, sizeof(*head));
-    head->tail = head;
+    head->tail = head; // 0 len
     head->head_inited = 1;
     head->consumed = 1;
 }

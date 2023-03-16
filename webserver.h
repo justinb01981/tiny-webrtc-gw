@@ -236,6 +236,7 @@ webserver_worker(void* p)
     char *tag_sdp = "%$SDP_OFFER$%";
     char *tag_authcookie = "%$AUTHCOOKIE$%";
     char *tag_dtlsfingerprint = "%$DTLSFINGERPRINT$%";
+    char *tag_lobbyimage = "%$LOBBYIMAGEURL$%";
     const size_t buf_size = 4096;
     int use_user_fragment_prefix = 1;
     webserver_worker_args* args = (webserver_worker_args*) p;
@@ -671,6 +672,8 @@ webserver_worker(void* p)
                     response = macro_str_expand(response, tag_authcookie, cookieset);
 
                     response = macro_str_expand(response, tag_dtlsfingerprint, dtls_fingerprint);
+
+                    response = macro_str_expand(response, tag_lobbyimage, get_config("lobby_image="));
                 }
                 else
                 {
@@ -744,11 +747,13 @@ webserver_worker(void* p)
                         printf("webserver peer[%d] got SDP:\n%s\n", sidx, *sdp);
 
                         void cb_begin(peer_session_t* p) {
+
                             printf("peer[%d] we alive now chickenhead!\n", p->id);
                             // cxn_start is called by main epoll thread
 
                             // next time this peer restarts we are terminating (state) 
                             extern void cb_disconnect(peer_session_t*);
+
                             p->cb_restart = cb_disconnect;
                             p->time_pkt_last = get_time_ms();
 

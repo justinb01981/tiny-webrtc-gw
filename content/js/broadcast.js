@@ -467,21 +467,6 @@ function onBtnMakePresent(btn, userName) {
     vid.height = divPresenterClientHeight;
 }
 
-/*
-function prepareVideo(table, vidElem, target) {
-    // iframeConnectState: {selectedUser: null, selectedRoom: null, advancedSettings: false, onConnectVideo: null, joinMode: 'watch', awaiting: null, usersSubscribed: [], videoElem: null};
-
-    iframeConnectState.selectedUser = target;
-    iframeConnectState.joinMode = 'watch';
-    iframeConnectState.vidElem = vidElem;
-
-    // HACK: remove this peers row by refreshing iframe
-    iframeConnectState.usersSubscribed = iframeConnectState.usersSubscribed.filter(function(arg) { return arg != target });
-
-    connectIframe.document.location = connectIframe.document.location;
-}
-*/
-
 function deleteElementAfter(elem, parentOfElem, ms)
 {
    setTimeout(function f() {
@@ -576,7 +561,7 @@ function prepareVideo(containerTable, labelText)
     videoElemToAdd.parentRow = row;
     videoElemToAdd.stopButton = stopButton;
     videoElemToAdd.controlPara = paraToAdd;
-    videoElemToAdd.style.height = (window.document.body.clientHeight - 100) / 2;
+    //videoElemToAdd.style.height = (window.document.body.clientHeight - 100) / 2;
 
     // this closeAction will be replaced and called by the replacement (chained)
     videoElemToAdd.closeAction = function f() {
