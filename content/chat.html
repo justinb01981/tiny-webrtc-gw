@@ -89,28 +89,35 @@ function sendmsg() {
 </script>
 <body onload='onload();' class='chatIframeBody'>
 <table align='right' style='width:80%; height:100%;'>
-<tfoot>
-<tr>
-<td style='vertical-align:bottom;'>
-<form method=POST name="msgform" action="/chatmsg">
-<textarea name="msg" id="chatmsg" style='width:60%;'></textarea>
-<button style='width:60px; height:30px;' onclick='sendmsg();'>Send</button>
-</form>
-</td>
-<td align='left'>
-</td>
-</tr>
-</tfoot>
 <tbody>
 <tr>
 <td colspan=2>
     <ul id='chatloglist' colspan=2 class='chatLogParent'>
     </ul>
 </td>
-<td>
-</td>
 </tr>
 </tbody>
+
+<tfoot>
+<tr>
+<td style='vertical-align:bottom;'>
+<form method=POST name="msgform" action="/chatmsg">
+<table>
+    <tr>
+        <td>
+            <textarea name="msg" id="chatmsg" class='chat'></textarea>
+        </td>
+        <td>
+            <button class='chatsend' onclick='sendmsg();'>Send msg</button>
+            <p id='chatFooter'></p>
+        </td>
+    </tr>
+</form>
+</td>
+<td align='left'>
+</td>
+</tr>
+</tfoot>
 </table>
 
 <!-- refreshing iframe embed -->
@@ -118,8 +125,8 @@ function sendmsg() {
 <input type='checkbox' style='display:none' id='autorefresh_check' checked />
 <iframe src='content/chat_iframe.html' id='chatIFrame' style='display:none;'>
 </iframe>
+
 <!-- end refreshing iframe -->
 
-<p id='chatFooter'>&nbsp;</p>
 </body>
 </html>

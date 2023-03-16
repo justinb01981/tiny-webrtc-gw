@@ -481,8 +481,10 @@ connection_worker(void* p)
         {
             if(incoming)
             {
-                // connect this thread's peer
+                // connect us to peer[si] broadcast
                 if(strcmp(peers[si].name, peer->watchname) == 0 &&
+                   !peer->send_only &&
+                   peer->id != si &&
                    peer->subscriptionID == PEER_IDX_INVALID)
                 {
                     printf("incoming peer %d subscribed to peer %s\n", PEER_INDEX(peer), peer->watchname);
@@ -498,9 +500,10 @@ connection_worker(void* p)
             }
             else
             {
-                // connect any peers waiting for one matching this name
+                // connect any peers waiting for one matching this us
                 if(!peer->recv_only &&
-                   //peers[si].subscriptionID == PEER_IDX_INVALID &&
+                    // TODO: test if this can work? switching the source stream for a receiver?
+                   //peers[si].subscriptionID == PEER_IDX_INVALID && // overwrite if we reconnect? probably wont work - 
                    !peers[si].send_only &&
                    strcmp(peers[si].watchname, peer->name) == 0)
                 {

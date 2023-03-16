@@ -1,22 +1,24 @@
-body.outerBody {
-    color: white;
-    margin:8%;
-}
-
-p {
-  font-family:monospace;
-  font-size:12pt;
-}
 
 h1 {
     color: navy;
     margin-left: 20px;
 }
 
-td {
+button {
+    font-size: large;
 }
 
-td.chat {
+select {
+    font-size: large;
+}
+
+td {
+    font-size: large;
+}
+
+body.outerBody {
+    color: white;
+    margin:8%;
     border-collapse: collapse;
     height: 20%;
 }
@@ -35,7 +37,11 @@ tr.chatRow {
 table.mainTable {
     table-layout:auto;
     background-color:#000000f2;
+    background-image: url(%$LOBBYIMAGEURL$%);
+    background-repeat:no-repeat;
+    background-size:100%;
     width: 98%;
+    font-size:large;
 }
 
 table.videoMainContainer {
@@ -211,7 +217,28 @@ ul.chatLogParent {
 }
 
 img.backgroundImage {
-    width:128;
-    height:128;
-    z-index:3;
+    position: absolute;
+    width:80%;
+    height:80%;
+    z-index:-3;
+}
+
+.col-container {
+    display: flex;
+    width: 100%;
+}
+
+.col {
+    flex: 1;
+}
+
+textarea.chat {
+    background-color:#ffffff88;
+    width:326px;
+    height:24px;
+}
+
+button.chatsend {
+    width:64px;
+    height:24px;
 }
