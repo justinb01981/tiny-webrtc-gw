@@ -194,7 +194,7 @@ void setupSTUN(void* voidp) {
     //*sdp = NULL;
 
     // mark -- signal/wait for peer to be initialized
-    p->time_pkt_last = time(NULL);
+    p->time_pkt_last = get_time_ms();
 }
 
 int cb_done;
@@ -467,7 +467,7 @@ webserver_worker(void* p)
 
                         peer_init(&peers[sidx], sidx);
 
-                        peers[sidx].time_pkt_last = time(NULL);
+                        peers[sidx].time_pkt_last = get_time_ms();
 
                         peer_cookie_init(&peers[sidx], cookie);
                         strcpy((char*) &peers[sidx].name, str_read_unsafe(url_args, "name=", 0));
@@ -750,7 +750,7 @@ webserver_worker(void* p)
                             // next time this peer restarts we are terminating (state) 
                             extern void cb_disconnect(peer_session_t*);
                             p->cb_restart = cb_disconnect;
-                            p->time_pkt_last = time(NULL);
+                            p->time_pkt_last = get_time_ms();
 
                             cb_done = 1;
                             p->alive = 1;

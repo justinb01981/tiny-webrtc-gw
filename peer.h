@@ -34,7 +34,6 @@
 
 extern char* dtls_fingerprint;
 
-
 // TODO: artififially low to smooth jitter calculations and prevent bursts + more fairly schedule?
 #define RECVMSG_NUM (128)
 
@@ -192,7 +191,7 @@ typedef struct peer_session_t
     int sock;
     int port;
 
-    time_t time_pkt_last;
+    unsigned long time_pkt_last;
     time_t time_cleanup_last;
     time_t time_start;
     time_t time_http_last;
@@ -336,7 +335,7 @@ void peer_init(peer_session_t* peer, int id)
 
     peer->time_start = time(NULL);
     peer->timeout_sec = PEER_TIMEOUT_DEFAULT;
-    peer->time_pkt_last = time(NULL);
+    peer->time_pkt_last = get_time_ms();
     
     peer_cookie_init(peer, "");
 

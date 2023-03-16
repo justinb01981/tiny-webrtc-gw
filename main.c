@@ -1574,7 +1574,7 @@ int main( int argc, char* argv[] ) {
             {
                 sidx = i;
                 //printf("incoming: (%s:%d) / %d\n",inet_ntoa(src.sin_addr), ntohs(src.sin_port),  sidx);
-                peers[sidx].time_pkt_last = wall_time;
+                peers[sidx].time_pkt_last = time_ms;
                 break;
             }
         }
@@ -1655,11 +1655,11 @@ int main( int argc, char* argv[] ) {
         node = peers[sidx].in_buffers_head.tail;
         if(!node)
         {
-            PEER_UNLOCK(sidx);
             // TODO: very hard to do but I did hit the below assert when this happened so i
             printf("epoll_memcpy: in_buffers_head.tail = 0!  (TODO: SHOULDNT HAPPEN unless this is a tolerable race cond?)\n");
-            peers[sidx].in_buffers_head.tail = peers[sidx].in_buffers_head.next;
-            goto select_timeout;
+            node = peers[sidx].in_buffers_head.tail = peers[sidx].in_buffers_head.next;
+
+            assert(peers[sidx].in_buffers_head.tail);
         }
 
         // sanity check
@@ -1759,7 +1759,9 @@ int main( int argc, char* argv[] ) {
             int log_user_exit = !peers[i].init_needed;
             
             // close reinit if alive and stalled traffic
-            int timed_out = (peers[i].alive && wall_time - peers[i].time_pkt_last >= peers[i].timeout_sec);
+            int timed_out = (peers[i].alive && (get_time_ms() - peers[i].time_pkt_last) / 1000 >= peers[i].timeout_sec);
+            if(timed_out) printf("[%d] timed out: %lu\n", i, peers[i].time_pkt_last);
+
             peers[i].init_needed = peers[i].init_needed | timed_out;
 
             // check whether to reinit this peer
@@ -1847,14 +1849,13 @@ int main( int argc, char* argv[] ) {
 
                     assert(!peers[i].running);
                     printf("...stopped\n");
-
-                    // leave unlocked if not alive
                 }
 
                 peers[i].cb_restart(&peers[i]);
                 printf("restart_done[%d]: = 1 ..", i);
             }
 
+            // depending on whether we have just re-initialized or disconnected (alive=0) a peer..
             if(peers[i].alive) PEER_UNLOCK(i);
 
             i++;
