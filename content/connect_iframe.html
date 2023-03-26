@@ -97,12 +97,21 @@ function connectIFrameOnLoad(htmlBodyElem)
     for(let p = 0; p < peerList.length; p++)
     {
       var name = peerList[p]['name'];
+      var watchplaceholder = false;
 
-      if(peerList[p]['recvonly'] ||
-         state.selectedRoom != peerList[p]['room'])
+      if(
+          peerList[p]['recvonly'] || // disabing so we can see placeholder rows
+          state.selectedRoom != peerList[p]['room']
+         )
       {
         continue;
       }
+
+      // TODO: this is unfinished
+      //if(peerList[p]['recvonly']) 
+      //{
+      //    watchplaceholder = true;
+      //}
 
       let option = document.createElement('option');
       option.value = name;
@@ -129,12 +138,20 @@ function connectIFrameOnLoad(htmlBodyElem)
         // add this user
         state.usersSubscribed.push(name);
         state.selectedUser = name;
-        window.parent.prepareVideo(videoTable, name);
+
+        if(watchplaceholder)
+        {
+            window.parent.prepareVideoPlaceholder(videoTable, name);
+        }
+        else
+        {
+            window.parent.prepareVideo(videoTable, name);
+        }
 
         console.debug('TODO: assert onJoin during connect_iframe onLoad');
 
         onJoin();
-      }, 500);
+      }, 500 - 5*p);
 
         
       break;
@@ -179,6 +196,8 @@ function connectIFrameOnLoad(htmlBodyElem)
       if(p > 0) p--;
     }
   }
+
+  window.parent.updateViewersLabel();
 }
 
 // bear in-mind this is called every time the connect_iframe refreshes

@@ -12,9 +12,13 @@
 
 #define PEER_RTP_CTX_COUNT 8
 #define PEER_RTP_CTX_WRITE 4
-
-//#define PEER_RTP_SEQ_MIN_RECLAIMABLE 128
-#define PEER_RTP_SEQ_MIN_RECLAIMABLE 0
+#define PEER_RTP_CTXALL_INIT {0, 0, 0, 0, 0, 0, 0, 0} \
+ \
+    int i;                                      \
+    for(i = 0; i < PEER_RTP_CTX_COUNT; i++) {   \
+        x[i] = 0;                               \
+    }                                           \
+}
 
 #define PEER_LOCK(j) { pthread_mutex_lock(&peers[(int) (j)].mutex); }
 #define PEER_UNLOCK(j) { pthread_mutex_unlock(&peers[(j)].mutex); }
@@ -27,10 +31,12 @@
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 8000
 #define PEER_RECV_BUFFER_COUNT_MS (200)
-#define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*4)
-#define RTP_PICT_LOSS_INDICATOR_INTERVAL 10000
+#define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*8) // 4k pkt/sec sounds good
+#define RTP_PICT_LOSS_INDICATOR_INTERVAL 30000
+#define PEER_STAT_TS_WIN_LEN 32
 
-#define EPOLL_TIMEOUT_MS 5
+// this magic number influences the pace epoll/recvmmsg takes packets in - started with 5 trying lower values to see if that helps even out streams
+#define EPOLL_TIMEOUT_MS 3
 
 extern char* dtls_fingerprint;
 
@@ -106,10 +112,8 @@ typedef struct {
     unsigned long timestamp_subscription;
     u16 seq_counter;
     int inited;
-    u32 ts_last_unprotect;
+
     int ffwd_done;
-    unsigned long recv_time_avg;
-    unsigned long ts_last;
     u32 recv_report_seqlast;
     u32 recv_report_tslast;
     unsigned long last_sr;
@@ -249,6 +253,11 @@ typedef struct peer_session_t
     int underrun_signal;
     int pad4[256];
 
+    u32 ts_last_unprotect[PEER_STAT_TS_WIN_LEN];
+    u32 time_last_unprotect[PEER_STAT_TS_WIN_LEN];
+    u32 ts_logn;
+    u32 ts_win_avg;
+
 } peer_session_t;
 
 const static int PEER_TIMEOUT_DEFAULT = 20;
@@ -334,7 +343,6 @@ void peer_init(peer_session_t* peer, int id)
     peer->stun_ice.bound = peer->stun_ice.bound_client = 0;
 
     peer->srtp_inited = peer->dtls.connected = peer->cleartext.len = /* peer->alive = */ peer->init_needed = peer->underrun_signal = 0;
-    //peer->thread_inited = 0;
 
     peer->subscriptionID = PEER_IDX_INVALID;
     peer->broadcastingID = PEER_IDX_INVALID;
@@ -342,6 +350,7 @@ void peer_init(peer_session_t* peer, int id)
     peer->time_start = time(NULL);
     peer->timeout_sec = PEER_TIMEOUT_DEFAULT;
     peer->time_pkt_last = get_time_ms();
+    peer->time_last_run = 0;
     
     peer_cookie_init(peer, "");
 
@@ -451,11 +460,6 @@ int peer_rtp_buffer_reclaimable(peer_session_t* peer, int rtp_idx) {
     return 1;
 }
 
-u32 peer_offer_ssrc(unsigned int idx_peer, unsigned int sdp_idx)
-{
-    
-}
-
 int peer_stun_init(peer_session_t* peer)
 {
     peer->stun_ice.controller = peer->stun_ice.bound = 0;
@@ -468,7 +472,6 @@ int peer_stun_bound(peer_session_t* peer)
 
 const char* sdp_offer_create(peer_session_t* peer)
 {
-
     /*
      "\"a=rtpmap:8 PCMA/8000\\n\" + \n"
      "\"a=setup:actpass\\n\" + \n"

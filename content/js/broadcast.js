@@ -275,6 +275,12 @@ function parseURLArguments() {
 
         roomField.value = room;
         frameChild.contentWindow.onOK();
+
+        let vidcbox = document.getElementById('enableVideoCheckbox');
+        vidcbox.onclick = function () { 
+            // TODO: strip away room arguments so next load will init camera correctly
+            console.debug('enableVideoCheckbox checked reloading page...');
+        };
     }
 }
 
@@ -526,17 +532,6 @@ function prepareVideo(containerTable, labelText)
         }
     }
 
-    // TODO: this replaces the video elem with a fresh one (removing because restart not necessary
-    /*
-    retryButton.onclick = function() {
-        console.debug('retry clicked '+labelText);
-
-        let preparedVid = videoElemToAdd;
-        reprepareVideo(containerTable, preparedVid, labelText);
-        videoElemToAdd.closeAction();
-    }
-    */
-
     loadingButton.appendChild(document.createTextNode('loading... please wait'));
     deleteElementAfter(loadingButton, videoContainer, 5000);
 
@@ -561,7 +556,7 @@ function prepareVideo(containerTable, labelText)
     videoElemToAdd.parentRow = row;
     videoElemToAdd.stopButton = stopButton;
     videoElemToAdd.controlPara = paraToAdd;
-    //videoElemToAdd.style.height = (window.document.body.clientHeight - 100) / 2;
+    videoElemToAdd.style.width = (window.document.body.clientWidth - 100);
 
     // this closeAction will be replaced and called by the replacement (chained)
     videoElemToAdd.closeAction = function f() {
@@ -576,6 +571,21 @@ function prepareVideo(containerTable, labelText)
     hideRoomEmptyLabel();
 
     return row;
+}
+
+function prepareVideoPlaceholder(containerTable, labelText) {
+
+    prepareVideo(containerTable, labelText);
+    let vidElem = iframeConnectState.videoElem;
+    let par = vidElem.parentNode;
+
+    par.removeChild(vidElem);
+
+    var phButton = document.createElement('button');
+
+    phButton.class = 'phButton';
+    phButton.appendChild(document.createTextNode('👀'));
+    par.appendChild(phButton);
 }
 
 function rowForVideo(videoElem)
