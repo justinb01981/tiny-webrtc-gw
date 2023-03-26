@@ -31,9 +31,9 @@
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 8000
 #define PEER_RECV_BUFFER_COUNT_MS (200)
-#define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*8) // 4k pkt/sec sounds good
+#define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*4) // 4k pkt/sec sounds good
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 30000
-#define PEER_STAT_TS_WIN_LEN 32
+#define PEER_STAT_TS_WIN_LEN 16
 
 // this magic number influences the pace epoll/recvmmsg takes packets in - started with 5 trying lower values to see if that helps even out streams
 #define EPOLL_TIMEOUT_MS 3
@@ -273,6 +273,8 @@ typedef struct {
 } sdp_offer_table_t;
 
 extern sdp_offer_table_t sdp_offer_table;
+
+pthread_mutex_t peers_offers_mutex;
 
 extern unsigned long get_time_ms();
 
@@ -650,6 +652,9 @@ const char* sdp_offer_create_apprtc(peer_session_t* peer)
 const char* sdp_offer_find(const char* ufrag, const char* ufrag_answer)
 {
     static char sdp_offer_find_buf[256];
+
+    memset(sdp_offer_find_buf, 0, sizeof(sdp_offer_find_buf));
+
     int i;
     for(i = 0; i < MAX_PEERS; i++)
     {

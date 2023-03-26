@@ -32,6 +32,8 @@ static time_t g_chatlog_ts;
 
 static char* g_sdp;
 
+static pthread_mutex_t webmtx;
+
 extern int sdp_prefix_set(const char*);
 
 struct webserver_state {
@@ -414,13 +416,14 @@ webserver_worker(void* p)
 
                 if(!cmd_post)
                 {
-                    sprintf(path, "./%s", purl);
+                    if(strcmp(purl, "/") == 0) strcpy(path, "index.html");
+                    else sprintf(path, "./%s", purl);
                      
                     file_buf = file_read(path, &file_buf_len);
 
                     //printf("%s:%d webserver GET for file (%s):\n\t%s\n", __func__, __LINE__, file_buf? "": "failed", path);
 
-                    if(!file_buf || strcmp(purl, "/") == 0)
+                    if(!file_buf)
                     {
                         if(file_buf)
                         {
@@ -439,13 +442,13 @@ webserver_worker(void* p)
                         response = file_buf;
                         file_buf = NULL;
 
-                        if(strstr(purl, ".js")) content_type = "Content-Type: text/javascript\r\n\r\n";
-                        else if(strstr(purl, ".html")) content_type = content_type_html;
-                        else if(strstr(purl, ".css")) content_type = "Content-Type: text/css\r\n\r\n";
-                        else if(strstr(purl, ".jpg")) { response_binary = 1; content_type = "Content-Type: image/jpeg\r\n\r\n"; }
-                        else if(strstr(purl, ".gif")) { response_binary = 1; content_type = "Content-Type: image/gif\r\n\r\n"; }
-                        else if(strstr(purl, ".png")) { response_binary = 1; content_type = "Content-Type: image/png\r\n\r\n"; }
-                        else if(strstr(purl, tag_watchuser)) content_type = content_type_html;
+                        if(strstr(path, ".js")) content_type = "Content-Type: text/javascript\r\n\r\n";
+                        else if(strstr(path, ".html")) content_type = content_type_html;
+                        else if(strstr(path, ".css")) content_type = "Content-Type: text/css\r\n\r\n";
+                        else if(strstr(path, ".jpg")) { response_binary = 1; content_type = "Content-Type: image/jpeg\r\n\r\n"; }
+                        else if(strstr(path, ".gif")) { response_binary = 1; content_type = "Content-Type: image/gif\r\n\r\n"; }
+                        else if(strstr(path, ".png")) { response_binary = 1; content_type = "Content-Type: image/png\r\n\r\n"; }
+                        else if(strstr(path, tag_watchuser)) content_type = content_type_html;
                         else content_type = content_type = "Content-Type: application/octet-stream\r\n\r\n";
                     }
 
@@ -627,9 +630,13 @@ webserver_worker(void* p)
 
                     if(strstr(response, tag_sdp))
                     {
+                        pthread_mutex_lock(&webmtx);
+
                         // MARK: -- sdp offer created here
                         char* offer = sdp_offer_create(peer_found_via_cookie);
                         response = macro_str_expand(response, tag_sdp, offer);
+
+                        pthread_mutex_unlock(&webmtx);
                     }
 
                     if(strstr(response, tag_chatlogjs))
@@ -865,6 +872,8 @@ void webserver_init()
 {
     webserver.running = 1;
     webserver.peer_idx_next = 0;
+
+    pthread_mutex_init(&webmtx, NULL);
 }
 
 void webserver_deinit(pthread_t thread)

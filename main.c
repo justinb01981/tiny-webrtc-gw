@@ -1320,6 +1320,7 @@ connection_worker(void* p)
             u32 tswin_avg = 0;
             u32 tswin_rng = 0;
             u32 time_avg = 0;
+            u32 size_avg = 0;
             u32 rmin = 0xffffffff, rmax = 1;
 
             for(int i = 1; i < PEER_STAT_TS_WIN_LEN; i++) {
@@ -1331,14 +1332,14 @@ connection_worker(void* p)
 
             tswin_rng = rmax-rmin; // this is pretty useless since not representative to bitrate? 
 
-            if(tswin_avg > 0)
+            if(tswin_rng > 0)
             {
-                float br = (float) tswin_rng / tswin_avg;
-                long paverage = tswin_rng / tswin_avg;
+                float br = (float) tswin_avg / tswin_rng;
+                long paverage = tswin_avg / tswin_rng;
 
-                if(counter % PEER_STAT_TS_WIN_LEN == 0 && peer->id == 0) printf("Wtimestamps[%d]: ts_win/time %u %u %f\n",  peer->id, tswin_avg, time_avg, br);
+                //if(counter % PEER_STAT_TS_WIN_LEN == 0 && peer->id == 0) printf("Wtimestamps[%d]: ts_win/time %u %u %f\n",  peer->id, tswin_avg, time_avg, br);
 
-                if(paverage > peer->ts_win_avg)
+                if(paverage < peer->ts_win_avg)
                 {
                     // bit rate dropped, throttle back
                     Mthrottle = 1;
@@ -1385,10 +1386,14 @@ void sigint_handler(int sig)
 }
 
 void cb_disconnect(peer_session_t* p) {
-    printf("cb_disconnect!\n");
-    p->alive = 0;
-    memset(&p->stun_ice, 0, sizeof(p->stun_ice));
-    p->time_pkt_last = 0;
+    printf("cb_disconnect! peer:%02x %d\n", (void*) p, p->id);
+
+    // everything unnecessary here since peer is already re-inited
+    // but in cb_restart the callback can decide whether to alive
+    //p->alive = 0; // unnecessary
+    //memset(&p->stun_ice, 0, sizeof(p->stun_ice));
+    //p->stun_ice.bound = p->stun_ice.bound_client = 0; // already done as well
+    //p->time_pkt_last = 0;
 }
 
 
