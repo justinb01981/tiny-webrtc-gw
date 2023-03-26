@@ -1,10 +1,10 @@
 # port for webserver to listen on
-webserver_port=8008
+webserver_port=8010
 
 # the address of the interface to listen on (ifconfig)
 # 0.0.0.0 won't work
 # MUST FILL THIS VALUE IN WITH THE SERVER IP ADDRESS PRESENTED VIA STUN
-udpserver_addr=
+udpserver_addr=157.131.77.127
 
 # this server will masquerade as a STUN server, so use STUN port (by default)...if behind a NAT, this is one port you need to forward to this server
 udpserver_port=3478
@@ -18,3 +18,4 @@ udp_read_timeout_usec=16
 udp_peer_write_interval=4
 #bullshit, for now
 udp_max_peers=16
+lobby_image=https://images.squarespace-cdn.com/content/v1/57825361440243db4a4b7830/c36fde11-b568-4381-b631-d492ba2788fa/Deathburger-artwork2.jpeg?format=500w
