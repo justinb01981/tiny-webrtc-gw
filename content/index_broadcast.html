@@ -122,11 +122,19 @@ var joinPopupCloseDone = function(videoElem) {
     }
 }
 
-function updateViewersLabel() {
+function updateViewersLabel(withpeers) {
+    // hack: wait till after refresh to update
     let v = document.getElementById('viewersTd');
     v.innerHTML = '';
-    let t = document.createTextNode('viewers: '+peerList.length+'<')
+    let t = document.createTextNode('streams: '+withpeers.length+' ')
     v.appendChild(t);
+
+    let n = withpeers.filter(function(peer) {
+        console.debug('debugpeerList:'+peer);
+        if(!peer.sendonly) return true;
+        return false;
+    });
+    console.debug('updateViewersLabel:'+withpeers.length+' peers');
 }
 
 var chatLinkClicked = function(elem) {

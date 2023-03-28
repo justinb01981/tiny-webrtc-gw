@@ -151,9 +151,8 @@ function connectIFrameOnLoad(htmlBodyElem)
         console.debug('TODO: assert onJoin during connect_iframe onLoad');
 
         onJoin();
-      }, 500 - 5*p);
+      }, 100 + 5 * p);
 
-        
       break;
     }
 
@@ -196,8 +195,6 @@ function connectIFrameOnLoad(htmlBodyElem)
       if(p > 0) p--;
     }
   }
-
-  window.parent.updateViewersLabel();
 }
 
 // bear in-mind this is called every time the connect_iframe refreshes

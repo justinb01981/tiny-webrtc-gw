@@ -929,7 +929,7 @@ connection_worker(void* p)
                                 long ts_offset_delta = (long) sr_delay_delta - sr_delta;
 
                                 //if(ts_offset_delta > 0) 
-                                //    printf("peer[%d] ts_offset_chg:%ld - jitter_chg:%ld J/T:%ld",
+                                //    printf("peer[%d] ts_offset_chg:%lu - jitter_chg:%ld J/T:%lu",
                                 //        peer->id,
                                 //        ts_offset_delta, jitter_delta, jitter_delta/ts_offset_delta);
 
@@ -959,12 +959,13 @@ connection_worker(void* p)
                                     peer_session_t* peerpub = &peers[peer->subscriptionID];
                                     peerpub->underrun_signal = 1;
 
-                                    printf("WARN: peer reports stream underrun (jitter).. signal underrun (adjusting backlog: %u)\n");
-                                    // treat this as temporary pkt loss but increase buffer temporarily
+                                    printf("WARN: peer reports stream underrun (pkt loss or jitter)\n");
 
                                     if(!peer->alive) { printf("cxn_worker: race cond during RR pkt loss\n"); assert(0); break; }
 
                                     peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-1); // force picture loss
+
+                                    // TODO: flush faster ?
                                 }
 
                                 peer->srtp[report_rtp_idx].pkt_lost = rpt_pkt_lost;
@@ -973,6 +974,8 @@ connection_worker(void* p)
                                 peer->srtp[report_rtp_idx].receiver_report_jitter_last = jitter;
                                 peer->srtp[report_rtp_idx].receiver_report_sr_delay_last = sr_delay;
                                 peer->srtp[report_rtp_idx].receiver_report_sr_last = last_sr;
+
+                                //if(peer->ts_logn > 0) printf("RR:last_sr_timestamp - time_last_unprotect (%lu)\n", peer->ts_last_unprotect[peer->ts_logn-1] - ntohl(report->blocks[issrc].last_sr_timestamp));
 
                                 issrc ++;
                             }
@@ -1125,6 +1128,7 @@ connection_worker(void* p)
                         unsigned int *idx = &peer->ts_logn;
                         peer->ts_last_unprotect[*idx] = ntohl(rtpFrame->hdr.timestamp);
                         peer->time_last_unprotect[*idx] = time_ms;
+                        peer->len_last_unprotect[*idx] = unprotect_len;
                         *idx = (*idx+1) % PEER_STAT_TS_WIN_LEN;
 
                         static int bscounter;
@@ -1301,7 +1305,7 @@ connection_worker(void* p)
 
         // this controls both the ultimate latency and bit rate the stream aims at and I havent figured out the tradeoff
 
-        if(/*buffering_until <= get_time_ms()*/ counter % PEER_STAT_TS_WIN_LEN == 0 && !peer->recv_only)
+        if(/*buffering_until <= get_time_ms()*/ !peer->recv_only)
         {
             // stick with this decision for some t (100ms as a baseline is working very very well with <200ms lag)
             buffering_until = get_time_ms() + PEER_RECV_BUFFER_COUNT_MS/4; // TODO: arbitrary window size
@@ -1321,25 +1325,29 @@ connection_worker(void* p)
             u32 tswin_rng = 0;
             u32 time_avg = 0;
             u32 size_avg = 0;
+            u32 tswin_bytes = 0;
             u32 rmin = 0xffffffff, rmax = 1;
 
             for(int i = 1; i < PEER_STAT_TS_WIN_LEN; i++) {
-                tswin_avg = (tswin_avg + ((long) peer->ts_last_unprotect[i-1] - (long) peer->ts_last_unprotect[i])) / 2;
-                time_avg = (time_avg + (  peer->time_last_unprotect[i-1] - peer->time_last_unprotect[i]) / 2  );
+                tswin_avg = (tswin_avg + (peer->ts_last_unprotect[i] - peer->ts_last_unprotect[i-1])) / 2;
+                time_avg = (time_avg + (  peer->time_last_unprotect[i] - peer->time_last_unprotect[i-1])) / 2;
+                tswin_bytes += peer->len_last_unprotect[i-1];
                 if(rmin > peer->ts_last_unprotect[i]) rmin = peer->ts_last_unprotect[i];
                 if(rmax < peer->ts_last_unprotect[i]) rmax = peer->ts_last_unprotect[i];
             }
 
-            tswin_rng = rmax-rmin; // this is pretty useless since not representative to bitrate? 
+            // MARK: -- compare ts averages over the ts-range to measure packet frequency (should use len bytes too)
+            tswin_rng = rmax-rmin; 
 
+            // do not use time_avg here - timestamps are incrementing
             if(tswin_rng > 0)
             {
-                float br = (float) tswin_avg / tswin_rng;
-                long paverage = tswin_avg / tswin_rng;
+                double br = (double) tswin_bytes / tswin_rng;
+                u32 paverage = ceil(br);
 
-                //if(counter % PEER_STAT_TS_WIN_LEN == 0 && peer->id == 0) printf("Wtimestamps[%d]: ts_win/time %u %u %f\n",  peer->id, tswin_avg, time_avg, br);
+                if(counter % PEER_STAT_TS_WIN_LEN == 0 && !peer->recv_only) printf("Wtimestamps[%d]: ts_win_avg/ts_win_range %u %u %u %c\n",  peer->id, tswin_avg, tswin_rng, paverage, paverage < peer->ts_win_avg ? '-': '+');
 
-                if(paverage < peer->ts_win_avg)
+                if(paverage < peer->ts_win_avg)    // when reset to 0 counter will run faster
                 {
                     // bit rate dropped, throttle back
                     Mthrottle = 1;
@@ -1350,7 +1358,7 @@ connection_worker(void* p)
                 {
                     // drain faster
                     Mthrottle = 2;
-                    throttleslice = 1;
+                    throttleslice = 1; // HACK: this should be 1?
                     Mthrottlesl = throttleslice;
                 }
                 peer->ts_win_avg = paverage;
@@ -1849,7 +1857,6 @@ int main( int argc, char* argv[] ) {
 
                     if(subpeer->alive && subpeer->subscriptionID == i)
                     {
-                        /*
                         // TODO: trying to make ssl_close cause peers dtls_read to return -1 but after close still need to write packets
                         if(subpeer->srtp_inited)
                         {
@@ -1857,12 +1864,11 @@ int main( int argc, char* argv[] ) {
                         }
 
                         subpeer->time_pkt_last = 0;
-                        */
                         // TODO: -- trying this out but frontend will probably disconnect anyway ..
                         // should experiment with keeping publishing-peer alive temporarily to allow the frontend to reconnect on client
                         // and resume on subscribers
-                        subpeer->subscriptionID = PEER_IDX_INVALID;
-                        printf("peer_init[%d]: unlocking...\n", subpeer->id);
+                        //subpeer->subscriptionID = PEER_IDX_INVALID;
+                        //printf("peer_init[%d]: unlocking...\n", subpeer->id);
                     }
                     PEER_UNLOCK(s);
                 }

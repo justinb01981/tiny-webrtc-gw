@@ -33,7 +33,7 @@
 #define PEER_RECV_BUFFER_COUNT_MS (200)
 #define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*4) // 4k pkt/sec sounds good
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 30000
-#define PEER_STAT_TS_WIN_LEN 16
+#define PEER_STAT_TS_WIN_LEN 64
 
 // this magic number influences the pace epoll/recvmmsg takes packets in - started with 5 trying lower values to see if that helps even out streams
 #define EPOLL_TIMEOUT_MS 3
@@ -255,6 +255,7 @@ typedef struct peer_session_t
 
     u32 ts_last_unprotect[PEER_STAT_TS_WIN_LEN];
     u32 time_last_unprotect[PEER_STAT_TS_WIN_LEN];
+    u32 len_last_unprotect[PEER_STAT_TS_WIN_LEN];
     u32 ts_logn;
     u32 ts_win_avg;
 

@@ -1,5 +1,6 @@
 <html>
 <head>
+<script src="js/peers.js"></script>
 <script language='javascript'>
 function onLoad() {
   var chatlog1 = document.getElementById('chattimestamp');
@@ -8,6 +9,7 @@ function onLoad() {
   if(chatlog1.value != chatlogParent.value && refreshCheckbox.checked) {
       window.parent.location = window.parent.location;
   }
+  window.parent.parent.updateViewersLabel(peerList);
 }
 </script>
 </head>
