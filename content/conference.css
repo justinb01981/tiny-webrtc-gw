@@ -33,6 +33,10 @@ td.videoCell {
     text-align: left;
 }
 
+td.chat {
+    width:256px;
+}
+
 tr.chatRow {
 }
 
@@ -42,6 +46,7 @@ table.mainTable {
     background-image: url(%$LOBBYIMAGEURL$%);
     background-repeat:no-repeat;
     background-size:100%;
+    background-blend-mode: soft-light;
     width: 98%;
     font-size:larger;
 }
@@ -181,7 +186,6 @@ button.phButton {
 
 
 select.mediaSelect {
-    width:50%;
 }
 
 select.selectUser {
@@ -219,6 +223,7 @@ li.chatListElem {
 ul.chatLogParent {
   height:90%;
   padding-left:0;
+  list-style-type: none;
 }
 
 img.backgroundImage {
@@ -226,6 +231,7 @@ img.backgroundImage {
     width:80%;
     height:80%;
     z-index:-3;
+    object-fit:contain;
 }
 
 .col-container {
@@ -239,7 +245,6 @@ img.backgroundImage {
 
 textarea.chat {
     background-color:#ffffff88;
-    width:326px;
     height:24px;
 }
 

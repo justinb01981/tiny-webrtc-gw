@@ -12,11 +12,6 @@ data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxQUEhYTFBQXFxYYGh4cG
 
 <div class="topDiv">
     <table id="mainDivTable" class="mainTable" border=2 >
-        <!--
-        <tr style='height:32px;'>
-            <th colspan=2>gitHub:<a href='https://github.com/justinb01981/tiny-webrtc-gw'>https://github.com/justinb01981/tiny-webrtc-gw</a></th>
-        </tr>
-        -->
         <tr id='rowChat' style='height:32px;'>
             <td align='right'>
                 username:<br>
@@ -51,20 +46,20 @@ data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxQUEhYTFBQXFxYYGh4cG
             </td>
         </tr>
         <tr class='chatRow' valign=top>
-            <td align='top' id="thPresenter" colspan=2>
-
+            <td align='top' id="thPresenter">
                 <table id="videoMainContainer" class="videoMainContainer">
                 <tr><td id="viewersTd" colspan=2>viewers: X</td></tr>
                     <!-- new video elements will appear here (see popup.js) -->
                 </table>
                 <p id="emptyRoomLabel" class="emptyRoomLabel">Nobody else here...<br>did anyone check "enable camera"<br>before joining this room?
             </td>
-        </tr> 
-        <tr>
-            <td class="chat" colspan=2>
+            <td class="chat">
                 <iframe name='chatFrame' class='chatFrame' src='chat.html' />
                 </iframe>
             </td>
+        </tr> 
+        <tr>
+
         </tr>
     </table>
     <center>
@@ -81,7 +76,7 @@ data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxQUEhYTFBQXFxYYGh4cG
     <table border=1 class="localPreviewTable">
         <tr>
             <td>
-                <p>Camera
+                <p>Camera<br>
                 <video id="localVideo" class="videoLocal" muted autoplay muted loop playsinline controls="true" ></video>
                 </p>
             </td>
