@@ -39,6 +39,7 @@
 #include "webserver.h"
 #include "debug.h"
 #include "memdebughack.h"
+#include "u32helper.h"
 
 #include "filecache.h"
 #ifndef SO_REUSEPORT
@@ -407,9 +408,7 @@ connection_worker(void* p)
     int flush_outbuf_overrun = 0;
     int awaitStun = 16;
     unsigned long time_ms = get_time_ms();
-    unsigned long buffering_until = time_ms + 4000, Mthrottle = 1, 
-        Mthrottlesl = 2;
-    int throttleslice = 1;
+    unsigned long buffering_until = time_ms + 4000, Mthrottle = 1;
 
     thread_init();
 
@@ -492,6 +491,7 @@ connection_worker(void* p)
                 {
                     printf("incoming peer %d subscribed to peer %s\n", PEER_INDEX(peer), peer->watchname);
                     peer->subscriptionID = peers[si].id;
+                    peers[si].subscribed = peer->id;
                     // schedule picutre-loss-indicator (full-frame-refresh
                     for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_COUNT; rtp_idx++)
                     {
@@ -514,6 +514,7 @@ connection_worker(void* p)
 
                     // also connect opposing/waiting peer (probably no matter since stream is incoming)
                     peers[si].subscriptionID = PEER_INDEX(peer);
+                    peer->subscribed = peer->id;
                     // schedule picture-loss-indicator
                     for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_COUNT; rtp_idx++)
                     {
@@ -527,7 +528,6 @@ connection_worker(void* p)
     stats_printf(counts_log, "cxn_worker[%d]: cxn worker subscribed to %s[%d]\n", peer->id,
         peers[peer->subscriptionID].name, peers[peer->subscriptionID].id);
 
-    peers[peer->subscriptionID].subscribed = 1;
     // force broadcaster to refresh 
     for(int r = 0; r < PEER_RTP_CTX_COUNT; r++) peers[peer->subscriptionID].srtp[r].pli_last = time_ms - 9000;
 
@@ -542,6 +542,7 @@ connection_worker(void* p)
     peer->underrun_signal = 1; // lock first time
 
     unsigned counter = 0;
+    int subscribers = 0;
 
     // MARK: -- enter main peer connection worker loop
     while(1)
@@ -549,11 +550,14 @@ connection_worker(void* p)
         //printf("main.c:%d: peer[%d] alive loop\n", __LINE__, peer->id);
 
         unsigned long time_ms = get_time_ms(), time_ms_last = 0;
+
         peer_buffer_node_t* rnode;
         
         time_t time_sec;
 
         static unsigned long locked_last = 0;
+
+        float P = 3.0; // sub-ms precision
 
         PERFTIME_INTERVAL_SINCE(&locked_last);
 
@@ -873,12 +877,12 @@ connection_worker(void* p)
 
                         counts[stat_idx]++;
 
+                        
                         if(is_receiver_report)
                         {
                             int issrc = 0;
                             rtp_report_receiver_t* preport = report;
                             unsigned long jitter = 0, last_sr = 0, delay_last_sr = 0;
-
 
                             while(issrc < nrep || (nrep == 0 && issrc == 0))
                             {
@@ -923,10 +927,10 @@ connection_worker(void* p)
                                       ?s->jitter += (1./16.) * ((double)d - s->jitter);
                                 */
 
-                                long jitter_delta = (long) jitter - peer->srtp[report_rtp_idx].receiver_report_jitter_last;
-                                long sr_delay_delta = (long) ntohl(report->blocks[issrc].last_sr_timestamp_delay) - peer->srtp[report_rtp_idx].receiver_report_sr_delay_last;
-                                long sr_delta = (long) ntohl(report->blocks[issrc].last_sr_timestamp) - peer->srtp[report_rtp_idx].receiver_report_sr_last;
-                                long ts_offset_delta = (long) sr_delay_delta - sr_delta;
+                                u32 jitter_delta = u32diff(jitter,peer->srtp[report_rtp_idx].receiver_report_jitter_last);
+                                u32 sr_delay_delta = u32diff(ntohl(report->blocks[issrc].last_sr_timestamp_delay), peer->srtp[report_rtp_idx].receiver_report_sr_delay_last);
+                                u32 sr_delta = u32diff(ntohl(report->blocks[issrc].last_sr_timestamp), peer->srtp[report_rtp_idx].receiver_report_sr_last);
+                                u32 ts_offset_delta = u32diff(sr_delay_delta, sr_delta);
 
                                 //if(ts_offset_delta > 0) 
                                 //    printf("peer[%d] ts_offset_chg:%lu - jitter_chg:%ld J/T:%lu",
@@ -941,8 +945,8 @@ connection_worker(void* p)
                                 //peer->paced_sender.timestamp_offset_ms += jitter_delta / 16;
                               
                                 unsigned int pktlossmask = 0x3FFF; 
-                                unsigned long rpt_pkt_lost = pktlossmask & ntohl(report->blocks[issrc].frac_lost_and_cumpktlost);
-                                unsigned long frac_pkt_lost = 0x8000 & ntohl(report->blocks[issrc].frac_lost_and_cumpktlost);
+                                u32 rpt_pkt_lost = pktlossmask & ntohl(report->blocks[issrc].frac_lost_and_cumpktlost);
+                                u32 frac_pkt_lost = 0x8000 & ntohl(report->blocks[issrc].frac_lost_and_cumpktlost);
                                 //printf("peer[%d].rtp[%d] sr_delta: %ld sr_delay_delta: %ld, pkt_dropped:%u\n",
                                 //    peer->id, report_rtp_idx, sr_delta, sr_delay_delta,
                                 //    rpt_pkt_lost);
@@ -963,23 +967,28 @@ connection_worker(void* p)
 
                                     if(!peer->alive) { printf("cxn_worker: race cond during RR pkt loss\n"); assert(0); break; }
 
-                                    peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-1); // force picture loss
+                                    // cap at 0.5/sec or we'll get overwhelmed
+                                    if(time_ms - peerpub->srtp[report_rtp_idx].pli_last >= 2000) peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-1); // force picture loss
 
-                                    // TODO: flush faster ?
+                                    // TODO: flush faster? slower?
+                                    Mthrottle = 8;
                                 }
 
                                 peer->srtp[report_rtp_idx].pkt_lost = rpt_pkt_lost;
 
-                                long sr_delay = (long) ntohl(report->blocks[issrc].last_sr_timestamp), sr_delay_cmp = peer->srtp[report_rtp_idx].receiver_report_sr_last;
+                                u32 sr_delay = ntohl(report->blocks[issrc].last_sr_timestamp), sr_delay_cmp = peer->srtp[report_rtp_idx].receiver_report_sr_last;
                                 peer->srtp[report_rtp_idx].receiver_report_jitter_last = jitter;
                                 peer->srtp[report_rtp_idx].receiver_report_sr_delay_last = sr_delay;
                                 peer->srtp[report_rtp_idx].receiver_report_sr_last = last_sr;
 
-                                //if(peer->ts_logn > 0) printf("RR:last_sr_timestamp - time_last_unprotect (%lu)\n", peer->ts_last_unprotect[peer->ts_logn-1] - ntohl(report->blocks[issrc].last_sr_timestamp));
+                                if(peer->ts_logn > 0) printf("RR: sr_delta: %lu sr_delay: %lu jitter_delta: %lu\n", sr_delta, sr_delay_delta, jitter_delta);
+
+                                // TODO: -- this needs to be better -
+                                //Mthrottle += sr_delay < peer->srtp[report_rtp_idx].receiver_report_sr_delay_last? -2: 1;
+                                //if(Mthrottlems < 1 || Mthrottlems > 20) 
 
                                 issrc ++;
                             }
-
                         }
 
                         for(p = 0; p < MAX_PEERS; p++)
@@ -1129,11 +1138,12 @@ connection_worker(void* p)
                         peer->ts_last_unprotect[*idx] = ntohl(rtpFrame->hdr.timestamp);
                         peer->time_last_unprotect[*idx] = time_ms;
                         peer->len_last_unprotect[*idx] = unprotect_len;
-                        *idx = (*idx+1) % PEER_STAT_TS_WIN_LEN;
 
-                        static int bscounter;
-                        bscounter += 1;
-                        if(bscounter % 128 == 0) printf("RTP ts[%d]: %lu", peer->id, timestamp_in);
+                        // only calculate pace for a single peer (divide by subscribed); -- TODO: each peer gets a subscriber feedback record
+                        *idx = (*idx+subscribers) % PEER_STAT_TS_WIN_LEN;
+
+                        // TODO: divide ts response by # peers reporting  RR (subscribed)
+                        // HACKHACKHACK - for now only pay attention to the last peer to subscribe
 
                         //printf("jitter peer[%d]:tsdelta %ld (mthrottle:%lu)\n", peer->id, (long) rr_expected - (long) *stat, Mthrottle);
 
@@ -1149,6 +1159,8 @@ connection_worker(void* p)
                         }
 
                         int p, lengthPeer;
+
+                        subscribers = 0;
                    
                         // MARK: -- distributing this rtp packet to subscribers 
                         for(p = 0; p < MAX_PEERS; p++)
@@ -1160,6 +1172,8 @@ connection_worker(void* p)
                                peers[p].subscriptionID == peer->id &&
                                /*ps[rtp_idx].inited*/ peers[p].srtp[rtp_idx].inited)
                             {
+                                subscribers++;
+
                                 int rtp_idx_write = rtp_idx + PEER_RTP_CTX_WRITE;
 
                                 lengthPeer = unprotect_len;
@@ -1196,8 +1210,6 @@ connection_worker(void* p)
                                 }
                                 else
                                 {
-
-
                                     peers[p].stats.stat[10] += 1;
                                     //printf("srtp_protect peer[%d]: failed with rtp_idx %d\n", p, rtp_idx);
                                     //peers[p].subscriptionID = PEER_IDX_INVALID;
@@ -1305,10 +1317,10 @@ connection_worker(void* p)
 
         // this controls both the ultimate latency and bit rate the stream aims at and I havent figured out the tradeoff
 
-        if(/*buffering_until <= get_time_ms()*/ !peer->recv_only)
+        if(buffering_until <= get_time_ms() && !peer->recv_only && peer->ts_logn > 0)
         {
             // stick with this decision for some t (100ms as a baseline is working very very well with <200ms lag)
-            buffering_until = get_time_ms() + PEER_RECV_BUFFER_COUNT_MS/4; // TODO: arbitrary window size
+            buffering_until = buffering_until + PEER_RECV_BUFFER_COUNT_MS;
 
             // MARK: -- make no mistake this is what determines the target latency we aim (we're trying not to let receiver underrun) for
             // e.g. too low and we see hiccups 
@@ -1327,6 +1339,11 @@ connection_worker(void* p)
             u32 size_avg = 0;
             u32 tswin_bytes = 0;
             u32 rmin = 0xffffffff, rmax = 1;
+            u32 ts_recent = 0;
+
+            ts_recent = peer->ts_last_unprotect[
+                peer->ts_logn-1
+            ];
 
             for(int i = 1; i < PEER_STAT_TS_WIN_LEN; i++) {
                 tswin_avg = (tswin_avg + (peer->ts_last_unprotect[i] - peer->ts_last_unprotect[i-1])) / 2;
@@ -1337,40 +1354,36 @@ connection_worker(void* p)
             }
 
             // MARK: -- compare ts averages over the ts-range to measure packet frequency (should use len bytes too)
-            tswin_rng = rmax-rmin; 
+            tswin_rng = rmax-rmin;
 
             // do not use time_avg here - timestamps are incrementing
-            if(tswin_rng > 0)
-            {
-                double br = (double) tswin_bytes / tswin_rng;
-                u32 paverage = ceil(br);
+            float br = (float) (ts_recent - peer->ts_winrng_begin) / (PEER_RECV_BUFFER_COUNT_MS/P);
 
-                if(counter % PEER_STAT_TS_WIN_LEN == 0 && !peer->recv_only) printf("Wtimestamps[%d]: ts_win_avg/ts_win_range %u %u %u %c\n",  peer->id, tswin_avg, tswin_rng, paverage, paverage < peer->ts_win_avg ? '-': '+');
-
-                if(paverage < peer->ts_win_avg)    // when reset to 0 counter will run faster
-                {
-                    // bit rate dropped, throttle back
-                    Mthrottle = 1;
-                    throttleslice = 2;
-                    Mthrottlesl = throttleslice;
-                }
-                else
-                {
-                    // drain faster
-                    Mthrottle = 2;
-                    throttleslice = 1; // HACK: this should be 1?
-                    Mthrottlesl = throttleslice;
-                }
-                peer->ts_win_avg = paverage;
-                peer->underrun_signal = 0;
+            if(peer->ts_win_pd > ts_recent || Mthrottle < 1) {
+                Mthrottle += 1;
             }
+            else {
+                Mthrottle -= 1;
+            }
+
+            //printf("Mthrottle peer[%d] intervalms: %.04lu (rate: %.08f)\n", peer->id, Mthrottle, br);
+
+            peer->ts_win_pd = (float) br*(PEER_RECV_BUFFER_COUNT_MS/P); // prediction
+
+            peer->underrun_signal = 0;
+
+            peer->ts_winrng_begin = ts_recent;
         }
         
         counter++;
-        if(counter % Mthrottle == 0)
-        {
-            sleep_msec(Mthrottlesl);
-        }
+
+        //if(counter % Mthrottle == 0)
+        //{
+        //    sleep_msec(Mthrottlesl);
+        //}
+
+        usleep((1000/P)*Mthrottle);
+         // TODO: sleep slightly too long to bias out-rate > in-rate above?
     }
 
     assert(peer->id == peerid_at_start);
@@ -1760,7 +1773,6 @@ int main( int argc, char* argv[] ) {
         if((*ptail)->len > 0)
         {
             // out of room to enqueue flush
-            printf("peer buffers:[%d] FULL\n", sidx);
             peer_buffer_node_t* cur = peers[sidx].in_buffers_head.next;
             while(cur)
             {
@@ -1768,6 +1780,16 @@ int main( int argc, char* argv[] ) {
                 cur->len = 0;
                 cur = cur->next;
             }
+
+            // wait for this to drain
+
+            peers[sidx].ts_win_pd = 0;
+            PEER_UNLOCK(sidx);
+
+            printf("peer buffers:[%d] FULL - flushing\n", sidx);
+            sleep_msec(10);
+
+            PEER_LOCK(sidx);
         }
 
         //assert(cur != node && peers[sidx].in_buffers_head.rnext != NULL && peers[sidx].in_buffers_head.rnext != &peers[sidx].in_buffers_head);
@@ -1905,7 +1927,7 @@ int main( int argc, char* argv[] ) {
                 }
 
                 peers[i].name[0] = '\0';
-                peers[i].subscribed = 0;
+                peers[i].subscribed = PEER_IDX_INVALID;
 
                 peers[i].alive = 0; // thank god >:->
 
