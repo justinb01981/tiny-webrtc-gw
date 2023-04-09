@@ -253,16 +253,23 @@ function broadcastOnLoad() {
     userElem.value = myUsername;
     setLoggedIn();
 
+
+
+    parseURLArguments();
+
     onLoadDone();
 
     userElem.scrollIntoView();
-
-    parseURLArguments();
 }
 
 function parseURLArguments() {
     let params = new URLSearchParams(document.location.search.substring(1));
     let room = params.get('joinroom');
+
+    let cam = params.get('camera');
+    if(cam && !autoJoinRoomDone) {
+        enableVideoCheckbox.checked = true;
+    }
 
     if(room && !autoJoinRoomDone) {
         console.debug('auto-joining room ' + room);

@@ -20,13 +20,12 @@ td {
 
 body.outerBody {
     color: white;
-    margin:8%;
+    margin:8 8 8 8;
     border-collapse: collapse;
     height: 20%;
 }
 
 tr.videoCellRow {
-    height:20%;
 }
 
 td.videoCell {
@@ -34,7 +33,6 @@ td.videoCell {
 }
 
 td.chat {
-    width:300px;
 }
 
 tr.chatRow {
@@ -47,7 +45,6 @@ table.mainTable {
     background-repeat:no-repeat;
     background-size:100%;
     background-blend-mode: soft-light;
-    width: 98%;
     font-size:larger;
 }
 
@@ -196,8 +193,6 @@ select.selectUser {
 iframe.chatFrame {
     border-width:2px;
     overflow:scroll;
-    width:100%;
-    height:100%
 }
 
 body.chatIframeBody {
