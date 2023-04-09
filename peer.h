@@ -33,7 +33,7 @@
 #define PEER_RECV_BUFFER_COUNT_MS (200)
 #define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*4) // 4k pkt/sec sounds good
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 30000
-#define PEER_STAT_TS_WIN_LEN 32 // this needs to go away since we're not tracking each pkt to determine bitrate anymore
+#define PEER_STAT_TS_WIN_LEN /*32*/ 8 // this needs to go away since we're not tracking each pkt to determine bitrate anymore
 
 // this magic number influences the pace epoll/recvmmsg takes packets in - started with 5 trying lower values to see if that helps even out streams
 #define EPOLL_TIMEOUT_MS 3

@@ -971,7 +971,7 @@ connection_worker(void* p)
                                     if(time_ms - peerpub->srtp[report_rtp_idx].pli_last >= 2000) peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-1); // force picture loss
 
                                     // TODO: flush faster? slower?
-                                    Mthrottle = 8;
+                                    Mthrottle = 1;
                                 }
 
                                 peer->srtp[report_rtp_idx].pkt_lost = rpt_pkt_lost;
@@ -1320,7 +1320,7 @@ connection_worker(void* p)
         if(buffering_until <= get_time_ms() && !peer->recv_only && peer->ts_logn > 0)
         {
             // stick with this decision for some t (100ms as a baseline is working very very well with <200ms lag)
-            buffering_until = buffering_until + PEER_RECV_BUFFER_COUNT_MS;
+            buffering_until = buffering_until + PEER_RECV_BUFFER_COUNT_MS/2;
 
             // MARK: -- make no mistake this is what determines the target latency we aim (we're trying not to let receiver underrun) for
             // e.g. too low and we see hiccups 
@@ -1366,7 +1366,7 @@ connection_worker(void* p)
                 Mthrottle -= 1;
             }
 
-            //printf("Mthrottle peer[%d] intervalms: %.04lu (rate: %.08f)\n", peer->id, Mthrottle, br);
+            printf("Mthrottle peer[%d] intervalms: %.04lu (rate: %.08f)\n", peer->id, Mthrottle, br);
 
             peer->ts_win_pd = (float) br*(PEER_RECV_BUFFER_COUNT_MS/P); // prediction
 
@@ -1383,7 +1383,6 @@ connection_worker(void* p)
         //}
 
         usleep((1000/P)*Mthrottle);
-         // TODO: sleep slightly too long to bias out-rate > in-rate above?
     }
 
     assert(peer->id == peerid_at_start);
