@@ -408,7 +408,7 @@ connection_worker(void* p)
     int flush_outbuf_overrun = 0;
     int awaitStun = 16;
     unsigned long time_ms = get_time_ms();
-    unsigned long buffering_until = time_ms + 4000, Mthrottle = 1;
+    long long buffering_until = time_ms + 4000, Mthrottle = 1;
 
     thread_init();
 
@@ -968,7 +968,7 @@ connection_worker(void* p)
                                     if(!peer->alive) { printf("cxn_worker: race cond during RR pkt loss\n"); assert(0); break; }
 
                                     // cap at 0.5/sec or we'll get overwhelmed
-                                    if(time_ms - peerpub->srtp[report_rtp_idx].pli_last >= 2000) peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-1); // force picture loss
+                                    if(time_ms - peerpub->srtp[report_rtp_idx].pli_last >= 250) peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-1); // force picture loss
 
                                     // TODO: flush faster? slower?
                                     Mthrottle = 1;
@@ -1317,10 +1317,10 @@ connection_worker(void* p)
 
         // this controls both the ultimate latency and bit rate the stream aims at and I havent figured out the tradeoff
 
-        if(buffering_until <= get_time_ms() && !peer->recv_only && peer->ts_logn > 0)
+        if(buffering_until-Mthrottle <= get_time_ms() && !peer->recv_only && peer->ts_logn > 0)
         {
             // stick with this decision for some t (100ms as a baseline is working very very well with <200ms lag)
-            buffering_until = buffering_until + PEER_RECV_BUFFER_COUNT_MS/2;
+            buffering_until = buffering_until + 200; // TODO: figure out optimal interval to measure bitrate over
 
             // MARK: -- make no mistake this is what determines the target latency we aim (we're trying not to let receiver underrun) for
             // e.g. too low and we see hiccups 
@@ -1357,16 +1357,21 @@ connection_worker(void* p)
             tswin_rng = rmax-rmin;
 
             // do not use time_avg here - timestamps are incrementing
-            float br = (float) (ts_recent - peer->ts_winrng_begin) / (PEER_RECV_BUFFER_COUNT_MS/P);
+            float diff = ts_recent - peer->ts_winrng_begin;
+            float br = (float) diff / (PEER_RECV_BUFFER_COUNT_MS/P);
 
+            /*
             if(peer->ts_win_pd > ts_recent || Mthrottle < 1) {
-                Mthrottle += 1;
+                Mthrottle += 2;
             }
             else {
                 Mthrottle -= 1;
             }
+            */
 
-            printf("Mthrottle peer[%d] intervalms: %.04lu (rate: %.08f)\n", peer->id, Mthrottle, br);
+            Mthrottle += floor(20.0 / diff);
+
+            printf("Mthrottle peer[%d] pace-diff: %.08f, intervalms: %ld (rate: %.08f)\n", peer->id, diff, Mthrottle, br);
 
             peer->ts_win_pd = (float) br*(PEER_RECV_BUFFER_COUNT_MS/P); // prediction
 
@@ -1382,7 +1387,7 @@ connection_worker(void* p)
         //    sleep_msec(Mthrottlesl);
         //}
 
-        usleep((1000/P)*Mthrottle);
+        if(Mthrottle > 0) usleep((1000/P)*Mthrottle);
     }
 
     assert(peer->id == peerid_at_start);
@@ -1945,6 +1950,7 @@ int main( int argc, char* argv[] ) {
                     printf("...stopped\n");
                 }
 
+                // TODO: there is a race+crash here during timeout
                 peers[i].cb_restart(&peers[i]);
                 printf("restart_done[%d]: = 1 ..", i);
             }

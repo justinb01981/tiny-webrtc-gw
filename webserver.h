@@ -777,6 +777,8 @@ webserver_worker(void* p)
                             printf("found offer:%s\n", p->sdp.offer);
                             strcpy(p->stun_ice.ufrag_offer, sdp_read(p->sdp.offer, "a=ice-ufrag"));
 
+                            // TODO: to support non-bundled connections create a 2nd thread here with above stun/sdp fields cloned
+
                             // -- using init_needed here to signal
                             p->cb_restart = cb_begin;
 
