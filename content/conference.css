@@ -22,7 +22,7 @@ body.outerBody {
     color: white;
     margin:8 8 8 8;
     border-collapse: collapse;
-    height: 20%;
+    height: 30%;
 }
 
 tr.videoCellRow {
@@ -40,7 +40,7 @@ tr.chatRow {
 
 table.mainTable {
     table-layout:auto;
-    background-color:#000000f2;
+    background-color:#000000d2;
     background-image: url(%$LOBBYIMAGEURL$%);
     background-repeat:no-repeat;
     background-size:100%;
@@ -140,7 +140,7 @@ button.playButton {
     width:32px;
     height:32px;
     position:relative;
-    left: 10px;
+    left: 140px;
     background-position:center;
     background-repeat:no-repeat;
     background-image:url(/content/img/unmute.png);
@@ -239,7 +239,6 @@ img.backgroundImage {
 }
 
 textarea.chat {
-    background-color:#ffffff88;
     height:24px;
 }
 

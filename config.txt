@@ -18,4 +18,5 @@ udp_read_timeout_usec=16
 udp_peer_write_interval=4
 #bullshit, for now
 udp_max_peers=16
-lobby_image=https://images.squarespace-cdn.com/content/v1/57825361440243db4a4b7830/c36fde11-b568-4381-b631-d492ba2788fa/Deathburger-artwork2.jpeg?format=500w
+lobby_image=https://www.domain17.net/justin/A222CF0B-6829-45C7-B989-4B9F663870A4.jpeg
+oldlobby_image=https://images.squarespace-cdn.com/content/v1/57825361440243db4a4b7830/c36fde11-b568-4381-b631-d492ba2788fa/Deathburger-artwork2.jpeg?format=500w

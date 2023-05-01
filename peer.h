@@ -5,7 +5,8 @@
 #include "srtp_key_len.h"
 #include "dtls.h"
 
-#define SDP_OFFER_VP8 1
+#define SDP_OFFER_VP8 0
+// TODO: this determines whether mp4 or both+VP8 offered
 
 #define MAX_PEERS 60
 #define PEER_IDX_INVALID (MAX_PEERS+1)
@@ -542,12 +543,22 @@ const char* sdp_offer_create(peer_session_t* peer)
     "\"a=sendrecv\\n\" + \n"
 #if SDP_OFFER_VP8
     // see link below
-    //"\"a=fmtp:120 max-fr=30; max-fs=14400;\\n\" + \n"
-    //"\"b=AS:16000\\n\" + \n"
     "\"a=fmtp:120 max-fr=60; max-fs=28800; x-google-max-bitrate=5000; x-google-min-bitrate=0; x-google-start-bitrate=1000\\n\" + \n"
 #endif
-    "\"a=fmtp:126 profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1\\n\" + \n"
-    "\"a=fmtp:97 profile-level-id=42e01f;level-asymmetry-allowed=1\\n\" + \n"
+    // TODO: worth it to offer more mp4 profile-id? this was cribbed from chrome webrtc
+/*
+TEST(H264ProfileLevelId, TestParsingLevel) {
+    EXPECT_EQ(kLevel3_1, ParseProfileLevelId("42e01f")->level);
+    EXPECT_EQ(kLevel1_1, ParseProfileLevelId("42e00b")->level);
+    EXPECT_EQ(kLevel1_b, ParseProfileLevelId("42f00b")->level);
+    EXPECT_EQ(kLevel4_2, ParseProfileLevelId("42C02A")->level);
+    EXPECT_EQ(kLevel5_2, ParseProfileLevelId("640c34")->level);
+}
+*/
+
+
+    "\"a=fmtp:126 profile-level-id=" /*"42e01f"*/ "42f00b" ";level-asymmetry-allowed=1;packetization-mode=1\\n\" + \n"
+    "\"a=fmtp:97 profile-level-id=i" /*"42e01f"*/ "42f00b"  ";level-asymmetry-allowed=1\\n\" + \n"
     "\"a=ice-pwd:230r89wef32jsdsjJlkj23rndasf23rlknas\\n\" + \n"
     "\"a=ice-ufrag:%s\\n\" + \n"
     "\"a=mid:sdparta_1\\n\" + \n"
