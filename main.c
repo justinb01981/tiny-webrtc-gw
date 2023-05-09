@@ -465,15 +465,12 @@ connection_worker(void* p)
     char* room_name = PEER_ANSWER_SDP_GET_ICE(peer, "a=roomname=", 0);
     sprintf(peer->roomname, "%s", room_name);
 
-    /*
     snprintf(str256, sizeof(str256)-1,
         "server:%s %s in %s\n",
         peer->name,
         (peer->send_only ? "broadcasting" : "watching"),
         peer->roomname);
     chatlog_append(str256);
-    */
-    chatlog_append("");
 
     int foundx = -1;
     for(incoming = 1; incoming >= 0; incoming--)
@@ -1369,7 +1366,8 @@ connection_worker(void* p)
             }
             */
 
-            Mthrottle += floor(20.0 / diff);
+            float throttlemin = 8.0;
+            Mthrottle += floor(throttlemin / diff);
 
             printf("Mthrottle peer[%d] pace-diff: %.08f, intervalms: %ld (rate: %.08f)\n", peer->id, diff, Mthrottle, br);
 

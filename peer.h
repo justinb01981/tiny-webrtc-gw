@@ -5,7 +5,7 @@
 #include "srtp_key_len.h"
 #include "dtls.h"
 
-#define SDP_OFFER_VP8 0
+#define SDP_OFFER_VP8 1
 // TODO: this determines whether mp4 or both+VP8 offered
 
 #define MAX_PEERS 60
@@ -557,8 +557,8 @@ TEST(H264ProfileLevelId, TestParsingLevel) {
 */
 
 
-    "\"a=fmtp:126 profile-level-id=" /*"42e01f"*/ "42f00b" ";level-asymmetry-allowed=1;packetization-mode=1\\n\" + \n"
-    "\"a=fmtp:97 profile-level-id=i" /*"42e01f"*/ "42f00b"  ";level-asymmetry-allowed=1\\n\" + \n"
+    "\"a=fmtp:126 profile-level-id=" "42e01f" ";level-asymmetry-allowed=1;packetization-mode=1\\n\" + \n"
+    "\"a=fmtp:97 profile-level-id=" "42e01f" ";level-asymmetry-allowed=1\\n\" + \n"
     "\"a=ice-pwd:230r89wef32jsdsjJlkj23rndasf23rlknas\\n\" + \n"
     "\"a=ice-ufrag:%s\\n\" + \n"
     "\"a=mid:sdparta_1\\n\" + \n"

@@ -44,6 +44,7 @@ Hot features
 * chrome/firefox/opera/safari (iOS) support
 * easy compilation (just git checkout --recursive and "make all")
 * select media devices
+* code includes submodule referencing the standalone HTTPS server + example certificate
 
 A "demo"?
 * [&#128247;wintermute lobby&#128247;](https://wintermute.nonroutable.net/content/index_broadcast.html?joinroom=lobby](https://wintermute.nonroutable.net/content/index_broadcast.html?joinroom=lobby)
@@ -69,8 +70,9 @@ building requires 'go' to compile boringssl (so install those packages)
 
 *OUTDATED?*
 Make sure you checked out the websocket git submodule by checking out
-with --recursive or doing
-git submodule init ws && git submodule update ws
+with --recurse-submodules or doing
+git submodule init xxx && git submodule update xxx
+(for both ws and SSLTools I think)
 
 from the base directory just run 'make all'.
 

@@ -102,7 +102,7 @@ data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxQUEhYTFBQXFxYYGh4cG
 var onLeave;
 var urlArgRoom;
 var urlArgName;
-var iframeConnectState = {selectedUser: null, selectedRoom: null, advancedSettings: false, onConnectVideo: null, joinMode: 'watch', awaiting: null, usersSubscribed: [], videoElem: null};
+var iframeConnectState = {selectedUser: null, selectedRoom: null, advancedSettings: false, onConnectVideo: null, joinMode: 'watch', awaiting: null, usersSubscribed: [], videoElem: null, broadcasting: false};
 var onLoadDoneAnswerUpload;
 var onJoinIframeLoadAsync = function() {
 }
@@ -214,7 +214,7 @@ function enableVideoChecked() {
 }
 
 function broadcastInProgress() {
-    return localVideo.srcObject != null;
+    return iframeConnectState.broadcasting;
 }
 
 // don't add things here, do that in broadcast.js

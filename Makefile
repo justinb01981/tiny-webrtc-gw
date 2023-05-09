@@ -9,7 +9,10 @@ LDARGS=-static -pthread -lcrypto -lssl -lcrypto -lpthread -lcrypto -lsrtp2 -lm -
 GPROF_FLAG=-g
 
 all:
-	echo "kidding, edit config.txt first then run make demo; - justin@domain17.net /// holla @ me :-) for help! (make sure you did git checkout --recursive or git submodule xyz or build fails)";
+	echo "kidding, edit config.txt first then run make demo; - justin@domain17.net /// holla @ me :-) for help! (make sure you did git checkout --recursive-submodules or git submodule checkout xyz or build fails)";
+
+demo: ./webrtc_gw
+	
 
 webrtc_gw: lib/libcrypto.a lib/libsrtp2.a lib/libssl.a
 # add -pg to profile with gprof
@@ -22,6 +25,9 @@ lib/libssl.a:
 	cd boringssl && cmake . && make && cp ssl/libssl.a ../lib;
 lib/libsrtp2.a:
 	cd libsrtp && cmake . && make && cp libsrtp2.a ../lib;
+
+## hope you checked this out submodule (tho not necessary for https)
+ssltool: SSLTools
 
 wintermutecfg:
 	echo "copying .wintermute file";

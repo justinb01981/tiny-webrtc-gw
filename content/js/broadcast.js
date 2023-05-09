@@ -76,6 +76,7 @@ var divPresenterClientWidth = 0;
 var divPresenterClientHeight = 0;
 
 var onLoadMedia = function() {
+    console.debug("onLoadMedia() ...");
     return getMedia();
 }
 
@@ -148,8 +149,27 @@ function getMedia() {
 
     navigator.mediaDevices.enumerateDevices().then(
         function(sourceInfos) {
-            var ai = getSelectAudioDevice().options[getSelectAudioDevice().selectedIndex].value;
-            var vi = getSelectVideoDevice().options[getSelectVideoDevice().selectedIndex].value;
+
+            // TODO: if auto-joining then we can't use these ui select elements and have to chooose
+            // based on sourceInfos
+            var ai = -1;
+            var vi = -1;
+
+            var infoIdx = 0;
+            for (info in sourceInfos) {
+                console.debug('srcInfo[]: '+sourceInfos[info].kind+'');
+
+                if (sourceInfos[info].kind == 'audioinput' && ai < 0) ai = infoIdx;
+                if (sourceInfos[info].kind == 'videoinput' && vi < 0) vi = infoIdx;
+                infoIdx += 1;
+            }
+
+            if(getSelectAudioDevice().selectedIndex >= 0) {
+                console.debug("SUCCESS: found select-device form-field overriding default ");
+
+                ai = getSelectAudioDevice().selectedIndex;
+                vi = getSelectVideoDevice().selectedIndex;
+            }
 
             getSelectAudioDevice().disabled = true;
             getSelectVideoDevice().disabled = true;
@@ -253,8 +273,6 @@ function broadcastOnLoad() {
     userElem.value = myUsername;
     setLoggedIn();
 
-
-
     parseURLArguments();
 
     onLoadDone();
@@ -267,27 +285,32 @@ function parseURLArguments() {
     let room = params.get('joinroom');
 
     let cam = params.get('camera');
-    if(cam && !autoJoinRoomDone) {
-        enableVideoCheckbox.checked = true;
+
+    let frameChild = document.getElementById('connect_iframe');
+    let roomField = document.getElementById('roomName');
+
+    if(cam && localStream == null) {
+        getCameraCheckbox().checked = true;
+
+        getMedia().then( function() {
+            autoJoinRoomDone = true;
+            roomField.value = room;
+            frameChild.contentWindow.onJoin();
+        });
+        return;
     }
 
+    // DO not fall thru to here except from post-getmedia closure
     if(room && !autoJoinRoomDone) {
         console.debug('auto-joining room ' + room);
 
         // necessary so we don't try and re-join every connect_iframe refresh, just the first page landing
         autoJoinRoomDone = true;
 
-        let frameChild = document.getElementById('connect_iframe');
-        let roomField = document.getElementById('roomName');
-
         roomField.value = room;
-        frameChild.contentWindow.onOK();
 
-        let vidcbox = document.getElementById('enableVideoCheckbox');
-        vidcbox.onclick = function () { 
-            // TODO: strip away room arguments so next load will init camera correctly
-            console.debug('enableVideoCheckbox checked reloading page...');
-        };
+        // frameChild?
+        frameChild.contentWindow.onJoin();
     }
 }
 

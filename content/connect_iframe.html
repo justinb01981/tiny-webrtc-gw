@@ -236,9 +236,10 @@ function onJoin() {
     return;
   }
 
-  console.debug('calling onLoadMedia...');
-  window.parent.onLoadMedia().then(function() {
+  window.parent.getMedia().then(function() {
  
+    console.debug('onLoadMedia.then() ...');
+
     state.selectedRoom = roomName;
 
     var vidElem = state.joinMode == 'broadcast' ?
@@ -254,6 +255,7 @@ function onJoin() {
 
     window.parent.connectVideoIframe(window, vidElem, window.parent.iframeConnectState.onConnectVideo, window.parent.joinPopupClose);
 
+    state.broadcasting = true;
     console.debug('onJoin(): connectVideoIframe successful');
 
   }).catch(function(e) {
@@ -291,6 +293,7 @@ function onLeave()
   window.parent.iframeConnectState.selectedUser = null;
   window.parent.iframeConnectState.usersSubscribed = [];
   window.parent.iframeConnectState.awaiting = null;
+  window.parent.iframeConnectState.broadcasting = false;
   window.parent.onLeave();
   usersSubscribed = [];
   window.location.reload();

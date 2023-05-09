@@ -3,4 +3,4 @@
 	url = git@github.com:m8rge/cwebsocket.git
 [submodule "SSLTools"]
 	path = SSLTools
-	url = ./SSLTools
+	url = git@github.com:justinb01981/SSLTools.git
