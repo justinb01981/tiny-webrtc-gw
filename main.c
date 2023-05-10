@@ -408,7 +408,8 @@ connection_worker(void* p)
     int flush_outbuf_overrun = 0;
     int awaitStun = 16;
     unsigned long time_ms = get_time_ms();
-    long long buffering_until = time_ms + 4000, Mthrottle = 1;
+    long long buffering_until = time_ms + 4000, ts_winrng_begin = 0;
+    float Mthrottle = 1.0;
 
     thread_init();
 
@@ -968,7 +969,7 @@ connection_worker(void* p)
                                     if(time_ms - peerpub->srtp[report_rtp_idx].pli_last >= 250) peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-1); // force picture loss
 
                                     // TODO: flush faster? slower?
-                                    Mthrottle = 1;
+                                    //Mthrottle = 1;
                                 }
 
                                 peer->srtp[report_rtp_idx].pkt_lost = rpt_pkt_lost;
@@ -1137,7 +1138,9 @@ connection_worker(void* p)
                         peer->len_last_unprotect[*idx] = unprotect_len;
 
                         // only calculate pace for a single peer (divide by subscribed); -- TODO: each peer gets a subscriber feedback record
-                        *idx = (*idx+subscribers) % PEER_STAT_TS_WIN_LEN;
+
+                        /// TODO: what? this is the incoming decrypt stage - not affected by subscribers
+                        *idx = (*idx+1) % PEER_STAT_TS_WIN_LEN;
 
                         // TODO: divide ts response by # peers reporting  RR (subscribed)
                         // HACKHACKHACK - for now only pay attention to the last peer to subscribe
@@ -1314,7 +1317,7 @@ connection_worker(void* p)
 
         // this controls both the ultimate latency and bit rate the stream aims at and I havent figured out the tradeoff
 
-        if(buffering_until-Mthrottle <= get_time_ms() && !peer->recv_only && peer->ts_logn > 0)
+        if(buffering_until/* -Mthrottle */ <= get_time_ms() && !peer->recv_only && peer->ts_logn > 0)
         {
             // stick with this decision for some t (100ms as a baseline is working very very well with <200ms lag)
             buffering_until = buffering_until + 200; // TODO: figure out optimal interval to measure bitrate over
@@ -1353,11 +1356,11 @@ connection_worker(void* p)
             // MARK: -- compare ts averages over the ts-range to measure packet frequency (should use len bytes too)
             tswin_rng = rmax-rmin;
 
-            // do not use time_avg here - timestamps are incrementing
-            float diff = ts_recent - peer->ts_winrng_begin;
-            float br = (float) diff / (PEER_RECV_BUFFER_COUNT_MS/P);
+            printf("tswin_rng[%d]: %lu\n", peer->id, tswin_rng);
 
-            assert(diff > 0);
+            // do not use time_avg here - timestamps are incrementing
+            float diff = (ts_recent - ts_winrng_begin)+1;
+            float br = (float) diff / (PEER_RECV_BUFFER_COUNT_MS/P);
 
             /*
             if(peer->ts_win_pd > ts_recent || Mthrottle < 1) {
@@ -1369,15 +1372,17 @@ connection_worker(void* p)
             */
 
             float throttlemin = 8.0;
-            Mthrottle += round(throttlemin / diff);
+            Mthrottle += round(throttlemin / (diff));
 
-            printf("Mthrottle peer[%d] pace-diff: %.08f, intervalms: %ld (rate: %.08f)\n", peer->id, diff, Mthrottle, br);
+            if(!isnormal(Mthrottle)) Mthrottle = 1.0;
+
+            printf("Mthrottle peer[%d] pace-diff: %.08f, intervalms: %f (rate: %.08f)\n", peer->id, diff, Mthrottle, br);
 
             peer->ts_win_pd = (float) br*(PEER_RECV_BUFFER_COUNT_MS/P); // prediction
 
             peer->underrun_signal = 0;
 
-            peer->ts_winrng_begin = ts_recent;
+            ts_winrng_begin = ts_recent-1;
         }
         
         counter++;
@@ -1387,7 +1392,7 @@ connection_worker(void* p)
         //    sleep_msec(Mthrottlesl);
         //}
 
-        if(Mthrottle > 0) usleep((1000/P)*Mthrottle);
+        if(Mthrottle > 0 && Mthrottle < 20.0) usleep((1000/P)*Mthrottle);
     }
 
     assert(peer->id == peerid_at_start);
@@ -1787,7 +1792,7 @@ int main( int argc, char* argv[] ) {
 
             // wait for this to drain
 
-            peers[sidx].ts_win_pd = 0;
+            //peers[sidx].ts_win_pd = 0;
             PEER_UNLOCK(sidx);
 
             printf("peer buffers:[%d] FULL - flushing\n", sidx);

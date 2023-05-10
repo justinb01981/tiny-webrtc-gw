@@ -37,5 +37,5 @@ wintermutecfg:
 	echo "set print thread-events off" >> ~/.gdbinit && \
 	echo "set confirm off" >> ~/.gdbinit;
 
-debug: all wintermutecfg
+debug: ./webrtc_gw wintermutecfg
 	gdb -ex "run" webrtc_gw
