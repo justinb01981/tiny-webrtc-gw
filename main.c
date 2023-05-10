@@ -1357,6 +1357,8 @@ connection_worker(void* p)
             float diff = ts_recent - peer->ts_winrng_begin;
             float br = (float) diff / (PEER_RECV_BUFFER_COUNT_MS/P);
 
+            assert(diff > 0);
+
             /*
             if(peer->ts_win_pd > ts_recent || Mthrottle < 1) {
                 Mthrottle += 2;
@@ -1367,7 +1369,7 @@ connection_worker(void* p)
             */
 
             float throttlemin = 8.0;
-            Mthrottle += floor(throttlemin / diff);
+            Mthrottle += round(throttlemin / diff);
 
             printf("Mthrottle peer[%d] pace-diff: %.08f, intervalms: %ld (rate: %.08f)\n", peer->id, diff, Mthrottle, br);
 

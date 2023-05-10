@@ -140,12 +140,13 @@ function enumerateMedia() {
 }
 
 function getMedia() {
+
     getMediaPromise = new Promise(function(resolve, reject) {
 
-    if(localStream && localStream.getTracks()[0].readyState == "live") {
-        resolve();
-        return;
-    }
+    //if(localStream && localStream.getTracks()[0].readyState == "live") {
+    //    resolve();
+    //    return;
+    //}
 
     navigator.mediaDevices.enumerateDevices().then(
         function(sourceInfos) {
@@ -167,8 +168,8 @@ function getMedia() {
             if(getSelectAudioDevice().selectedIndex >= 0) {
                 console.debug("SUCCESS: found select-device form-field overriding default ");
 
-                ai = getSelectAudioDevice().selectedIndex;
-                vi = getSelectVideoDevice().selectedIndex;
+                ai = ai + getSelectAudioDevice().selectedIndex;
+                vi = vi + getSelectVideoDevice().selectedIndex;
             }
 
             getSelectAudioDevice().disabled = true;
@@ -211,6 +212,11 @@ function getMedia() {
 
             navigator.mediaDevices.getUserMedia(constraints).then(
                 function (s) {
+                    if(localStream) { 
+                        resolve();
+                        return;
+                    } // hack
+
                     localStream = s;
                     attachMediaStream(localVideo, localStream);
                     localVideo.controls = true;
@@ -219,6 +225,7 @@ function getMedia() {
                         localVideo.startButton = null;
                     }
                     resolve();
+                    localVideo.play();
                 }).catch(
                 function(e) {
                     reject();
@@ -292,6 +299,7 @@ function parseURLArguments() {
     if(cam && localStream == null) {
         getCameraCheckbox().checked = true;
 
+        // TODO: this is janky because it duplicates code in the connect_iframe onload
         getMedia().then( function() {
             autoJoinRoomDone = true;
             roomField.value = room;
@@ -309,7 +317,6 @@ function parseURLArguments() {
 
         roomField.value = room;
 
-        // frameChild?
         frameChild.contentWindow.onJoin();
     }
 }

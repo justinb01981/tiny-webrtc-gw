@@ -188,7 +188,7 @@ function resizeObjectWithID(idName, x, y, w, h) {
 function attachMediaStream(vidElem, vidStream)
 {
     if(vidElem.srcObject != null) {
-        console.debug('attachMediaStream: video element srcObject != null, ignoring');
+        console.debug('attachMediaStream: video element replacing srcObject forbidden ');
         return;
     }
 
