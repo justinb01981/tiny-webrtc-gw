@@ -1,6 +1,8 @@
 --
 
-# Host your ( &#x1f92b; ![private](https://wintermute.nonroutable.net/) &#x1f92b; ) (HD &#128077;) webRTC video lobby | tiny-webrtc-linux
+# webRTC videoconference-in-a-box (C monolith)
+
+Host your ( &#x1f92b; ![private](https://wintermute.nonroutable.net/) &#x1f92b; ) (HD &#128077;) webRTC video lobby | tiny-webrtc-linux
 
 --
 
@@ -12,19 +14,7 @@ or:
 webRTC video/audio conferencing (many-to-many) server daemon for linux
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-Goals
+# Goals
 * Infinite &#x231A; duration streams     (security &#x1F4F9; friendly)
 * private rooms
 * 1-click-join [links]()
@@ -35,9 +25,9 @@ Goals
 * 100kb/sec <> 68Mbit/sec / per stream (on an 800Mhz ARM7!!)
 * friendly chatroom-style UX (e.g. https://www.toonamiaftermath.com/)
 
-Hot features
+# Features
 * Very low latency 1-many streaming
-* HD stream support
+* HD stream (via media constraints) support
 * text chat room
 * highly scalable (native c/c++ code)
 * end-to-end encrypted
@@ -46,11 +36,11 @@ Hot features
 * select media devices
 * code includes submodule referencing the standalone HTTPS server + example certificate
 
-A "demo"?
-* [&#128247;wintermute lobby&#128247;](https://wintermute.nonroutable.net/content/index_broadcast.html?joinroom=lobby](https://wintermute.nonroutable.net/content/index_broadcast.html?joinroom=lobby)
+# Demo:
+* [&#128247;wintermute lobby on a raspi4;](https://wintermute.nonroutable.net/content/index_broadcast.html?joinroom=lobby)
 
-Pics or it didn't happen &#xf644;:
-*![&#9729;"cloud raspi"&#9729;](http://www.domain17.net/justin/A222CF0B-6829-45C7-B989-4B9F663870A4.jpeg)
+
+*! [&#9729;"cloud raspi"&#9729;](http://www.domain17.net/justin/A222CF0B-6829-45C7-B989-4B9F663870A4.jpeg)
 
 ------------------
 
