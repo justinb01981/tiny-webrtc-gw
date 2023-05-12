@@ -2,16 +2,10 @@
 
 # webRTC videoconference-in-a-box (C monolith)
 
-Host your ( &#x1f92b; ![private](https://wintermute.nonroutable.net/) &#x1f92b; ) (HD &#128077;) webRTC video lobby | tiny-webrtc-linux
-
 --
 
-# tiny-webrtc-gw
+## tiny-webrtc-gw: a webRTC conferencing server "monolith" written in C/C++
 Welcome to the tiny-webrtc-gw readme!
-
-tiny-webrtc-gw: a webRTC conferencing server "monolith" written in C/C++
-or:
-webRTC video/audio conferencing (many-to-many) server daemon for linux
 
 
 # Goals
@@ -20,9 +14,9 @@ webRTC video/audio conferencing (many-to-many) server daemon for linux
 * 1-click-join [links]()
 * VP8,VP9,H.264
 * very fast stream multiplexing via lightweight C
-* NO external STUN/TURN involved ergo: raspberry-pi + airgapped LAN
+* NO cloud or external STUN/TURN involved ergo: raspberry-pi + airgapped LAN
 * SD/HD bitrates 
-* 100kb/sec <> 68Mbit/sec / per stream (on an 800Mhz ARM7!!)
+* High-performance: ~68Mbit/sec per stream+thread on an 800Mhz ARM7
 * friendly chatroom-style UX (e.g. https://www.toonamiaftermath.com/)
 
 # Features
@@ -40,7 +34,7 @@ webRTC video/audio conferencing (many-to-many) server daemon for linux
 * [&#128247;wintermute lobby on a raspi4;](https://wintermute.nonroutable.net/content/index_broadcast.html?joinroom=lobby)
 
 
-*! [&#9729;"cloud raspi"&#9729;](http://www.domain17.net/justin/A222CF0B-6829-45C7-B989-4B9F663870A4.jpeg)
+* [&#9729;"cloud"&#9729;](http://www.domain17.net/justin/A222CF0B-6829-45C7-B989-4B9F663870A4.jpeg)
 
 ------------------
 
