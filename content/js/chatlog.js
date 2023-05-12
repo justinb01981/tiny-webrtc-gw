@@ -46,6 +46,9 @@ function appendMessagesToUnorderedList(l, array) {
     let maxLen = 1000;
     var str = array[i];
     var isItalic = str.indexOf('server:') >= 0;
+    var bgColor = isItalic ? altcolor[1] : altcolor[0];
+    var textColor = isItalic ? 'red' : 'green';
+
     // this prefix must match the one used in main.c so we can color chat-lines by their prefix
 
     if (isItalic) {
@@ -59,8 +62,8 @@ function appendMessagesToUnorderedList(l, array) {
       var listElem = appendMessageListElem(l, str.substring(offset, offset+maxLen, str.indexOf('server:') >= 0));
       listElem.scrollIntoView(false);
      
-//     listElem.style.cssText = 'color:' + textColor + '; ' + 'background-color:'+ bgColor + '; list-style-type:none;' + 
-//      (isItalic ? ' font-style:italic;' : '');
+     listElem.style.cssText = 'color:' + textColor + '; ' + 'background-color:'+ bgColor + '; list-style-type:none;' + 
+      (isItalic ? ' font-style:italic;' : '');
       offset += maxLen;
     }
 
