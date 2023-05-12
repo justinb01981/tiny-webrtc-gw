@@ -1378,7 +1378,7 @@ connection_worker(void* p)
 
             printf("Mthrottle peer[%d] pace-diff: %.08f, intervalms: %f (rate: %.08f)\n", peer->id, diff, Mthrottle, br);
 
-            peer->ts_win_pd = ts_recent + (float) br*(PEER_RECV_BUFFER_COUNT_MS/P); // prediction
+            peer->ts_win_pd = ts_recent + (float) br*1.1*(PEER_RECV_BUFFER_COUNT_MS/P); // prediction
 
             peer->underrun_signal = 0;
 
@@ -1929,9 +1929,9 @@ int main( int argc, char* argv[] ) {
                 memset(&peers[i].addr, 0, sizeof(peers[i].addr));
                 memset(&peers[i].addr_listen, 0, sizeof(peers[i].addr_listen));
  
-                if(log_user_exit && strlen(peers[i].name) > 0)
+                if(log_user_exit && strlen(peers[i].name) > 0 && !peers[i].recv_only)
                 {
-                    sprintf(strbuf, "server: \"%s\" broadcast ended %s\n", peers[i].roomname, peers[i].name);
+                    sprintf(strbuf, "server: %s/%s broadcast ended\n", peers[i].roomname, peers[i].name);
                     chatlog_append(strbuf);
                 }
 

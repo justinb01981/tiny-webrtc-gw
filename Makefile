@@ -11,10 +11,10 @@ GPROF_FLAG=-g
 all:
 	echo "kidding, edit config.txt first then run make demo; - justin@domain17.net /// holla @ me :-) for help! (make sure you did git checkout --recursive-submodules or git submodule checkout xyz or build fails)";
 
-demo: ./webrtc_gw
+demo: webrtc_gwtgt
 	
 
-webrtc_gw: lib/libcrypto.a lib/libsrtp2.a lib/libssl.a
+webrtc_gwtgt: lib/libcrypto.a lib/libsrtp2.a lib/libssl.a
 # add -pg to profile with gprof
 	gcc -g -v -o webrtc_gw -DMEMDEBUGHACK=1 -DDTLS_BUILD_WITH_BORINGSSL=1 -I${INC_LIBSRTP} -I${INC_LIBSRTP_CFG} -I${INC_LIBSRTP_CRYPTO} -I${INC_OPENSSL} -I${INC_LIBWS} -L${LIB_OPENSSL} stubs.c main.c util.c tiny_config.c filecache.c ws/cwebsocket/lib/*.c ${LDARGS};
 #	gcc -v -o webrtc_gw -DDTLS_BUILD_WITH_BORINGSSL=1 -I${INC_LIBSRTP} -I${INC_LIBSRTP_CFG} -I${INC_LIBSRTP_CRYPTO} -I${INC_OPENSSL} -I${INC_LIBWS} -L${LIB_OPENSSL} stubs.c main.c util.c tiny_config.c ws/cwebsocket/lib/*.c ${LDARGS};
@@ -37,5 +37,5 @@ wintermutecfg:
 	echo "set print thread-events off" >> ~/.gdbinit && \
 	echo "set confirm off" >> ~/.gdbinit;
 
-debug: ./webrtc_gw wintermutecfg
+debug: demo wintermutecfg
 	gdb -ex "run" webrtc_gw

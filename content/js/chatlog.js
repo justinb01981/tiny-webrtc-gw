@@ -46,16 +46,10 @@ function appendMessagesToUnorderedList(l, array) {
     let maxLen = 1000;
     var str = array[i];
     var isItalic = str.indexOf('server:') >= 0;
-    var bgColor = 'white';
-    var textColor = isItalic ? 'red' : 'green';
+    var bgColor = 'transparent';
+    var textColor = isItalic ? 'darkgrey' : 'white';
 
     // this prefix must match the one used in main.c so we can color chat-lines by their prefix
-
-    if (isItalic) {
-        // skip it now these messages arent very useful
-        i++;
-        continue;
-    }
 
     str = str.replace(/\+/g, ' ');
     while(offset < str.length && str.length > 0) {
