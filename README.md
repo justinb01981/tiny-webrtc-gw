@@ -38,7 +38,7 @@ Welcome to the tiny-webrtc-gw readme!
 
 ------------------
 
-Caveats:
+## Caveats:
   since browsers won't allow webRTC to be negotiated unencrypted (https)
   you will need to run an SSL frontend in front of the built-in
   http server (see config.txt for that port)
