@@ -969,7 +969,7 @@ connection_worker(void* p)
                                     if(time_ms - peerpub->srtp[report_rtp_idx].pli_last >= 250) peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-1); // force picture loss
 
                                     // TODO: flush faster? slower?
-                                    //Mthrottle = 1;
+                                    //Mthrottle = 1.0;
                                 }
 
                                 peer->srtp[report_rtp_idx].pkt_lost = rpt_pkt_lost;
@@ -1359,7 +1359,7 @@ connection_worker(void* p)
             printf("tswin_rng[%d]: %lu\n", peer->id, tswin_rng);
 
             // do not use time_avg here - timestamps are incrementing
-            float diff = (ts_recent - ts_winrng_begin)+1;
+            float diff = (ts_recent - /*ts_winrng_begin*/peer->ts_win_pd);
             float br = (float) diff / (PEER_RECV_BUFFER_COUNT_MS/P);
 
             /*
@@ -1372,17 +1372,17 @@ connection_worker(void* p)
             */
 
             float throttlemin = 8.0;
-            Mthrottle += round(throttlemin / (diff));
+            Mthrottle += throttlemin / diff;
 
             if(!isnormal(Mthrottle)) Mthrottle = 1.0;
 
             printf("Mthrottle peer[%d] pace-diff: %.08f, intervalms: %f (rate: %.08f)\n", peer->id, diff, Mthrottle, br);
 
-            peer->ts_win_pd = (float) br*(PEER_RECV_BUFFER_COUNT_MS/P); // prediction
+            peer->ts_win_pd = ts_recent + (float) br*(PEER_RECV_BUFFER_COUNT_MS/P); // prediction
 
             peer->underrun_signal = 0;
 
-            ts_winrng_begin = ts_recent-1;
+            ts_winrng_begin = ts_recent;
         }
         
         counter++;
