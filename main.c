@@ -969,7 +969,7 @@ connection_worker(void* p)
                                     if(time_ms - peerpub->srtp[report_rtp_idx].pli_last >= 250) peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-1); // force picture loss
 
                                     // TODO: flush faster? slower?
-                                    //Mthrottle = 1.0;
+                                    Mthrottle = 0;
                                 }
 
                                 peer->srtp[report_rtp_idx].pkt_lost = rpt_pkt_lost;
@@ -1392,7 +1392,7 @@ connection_worker(void* p)
         //    sleep_msec(Mthrottlesl);
         //}
 
-        if(Mthrottle > 0 && Mthrottle < 20.0) usleep((1000/P)*Mthrottle);
+        if(Mthrottle > 0 && Mthrottle < 8.0) usleep((1000/P)*Mthrottle);
     }
 
     assert(peer->id == peerid_at_start);
