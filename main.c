@@ -968,8 +968,9 @@ connection_worker(void* p)
                                     // cap at 0.5/sec or we'll get overwhelmed
                                     if(time_ms - peerpub->srtp[report_rtp_idx].pli_last >= 250) peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-1); // force picture loss
 
-                                    // TODO: flush faster? slower?
-                                    Mthrottle = 0;
+                                    // TODO: flush faster? slower? usually here because of an underrun that happened at peer
+                                    //Mthrottle = 1.0;
+                                    buffering_until = time_ms + 1; // 
                                 }
 
                                 peer->srtp[report_rtp_idx].pkt_lost = rpt_pkt_lost;
@@ -1371,14 +1372,12 @@ connection_worker(void* p)
             }
             */
 
-            float throttlemin = 8.0;
+            float throttlemin = 20.0;
             Mthrottle += throttlemin / diff;
-
-            if(!isnormal(Mthrottle)) Mthrottle = 1.0;
 
             printf("Mthrottle peer[%d] pace-diff: %.08f, intervalms: %f (rate: %.08f)\n", peer->id, diff, Mthrottle, br);
 
-            peer->ts_win_pd = ts_recent + (float) br*1.1*(PEER_RECV_BUFFER_COUNT_MS/P); // prediction
+            peer->ts_win_pd = ts_recent + (float) br*0.95*(PEER_RECV_BUFFER_COUNT_MS/P); // prediction
 
             peer->underrun_signal = 0;
 
