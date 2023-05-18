@@ -965,12 +965,12 @@ connection_worker(void* p)
 
                                     if(!peer->alive) { printf("cxn_worker: race cond during RR pkt loss\n"); assert(0); break; }
 
-                                    // cap at 0.5/sec or we'll get overwhelmed
-                                    if(time_ms - peerpub->srtp[report_rtp_idx].pli_last >= 250) peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-1); // force picture loss
+                                    // cap at X/second or we'll get overwhelmed
+                                    if(time_ms - peerpub->srtp[report_rtp_idx].pli_last >= 1000) peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-1); // force picture loss
 
                                     // TODO: flush faster? slower? usually here because of an underrun that happened at peer
                                     //Mthrottle = 1.0;
-                                    buffering_until = time_ms + 1; // 
+                                    //buffering_until = time_ms + 1; // 
                                 }
 
                                 peer->srtp[report_rtp_idx].pkt_lost = rpt_pkt_lost;
@@ -980,7 +980,7 @@ connection_worker(void* p)
                                 peer->srtp[report_rtp_idx].receiver_report_sr_delay_last = sr_delay;
                                 peer->srtp[report_rtp_idx].receiver_report_sr_last = last_sr;
 
-                                if(peer->ts_logn > 0) printf("RR: sr_delta: %lu sr_delay: %lu jitter_delta: %lu\n", sr_delta, sr_delay_delta, jitter_delta);
+                                printf("RR: sr_delta: %lu sr_delay: %lu jitter_delta: %lu\n", sr_delta, sr_delay_delta, jitter_delta);
 
                                 // TODO: -- this needs to be better -
                                 //Mthrottle += sr_delay < peer->srtp[report_rtp_idx].receiver_report_sr_delay_last? -2: 1;
@@ -1130,15 +1130,20 @@ connection_worker(void* p)
 
                         total_protected += unprotect_len;
 
+                        if (rtp_idx == 0) {
+                            peer->cb_ssrc1d(rtpFrame.payload, unprotect_len);
+                        }
+                        else if (rtp_idx == 1) {
+                            peer->cb_ssrc2d(rtpFrame.payload, unprotect_len);
+                        }
+
                         peer_buffer_node_t* cur = NULL;
 
                         // log timestamp
                         unsigned int *idx = &peer->ts_logn;
                         peer->ts_last_unprotect[*idx] = ntohl(rtpFrame->hdr.timestamp);
-                        peer->time_last_unprotect[*idx] = time_ms;
+                        peer->time_last_unprotect[*idx] = get_time_ms();
                         peer->len_last_unprotect[*idx] = unprotect_len;
-
-                        // only calculate pace for a single peer (divide by subscribed); -- TODO: each peer gets a subscriber feedback record
 
                         /// TODO: what? this is the incoming decrypt stage - not affected by subscribers
                         *idx = (*idx+1) % PEER_STAT_TS_WIN_LEN;
@@ -1152,6 +1157,7 @@ connection_worker(void* p)
 
                         peer->stats.stat[8] = rtpFrame->hdr.payload_type & 0x7f;
 
+                        // TODO: remove this dead code
                         if(peer->rtp_timestamp_initial[rtp_idx] == 0)
                         {
                             peer->rtp_timestamp_initial[rtp_idx] = ntohl(rtpFrame->hdr.timestamp);
@@ -1316,9 +1322,22 @@ connection_worker(void* p)
 
         PEER_UNLOCK(peer->id);
 
-        // this controls both the ultimate latency and bit rate the stream aims at and I havent figured out the tradeoff
+        // find most recent tstamp from this rtp frame
+        u32 ts_recent = peer->ts_last_unprotect[(peer->ts_logn + PEER_STAT_TS_WIN_LEN-1) % PEER_STAT_TS_WIN_LEN];
+        u32 time_recent = peer->time_last_unprotect[(peer->ts_logn + PEER_STAT_TS_WIN_LEN-1) % PEER_STAT_TS_WIN_LEN];
 
-        if(buffering_until/* -Mthrottle */ <= get_time_ms() && !peer->recv_only && peer->ts_logn > 0)
+
+        //TODO: when receiving rtp if two different timestamps show up at the same time the receiver miscalculates network latency!
+        // HACK: n=incoming  check n-2 against n-1 and sleep briefly
+        u32 ts_lessrecent = peer->ts_last_unprotect[(peer->ts_logn + PEER_STAT_TS_WIN_LEN-2) % PEER_STAT_TS_WIN_LEN];
+        u32 time_lessrecent = peer->time_last_unprotect[(peer->ts_logn + PEER_STAT_TS_WIN_LEN-2) % PEER_STAT_TS_WIN_LEN];
+
+        // sleep approx to the recv_time delta (based on testing w 1 chrome stream this approach is optimal
+        // -- seeing bitrate increase to peak 5MB/s in < 1 sec - much improved over honoring the Trecv delta-1
+        if(ts_recent - ts_lessrecent != 0) sleep_msec(1);
+
+        // this controls both the ultimate latency and bit rate the stream aims at and I havent figured out the tradeoff
+        if(buffering_until/* -Mthrottle */ <= get_time_ms() && !peer->recv_only)
         {
             // stick with this decision for some t (100ms as a baseline is working very very well with <200ms lag)
             buffering_until = buffering_until + 200; // TODO: figure out optimal interval to measure bitrate over
@@ -1340,12 +1359,7 @@ connection_worker(void* p)
             u32 size_avg = 0;
             u32 tswin_bytes = 0;
             u32 rmin = 0xffffffff, rmax = 1;
-            u32 ts_recent = 0;
-
-            ts_recent = peer->ts_last_unprotect[
-                peer->ts_logn-1
-            ];
-
+            
             for(int i = 1; i < PEER_STAT_TS_WIN_LEN; i++) {
                 tswin_avg = (tswin_avg + (peer->ts_last_unprotect[i] - peer->ts_last_unprotect[i-1])) / 2;
                 time_avg = (time_avg + (  peer->time_last_unprotect[i] - peer->time_last_unprotect[i-1])) / 2;
@@ -1372,12 +1386,12 @@ connection_worker(void* p)
             }
             */
 
-            float throttlemin = 20.0;
-            Mthrottle += throttlemin / diff;
+            float throttlemax = 7.0;    // this is significant I suppose
+            Mthrottle += throttlemax / diff;
 
             printf("Mthrottle peer[%d] pace-diff: %.08f, intervalms: %f (rate: %.08f)\n", peer->id, diff, Mthrottle, br);
 
-            peer->ts_win_pd = ts_recent + (float) br*0.95*(PEER_RECV_BUFFER_COUNT_MS/P); // prediction
+            peer->ts_win_pd = ts_recent + (float) br*(PEER_RECV_BUFFER_COUNT_MS/P); // prediction
 
             peer->underrun_signal = 0;
 
@@ -1391,7 +1405,7 @@ connection_worker(void* p)
         //    sleep_msec(Mthrottlesl);
         //}
 
-        if(Mthrottle > 0 && Mthrottle < 8.0) usleep((1000/P)*Mthrottle);
+        if(Mthrottle > 0 && Mthrottle < 8.0) usleep((1000.0/P)*Mthrottle);
     }
 
     assert(peer->id == peerid_at_start);

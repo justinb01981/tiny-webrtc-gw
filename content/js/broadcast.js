@@ -325,7 +325,7 @@ function setLoggedIn() {
     var h = document.getElementById('login');
     if(myUsername.indexOf('nobody') == 0) {
         h = document.getElementById('logout');
-        document.getElementById('userName').style = 'display:none';
+        //document.getElementById('userName').style = 'display:none';
     }
     h.style = 'display:none;';
 }
