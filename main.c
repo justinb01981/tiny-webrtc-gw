@@ -965,8 +965,9 @@ connection_worker(void* p)
 
                                     if(!peer->alive) { printf("cxn_worker: race cond during RR pkt loss\n"); assert(0); break; }
 
+                                    // MARK: -- HACK - covering up our jitter (delayed/underrun on subscriber) by requesting a full frame refresh
                                     // cap at X/second or we'll get overwhelmed
-                                    if(time_ms - peerpub->srtp[report_rtp_idx].pli_last >= 1000) peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-1); // force picture loss
+                                    //peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-250); // force picture loss
 
                                     // TODO: flush faster? slower? usually here because of an underrun that happened at peer
                                     //Mthrottle = 1.0;
@@ -976,15 +977,19 @@ connection_worker(void* p)
                                 peer->srtp[report_rtp_idx].pkt_lost = rpt_pkt_lost;
 
                                 u32 sr_delay = ntohl(report->blocks[issrc].last_sr_timestamp), sr_delay_cmp = peer->srtp[report_rtp_idx].receiver_report_sr_last;
+
+                                // TODO: -- this needs to be better -
+                                Mthrottle += 1.0 * (sr_delta > peer->srtp[report_rtp_idx].receiver_report_sr_delay_last ? 1 : -1); // increasing delay = increase throttle
+                                if(Mthrottle < 1 || Mthrottle > PEER_THROTTLE_MAX) Mthrottle = 1;
+
+                                // store
                                 peer->srtp[report_rtp_idx].receiver_report_jitter_last = jitter;
                                 peer->srtp[report_rtp_idx].receiver_report_sr_delay_last = sr_delay;
                                 peer->srtp[report_rtp_idx].receiver_report_sr_last = last_sr;
 
-                                printf("RR: sr_delta: %lu sr_delay: %lu jitter_delta: %lu\n", sr_delta, sr_delay_delta, jitter_delta);
+                                printf("peer[%d]/ssrc%lu RR: sr_delta: %lu sr_delay: %lu jitter_delta: %lu\n", peer->id, peer->srtp[report_rtp_idx].ssrc_offer, sr_delta, sr_delay_delta, jitter_delta);
 
-                                // TODO: -- this needs to be better -
-                                //Mthrottle += sr_delay < peer->srtp[report_rtp_idx].receiver_report_sr_delay_last? -2: 1;
-                                //if(Mthrottlems < 1 || Mthrottlems > 20) 
+
 
                                 issrc ++;
                             }
@@ -1386,8 +1391,8 @@ connection_worker(void* p)
             }
             */
 
-            float throttlemax = 7.0;    // this is significant I suppose
-            Mthrottle += throttlemax / diff;
+            float throttlemax = PEER_THROTTLE_MAX;    // this is significant I suppose
+            //Mthrottle += throttlemax / diff;
 
             printf("Mthrottle peer[%d] pace-diff: %.08f, intervalms: %f (rate: %.08f)\n", peer->id, diff, Mthrottle, br);
 

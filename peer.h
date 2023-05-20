@@ -33,12 +33,14 @@
 #define OFFER_SDP_SIZE 8000
 #define PEER_RECV_BUFFER_COUNT_MS (200)
 // TODO: this is RTP and we should be doing minimal buffering
-#define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS) // 5k pkt/sec sounds good? this is the theoretical max buffered
+#define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*2) // 5k pkt/sec sounds good? this is the theoretical max buffered
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 30000
 #define PEER_STAT_TS_WIN_LEN /*32*/ 9 // this needs to go away since we're not tracking each pkt to determine bitrate anymore
 
 // this magic number influences the pace epoll/recvmmsg takes packets in - started with 5 trying lower values to see if that helps even out streams
 #define EPOLL_TIMEOUT_MS 3
+// ms
+#define PEER_THROTTLE_MAX 8
 
 extern char* dtls_fingerprint;
 
