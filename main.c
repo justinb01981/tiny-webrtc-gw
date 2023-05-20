@@ -1131,10 +1131,10 @@ connection_worker(void* p)
                         total_protected += unprotect_len;
 
                         if (rtp_idx == 0) {
-                            peer->cb_ssrc1d(rtpFrame.payload, unprotect_len);
+                            peer->cb_ssrc1d(rtpFrame->payload, unprotect_len, peer);
                         }
                         else if (rtp_idx == 1) {
-                            peer->cb_ssrc2d(rtpFrame.payload, unprotect_len);
+                            peer->cb_ssrc2d(rtpFrame->payload, unprotect_len, peer);
                         }
 
                         peer_buffer_node_t* cur = NULL;
@@ -1893,9 +1893,10 @@ int main( int argc, char* argv[] ) {
                 //chatlog_append(strbuf);
 
                 /* reset all this peer's subscribers -- either close cxn or mark subscriptionId=-1 */
-                PEER_UNLOCK(i);
                 for(s = 0; s < MAX_PEERS; s++) {
                     peer_session_t* subpeer = &peers[s];
+
+                    if(s == i) continue;
 
                     PEER_LOCK(s);
 
@@ -1916,7 +1917,6 @@ int main( int argc, char* argv[] ) {
                     }
                     PEER_UNLOCK(s);
                 }
-                PEER_LOCK(i);
 
                 DTLS_peer_uninit(&peers[i]);
                 memset(&peers[i].dtls, 0, sizeof(peers[i].dtls));

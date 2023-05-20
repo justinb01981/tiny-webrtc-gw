@@ -32,7 +32,8 @@
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 8000
 #define PEER_RECV_BUFFER_COUNT_MS (200)
-#define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*5) // 5k pkt/sec sounds good? this is the theoretical max buffered
+// TODO: this is RTP and we should be doing minimal buffering
+#define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS) // 5k pkt/sec sounds good? this is the theoretical max buffered
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 30000
 #define PEER_STAT_TS_WIN_LEN /*32*/ 9 // this needs to go away since we're not tracking each pkt to determine bitrate anymore
 
@@ -225,6 +226,11 @@ typedef struct peer_session_t
         unsigned long stat[13];
     } stats;
 
+
+    // hooks for data
+    void (*cb_ssrc1d)(void*, size_t, struct peer_session_t*);
+    void (*cb_ssrc2d)(void*, size_t, struct peer_session_t*);
+
     int pad2[256];
 
     pthread_t thread;
@@ -246,7 +252,7 @@ typedef struct peer_session_t
     struct {
         char raddr[64];
         uint32_t rport;
-    } websock_icecandidate;
+    } websock_icecandidate; // TODO: remove
 
     int init_needed;
     //int restart_done;
@@ -338,6 +344,16 @@ static void peer_cb_restart_crash(peer_session_t *p)
     p->time_pkt_last = 0;
 }
 
+static void peer_cb_ssrc_receiveaudiodata(void* p, size_t len, peer_session_t* peer)
+{
+    // TODO open file with name of ssrc and append len binar
+    //printf("peer[%d] cb_receiveaudio:%d\n", peer->id, len);
+}
+
+static void peer_cb_ssrc_receivevideodata(void* p, size_t len, peer_session_t* peer)
+{
+}
+
 void peer_init(peer_session_t* peer, int id)
 {
     peer->id = id;
@@ -360,6 +376,8 @@ void peer_init(peer_session_t* peer, int id)
     peer_cookie_init(peer, "");
 
     peer->cb_restart = peer_cb_restart_crash;
+    peer->cb_ssrc1d = peer_cb_ssrc_receiveaudiodata;
+    peer->cb_ssrc2d = peer_cb_ssrc_receivevideodata;
 
     sprintf(peer->http.dynamic_js, "%s", PEER_DYNAMIC_JS_EMPTY);
 }
