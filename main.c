@@ -967,7 +967,7 @@ connection_worker(void* p)
 
                                     // MARK: -- HACK - covering up our jitter (delayed/underrun on subscriber) by requesting a full frame refresh
                                     // cap at X/second or we'll get overwhelmed
-                                    //peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-250); // force picture loss
+                                    peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-250); // force picture loss
 
                                     // TODO: flush faster? slower? usually here because of an underrun that happened at peer
                                     //Mthrottle = 1.0;
@@ -979,7 +979,7 @@ connection_worker(void* p)
                                 u32 sr_delay = ntohl(report->blocks[issrc].last_sr_timestamp), sr_delay_cmp = peer->srtp[report_rtp_idx].receiver_report_sr_last;
 
                                 // TODO: -- this needs to be better -
-                                Mthrottle += 1.0 * (sr_delta > peer->srtp[report_rtp_idx].receiver_report_sr_delay_last ? 1 : -1); // increasing delay = increase throttle
+                                Mthrottle += 0.25 * (sr_delta > peer->srtp[report_rtp_idx].receiver_report_sr_delay_last ? 1 : -1); // increasing delay = increase throttle
                                 if(Mthrottle < 1 || Mthrottle > PEER_THROTTLE_MAX) Mthrottle = 1;
 
                                 // store
@@ -1410,7 +1410,7 @@ connection_worker(void* p)
         //    sleep_msec(Mthrottlesl);
         //}
 
-        if(Mthrottle > 0 && Mthrottle < 8.0) usleep((1000.0/P)*Mthrottle);
+        if(Mthrottle > 0 && Mthrottle < PEER_THROTTLE_MAX) usleep((1000.0/P)*Mthrottle);
     }
 
     assert(peer->id == peerid_at_start);
