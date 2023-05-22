@@ -116,6 +116,15 @@ div.videoContainerFake {
   border-color:white;
 }
 
+div.videoDivMassive {
+  background-color: #00000044;
+  border-width:4px;
+  border-color:red;
+  display:none;
+  position:absolute;
+  top:-100px; left:100px; width:80%; height:80%; z-index:3; background-color:#222222aa;
+}
+
 div.topDiv {
     height:98%;
 }
@@ -169,10 +178,10 @@ button.retryButton {
 
 button.loadingButton {
     width: 128px;
-    height: 48px;
+    height: 96px;
     position: relative;
-    left: 128px;
-    top: -128px;
+    left: 40%;
+    top: 40%;
     z-index:2;
 }
 
@@ -239,10 +248,11 @@ img.backgroundImage {
 }
 
 textarea.chat {
-    height:24px;
+    height:48px;
+    width:50%;
 }
 
 button.chatsend {
     width:64px;
-    height:24px;
+    height:36px;
 }
