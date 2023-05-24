@@ -599,7 +599,7 @@ webserver_worker(void* p)
 
                         for(i = 0; i < MAX_PEERS; i++)
                         {
-                            if(peers[i].alive)
+                            if(peers[i].alive && peers[i].srtp_inited)
                             {
                                 num_peers++;
 

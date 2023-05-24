@@ -34,7 +34,7 @@
 #define PEER_RECV_BUFFER_COUNT_MS (200)
 // TODO: this is RTP and we should be doing minimal buffering
 #define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*2) // 5k pkt/sec sounds good? this is the theoretical max buffered
-#define RTP_PICT_LOSS_INDICATOR_INTERVAL 30000
+#define RTP_PICT_LOSS_INDICATOR_INTERVAL 10000
 #define PEER_STAT_TS_WIN_LEN /*32*/ 9 // this needs to go away since we're not tracking each pkt to determine bitrate anymore
 
 // this magic number influences the pace epoll/recvmmsg takes packets in - started with 5 trying lower values to see if that helps even out streams
@@ -271,8 +271,8 @@ typedef struct peer_session_t
 
 } peer_session_t;
 
-const static int PEER_TIMEOUT_DEFAULT = 20;
-const static int PEER_TIMEOUT_SIGNEDIN = 20;
+const static int PEER_TIMEOUT_DEFAULT = 10;
+const static int PEER_TIMEOUT_SIGNEDIN = 10;
 
 typedef struct {
     struct {
@@ -563,7 +563,7 @@ const char* sdp_offer_create(peer_session_t* peer)
     "\"a=sendrecv\\n\" + \n"
 #if SDP_OFFER_VP8
     // see link below
-    "\"a=fmtp:120 max-fr=60; max-fs=28800; x-google-max-bitrate=5000; x-google-min-bitrate=0; x-google-start-bitrate=1000\\n\" + \n"
+    "\"a=fmtp:120 max-fr=60; max-fs=28800; x-google-max-bitrate=8000; x-google-min-bitrate=128; x-google-start-bitrate=1000\\n\" + \n"
 #endif
     // TODO: worth it to offer more mp4 profile-id? this was cribbed from chrome webrtc
 /*

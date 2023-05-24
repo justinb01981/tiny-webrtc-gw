@@ -46,6 +46,8 @@ table.mainTable {
     background-size:100%;
     background-blend-mode: soft-light;
     font-size:larger;
+    position:relative;
+    height:100%;
 }
 
 table.videoMainContainer {
@@ -57,8 +59,8 @@ table.videoMainContainer {
 }
 
 video {
-    controls:true;
-    object-fit:contain;
+    controls: true;
+    object-fit: contain;
     border-width:4;
     border-color:white;
 }
@@ -72,8 +74,7 @@ table.localPreviewTable {
 }
 
 video.videoMain {
-    min-width:320px;
-    max-width:1024px;
+    max-height:768px;
     object-fit:contain;
 }
 
@@ -181,7 +182,7 @@ button.loadingButton {
     height: 96px;
     position: relative;
     left: 40%;
-    top: 40%;
+    top: -40%;
     z-index:2;
 }
 
@@ -249,10 +250,9 @@ img.backgroundImage {
 
 textarea.chat {
     height:48px;
-    width:50%;
 }
 
 button.chatsend {
     width:64px;
-    height:36px;
+    height:48px;
 }

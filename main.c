@@ -555,7 +555,7 @@ connection_worker(void* p)
 
         static unsigned long locked_last = 0;
 
-        float P = 3.0; // sub-ms precision
+        float Prec = 5.0; // sub-ms precision
 
         PERFTIME_INTERVAL_SINCE(&locked_last);
 
@@ -967,20 +967,21 @@ connection_worker(void* p)
 
                                     // MARK: -- HACK - covering up our jitter (delayed/underrun on subscriber) by requesting a full frame refresh
                                     // cap at X/second or we'll get overwhelmed
-                                    peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-250); // force picture loss
+                                    //peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-250); // force picture loss
 
                                     // TODO: flush faster? slower? usually here because of an underrun that happened at peer
-                                    //Mthrottle = 1.0;
-                                    //buffering_until = time_ms + 1; // 
+                                    Mthrottle = PEER_THROTTLE_MAX-1;
+                                    buffering_until = time_ms + 1;  
                                 }
 
                                 peer->srtp[report_rtp_idx].pkt_lost = rpt_pkt_lost;
 
-                                u32 sr_delay = ntohl(report->blocks[issrc].last_sr_timestamp), sr_delay_cmp = peer->srtp[report_rtp_idx].receiver_report_sr_last;
+                                u32 sr_delay = ntohl(report->blocks[issrc].last_sr_timestamp_delay), sr_delay_cmp = peer->srtp[report_rtp_idx].receiver_report_sr_delay_last;
 
                                 // TODO: -- this needs to be better -
-                                Mthrottle += 1.0 * (sr_delta > peer->srtp[report_rtp_idx].receiver_report_sr_delay_last ? 1 : -1); // increasing delay = increase throttle
-                                if(Mthrottle < 1.0 || Mthrottle > PEER_THROTTLE_MAX) Mthrottle = 1.0;
+                                // increasing delay = increase throttle
+                                Mthrottle += 1.0 * (sr_delay > sr_delay_cmp ? -1: 1);
+                                //if(Mthrottle < 0.1 || Mthrottle >= PEER_THROTTLE_MAX) Mthrottle = 1.0;
 
                                 // store
                                 peer->srtp[report_rtp_idx].receiver_report_jitter_last = jitter;
@@ -1208,6 +1209,11 @@ connection_worker(void* p)
 
                                 srtp_sess_t *sess = &peers[p].srtp[rtp_idx_write];
 
+                                if(sess->session == NULL) {
+                                    printf("ERROR: race condition: srtp_protect called with session == null\n");
+                                    continue;
+                                }
+
                                 // MARK: -- srtp_protect
                                 if(sess->inited && srtp_protect(sess->session, rtp_frame_out, &lengthPeer) == srtp_err_status_ok)
                                 {
@@ -1337,10 +1343,6 @@ connection_worker(void* p)
         u32 ts_lessrecent = peer->ts_last_unprotect[(peer->ts_logn + PEER_STAT_TS_WIN_LEN-2) % PEER_STAT_TS_WIN_LEN];
         u32 time_lessrecent = peer->time_last_unprotect[(peer->ts_logn + PEER_STAT_TS_WIN_LEN-2) % PEER_STAT_TS_WIN_LEN];
 
-        // sleep approx to the recv_time delta (based on testing w 1 chrome stream this approach is optimal
-        // -- seeing bitrate increase to peak 5MB/s in < 1 sec - much improved over honoring the Trecv delta-1
-        if(ts_recent - ts_lessrecent != 0) sleep_msec(1);
-
         // this controls both the ultimate latency and bit rate the stream aims at and I havent figured out the tradeoff
         if(buffering_until/* -Mthrottle */ <= get_time_ms() && !peer->recv_only)
         {
@@ -1378,25 +1380,18 @@ connection_worker(void* p)
 
             printf("tswin_rng[%d]: %lu\n", peer->id, tswin_rng);
 
+
+            /// this cannot be correct -- bitrate is forever increasing??!
             // do not use time_avg here - timestamps are incrementing
             float diff = (ts_recent - /*ts_winrng_begin*/peer->ts_win_pd);
-            float br = (float) diff / (PEER_RECV_BUFFER_COUNT_MS/P);
+            float br = (float) diff / (PEER_RECV_BUFFER_COUNT_MS/Prec);
 
-            /*
-            if(peer->ts_win_pd > ts_recent || Mthrottle < 1) {
-                Mthrottle += 2;
-            }
-            else {
-                Mthrottle -= 1;
-            }
-            */
-
-            float throttlemax = PEER_THROTTLE_MAX;    // this is significant I suppose
+            //float throttlemax = PEER_THROTTLE_MAX;    // this is significant I suppose
             //Mthrottle += throttlemax / diff;
 
-            printf("Mthrottle peer[%d] pace-diff: %.08f, intervalms: %f (rate: %.08f)\n", peer->id, diff, Mthrottle, br);
+            //printf("Mthrottle peer[%d] pace-diff: %.08f, intervalms: %f (rate: %.08f)\n", peer->id, diff, Mthrottle, br);
 
-            peer->ts_win_pd = ts_recent + (float) br*(PEER_RECV_BUFFER_COUNT_MS/P); // prediction
+            peer->ts_win_pd = ts_recent + (float) br*(PEER_RECV_BUFFER_COUNT_MS/Prec); // prediction
 
             peer->underrun_signal = 0;
 
@@ -1410,7 +1405,16 @@ connection_worker(void* p)
         //    sleep_msec(Mthrottlesl);
         //}
 
-        if(Mthrottle > 0 && Mthrottle < PEER_THROTTLE_MAX) usleep((1000.0/P)*Mthrottle);
+        // sleep approx to the recv_time delta (based on testing w 1 chrome stream this approach is optimal
+        // -- seeing bitrate increase to peak 5MB/s in < 1 sec - much improved over honoring the Trecv delta-1
+        {
+            const int J = 1000;
+            const int jiff = J/Prec;
+            if(Mthrottle > 0 && Mthrottle < PEER_THROTTLE_MAX) usleep(jiff*Mthrottle);
+            else usleep(J);
+        }
+
+        // todo: ? avg recv rate in the stats window?
     }
 
     assert(peer->id == peerid_at_start);
@@ -1441,7 +1445,7 @@ void cb_disconnect(peer_session_t* p) {
     //p->alive = 0; // unnecessary
     //memset(&p->stun_ice, 0, sizeof(p->stun_ice));
     //p->stun_ice.bound = p->stun_ice.bound_client = 0; // already done as well
-    //p->time_pkt_last = 0;
+    p->time_pkt_last = 0;
 }
 
 
@@ -1814,7 +1818,6 @@ int main( int argc, char* argv[] ) {
             PEER_UNLOCK(sidx);
 
             printf("peer buffers:[%d] FULL - flushing\n", sidx);
-            sleep_msec(10);
 
             PEER_LOCK(sidx);
         }
@@ -1878,7 +1881,7 @@ int main( int argc, char* argv[] ) {
             
             // close reinit if alive and stalled traffic
             int timed_out = (peers[i].alive && (get_time_ms() - peers[i].time_pkt_last) / 1000 >= peers[i].timeout_sec);
-            if(timed_out) printf("[%d] timed out: %lu\n", i, peers[i].time_pkt_last);
+            if(timed_out) printf("[%d] timed out: %lums idle\n", i, get_time_ms()-peers[i].time_pkt_last);
 
             peers[i].init_needed = peers[i].init_needed | timed_out;
 
