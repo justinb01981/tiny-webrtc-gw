@@ -593,7 +593,7 @@ function prepareVideo(containerTable, labelText)
     videoElemToAdd.parentRow = row;
     videoElemToAdd.stopButton = stopButton;
     videoElemToAdd.controlPara = paraToAdd;
-    videoElemToAdd.style.width = (window.document.body.clientWidth - 100);
+    //videoElemToAdd.style.width = (window.document.body.clientWidth - 100);
 
     // this closeAction will be replaced and called by the replacement (chained)
     videoElemToAdd.closeAction = function f() {

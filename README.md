@@ -7,13 +7,13 @@ Welcome to the tiny-webrtc-gw readme!
 ## Goals
 * Infinite &#x231A; duration streams     (security &#x1F4F9; friendly)
 * private rooms
-* 1-click-join [links]()
+* 1-click-join [links](https://wintermute.nonroutable.net/content/index_broadcast.html?joinroom=lobby)
 * VP8,VP9,H.264
 * very fast stream multiplexing via lightweight C
 * NO cloud or external STUN/TURN involved ergo: raspberry-pi + airgapped LAN
 * SD/HD bitrates 
 * High-performance: ~68Mbit/sec per stream+thread on an 800Mhz ARM7
-* friendly chatroom-style UX (e.g. https://www.toonamiaftermath.com/)
+* friendly chatroom-style UX (e.g. justin.tv)
 
 ## Features
 * Very low latency 1-many streaming

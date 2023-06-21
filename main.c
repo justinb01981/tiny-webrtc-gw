@@ -396,7 +396,7 @@ connection_worker(void* p)
 {
     peer_session_t* peer = (peer_session_t*) p;
     peer_buffer_node_t *buffer_next = NULL, *cur, *prev;
-    int si, incoming, L;
+    int si, subscribing, L;
     int rtp_idx;
     rtp_frame_t *rtpFrame;
 
@@ -409,7 +409,7 @@ connection_worker(void* p)
     int awaitStun = 16;
     unsigned long time_ms = get_time_ms();
     long long buffering_until = time_ms + 4000, ts_winrng_begin = 0;
-    float Mthrottle = 1.0;
+    float Mthrottle = 1.0, Dthrottle = 1.0;
 
     thread_init();
 
@@ -466,24 +466,21 @@ connection_worker(void* p)
     char* room_name = PEER_ANSWER_SDP_GET_ICE(peer, "a=roomname=", 0);
     sprintf(peer->roomname, "%s", room_name);
 
-    snprintf(str256, sizeof(str256)-1,
-        "server:%s %s in %s\n",
-        peer->name,
-        (peer->send_only ? "broadcasting" : "watching"),
-        peer->roomname);
-    chatlog_append(str256);
+    // log something to cause clients to refresh
+    chatlog_append("");
 
     int foundx = -1;
-    for(incoming = 1; incoming >= 0; incoming--)
+    subscribing = peer->recv_only;
+
     for(si = 0; si < MAX_PEERS; si++)
     {
         if(peers[si].alive)
         {
-            if(incoming)
+            if(subscribing)
             {
                 // connect us to peer[si] broadcast
-                if(strcmp(peers[si].name, peer->watchname) == 0 &&
-                   !peer->send_only &&
+                if(!peer->send_only &&
+                   strcmp(peers[si].name, peer->watchname) == 0 &&
                    peer->id != si &&
                    peer->subscriptionID == PEER_IDX_INVALID)
                 {
@@ -493,7 +490,7 @@ connection_worker(void* p)
                     // schedule picutre-loss-indicator (full-frame-refresh
                     for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_COUNT; rtp_idx++)
                     {
-                        peers[si].srtp[rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL - 1); // move up
+                        peers[si].srtp[rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL - 250); // move up
                     }
 
                     foundx = si;
@@ -501,9 +498,8 @@ connection_worker(void* p)
             }
             else
             {
-                // connect any peers waiting for one matching this us
-                if(!peer->recv_only &&
-                    // TODO: test if this can work? switching the source stream for a receiver?
+                // connect any subs waiting for one matching this us
+                if(// not subscribing
                    //peers[si].subscriptionID == PEER_IDX_INVALID && // overwrite if we reconnect? probably wont work - 
                    !peers[si].send_only &&
                    strcmp(peers[si].watchname, peer->name) == 0)
@@ -512,7 +508,7 @@ connection_worker(void* p)
 
                     // also connect opposing/waiting peer (probably no matter since stream is incoming)
                     peers[si].subscriptionID = PEER_INDEX(peer);
-                    peer->subscribed = peer->id;
+                    peer->subscribed = peer->id; // most recent sub
                     // schedule picture-loss-indicator
                     for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_COUNT; rtp_idx++)
                     {
@@ -535,6 +531,20 @@ connection_worker(void* p)
 
     PEER_UNLOCK(peer->id);
 
+    if(!peer->recv_only)
+    {
+        snprintf(str256, sizeof(str256)-1,
+        "server:%s %s in %s\n",
+        peer->name,
+        (!peer->recv_only ? "broadcasting" : "watching"),
+        peer->roomname);
+        chatlog_append(str256);
+    }
+    else
+    {
+        chatlog_append("\n"); // refresh chat iframes
+    }
+
     buffer_next = peer->in_buffers_head.next;
 
     peer->underrun_signal = 1; // lock first time
@@ -555,14 +565,10 @@ connection_worker(void* p)
 
         static unsigned long locked_last = 0;
 
-        float Prec = 5.0; // sub-ms precision
-
         PERFTIME_INTERVAL_SINCE(&locked_last);
 
-        time_ms = time_ms;
+        time_ms = peer->time_last_run = get_time_ms();
         time_sec = wall_time;
-
-        peer->time_last_run = get_time_ms();
 
         PEER_LOCK(peer->id);
 
@@ -859,8 +865,9 @@ connection_worker(void* p)
 
                     if(psrtpsess == NULL) {
                         printf("ERR srtp[%d]: psrtpsess==NULL unexpected race!\n", peer->id);
-                        peer->alive = 0;
-                        goto peer_again;
+                        peer->time_pkt_last = 0;
+                        peer->underrun_signal = 1;
+                        break;
                     }
 
                     srtp_err_status_t erru = srtp_unprotect_rtcp(psrtpsess, report, &unprotect_len);
@@ -949,7 +956,7 @@ connection_worker(void* p)
                                 //    peer->id, report_rtp_idx, sr_delta, sr_delay_delta,
                                 //    rpt_pkt_lost);
 
-                                if(peer->srtp[report_rtp_idx].pkt_lost < rpt_pkt_lost /* || frac_pkt_lost != 0*/)
+                                if(peer->srtp[report_rtp_idx].pkt_lost < rpt_pkt_lost /* || frac_pkt_lost != 0*/ && peer->subscriptionID != PEER_IDX_INVALID)
                                 {
                                     // NOTE: -- pkt_lost indicates # pkts that were expected to have been received by the point
                                     // in time this report was generated (every 20ms?) therefore an increase represents an underrun
@@ -959,6 +966,7 @@ connection_worker(void* p)
 
                                     //  tell peer of underrun
                                     peer_session_t* peerpub = &peers[peer->subscriptionID];
+
                                     peerpub->underrun_signal = 1;
 
                                     printf("WARN: peer reports stream underrun (pkt loss or jitter)\n");
@@ -967,10 +975,9 @@ connection_worker(void* p)
 
                                     // MARK: -- HACK - covering up our jitter (delayed/underrun on subscriber) by requesting a full frame refresh
                                     // cap at X/second or we'll get overwhelmed
-                                    //peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-250); // force picture loss
+                                    peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-250); // force picture loss
 
                                     // TODO: flush faster? slower? usually here because of an underrun that happened at peer
-                                    Mthrottle = PEER_THROTTLE_MAX-1;
                                     buffering_until = time_ms + 1;  
                                 }
 
@@ -978,10 +985,8 @@ connection_worker(void* p)
 
                                 u32 sr_delay = ntohl(report->blocks[issrc].last_sr_timestamp_delay), sr_delay_cmp = peer->srtp[report_rtp_idx].receiver_report_sr_delay_last;
 
-                                // TODO: -- this needs to be better -
-                                // increasing delay = increase throttle
-                                Mthrottle += 1.0 * (sr_delay > sr_delay_cmp ? -1: 1);
-                                //if(Mthrottle < 0.1 || Mthrottle >= PEER_THROTTLE_MAX) Mthrottle = 1.0;
+                                // increasing delay = increase throttle, throttle always incrementing by Dthrottle below
+                                Dthrottle = 0.0001 + PEER_THROTTLE_RESPONSE / (1 + (sr_delay - sr_delay_cmp)); //* (sr_delay > sr_delay_cmp ? -1.0: 1.0);
 
                                 // store
                                 peer->srtp[report_rtp_idx].receiver_report_jitter_last = jitter;
@@ -989,8 +994,6 @@ connection_worker(void* p)
                                 peer->srtp[report_rtp_idx].receiver_report_sr_last = last_sr;
 
                                 printf("peer[%d]/ssrc%lu RR: sr_delta: %lu sr_delay: %lu jitter_delta: %lu\n", peer->id, peer->srtp[report_rtp_idx].ssrc_offer, sr_delta, sr_delay_delta, jitter_delta);
-
-
 
                                 issrc ++;
                             }
@@ -1378,20 +1381,15 @@ connection_worker(void* p)
             // MARK: -- compare ts averages over the ts-range to measure packet frequency (should use len bytes too)
             tswin_rng = rmax-rmin;
 
-            printf("tswin_rng[%d]: %lu\n", peer->id, tswin_rng);
-
-
-            /// this cannot be correct -- bitrate is forever increasing??!
-            // do not use time_avg here - timestamps are incrementing
             float diff = (ts_recent - /*ts_winrng_begin*/peer->ts_win_pd);
-            float br = (float) diff / (PEER_RECV_BUFFER_COUNT_MS/Prec);
+            float br = (float) diff / PEER_RECV_BUFFER_COUNT_MS;
 
             //float throttlemax = PEER_THROTTLE_MAX;    // this is significant I suppose
             //Mthrottle += throttlemax / diff;
 
             //printf("Mthrottle peer[%d] pace-diff: %.08f, intervalms: %f (rate: %.08f)\n", peer->id, diff, Mthrottle, br);
 
-            peer->ts_win_pd = ts_recent + (float) br*(PEER_RECV_BUFFER_COUNT_MS/Prec); // prediction
+            peer->ts_win_pd = ts_recent + (float) br*(PEER_RECV_BUFFER_COUNT_MS); // prediction
 
             peer->underrun_signal = 0;
 
@@ -1400,18 +1398,24 @@ connection_worker(void* p)
         
         counter++;
 
-        //if(counter % Mthrottle == 0)
-        //{
-        //    sleep_msec(Mthrottlesl);
-        //}
-
         // sleep approx to the recv_time delta (based on testing w 1 chrome stream this approach is optimal
         // -- seeing bitrate increase to peak 5MB/s in < 1 sec - much improved over honoring the Trecv delta-1
         {
-            const int J = 1000;
-            const int jiff = J/Prec;
-            if(Mthrottle > 0 && Mthrottle < PEER_THROTTLE_MAX) usleep(jiff*Mthrottle);
-            else usleep(J);
+            const float jiff = PEER_THROTTLE_USLEEPJIFF;
+            //printf("usleep:%f\n", Mthrottle);
+
+            Mthrottle += Dthrottle;
+            Dthrottle = Dthrottle*(1.0+PEER_THROTTLE_RESPONSE);
+
+            if(Mthrottle > 0 && Mthrottle <= PEER_THROTTLE_MAX) {
+                usleep(Mthrottle*jiff);
+            }
+            else {
+                // should only come here first time?
+                usleep(PEER_THROTTLE_MAX * jiff);
+                Mthrottle = PEER_THROTTLE_MAX-1;
+            }
+            //printf("Mt/Dt: %f/%f\n", Mthrottle, Dthrottle);
         }
 
         // todo: ? avg recv rate in the stats window?

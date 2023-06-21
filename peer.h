@@ -31,16 +31,18 @@
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&peers[x].mcond, &peers[x].mutex)
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 8000
-#define PEER_RECV_BUFFER_COUNT_MS (200)
+#define PEER_RECV_BUFFER_COUNT_MS (250)
 // TODO: this is RTP and we should be doing minimal buffering
 #define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*2) // 5k pkt/sec sounds good? this is the theoretical max buffered
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 10000
-#define PEER_STAT_TS_WIN_LEN /*32*/ 9 // this needs to go away since we're not tracking each pkt to determine bitrate anymore
+#define PEER_STAT_TS_WIN_LEN /*32*/ 9 // this needs to go away since we're not tracking each pkt to determine bitrate anymore?
 
 // this magic number influences the pace epoll/recvmmsg takes packets in - started with 5 trying lower values to see if that helps even out streams
 #define EPOLL_TIMEOUT_MS 3
 // ms
-#define PEER_THROTTLE_MAX 8
+#define PEER_THROTTLE_MAX (1000/PEER_RECV_BUFFER_COUNT_MS) // usleep - jiffs
+#define PEER_THROTTLE_USLEEPJIFF (PEER_RECV_BUFFER_COUNT_MS)
+#define PEER_THROTTLE_RESPONSE (0.3)
 
 extern char* dtls_fingerprint;
 
@@ -340,6 +342,14 @@ void peer_buffers_uninit(peer_session_t* peer)
     peer_buffer_node_list_free_all(&peer->in_buffers_head);
 }
 
+void peer_buffers_clear(peer_session_t* peer) {
+    peer_buffer_node_t* p = peer->in_buffers_head.next;
+    while(p) {
+        p->len = 0;
+        p = p->next;
+    }
+}
+
 static void peer_cb_restart_crash(peer_session_t *p)
 {
     printf("SHOULDNT HAPPEN impossible!: peer_cb_restart_crash\n");
@@ -563,7 +573,7 @@ const char* sdp_offer_create(peer_session_t* peer)
     "\"a=sendrecv\\n\" + \n"
 #if SDP_OFFER_VP8
     // see link below
-    "\"a=fmtp:120 max-fr=60; max-fs=28800; x-google-max-bitrate=8000; x-google-min-bitrate=128; x-google-start-bitrate=1000\\n\" + \n"
+    "\"a=fmtp:120 max-fr=60; max-fs=64800; x-google-max-bitrate=48000; x-google-min-bitrate=1000; x-google-start-bitrate=1000\\n\" + \n"
 #endif
     // TODO: worth it to offer more mp4 profile-id? this was cribbed from chrome webrtc
 /*

@@ -22,7 +22,8 @@ body.outerBody {
     color: white;
     margin:8 8 8 8;
     border-collapse: collapse;
-    height: 30%;
+    height: 85%;
+    width: 70%;
 }
 
 tr.videoCellRow {
@@ -60,7 +61,6 @@ table.videoMainContainer {
 
 video {
     controls: true;
-    object-fit: contain;
     border-width:4;
     border-color:white;
 }
@@ -74,8 +74,8 @@ table.localPreviewTable {
 }
 
 video.videoMain {
-    max-height:768px;
     object-fit:contain;
+    max-width:1024px;
 }
 
 video.videoLocal {
@@ -97,7 +97,7 @@ p.videoLabel {
 
 div.localPreview {
     position:fixed;
-    top:5%;
+    top:3%;
     left:5%;
     width:16%;
     height:12%;
@@ -123,19 +123,20 @@ div.videoDivMassive {
   border-color:red;
   display:none;
   position:absolute;
+  /*
   top:-100px; left:100px; width:80%; height:80%; z-index:3; background-color:#222222aa;
+  */
 }
 
 div.topDiv {
-    height:98%;
+    height:80%;
 }
 
 p.controlsPara {
     position:relative;
-    top:-2;
-    left:0%;
-    width:100%;
-    height:0px;
+    top:-6;
+    left:25%;
+    width:50%;
     height:10%;
 }
 
@@ -149,8 +150,6 @@ p.emptyRoomLabel {
 button.playButton {
     width:32px;
     height:32px;
-    position:relative;
-    left: 140px;
     background-position:center;
     background-repeat:no-repeat;
     background-image:url(/content/img/unmute.png);
@@ -181,8 +180,8 @@ button.loadingButton {
     width: 128px;
     height: 96px;
     position: relative;
-    left: 40%;
-    top: -40%;
+    left: 128px;
+    top: -128px;
     z-index:2;
 }
 
@@ -203,6 +202,7 @@ select.selectUser {
 iframe.chatFrame {
     border-width:2px;
     overflow:scroll;
+    height:100%;
 }
 
 body.chatIframeBody {
@@ -226,7 +226,7 @@ li.chatListElem {
 }
 
 ul.chatLogParent {
-  height:90%;
+  /*height:90%;*/
   padding-left:0;
   list-style-type: none;
 }
@@ -255,4 +255,9 @@ textarea.chat {
 button.chatsend {
     width:64px;
     height:48px;
+}
+
+div.chatEntry {
+    border-width:2px;
+    border-color:white;
 }

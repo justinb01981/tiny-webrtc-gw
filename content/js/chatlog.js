@@ -3,7 +3,7 @@
 function appendMessageListElem(destList, m, isLoPriority) {
   var e = destList;
   var l = document.createElement('li');
-  var t = isLoPriority ? document.createElement('I') : document.createTextNode(m);
+  var t = isLoPriority ? document.createElement('I') : /*document.createTextNode(m)*/ document.createElement('div');
 
   l.className = isLoPriority ? 'chatListElem': 'chatListElemLow'
   if(isLoPriority)
@@ -12,6 +12,14 @@ function appendMessageListElem(destList, m, isLoPriority) {
     t.appendChild(it);
     t = null;
   }
+
+  t.className = 'chatEntry';
+  var c = m.split(':')
+  var c1 = document.createTextNode(c)[0]+': ');
+  var c2 = document.createTextNode(c[1]);
+
+  t.appendChild(c1);
+  t.appendChild(c2);
 
   /*
   var key = '$SUBSCRIBEBUTTON_';
@@ -57,7 +65,7 @@ function appendMessagesToUnorderedList(l, array) {
       listElem.scrollIntoView(false);
      
      listElem.style.cssText = 'color:' + textColor + '; ' + 'background-color:'+ bgColor + '; list-style-type:none;' + 
-      (isItalic ? ' font-style:italic;' : '');
+      (isItalic ? ' font-style:italic; display:none;' : '');
       offset += maxLen;
     }
 
