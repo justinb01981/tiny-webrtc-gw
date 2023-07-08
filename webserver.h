@@ -159,7 +159,8 @@ static void cb_disconnect_first(peer_session_t* p) {
 
     cb_disconnect(p);
 
-    webserver.peer_idx_next = p->id;
+    // MAKE THIS WORK
+    //webserver.peer_idx_next = p->id;
 }
 
 void cb_begin(peer_session_t* p) {
