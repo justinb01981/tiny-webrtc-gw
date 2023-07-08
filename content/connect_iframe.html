@@ -131,27 +131,25 @@ function connectIFrameOnLoad(htmlBodyElem)
         continue;
       }
 
-      // hack to delay and not overwrite a pending onJoin
-      setTimeout(() => {
-        console.debug('onJoin stall hack done'); 
+      // TODO: 7-8-2023 removing the setTimeout wrap
+      console.debug('onJoin stall hack done'); 
 
-        // add this user
-        state.usersSubscribed.push(name);
-        state.selectedUser = name;
+      // add this user
+      state.usersSubscribed.push(name);
+      state.selectedUser = name;
 
-        if(watchplaceholder)
-        {
-            window.parent.prepareVideoPlaceholder(videoTable, name);
-        }
-        else
-        {
-            window.parent.prepareVideo(videoTable, name);
-        }
+      if(watchplaceholder)
+      {
+          window.parent.prepareVideoPlaceholder(videoTable, name);
+      }
+      else
+      {
+          window.parent.prepareVideo(videoTable, name);
+      }
 
-        console.debug('TODO: assert onJoin during connect_iframe onLoad');
+      console.debug('TODO: assert onJoin during connect_iframe onLoad');
 
-        onJoin();
-      }, 100 + 5 * p);
+      onJoin();
 
       break;
     }

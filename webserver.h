@@ -117,6 +117,7 @@ chatlog_append(const char* pchatmsg)
     size_t appendlen = strlen(pchatmsg);
     if(strlen(pchatmsg) >= CHATLOG_SIZE-1) appendlen = (CHATLOG_SIZE-1);
     
+    // rotate buffer
     char *pto = g_chatlog, *pfrom = (char*) g_chatlog + ((CHATLOG_SIZE-1) >= strlen(g_chatlog)+appendlen ? 0 : appendlen);
     while(*pfrom)
     {
@@ -134,7 +135,7 @@ chatlog_append(const char* pchatmsg)
     }
     *pto = '\0';
     
-    file_write2(g_chatlog, strlen(g_chatlog), "chatlog.txt");
+    file_append(g_chatlog, strlen(g_chatlog), "chatlog.txt");
     chatlog_ts_update();
 }
 
@@ -151,6 +152,27 @@ chatlog_reload()
         memcpy(g_chatlog, file_buf, file_buf_len);
         free(file_buf);
     }
+}
+
+static void cb_disconnect_first(peer_session_t* p) {
+    extern void cb_disconnect(peer_session_t*);
+
+    cb_disconnect(p);
+
+    webserver.peer_idx_next = p->id;
+}
+
+void cb_begin(peer_session_t* p) {
+
+    printf("peer[%d] we alive now chickenhead!\n", p->id);
+    // cxn_start is called by main epoll thread
+
+    extern void cb_disconnect(peer_session_t*);
+
+    p->cb_restart = cb_disconnect_first;
+    p->time_pkt_last = get_time_ms();
+
+    p->alive = 1;
 }
 
 void
@@ -199,7 +221,6 @@ void setupSTUN(void* voidp) {
     p->time_pkt_last = get_time_ms();
 }
 
-int cb_done;
 peer_session_t* cb_tgtpeer;
 
 
@@ -213,6 +234,7 @@ webserver_worker(void* p)
     char *page_buf_redirect_chat = "<html><body onload='window.location=\"content/peersPopup.html\";'>redirecting...</body></html>";
     char *page_buf_redirect_back = "<html><body onload='location=\"/content/chat.html\";'>redirecting...</body></html>";
     char *page_buf_redirect_subscribe = "<html><body onload='location=\"/content/iframe_channel.html\";'>redirecting...</body></html>";
+    char *page_buf_slotbusy = "<html><body onload='window.location=\"content/uploadDone.html\";'><p>peer connection resources busy - please try again</p></body></html>";
     char *ok_hdr = "HTTP/1.0 200 OK\r\n";
     char *content_type = "";
     char *fail_hdr = "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n";
@@ -725,7 +747,14 @@ webserver_worker(void* p)
                         else
                         {
                             sidx = webserver.peer_idx_next % MAX_PEERS;
+                            
                             webserver.peer_idx_next += 1;
+
+                            if(peers[sidx].alive) {
+                                response = strdup(page_buf_slotbusy);
+                                content_type = content_type_html;
+                                goto response_override; // busy
+                            }
 
                             PEER_LOCK(sidx);
 
@@ -753,21 +782,6 @@ webserver_worker(void* p)
 
                         printf("webserver peer[%d] got SDP:\n%s\n", sidx, *sdp);
 
-                        void cb_begin(peer_session_t* p) {
-
-                            printf("peer[%d] we alive now chickenhead!\n", p->id);
-                            // cxn_start is called by main epoll thread
-
-                            // next time this peer restarts we are terminating (state) 
-                            extern void cb_disconnect(peer_session_t*);
-
-                            p->cb_restart = cb_disconnect;
-                            p->time_pkt_last = get_time_ms();
-
-                            cb_done = 1;
-                            p->alive = 1;
-                        }
-
                         {
                             peer_session_t* p = &peers[sidx];;
                             strcpy(p->sdp.answer, *sdp);
@@ -783,7 +797,6 @@ webserver_worker(void* p)
                             p->cb_restart = cb_begin;
 
                             // await??
-                            cb_done = 0;
                             p->init_needed = 1;
                             PEER_UNLOCK(p->id);
 

@@ -413,13 +413,9 @@ connection_worker(void* p)
 
     thread_init();
 
-    // this delay is not to allow for network traffic but to allow webserver_worker and main thread time to init
-    // peer (working around a race condition)
-    //sleep_msec(500);
+    assert(peer->alive);
 
-    assert(peer->alive); // : remove this
-
-    // blocking here while peer set up by main thread
+    // pausing here while peer set up by webserver thread
     PEER_LOCK(peer->id);
 
     // TODO: would be nice to call cxn_callback here to fill stun info instead of during init_needed
@@ -1551,6 +1547,7 @@ int main( int argc, char* argv[] ) {
     {
         pthread_mutex_init(&peers[i].mutex, NULL);
         pthread_cond_init(&peers[i].mcond, NULL);
+        peer_buffers_init(&peers[i]);
         peers[i].id = i;
     }
 
@@ -1839,7 +1836,7 @@ int main( int argc, char* argv[] ) {
         // no mutex should be held now...
         select_timeout:
 
-        // HACKHACKHACK: adding a sleep here? this appears to help avoid context switching so much
+        // HACKHACKHACK: adding a sleep here? this appears to help avoid context switching so much (or, im just keeping this around for posterity)
         //sleep_msec(/*EPOLL_TIMEOUT_MS*/1);
 
         // MARK: -- house-keeping of peers connection state
@@ -1946,8 +1943,7 @@ int main( int argc, char* argv[] ) {
                 }
                 memset(peers[i].srtp, 0, sizeof(peers[i].srtp));
 
-                peer_buffers_uninit(&peers[i]);
-                peer_buffers_init(&peers[i]);
+                // moved peer_buffers_init to fire-once
 
                 peer_stun_init(&peers[i]);
 
@@ -1997,6 +1993,8 @@ int main( int argc, char* argv[] ) {
     printf("main loop exiting..\n");
 
     webserver_deinit(thread_webserver);
+
+    for(i = 0; i < MAX_PEERS; i++) peer_buffers_uninit(&peers[i]);
 
     DEBUG_DEINIT();
 }

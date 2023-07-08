@@ -15,11 +15,11 @@ function appendMessageListElem(destList, m, isLoPriority) {
 
   t.className = 'chatEntry';
   var c = m.split(':')
-  var c1 = document.createTextNode(c)[0]+': ');
+  var c1 = document.createElement('div');
   var c2 = document.createTextNode(c[1]);
 
   t.appendChild(c1);
-  t.appendChild(c2);
+  c1.innerHTML = '<P style=\'color:red\'>'+c[0]+'</P><P style=\'color:gray\'>'+c[1]+'</P>';
 
   /*
   var key = '$SUBSCRIBEBUTTON_';
