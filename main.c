@@ -415,7 +415,7 @@ connection_worker(void* p)
 
     // this delay is not to allow for network traffic but to allow webserver_worker and main thread time to init
     // peer (working around a race condition)
-    sleep_msec(500);
+    //sleep_msec(500);
 
     assert(peer->alive); // : remove this
 
@@ -1773,7 +1773,7 @@ int main( int argc, char* argv[] ) {
         node = peers[sidx].in_buffers_head.tail;
         if(!node)
         {
-            // TODO: very hard to do but I did hit the below assert when this happened so i
+            // TODO: very hard to do but I did hit the below assert when this happened so
             peers[sidx].in_buffers_head.tail = peers[sidx].in_buffers_head.next;
             PEER_UNLOCK(sidx);
             printf("epoll_memcpy: in_buffers_head.tail = 0!  (TODO: SHOULDNT HAPPEN unless this is a tolerable race cond?)\n");
