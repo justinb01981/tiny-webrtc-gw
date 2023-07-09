@@ -30,8 +30,6 @@ lib/libsrtp2.a:
 ssltool: SSLTools
 
 wintermutecfg:
-	echo "copying .wintermute file";
-	cp .wintermute config.txt;
 	echo "handle SIGPIPE nostop" >> ~/.gdbinit && \
 	echo "handle SIGPIPE noprint" >> ~/.gdbinit && \
 	echo "set print thread-events off" >> ~/.gdbinit && \

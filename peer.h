@@ -8,7 +8,7 @@
 #define SDP_OFFER_VP8 1
 // TODO: this determines whether mp4 or both+VP8 offered
 
-#define MAX_PEERS 60
+#define MAX_PEERS 256
 #define PEER_IDX_INVALID (MAX_PEERS+1)
 
 #define PEER_RTP_CTX_COUNT 8

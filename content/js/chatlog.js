@@ -15,7 +15,7 @@ function appendMessageListElem(destList, m, isLoPriority) {
 
   t.className = 'chatEntry';
   var c = m.split(':')
-  var c1 = document.createTextNode(c)[0]+': ');
+  var c1 = document.createTextNode(c[0]);
   var c2 = document.createTextNode(c[1]);
 
   t.appendChild(c1);

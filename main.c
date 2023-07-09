@@ -1800,10 +1800,9 @@ int main( int argc, char* argv[] ) {
 
         cur = &peers[sidx].in_buffers_head.next;
 
-        peer_buffer_node_t** ptail = &(peers[sidx].in_buffers_head.tail);
+        peer_buffer_node_t** ptail = &(peers[sidx].in_buffers_head.next);
 
-        *ptail = (*ptail)->next;
-        if(!*ptail) *ptail = peers[sidx].in_buffers_head.next;
+        assert(*ptail, "barf");
 
         if((*ptail)->len > 0)
         {
