@@ -586,11 +586,11 @@ connection_worker(void* p)
             goto peer_again;
         };
 
-        unsigned retries = PEER_RECV_BUFFER_COUNT-1;
-        while(retries > 0 && buffer_next && buffer_next->len == 0) 
+        unsigned bufretries = PEER_RECV_BUFFER_COUNT-1;
+        while(bufretries > 0 && buffer_next && buffer_next->len == 0) 
         {
             buffer_next = buffer_next->next;
-            retries--;
+            bufretries--;
         }
 
         if(!buffer_next || buffer_next->len == 0)
@@ -1572,6 +1572,7 @@ int main( int argc, char* argv[] ) {
     {
         pthread_mutex_init(&peers[i].mutex, NULL);
         pthread_cond_init(&peers[i].mcond, NULL);
+        peer_buffers_init(&peers[i]);
         peers[i].id = i;
     }
 
@@ -1869,7 +1870,7 @@ int main( int argc, char* argv[] ) {
         // no mutex should be held now...
         select_timeout:
 
-        // HACKHACKHACK: adding a sleep here? this appears to help avoid context switching so much
+        // HACKHACKHACK: adding a sleep here? this appears to help avoid context switching so much (or, im just keeping this around for posterity)
         //sleep_msec(/*EPOLL_TIMEOUT_MS*/1);
 
         // MARK: -- house-keeping of peers connection state
@@ -2025,6 +2026,8 @@ int main( int argc, char* argv[] ) {
     printf("main loop exiting..\n");
 
     webserver_deinit(thread_webserver);
+
+    for(i = 0; i < MAX_PEERS; i++) peer_buffers_uninit(&peers[i]);
 
     DEBUG_DEINIT();
 }

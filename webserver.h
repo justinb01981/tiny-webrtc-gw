@@ -63,6 +63,7 @@ static char* tag_msgroom_ws = "POST /message/domain17/";
 static char* webserver_staticc;
 static char buf_nonreentrant[1024];
 static char ufrag_offeranswer_tmp[256];
+static int cb_done = 0;
 
 
 char*
@@ -117,6 +118,7 @@ chatlog_append(const char* pchatmsg)
     size_t appendlen = strlen(pchatmsg);
     if(strlen(pchatmsg) >= CHATLOG_SIZE-1) appendlen = (CHATLOG_SIZE-1);
     
+    // rotate buffer
     char *pto = g_chatlog, *pfrom = (char*) g_chatlog + ((CHATLOG_SIZE-1) >= strlen(g_chatlog)+appendlen ? 0 : appendlen);
     while(*pfrom)
     {
@@ -134,7 +136,7 @@ chatlog_append(const char* pchatmsg)
     }
     *pto = '\0';
     
-    file_write2(g_chatlog, strlen(g_chatlog), "chatlog.txt");
+    file_append(g_chatlog, strlen(g_chatlog), "chatlog.txt");
     chatlog_ts_update();
 }
 
@@ -158,8 +160,6 @@ static void cb_disconnect_first(peer_session_t* p) {
 
     cb_disconnect(p);
 
-    // 7-8-23 MAKE THIS WORK
-    //memset(&p->dtls, 0, sizeof(p->dtls));
     assert(p->buffer_count == PEER_RECV_BUFFER_COUNT);
 }
 
@@ -222,7 +222,6 @@ void setupSTUN(void* voidp) {
     p->time_pkt_last = get_time_ms();
 }
 
-int cb_done;
 peer_session_t* cb_tgtpeer;
 
 
@@ -236,6 +235,7 @@ webserver_worker(void* p)
     char *page_buf_redirect_chat = "<html><body onload='window.location=\"content/peersPopup.html\";'>redirecting...</body></html>";
     char *page_buf_redirect_back = "<html><body onload='location=\"/content/chat.html\";'>redirecting...</body></html>";
     char *page_buf_redirect_subscribe = "<html><body onload='location=\"/content/iframe_channel.html\";'>redirecting...</body></html>";
+    char *page_buf_slotbusy = "<html><body onload='window.location=\"content/uploadDone.html\";'><p>peer connection resources busy - please try again</p></body></html>";
     char *ok_hdr = "HTTP/1.0 200 OK\r\n";
     char *content_type = "";
     char *fail_hdr = "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n";
@@ -754,6 +754,7 @@ webserver_worker(void* p)
                         {
                             sidx = webserver.peer_idx_next % MAX_PEERS;
                             webserver.peer_idx_next += 1;
+
                             PEER_LOCK(sidx);
 
                             if(peers[sidx].alive)
@@ -820,14 +821,13 @@ webserver_worker(void* p)
                             p->cb_restart = cb_begin;
 
                             // await??
-                            cb_done = 0;
                             p->init_needed = 1;
                             PEER_UNLOCK(p->id);
 
                             // TODO: signal connection_worker thread that it may continue running
                             // (right now it just sleeps)
                             while(!cb_done) {
-                                sleep_msec(10);
+                                sleep_msec(10); // wait for thread to call cb_done
                             }
 
                             printf("...done\n");
