@@ -25,16 +25,19 @@
 #include <openssl/hmac.h>
 #include <openssl/md5.h>
 
-#include "tiny_config.h"
+
+#include "prototype.h"
 #include "stun_responder.h"
 #include "stun_callback.h"
 #include "rtp.h"
+#include "tiny_config.h"
 #include "crc32.h"
-
 #include "srtp_priv.h"
 #include "srtp.h"
 #include "util.h"
 #include "peer.h"
+
+
 #include "sdp_decode.h"
 #include "webserver.h"
 #include "debug.h"
@@ -53,10 +56,10 @@
 #include "dtls.h"
 #include "thread.h"
 
+
 #define stats_printf sprintf
 
 #define RTP_PSFB 1 
-
 
 struct sockaddr_in bindsocket_addr_last;
 peer_session_t peers[MAX_PEERS+1];
@@ -410,14 +413,19 @@ connection_worker(void* p)
     unsigned long time_ms = get_time_ms();
     long long buffering_until = time_ms + 4000, ts_winrng_begin = 0;
     float Mthrottle = 1.0, Dthrottle = 1.0;
+    size_t retries = 100;
 
     thread_init();
 
     // this delay is not to allow for network traffic but to allow webserver_worker and main thread time to init
     // peer (working around a race condition)
-    sleep_msec(500);
+    while(!peer->alive && retries > 0) {
+        // sometimes the other thread takes awhilee to get client to connect, wait here
+        sleep_msec(100);
+        retries--;
+    }
 
-    assert(peer->alive); // : remove this
+    if(!peer->alive) assert(0);
 
     // blocking here while peer set up by main thread
     PEER_LOCK(peer->id);
@@ -553,7 +561,7 @@ connection_worker(void* p)
     int subscribers = 0;
 
     // MARK: -- enter main peer connection worker loop
-    while(1)
+    while(peer->alive)
     {
         //printf("main.c:%d: peer[%d] alive loop\n", __LINE__, peer->id);
 
@@ -574,8 +582,8 @@ connection_worker(void* p)
 
         if(!peer->alive) 
         {
-            PEER_UNLOCK(peer->id);
-            break;
+            printf("cxn thread found !alive peer (aborted peer?)\n");
+            goto peer_again;
         };
 
         unsigned retries = PEER_RECV_BUFFER_COUNT-1;
@@ -590,6 +598,7 @@ connection_worker(void* p)
             peer->stats.stat[3] += 1;
             peer->underrun_signal = 1;
             buffer_next = &peer->in_buffers_head; // reset to head
+
             goto peer_again;
         }
         else
@@ -1186,7 +1195,9 @@ connection_worker(void* p)
                                !peers[p].send_only &&
                                p != peer->id &&
                                peers[p].subscriptionID == peer->id &&
-                               /*ps[rtp_idx].inited*/ peers[p].srtp[rtp_idx].inited)
+                               /*ps[rtp_idx].inited*/ peers[p].srtp[rtp_idx].inited &&
+                               peers[p].srtp_inited
+                               )
                             {
                                 subscribers++;
 
@@ -1213,9 +1224,11 @@ connection_worker(void* p)
                                 srtp_sess_t *sess = &peers[p].srtp[rtp_idx_write];
 
                                 if(sess->session == NULL) {
-                                    printf("ERROR: race condition: srtp_protect called with session == null\n");
+                                    printf("ERROR: race condition: srtp_protect called with session == null and inited=%d", sess->inited);
                                     continue;
                                 }
+
+                                assert(peers[p].srtp_inited);
 
                                 // MARK: -- srtp_protect
                                 if(sess->inited && srtp_protect(sess->session, rtp_frame_out, &lengthPeer) == srtp_err_status_ok)
@@ -1450,6 +1463,10 @@ void cb_disconnect(peer_session_t* p) {
     //memset(&p->stun_ice, 0, sizeof(p->stun_ice));
     //p->stun_ice.bound = p->stun_ice.bound_client = 0; // already done as well
     p->time_pkt_last = 0;
+    p->alive = 0;
+
+    p->in_buffers_head.tail = p->in_buffers_head.next;
+    p->in_buffers_head.tail->len = 0;
 }
 
 
@@ -1536,6 +1553,10 @@ int main( int argc, char* argv[] ) {
             printf("epoll_ctl got error %s\n", strerror(errno));
             exit(0);
         }
+
+
+        // init each peers buffers _once_
+        peer_buffers_init(&peers[i]);
     }
 
     ret.sin_addr.s_addr = 0;
@@ -1769,14 +1790,15 @@ int main( int argc, char* argv[] ) {
             PEER_UNLOCK(sidx);
             goto select_timeout;
         }
-         
+        
         node = peers[sidx].in_buffers_head.tail;
+
         if(!node)
         {
-            // TODO: very hard to do but I did hit the below assert when this happened so i
+            // TODO: very hard to do but I did hit the below assert when this happened so
             peers[sidx].in_buffers_head.tail = peers[sidx].in_buffers_head.next;
-            PEER_UNLOCK(sidx);
             printf("epoll_memcpy: in_buffers_head.tail = 0!  (TODO: SHOULDNT HAPPEN unless this is a tolerable race cond?)\n");
+            PEER_UNLOCK(sidx);
             goto select_timeout;
         }
 
@@ -1791,6 +1813,8 @@ int main( int argc, char* argv[] ) {
 
         node->recv_time = node->timestamp = time_ms;
 
+        peers[sidx].in_buffers_head.tail = node->next;
+
         // TODO: avoid this memcpy by having separate msgs buffers for each peer
         memcpy(node->buf, buffer, length);
         node->id = sidx;
@@ -1800,9 +1824,16 @@ int main( int argc, char* argv[] ) {
 
         cur = &peers[sidx].in_buffers_head.next;
 
-        peer_buffer_node_t** ptail = &(peers[sidx].in_buffers_head.next);
+/*
+-        peer_buffer_node_t** ptail = &(peers[sidx].in_buffers_head.tail);
+-
+-        *ptail = (*ptail)->next;
+-        if(!*ptail) *ptail = peers[sidx].in_buffers_head.next;
 
-        assert(*ptail, "barf");
+*/
+
+        peer_buffer_node_t** ptail = &(peers[sidx].in_buffers_head.tail);
+        *ptail = (*ptail)->next;
 
         if((*ptail)->len > 0)
         {
@@ -1945,9 +1976,6 @@ int main( int argc, char* argv[] ) {
                 }
                 memset(peers[i].srtp, 0, sizeof(peers[i].srtp));
 
-                peer_buffers_uninit(&peers[i]);
-                peer_buffers_init(&peers[i]);
-
                 peer_stun_init(&peers[i]);
 
                 memset(&peers[i].addr, 0, sizeof(peers[i].addr));
@@ -1977,6 +2005,7 @@ int main( int argc, char* argv[] ) {
 
                     assert(!peers[i].running);
                     printf("...stopped\n");
+
                 }
 
                 // TODO: there is a race+crash here during timeout

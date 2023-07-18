@@ -4,11 +4,12 @@
 #include "stun_callback.h"
 #include "srtp_key_len.h"
 #include "dtls.h"
+#include "rtp.h"
 
 #define SDP_OFFER_VP8 1
 // TODO: this determines whether mp4 or both+VP8 offered
 
-#define MAX_PEERS 256
+#define MAX_PEERS 128
 #define PEER_IDX_INVALID (MAX_PEERS+1)
 
 #define PEER_RTP_CTX_COUNT 8
@@ -320,6 +321,7 @@ void peer_buffers_init(peer_session_t* peer)
 {
     int i;
     unsigned int buffer_count = PEER_RECV_BUFFER_COUNT;
+    peer_buffer_node_t* ptail;
     
     for(i = 0; i < PEER_RTP_CTX_COUNT; i++) {
         peer_buffer_node_list_init(&peer->rtp_buffers_head[i]);
@@ -329,12 +331,17 @@ void peer_buffers_init(peer_session_t* peer)
     peer->buffer_count = buffer_count;
     while(buffer_count > 0)
     {
-        peer_buffer_node_list_add(&peer->in_buffers_head, buffer_node_alloc());
+        ptail = buffer_node_alloc();
+
+        peer_buffer_node_list_add(&peer->in_buffers_head, ptail);
 
         buffer_count -= 1;
     }
+    ptail->next = peer->in_buffers_head.next; // cycle
 
-    peer->in_buffers_head.tail = NULL;
+    // ready for next pkt
+    peer->in_buffers_head.tail = peer->in_buffers_head.next;
+
 }
 
 void peer_buffers_uninit(peer_session_t* peer)
@@ -384,6 +391,7 @@ void peer_init(peer_session_t* peer, int id)
     peer->timeout_sec = PEER_TIMEOUT_DEFAULT;
     peer->time_pkt_last = get_time_ms();
     peer->time_last_run = 0;
+    peer->send_only = peer->recv_only = 0;
     
     peer_cookie_init(peer, "");
 

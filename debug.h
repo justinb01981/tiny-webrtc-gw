@@ -95,4 +95,7 @@ static unsigned long PERFTIME_INTERVAL_SINCE(unsigned long* st)
     //printf("perftime_interval: %02x locked/time %lu\n", (unsigned long) st, locked_d);
 }
 
+void debug_headresetnull(void* peer);
+
+
 #endif

@@ -153,6 +153,29 @@ chatlog_reload()
     }
 }
 
+static void cb_disconnect_first(peer_session_t* p) {
+    extern void cb_disconnect(peer_session_t*);
+
+    cb_disconnect(p);
+
+    // 7-8-23 MAKE THIS WORK
+    //memset(&p->dtls, 0, sizeof(p->dtls));
+    assert(p->buffer_count == PEER_RECV_BUFFER_COUNT);
+}
+
+void cb_begin(peer_session_t* p) {
+
+    printf("peer[%d] we alive now chickenhead!\n", p->id);
+    // cxn_start is called by main epoll thread
+
+    extern void cb_disconnect(peer_session_t*);
+
+    p->cb_restart = cb_disconnect_first;
+    p->time_pkt_last = get_time_ms();
+
+    p->alive = 1;
+}
+
 void
 bootstrap_peer_async(peer_session_t* p)
 {
@@ -260,9 +283,7 @@ webserver_worker(void* p)
 
     thread_init();
 
-    int peer_idx_next = webserver.peer_idx_next % MAX_PEERS; // incremented later
-
-    sprintf(listen_port_str, "%d", peers[peer_idx_next].port);
+    sprintf(listen_port_str, "%d", peers[webserver.peer_idx_next % MAX_PEERS].port);
 
     do
     {
@@ -454,6 +475,8 @@ webserver_worker(void* p)
 
                     if(strstr(purl, tag_login) && strlen(url_args) > 0)
                     {
+                        size_t retries = MAX_PEERS;
+
                         printf("cookie=%s\n", cookie);
                        
                         sidx = webserver.peer_idx_next % MAX_PEERS;
@@ -463,8 +486,13 @@ webserver_worker(void* p)
 
                         if(peers[sidx].alive)
                         {
+                            // full
                             PEER_UNLOCK(sidx);
-                            break;
+                            
+                            printf("webserver: peers full @ login\n");
+                            content_type = content_type_html;
+                            response = strdup(page_buf_redirect_back);
+                            goto response_override;
                         }
 
                         printf("peer[%d] logging in\n", sidx);
@@ -726,8 +754,17 @@ webserver_worker(void* p)
                         {
                             sidx = webserver.peer_idx_next % MAX_PEERS;
                             webserver.peer_idx_next += 1;
-
                             PEER_LOCK(sidx);
+
+                            if(peers[sidx].alive)
+                            {
+                                PEER_UNLOCK(sidx);
+
+                                printf("webserver: peers full @ /upload (sdp) n");
+                                content_type = content_type_html;
+                                response = strdup(page_buf_400);
+                                goto response_override;
+                            }
 
                             peer_init(&peers[sidx], sidx);
                             peers[sidx].broadcastingID = peer_broadcast_from_cookie;
@@ -761,11 +798,11 @@ webserver_worker(void* p)
                             // next time this peer restarts we are terminating (state) 
                             extern void cb_disconnect(peer_session_t*);
 
-                            p->cb_restart = cb_disconnect;
                             p->time_pkt_last = get_time_ms();
+                            p->alive = 1;
+                            p->cb_restart = cb_disconnect;
 
                             cb_done = 1;
-                            p->alive = 1;
                         }
 
                         {
@@ -789,6 +826,9 @@ webserver_worker(void* p)
 
                             // TODO: signal connection_worker thread that it may continue running
                             // (right now it just sleeps)
+                            while(!cb_done) {
+                                sleep_msec(10);
+                            }
 
                             printf("...done\n");
                         }
