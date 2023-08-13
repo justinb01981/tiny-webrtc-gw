@@ -522,6 +522,7 @@ function unmuteAfter(videlem, ms)
    setTimeout(function f() {
        try {
            videlem.muted = false;
+           videlem.play();
        }
        catch(exc) {
            console.debug('unmuteAfter: failed with ' + exc);
@@ -700,7 +701,7 @@ function errorSchedule() {
     connectionWarning = true;
     let f = function() {
         if(connectionWarning) {
-            alert('warning: connection seems to have failed? Confirm audio/video permissions and try again or contact the server admin.');
+            alert('warning: connection seems to have failed? Confirm audio/video device browser permissions. (very likely the config.txt is just wrong).');
         }
     }
 

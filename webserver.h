@@ -6,6 +6,7 @@
 #include "thread.h"
 #include <sys/errno.h>
 #include "stun_callback.h"
+#include "iplookup_hack.h"
 
 /* include websockets */
 #define sha1 sha1_
@@ -122,7 +123,7 @@ chatlog_append(const char* pchatmsg)
     char *pto = g_chatlog, *pfrom = (char*) g_chatlog + ((CHATLOG_SIZE-1) >= strlen(g_chatlog)+appendlen ? 0 : appendlen);
     while(*pfrom)
     {
-        *pto = *pfrom;
+        if(*pfrom != '\'') *pto = *pfrom;
         pfrom++;
         pto++;
     }
@@ -550,7 +551,7 @@ webserver_worker(void* p)
                         response = macro_str_expand(response, tag_peerdynamicjs, PEER_DYNAMIC_JS_EMPTY);
                     }
                     
-                    response = macro_str_expand(response, tag_hostname, get_config("udpserver_addr="));
+                    response = macro_str_expand(response, tag_hostname, iplookup_addr);
                     response = macro_str_expand(response, tag_urlargsname, str_read_unsafe_delim(url_args, "name=", 0, "&"));
                     response = macro_str_expand(response, tag_urlargsroom, str_read_unsafe_delim(url_args, "room=", 0, "&"));
                     response = macro_str_expand(response, tag_webport, get_config("webserver_port="));
@@ -648,10 +649,10 @@ webserver_worker(void* p)
                         response = macro_str_expand(response, tag_peerlist_jsarray, peer_list_html);
                     }
 
-                    sprintf(tmp, "{ \"iceServers\": [{ \"url\": \"stun:%s:%s\" }] }", get_config("udpserver_addr="), listen_port_str);
+                    sprintf(tmp, "{ \"iceServers\": [{ \"url\": \"stun:%s:%s\" }] }", iplookup_addr, listen_port_str);
                     response = macro_str_expand(response, tag_stunconfig_js, /*tmp*/ "null");
 
-                    sprintf(tmp, "candidate:1 1 UDP 1234 %s %s typ host generation 0 network-cost 50", get_config("udpserver_addr="), listen_port_str);
+                    sprintf(tmp, "candidate:1 1 UDP 1234 %s %s typ host generation 0 network-cost 50", iplookup_addr, listen_port_str);
                     response = macro_str_expand(response, tag_icecandidate, tmp);
                 
                     response = macro_str_expand(response, tag_chatlogvalue, chatlog_read());
@@ -674,6 +675,10 @@ webserver_worker(void* p)
                         if(!js) return NULL;
                         char* ptr = g_chatlog;
                         char* wptr = js;
+
+
+                        // TODO: better separators in chatlog
+
                         const char* eoltag = "\n";
                         const char* septag = "',\n'";
 

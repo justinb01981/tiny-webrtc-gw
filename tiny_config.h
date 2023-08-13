@@ -3,6 +3,7 @@
 
 #include "memdebughack.h"
 #include "filecache.h"
+#include "iplookup_hack.h"
 
 #define SRTP_MASTER_KEY_KEY_LEN 16
 #define SRTP_MASTER_KEY_SALT_LEN 14
@@ -170,7 +171,7 @@ char* get_config(char* val) { return get_sdp_idx_file("", "config.txt", val, 0, 
 
 char* get_stun_local_addr()
 {
-    return get_config("udpserver_addr=");
+    return iplookup_addr;
 }
 
 char* get_stun_local_port()

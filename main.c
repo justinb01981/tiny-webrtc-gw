@@ -26,6 +26,7 @@
 #include <openssl/md5.h>
 
 
+#include "boolhack.h"
 #include "prototype.h"
 #include "stun_responder.h"
 #include "stun_callback.h"
@@ -43,6 +44,7 @@
 #include "debug.h"
 #include "memdebughack.h"
 #include "u32helper.h"
+#include "iplookup_hack.h"
 
 #include "filecache.h"
 #ifndef SO_REUSEPORT
@@ -582,6 +584,7 @@ connection_worker(void* p)
 
         if(!peer->alive) 
         {
+            PEER_UNLOCK(peer->id);
             printf("cxn thread found !alive peer (aborted peer?)\n");
             goto peer_again;
         };
@@ -1518,27 +1521,39 @@ int main( int argc, char* argv[] ) {
     memset(&sdp_offer_table, 0, sizeof(sdp_offer_table));
 
     strcpy(udpserver.inip, "0.0.0.0"); // for now bind to all interfaces
-    udpserver.inport = strToULong(get_config("udpserver_port="));
     udpserver.sock_buffer_size = strToULong(get_config("udpserver_sock_buffer_size="));
+    udpserver.inport = strToULong(get_config("udpserver_port="));
 
     if(strlen(get_config("udpserver_addr=")) <= 0)
     {
-        printf("udpsever_addr unconfigured (edit config.txt with this servers public IP address and port!)\n");
-        exit(1);
+        int disc_sock = bindsocket("0.0.0.0", udpserver.inport, 0);
+
+        printf("udpsever_addr unconfigured (edit config.txt with this servers public IP address and port unless using stun.l.google.com to discover (experimental)\n");
+
+        // pause to detect local ip via stun (so this server takes no configuration for most folks I hope)
+        printf("detecting local ip...\n");
+        strcpy(strbuf, ip2LocationFetchIPV4Public(disc_sock));
+        // must rely on stun port 3478 being NAT forwarded to this host but STUN discovery here won't reveal that so ignore it
+        udpserver.inport = ip2LocationFetchIPV4PublicPort(disc_sock); 
+
+        close(disc_sock);
     }
-    strcpy(strbuf, get_config("udpserver_addr="));
-    printf("advertising STUN server at IP %s:%u (verify this is really your IP address!)\n", strbuf, udpserver.inport);
-    strbuf[0] = '\0';
+    else
+    {
+        strcpy(iplookup_addr, get_config("udpserver_addr="));
+    }
 
     strcpy(webserver.inip, udpserver.inip);
     
     listen_port_base = udpserver.inport;
+    int common_sock = bindsocket(udpserver.inip, listen_port_base, 0); // just cloned below
     
     epoll_fd = epoll_create1(0);
     if(epoll_fd == -1) return;
 
-    peers[0].sock = bindsocket(udpserver.inip, listen_port_base, 0);
+    peers[0].sock = common_sock;
     peers[0].port = listen_port_base;
+
     for(i = 0; i < MAX_PEERS; i++)
     {
         struct epoll_event ep_event;
@@ -1825,14 +1840,6 @@ int main( int argc, char* argv[] ) {
 
         cur = &peers[sidx].in_buffers_head.next;
 
-/*
--        peer_buffer_node_t** ptail = &(peers[sidx].in_buffers_head.tail);
--
--        *ptail = (*ptail)->next;
--        if(!*ptail) *ptail = peers[sidx].in_buffers_head.next;
-
-*/
-
         peer_buffer_node_t** ptail = &(peers[sidx].in_buffers_head.tail);
         *ptail = (*ptail)->next;
 
@@ -1840,11 +1847,13 @@ int main( int argc, char* argv[] ) {
         {
             // out of room to enqueue flush
             peer_buffer_node_t* cur = peers[sidx].in_buffers_head.next;
-            while(cur)
+            int bufcnt = PEER_RECV_BUFFER_COUNT;
+            while(cur && bufcnt > 0)
             {
                 if(cur->len > 0) peers[sidx].buffer_count++;
                 cur->len = 0;
                 cur = cur->next;
+                bufcnt--;
             }
 
             // wait for this to drain

@@ -4,7 +4,8 @@ webserver_port=8010
 # the address of the interface to listen on (ifconfig)
 # 0.0.0.0 won't work
 # MUST FILL THIS VALUE IN WITH THE SERVER IP ADDRESS PRESENTED VIA STUN so consider IP NAT (fill in below)
-udpserver_addr=198.27.235.145
+# TODO: allow leaving this blank and detecting our ip
+udpserver_addr=
 # (replace the IP above if justin@domain17.net accidentally checked-in)
 
 

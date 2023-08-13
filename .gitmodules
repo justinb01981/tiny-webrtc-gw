@@ -4,3 +4,6 @@
 [submodule "SSLTools"]
 	path = SSLTools
 	url = git@github.com:justinb01981/SSLTools.git
+[submodule "IP2Location-C-Library"]
+	path = IP2Location-C-Library
+	url = git@github.com:chrislim2888/IP2Location-C-Library.git
