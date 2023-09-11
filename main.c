@@ -1944,12 +1944,16 @@ int main( int argc, char* argv[] ) {
                 //sprintf(strbuf, "%s ", peers[i].name);
                 //chatlog_append(strbuf);
 
+                PEER_UNLOCK(i);
+
                 /* reset all this peer's subscribers -- either close cxn or mark subscriptionId=-1 */
-                for(s = 0; s < MAX_PEERS; s++) {
+                for(s = 0; s < MAX_PEERS; s++) 
+                {
                     peer_session_t* subpeer = &peers[s];
 
                     if(s == i) continue;
 
+                    // TODO: this results in a cycle - must release peer[i] lock first
                     PEER_LOCK(s);
 
                     if(subpeer->alive && subpeer->subscriptionID == i)
@@ -1960,7 +1964,9 @@ int main( int argc, char* argv[] ) {
                             DTLS_peer_shutdown(subpeer);
                         }
 
+                        // TODO: -- this won't allow for the clean shutdown?
                         subpeer->time_pkt_last = 0;
+
                         // TODO: -- trying this out but frontend will probably disconnect anyway ..
                         // should experiment with keeping publishing-peer alive temporarily to allow the frontend to reconnect on client
                         // and resume on subscribers
@@ -1969,6 +1975,7 @@ int main( int argc, char* argv[] ) {
                     }
                     PEER_UNLOCK(s);
                 }
+                PEER_LOCK(i);
 
                 DTLS_peer_uninit(&peers[i]);
                 memset(&peers[i].dtls, 0, sizeof(peers[i].dtls));
