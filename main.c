@@ -584,7 +584,6 @@ connection_worker(void* p)
 
         if(!peer->alive) 
         {
-            PEER_UNLOCK(peer->id);
             printf("cxn thread found !alive peer (aborted peer?)\n");
             goto peer_again;
         };
