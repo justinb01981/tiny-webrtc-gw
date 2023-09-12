@@ -53,7 +53,6 @@ table.mainTable {
 
 table.videoMainContainer {
     border-width:2px;
-    overflow:hide;
     table-layout:auto;
     background-color:transparent;
     border-color:gray;

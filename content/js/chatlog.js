@@ -2,16 +2,10 @@
 
 function appendMessageListElem(destList, m, isLoPriority) {
   var e = destList;
+  var t = document.createElement('div');
   var l = document.createElement('li');
-  var t = isLoPriority ? document.createElement('I') : /*document.createTextNode(m)*/ document.createElement('div');
 
   l.className = isLoPriority ? 'chatListElem': 'chatListElemLow'
-  if(isLoPriority)
-  {
-    let it = document.createTextNode(m);
-    t.appendChild(it);
-    t = null;
-  }
 
   t.className = 'chatEntry';
   var c = m.split(':')
@@ -19,7 +13,7 @@ function appendMessageListElem(destList, m, isLoPriority) {
   var c2 = document.createTextNode(c[1]);
 
   t.appendChild(c1);
-  c1.innerHTML = '<P style=\'color:red\'>'+c[0]+'</P><P style=\'color:gray\'>'+c[1]+'</P>';
+  c1.innerHTML = '<p style=\'color:red\'>'+c[0]+'</p><p style=\'color:gray\'>'+c[1]+'</p>';
 
   /*
   var key = '$SUBSCRIBEBUTTON_';
@@ -40,7 +34,7 @@ function appendMessageListElem(destList, m, isLoPriority) {
     btn.style.cssText = 'display:none;'
   }
   */
-    
+
   if(t != null) l.appendChild(t);  
   e.appendChild(l);
   return l;
