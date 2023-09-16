@@ -62,3 +62,7 @@ udpserver_addr=x.x.x.x line with your own IP address. I recommend config
 uring the port for 3478 because technically we are using the port for STUN/ICE
 AND for RTP.
 
+Etc:
+8/15 - NO SETUP necessary (beyond making ports access) - this is possible with the new stun_client.c code - but in airgapped networks config.txt still nec.
+9/14 - OBS-direct (sans browser) streaming support coming - see https://webrtchacks.com/webrtc-cracks-the-whip-on-obs/
+
