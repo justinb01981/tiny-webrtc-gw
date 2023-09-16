@@ -27,10 +27,10 @@ Welcome to the tiny-webrtc-gw readme!
 * code includes submodule referencing the standalone HTTPS server + example certificate
 
 ## Demo:
-* [&#128247;wintermute lobby on a raspi4;](https://wintermute.nonroutable.net/content/index_broadcast.html?joinroom=lobby)
+* [&#128247;chat lobby on a raspi4;](https://wintermute.nonroutable.net/content/index_broadcast.html?joinroom=lobby)
 * .
 * .
-* ![&#9729;"cloud"&#9729;](http://www.domain17.net/justin/A222CF0B-6829-45C7-B989-4B9F663870A4.jpeg)
+* ![&#9729;"cloud"&#9729;](http://www.domain17.net/justin/webrtc-bcast-obs-gaming.png)
 
 
 ## Caveats:
