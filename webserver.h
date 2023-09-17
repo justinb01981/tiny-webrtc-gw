@@ -717,6 +717,62 @@ webserver_worker(void* p)
                 }
                 else
                 {
+
+                // TODO: learn WHIP parsing from obs - e.g.
+/***********************
+POST /content/upload HTTP/1.1
+Host: 192.168.1.125:8010
+Accept: 
+Content-Type: application/sdp
+Authorization: Bearer 123
+User-Agent: Mozilla/5.0 (OBS-Studio/30.0.0-beta3; Windows x86_64; en-US)
+Content-Length: 1278
+
+v=0
+o=rtc 1630632207 0 IN IP4 127.0.0.1
+s=-
+t=0 0
+a=group:BUNDLE 0 1
+a=group:LS 0 1
+a=msid-semantic:WMS *
+a=setup:actpass
+a=ice-ufrag:ahjl
+a=ice-pwd:GRcd/NrJTsIHkYnb8XVa1n
+a=ice-options:ice2,trickle
+a=fingerprint:sha-256 AA:EE:01:FB:97:ED:DD:88:F3:8E:F1:8A:DD:93:A1:A7:DA:C0:B3:38:C6:14:CD:84:B1:9A:8F:F8:0D:32:F0:C5
+m=audio 63597 UDP/TLS/RTP/SAVPF 111
+c=IN IP4 192.168.1.109
+a=mid:0
+a=sendonly
+a=ssrc:1102699791 cname:rQcWaxPvcgYTistQ
+a=ssrc:1102699791 msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-audio
+a=msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-audio
+a=rtcp-mux
+a=rtpmap:111 OPUS/48000/2
+a=fmtp:111 minptime=10;maxaveragebitrate=96000;stereo=1;sprop-stereo=1;useinbandfec=1
+a=candidate:1 1 UDP 2130706431 2001:5a8:40e7:6500:f0f3:50f7:8ad0:d1fe 63597 typ host
+a=candidate:2 1 UDP 2122317567 192.168.1.109 63597 typ host
+a=end-of-candidates
+m=video 63597 UDP/TLS/RTP/SAVPF 96
+c=IN IP4 192.168.1.109
+a=mid:1
+a=sendonly
+a=ssrc:1102699792 cname:rQcWaxPvcgYTistQ
+a=ssrc:1102699792 msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-video
+a=msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-video
+a=rtcp-mux
+a=rtpmap:96 H264/90000
+a=rtcp-fb:96 nack
+a=rtcp-fb:96 nack pli
+a=rtcp-fb:96 goog-remb
+a=fmtp:96 profile-level-id=42e01f;packetization-mode=1;level-asymmetry-allowed=1
+HTTP/1.0 200 OK
+Content-Length: 90
+Content-Type: text/html
+
+<html><body onload='location="/content/iframe_channel.html";'>redirecting...</body></html>
+***********************/
+
                     sprintf(path, "./%s", purl);
 
                     //printf("%s:%d webserver POST for file (content_len:%d):\n\t%s\n", __func__, __LINE__, content_len, purl);
