@@ -55,14 +55,19 @@ git submodule init xxx && git submodule update xxx
 
 from the base directory just run 'make all'.
 
-You will need to edit at least one line in config.txt so the built-in STUN
+~~You will need to edit at least one line in config.txt so the built-in STUN
 server knows its own IP address (relative to the clients connecting, if
 you're using NAT). Go to whatismyipaddress.com and replace the
 udpserver_addr=x.x.x.x line with your own IP address. I recommend config
 uring the port for 3478 because technically we are using the port for STUN/ICE
-AND for RTP.
+AND for RTP.~~
 
-Etc:
-* 8/15 - NO SETUP necessary (beyond making ports access) - this is possible with the new stun_client.c code - but in airgapped networks config.txt still nec.
-* 9/14 - OBS-direct (sans browser) streaming support coming - see https://webrtchacks.com/webrtc-cracks-the-whip-on-obs/
+## Etc:
+  * 8/15 - NO SETUP necessary (beyond making ports accessible) - this is possible with the new stun_client.c code - but in airgapped networks config.txt still nec.
+  * 9/14 - OBS-direct (no browser) streaming support coming - see https://webrtchacks.com/webrtc-cracks-the-whip-on-obs/
+  * constructing a share URL: 
+  ```
+  <your_https_prefix>/content/index_broadcast.html?joinroom=<roomname>&camera=0 --- e.g. https://tinyurl.com/jbhatestypingthis (drops a user in "lobby" with camera disabled)
+  ```
+
 
