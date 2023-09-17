@@ -28,9 +28,10 @@ Welcome to the tiny-webrtc-gw readme!
 
 ## Demo:
   [&#128247;chat lobby on a raspi4;](https://wintermute.nonroutable.net/content/index_broadcast.html?joinroom=lobby)
+
+## Pics:
   ![&#9729;"cloud"&#9729;](http://secure.domain17.net/justin/webrtc-bcast-obs-gaming.png)
   ![Web interface + lobby + chat](http://secure.domain17.net/justin/webrtc-morn.png)
-
 
 ## Caveats:
   since browsers won't allow webRTC to be negotiated unencrypted (https)
@@ -66,7 +67,10 @@ AND for RTP.~~
   * 9/14 - OBS-direct (no browser) streaming support coming - see https://webrtchacks.com/webrtc-cracks-the-whip-on-obs/
   * constructing a share URL: 
   ```
-  <your_https_prefix>/content/index_broadcast.html?joinroom=<roomname>&camera=0 --- e.g. https://tinyurl.com/jbhatestypingthis (drops a user in "lobby" with camera disabled)
+  <your_https_prefix>/content/index_broadcast.html?joinroom=<roomname>&camera=0
   ```
-
+  --- e.g. https://tinyurl.com/jbhatestypingthis
+  ```
+  (drops a user in "lobby" with camera disabled)
+  ```
 
