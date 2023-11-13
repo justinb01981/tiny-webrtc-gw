@@ -97,9 +97,9 @@ p.videoLabel {
 div.localPreview {
     position:fixed;
     top:3%;
-    left:5%;
-    width:16%;
-    height:12%;
+    left:60%;
+    width:20%;
+    height:15%;
 }
 
 div.videoContainerDiv {
@@ -136,7 +136,8 @@ p.controlsPara {
     top:-6;
     left:25%;
     width:50%;
-    height:10%;
+    height:15%;
+    z-index:2;
 }
 
 p.emptyRoomLabel {
@@ -149,6 +150,9 @@ p.emptyRoomLabel {
 button.playButton {
     width:32px;
     height:32px;
+    position:relative;
+    left: 40%;
+    top: 32px;
     background-position:center;
     background-repeat:no-repeat;
     background-image:url(/content/img/unmute.png);
@@ -158,10 +162,34 @@ button.stopButton {
     width:32px;
     height:32px;
     position:relative;
-    left: 128px;
+    left: 95%;
+    top:32px;
     background-position:center;
     background-repeat:no-repeat;
     background-image:url(/content/img/stop.png);
+}
+
+button.exitButtonVisible {
+    background-image:url(/content/img/exit.png);
+    display:auto;
+    background-position:center;
+    background-repeat:no-repeat;
+}
+
+button.exitButtonNotVisible {
+    display:none;
+}
+
+// TODO: not working dynamically setting classname yet
+img.joinButtonVisible {
+    background-image:url(/content/img/enter.png);
+    display:auto;
+    background-position:center;
+    background-repeat:no-repeat;
+}
+
+img.joinButtonNotVisible {
+    display:none;
 }
 
 button.retryButton {
@@ -193,9 +221,9 @@ button.phButton {
 select.mediaSelect {
 }
 
-select.selectUser {
-    display:none;
-    height: 80%;
+div.selectUser {
+    height: 32px;
+    width:100%;
 }
 
 iframe.chatFrame {

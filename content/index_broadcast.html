@@ -21,12 +21,13 @@ data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxQUEhYTFBQXFxYYGh4cG
                 <button onclick='logout();' id='logout'>logout</button>
            </td>
             <td align='left'>
-                camera enabled: <input type='checkbox' id='enableVideoCheckbox' /><br>
+            
+                camera &#128249; enabled: <input type='checkbox' id='enableVideoCheckbox' /><br>
                 video:<select class='mediaSelect' id='selectCamInput'></select><br>
                 audio:<select class='mediaSelect' id='selectMicInput'></select><br>
             </td>
         </tr>
-        <tr>
+        <tr style='height:10%'>
             <td style='border-width:0px;' align='right'>
                 Room:
                 <input type='text' id='roomName' onInput='roomEdited(this)' value='lobby'>
@@ -64,9 +65,8 @@ data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxQUEhYTFBQXFxYYGh4cG
         </tr>
     </table>
     <h5 style='background-color:black; width:20%;'>
-    <h5>
-    get started setting up your own webRTC conferencing server
-    <a style='background-color:black;' href='https://github.com/justinb01981/tiny-webrtc-gw'>@ tiny-webrtc-gw on github</a>
+        fork this on github!
+        <a href='https://github.com/justinb01981/tiny-webrtc-gw'>@ tiny-webrtc-gw on github</a>
     </h5>
     </center>
 
@@ -76,17 +76,12 @@ data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxQUEhYTFBQXFxYYGh4cG
     <table border=1 class="localPreviewTable">
         <tr>
             <td>
-                <p>Camera<br>
+                <p>&#128249; Camera<br>
                 <video id="localVideo" class="videoLocal" muted autoplay muted loop playsinline controls="true" ></video>
                 </p>
             </td>
         </tr>
     </table>
-</div>
-
-<div id="bigVideoDiv" class="videoDivMassive">
-    <p>big video goes here
-    <video class="videoMassive"/>
 </div>
 
 </body>
@@ -120,19 +115,16 @@ var joinPopupCloseDone = function(videoElem) {
     }
 }
 
-function updateViewersLabel(withpeers) {
-    // hack: wait till after refresh to update
+function updateViewersLabelDEPRECATED(withpeers) {
     let v = document.getElementById('viewersTd');
-    v.innerHTML = '';
+    v.innerHTML = '<p>guests: '+withpeers+' (with camera ON)</p>';
     let t = document.createTextNode('streams: '+withpeers.length+' ')
     v.appendChild(t);
 
     let n = withpeers.filter(function(peer) {
-        console.debug('debugpeerList:'+peer);
         if(!peer.sendonly) return true;
         return false;
     });
-    console.debug('updateViewersLabel:'+withpeers.length+' peers');
 }
 
 var chatLinkClicked = function(elem) {
@@ -152,7 +144,7 @@ var chatReloaded = function(elem) {
 }
 
 function joinSDP() {
-    return "empty";
+    return "a=empty";
 }
 
 function reloadConnectIframe()

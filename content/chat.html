@@ -16,8 +16,9 @@ function onload() {
 
     msgfield1 = document.getElementById("chatmsg");
 
-    msgfield1.onfocus = function() { setFocus(msgfield1);};
-    msgfield1.onblur = function() { loseFocus(msgfield1);};
+    // TODO: disabling these hooks which used to be used to enable/disable the refresh timer while user was editing but i think it fucks up the window focus
+    //msgfield1.onfocus = function() { setFocus(msgfield1);};
+    //msgfield1.onblur = function() { loseFocus(msgfield1);};
 
     if(window.parent.location.pathname != CHATURL) {
         // top-level chat iframe

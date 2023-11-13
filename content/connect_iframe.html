@@ -1,28 +1,36 @@
 <html>
+<head>
+<link rel="stylesheet" type="text/css" href="conference.css">
+</head>
 <body onload='connectIFrameOnLoad(this)' style='overflow:hidden;'>
 <table>
-<tr>
+<tr >
+
 
 <td>
---
-</td>
-<td>
-<select id='selectUser' name='selectUser' class='selectUser' onchange='onSelectUserChange(this)'>
-</select>
-</td>
-<td>
 <a href='javascript: onOK()'>
-<img id='joinButton' src='/content/img/enter.png' alt='enter' style='width:24px; height:24px;'>
+<!-- no class must be set for these buttons -->
+<img id='joinButton' src='/content/img/enter.png' alt='enter'>
 </a>
 </td>
 <td>
 <a href='javascript: onLeave()'>
-<img id='leaveButton' src='/content/img/exit.png' alt='exit' style='width:24px; height:24px;'>
+<img id='leaveButton' src='/content/img/exit.png' alt='exit'>
 </a>
 </td>
-
+<td>
+ (ignore &#128073;)
+</td>
+<td>
+<div class='selectUser'>
+<select id='selectUser' name='selectUser' onchange='onSelectUserChange(this)'>
+</div>
+</td>
 </tr>
 </table>
+<br>
+
+</select>
 </body>
 
 <script src='js/broadcast.js'></script>
@@ -61,13 +69,15 @@ function connectIFrameOnLoad(htmlBodyElem)
   if(window.parent.iframeConnectState.selectedRoom)
   {
     roomTextfield.disabled = true;
-    joinButton.style.cssText = 'display:none;';
+    joinButton.style.cssText = 'display:none';
+    leaveButton.style.cssText = 'display:auto';
     selectUser.style.cssText = '';
   }
   else
   {
     roomTextfield.disabled = false;
-    joinButton.style.cssText = '';
+    joinButton.style.cssText = 'display:auto';
+    leaveButton.style.cssText = 'display:none';
     selectUser.style.cssText = 'display:none';
   }
 
@@ -75,7 +85,7 @@ function connectIFrameOnLoad(htmlBodyElem)
 
   let optionLabel = document.createElement('option');
   optionLabel.value = 'NULL';
-  optionLabel.text = '<Retry>';
+  optionLabel.text = '<Guests>';
   selectUser.options.add(optionLabel);
 
   if(state.selectedRoom != null)
