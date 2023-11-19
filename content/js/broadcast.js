@@ -701,7 +701,7 @@ function errorSchedule() {
     connectionWarning = true;
     let f = function() {
         if(connectionWarning) {
-            alert('warning: connection seems to have failed? Confirm audio/video device browser permissions. (very likely the config.txt is just wrong).');
+            alert('warning: media connection failed - confirm audio/video device permissions (or contact the admin)');
         }
     }
 

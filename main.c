@@ -986,7 +986,7 @@ connection_worker(void* p)
 
                                     // MARK: -- HACK - covering up our jitter (delayed/underrun on subscriber) by requesting a full frame refresh
                                     // cap at X/second or we'll get overwhelmed
-                                    peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-250); // force picture loss
+                                    // peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-250); // force picture loss
 
                                     // TODO: flush faster? slower? usually here because of an underrun that happened at peer
                                     buffering_until = time_ms + 1;  
@@ -997,7 +997,7 @@ connection_worker(void* p)
                                 u32 sr_delay = ntohl(report->blocks[issrc].last_sr_timestamp_delay), sr_delay_cmp = peer->srtp[report_rtp_idx].receiver_report_sr_delay_last;
 
                                 // increasing delay = increase throttle, throttle always incrementing by Dthrottle below
-                                Dthrottle = 0.0001 + PEER_THROTTLE_RESPONSE / (1 + (sr_delay - sr_delay_cmp)); //* (sr_delay > sr_delay_cmp ? -1.0: 1.0);
+                                Dthrottle = 0.0001 + PEER_THROTTLE_RESPONSE / (1 + (sr_delay/sr_delay_cmp)); //* (sr_delay > sr_delay_cmp ? -1.0: 1.0);
 
                                 // store
                                 peer->srtp[report_rtp_idx].receiver_report_jitter_last = jitter;
@@ -1849,20 +1849,17 @@ int main( int argc, char* argv[] ) {
             int bufcnt = PEER_RECV_BUFFER_COUNT;
             while(cur && bufcnt > 0)
             {
-                if(cur->len > 0) peers[sidx].buffer_count++;
                 cur->len = 0;
                 cur = cur->next;
                 bufcnt--;
             }
+            peers[sidx].buffer_count = PEER_RECV_BUFFER_COUNT;
 
             // wait for this to drain
 
             //peers[sidx].ts_win_pd = 0;
-            PEER_UNLOCK(sidx);
-
+            
             printf("peer buffers:[%d] FULL - flushing\n", sidx);
-
-            PEER_LOCK(sidx);
         }
 
         //assert(cur != node && peers[sidx].in_buffers_head.rnext != NULL && peers[sidx].in_buffers_head.rnext != &peers[sidx].in_buffers_head);

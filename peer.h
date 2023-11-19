@@ -32,7 +32,7 @@
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&peers[x].mcond, &peers[x].mutex)
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 8000
-#define PEER_RECV_BUFFER_COUNT_MS (120)
+#define PEER_RECV_BUFFER_COUNT_MS (240)
 // TODO: this is RTP and we should be doing minimal buffering
 #define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*2) // 5k pkt/sec sounds good? this is the theoretical max buffered
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 10000
@@ -43,7 +43,7 @@
 // ms
 #define PEER_THROTTLE_MAX (1000/PEER_RECV_BUFFER_COUNT_MS) // usleep - jiffs
 #define PEER_THROTTLE_USLEEPJIFF (PEER_RECV_BUFFER_COUNT_MS)
-#define PEER_THROTTLE_RESPONSE (0.3)
+#define PEER_THROTTLE_RESPONSE (0.6)    // TODO: why still using this?
 
 extern char* dtls_fingerprint;
 

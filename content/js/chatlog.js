@@ -55,11 +55,12 @@ function appendMessagesToUnorderedList(l, array) {
 
     str = str.replace(/\+/g, ' ');
     while(offset < str.length && str.length > 0) {
-      var listElem = appendMessageListElem(l, str.substring(offset, offset+maxLen, str.indexOf('server:') >= 0));
-      listElem.scrollIntoView(false);
+      if(str.indexOf('server:') != 0) {
+        var listElem = appendMessageListElem(l, str.substring(offset, offset+maxLen, str.indexOf('server:') >= 0));
      
-     listElem.style.cssText = 'color:' + textColor + '; ' + 'background-color:'+ bgColor + '; list-style-type:none;' + 
-      (isItalic ? ' font-style:italic; display:none;' : '');
+        listElem.style.cssText = 'color:' + textColor + '; ' + 'background-color:'+ bgColor + '; list-style-type:none;' + 
+        (isItalic ? ' font-style:italic; display:none;' : '');
+      }
       offset += maxLen;
     }
 
