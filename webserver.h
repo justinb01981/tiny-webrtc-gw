@@ -7,6 +7,7 @@
 #include <sys/errno.h>
 #include "stun_callback.h"
 #include "iplookup_hack.h"
+#include "macro_expand.h"
 
 /* include websockets */
 #define sha1 sha1_
@@ -34,6 +35,8 @@ static time_t g_chatlog_ts;
 static char* g_sdp;
 
 static pthread_mutex_t webmtx;
+
+char listen_port_str[64];
 
 extern int sdp_prefix_set(const char*);
 
@@ -67,38 +70,12 @@ static char ufrag_offeranswer_tmp[256];
 static int cb_done = 0;
 
 
-char*
-macro_str_expand(char* buf, const char* tag, const char* replace)
-{
-    char* ret = buf;
-    while(1)
-    {
-        ret = buf;
+static char webserver_get_localaddr_buf[64];
 
-        /* macros */
-        char *pmac = strstr(buf, tag);
-        int expandlen = strlen(replace);
-        if(pmac)
-        {
-            size_t realloc_len = strlen(buf) + expandlen + 1;
-            char* tmp = malloc(realloc_len);
-            if(tmp)
-            {
-                memset(tmp, 0, realloc_len);
-                ret = tmp;
+const char* webserver_get_localaddr() {
 
-                strncpy(ret, buf, pmac - buf);
-                pmac += strlen(tag);
-                strcat(ret, replace);
-                strcat(ret, pmac);
-                free(buf);
-                buf = ret;
-                continue;
-            }
-        }
-        break;
-    }
-    return ret;
+    sprintf(webserver_get_localaddr_buf, "%s %u", iplookup_addr, listen_port_base);
+    return webserver_get_localaddr_buf;
 }
 
 const char*
@@ -237,10 +214,12 @@ webserver_worker(void* p)
     char *page_buf_redirect_back = "<html><body onload='location=\"/content/chat.html\";'>redirecting...</body></html>";
     char *page_buf_redirect_subscribe = "<html><body onload='location=\"/content/iframe_channel.html\";'>redirecting...</body></html>";
     char *page_buf_slotbusy = "<html><body onload='window.location=\"content/uploadDone.html\";'><p>peer connection resources busy - please try again</p></body></html>";
-    char *ok_hdr = "HTTP/1.0 200 OK\r\n";
-    char *content_type = "";
+    char *ok_hdr_ok = "HTTP/1.0 200 OK\r\n", *ok_hdr = ok_hdr_ok;
+    char *accepted_hdr = "HTTP/1.0 201 Created\r\n";
     char *fail_hdr = "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n";
     char *content_type_html = "Content-Type: text/html\r\n\r\n";
+    char *content_type_sdp = "Content-Type: application/sdp\r\n\r\n";
+    char *content_type = content_type_html;
     char* content_length_hdr = "Content-Length: ";
     char *tag_hostname = "%$HOSTNAME$%";
     char *tag_peerdynamicjs = "%$PEERDYNAMICJS$%";
@@ -267,7 +246,6 @@ webserver_worker(void* p)
     int use_user_fragment_prefix = 1;
     webserver_worker_args* args = (webserver_worker_args*) p;
     unsigned int content_len = 0;
-    char listen_port_str[64];
     char cookie[256], cookieset[256];
     char ws_header_buf[256];
     peer_session_t* peer_found_via_cookie = NULL;
@@ -718,91 +696,164 @@ webserver_worker(void* p)
                 else
                 {
 
-                // TODO: learn WHIP parsing from obs - e.g.
-/***********************
-POST /content/upload HTTP/1.1
-Host: 192.168.1.125:8010
-Accept: 
-Content-Type: application/sdp
-Authorization: Bearer 123
-User-Agent: Mozilla/5.0 (OBS-Studio/30.0.0-beta3; Windows x86_64; en-US)
-Content-Length: 1278
+                    sprintf(path, "./%s", purl);//posturl
 
-v=0
-o=rtc 1630632207 0 IN IP4 127.0.0.1
-s=-
-t=0 0
-a=group:BUNDLE 0 1
-a=group:LS 0 1
-a=msid-semantic:WMS *
-a=setup:actpass
-a=ice-ufrag:ahjl
-a=ice-pwd:GRcd/NrJTsIHkYnb8XVa1n
-a=ice-options:ice2,trickle
-a=fingerprint:sha-256 AA:EE:01:FB:97:ED:DD:88:F3:8E:F1:8A:DD:93:A1:A7:DA:C0:B3:38:C6:14:CD:84:B1:9A:8F:F8:0D:32:F0:C5
-m=audio 63597 UDP/TLS/RTP/SAVPF 111
-c=IN IP4 192.168.1.109
-a=mid:0
-a=sendonly
-a=ssrc:1102699791 cname:rQcWaxPvcgYTistQ
-a=ssrc:1102699791 msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-audio
-a=msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-audio
-a=rtcp-mux
-a=rtpmap:111 OPUS/48000/2
-a=fmtp:111 minptime=10;maxaveragebitrate=96000;stereo=1;sprop-stereo=1;useinbandfec=1
-a=candidate:1 1 UDP 2130706431 2001:5a8:40e7:6500:f0f3:50f7:8ad0:d1fe 63597 typ host
-a=candidate:2 1 UDP 2122317567 192.168.1.109 63597 typ host
-a=end-of-candidates
-m=video 63597 UDP/TLS/RTP/SAVPF 96
-c=IN IP4 192.168.1.109
-a=mid:1
-a=sendonly
-a=ssrc:1102699792 cname:rQcWaxPvcgYTistQ
-a=ssrc:1102699792 msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-video
-a=msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-video
-a=rtcp-mux
-a=rtpmap:96 H264/90000
-a=rtcp-fb:96 nack
-a=rtcp-fb:96 nack pli
-a=rtcp-fb:96 goog-remb
-a=fmtp:96 profile-level-id=42e01f;packetization-mode=1;level-asymmetry-allowed=1
-HTTP/1.0 200 OK
-Content-Length: 90
-Content-Type: text/html
+                    printf("%s:%d webserver POST for file (content_len:%d):\n\t%s\n", __func__, __LINE__, content_len, purl);
 
-<html><body onload='location="/content/iframe_channel.html";'>redirecting...</body></html>
-***********************/
+                    char tmp[256];
+                    char** sdp = &g_sdp;
+                    const char* (*ufrag_offerget)(void);
+                    char* frag;
 
-                    sprintf(path, "./%s", purl);
+                    const char* ufrag_offerget_whep(void) {
+                        // https://datatracker.ietf.org/doc/html/draft-murillo-whep-03
 
-                    //printf("%s:%d webserver POST for file (content_len:%d):\n\t%s\n", __func__, __LINE__, content_len, purl);
+                        ok_hdr = accepted_hdr;
 
-                    // handle SDP-answer upload
-                    if(strcmp(purl, "/"FILENAME_SDP_ANSWER) == 0)
-                    {
+                        // stuff the uploaded offer as if we had prior created so it will be found during stun
+                        sdp_offer_create(&peers[sidx]);
 
+                        strcpy(peers[sidx].stun_ice.ufrag_answer, sdp_read(*sdp, "a=ice-ufrag:"));   // shit should wind up in peer->stun_ice.answerufrag
+
+                        strcpy(peers[sidx].sdp.answer, *sdp);
+
+                        // do not copy sdp offer from offer-table to peer yet - STUN happens and does that
+
+                        return sdp_offer_table.t.iceufrag; // user fragment
+                    }
+
+                    const char* ufrag_offerget_pbody(void) {
+                        ok_hdr = ok_hdr_ok;
+                        return sdp_offer_table.t.iceufrag;
+                    }
+
+                    int sdp_upload_parse(void) {
                         // create temp file, decode, rename for worker thread to pick up/read and remove
-                        char tmp[256];
-                        char** sdp = &g_sdp;
+                        sdp = &g_sdp;
 
                         *sdp = strdup(pbody);
 
                         memdebug_sanity(*sdp);
-
                         *sdp = sdp_decode(*sdp);
+
                         // this is the answer SDP containing 1/2 of stun id
-                        strcat(buf_nonreentrant, sdp_read(*sdp, "a=ice-ufrag:"));
+                        strcat(buf_nonreentrant, sdp_read(*sdp, "a=ice-ufrag:"));// wtf is buf_nonreentrant lol
 
                         // anonymous+watching-only peers use new slot
                         if(peer_found_via_cookie && strstr(*sdp, "a=recvonly") != NULL)
                         {
+                            assert(0); // peer_found_via is dead code
                             peer_broadcast_from_cookie = peer_found_via_cookie->id;
                             peer_found_via_cookie = NULL;
                         }
 
-                        // find original SDP offer and decode SDP answer and init stun_ice attributes
-                        if(peer_found_via_cookie)
+                        sidx = webserver.peer_idx_next % MAX_PEERS;
+                        webserver.peer_idx_next += 1;
+
+                        PEER_LOCK(sidx);
+
+                        if(peers[sidx].alive)
                         {
+                            PEER_UNLOCK(sidx);
+
+                            printf("webserver: peers full @ /upload (sdp) \n");
+                            content_type = content_type_html;
+                            response = strdup(page_buf_400);
+                            return -1;
+                        }
+
+                        // dont copy things to the peer prior to this!!!!
+                        peer_init(&peers[sidx], sidx);
+                        peers[sidx].broadcastingID = peer_broadcast_from_cookie;
+
+                        // CALLING CREATE-OFFER HERE
+                        strcpy(ufrag_offeranswer_tmp, ufrag_offerget());
+                        // offer_table is inited now
+
+                        // spoof: take peers offer as our own, but first copy out the answer we stored
+                        strcpy(peers[sidx].sdp.offer, sdp_offer_table.t.offer);
+                        strcpy(peers[sidx].stun_ice.ufrag_answer, buf_nonreentrant);
+
+                        // still LOCKED!
+                        return 0;
+                    }
+
+
+                    void cb_begin(peer_session_t* p) {
+
+                        printf("peer[%d] we alive now chickenhead!\n", p->id);
+                        // cxn_start is called by main epoll thread
+
+                        // next time this peer restarts we are terminating (state)
+                        extern void cb_disconnect(peer_session_t*);
+
+                        p->time_pkt_last = get_time_ms();
+                        p->alive = 1;
+                        p->cb_restart = cb_disconnect;
+
+                        cb_done = 1;
+                    }
+
+
+                    void stun_config_peer(void) {
+                        // --
+                        peer_session_t* p = &peers[sidx];
+
+                        // TODO: to support non-bundled connections create a 2nd thread here with above stun/sdp fields cloned
+
+                        // -- using init_needed here to signal
+                        p->cb_restart = cb_begin;
+
+                        // await??
+                        p->init_needed = 1;
+                        PEER_UNLOCK(p->id);
+
+                        // TODO: signal connection_w23orker thread that it may continue running
+                        // (right now it just sleeps)
+                        do {
+                            sleep_msec(10); // wait for thread to call cb_done
+                        } while(!cb_done);
+
+                        printf("found offer:\n%s\n", p->sdp.offer);
+                        strcpy(p->stun_ice.ufrag_offer, sdp_offer_table.t.iceufrag);
+
+                        printf("...done\n");
+                    }
+
+
+                    // parse uri
+                    printf("purl=%s\n", purl);
+
+                    if(strcmp(purl, "/"FILENAME_SDP_WHEP_OFFER) == 0)
+                    {
+                        ufrag_offerget = ufrag_offerget_whep;
+                        if(sdp_upload_parse() != 0) goto response_override;
+                        // at this point the sdp-offer table should contain the offer SDP text OBS uploaded
+
+                        free(response);
+                        response = malloc(strlen(page_buf_sdp_uploaded) + 2048);
+
+                        // our SDP answer is stuffed into the sdp offer table...and will be copied to peerX when stun matches
+                        stun_config_peer();
+
+                        strcpy(response, sdp_offer_table.t.offer);
+
+                        content_type = content_type_sdp;
+
+                        goto response_override;
+                    }
+                    // handle SDP-answer upload
+                    else if(strcmp(purl, "/"FILENAME_SDP_ANSWER) == 0)
+                    {
+                        ufrag_offerget = ufrag_offerget_pbody;
+                        if(sdp_upload_parse() != 0) goto response_override;
+
+                        // find original SDP offer and decode SDP answer and init stun_ice attributes
+                        /*
+                        if(peer_found_via_cookie) // OR WHEP RESPONSE
+                        {
+                            assert(0);  // TODO: REMOVE ME dead code to be removed
+
                             strcpy(ufrag_offeranswer_tmp, peer_found_via_cookie->stun_ice.ufrag_offer);
                             
                             sidx = PEER_INDEX(peer_found_via_cookie);
@@ -811,29 +862,7 @@ Content-Type: text/html
 
                             PEER_LOCK(sidx);
                         }
-                        else
-                        {
-                            sidx = webserver.peer_idx_next % MAX_PEERS;
-                            webserver.peer_idx_next += 1;
-
-                            PEER_LOCK(sidx);
-
-                            if(peers[sidx].alive)
-                            {
-                                PEER_UNLOCK(sidx);
-
-                                printf("webserver: peers full @ /upload (sdp) n");
-                                content_type = content_type_html;
-                                response = strdup(page_buf_400);
-                                goto response_override;
-                            }
-
-                            peer_init(&peers[sidx], sidx);
-                            peers[sidx].broadcastingID = peer_broadcast_from_cookie;
-                            
-                            strcpy(ufrag_offeranswer_tmp, sdp_offer_table.t.iceufrag);
-                            printf("webserver: no cookie/using offer ufrag %s\n", ufrag_offeranswer_tmp);
-                        }
+                        */
 
                         // setupSTUN moved from here - can't live on the stack now
 
@@ -843,7 +872,7 @@ Content-Type: text/html
                         response = malloc(strlen(page_buf_sdp_uploaded) + 2048);
                         response[0] = '\0'; strcat(response, page_buf_sdp_uploaded);
                         content_type = content_type_html;
-                        
+
                         // TODO: there may be some benefit to having a separate monitor thread
                         // during setup "bootstrapping"
                         //pthread_attr_init(&thread_attrs);
@@ -852,47 +881,7 @@ Content-Type: text/html
 
                         printf("webserver peer[%d] got SDP:\n%s\n", sidx, *sdp);
 
-                        void cb_begin(peer_session_t* p) {
-
-                            printf("peer[%d] we alive now chickenhead!\n", p->id);
-                            // cxn_start is called by main epoll thread
-
-                            // next time this peer restarts we are terminating (state) 
-                            extern void cb_disconnect(peer_session_t*);
-
-                            p->time_pkt_last = get_time_ms();
-                            p->alive = 1;
-                            p->cb_restart = cb_disconnect;
-
-                            cb_done = 1;
-                        }
-
-                        {
-                            peer_session_t* p = &peers[sidx];;
-                            strcpy(p->sdp.answer, *sdp);
-
-                            strcpy(p->stun_ice.ufrag_answer, sdp_read(p->sdp.answer, "a=ice-ufrag"));
-                            strcpy(p->sdp.offer, sdp_offer_find(ufrag_offeranswer_tmp, p->stun_ice.ufrag_answer));
-                            printf("found offer:%s\n", p->sdp.offer);
-                            strcpy(p->stun_ice.ufrag_offer, sdp_read(p->sdp.offer, "a=ice-ufrag"));
-
-                            // TODO: to support non-bundled connections create a 2nd thread here with above stun/sdp fields cloned
-
-                            // -- using init_needed here to signal
-                            p->cb_restart = cb_begin;
-
-                            // await??
-                            p->init_needed = 1;
-                            PEER_UNLOCK(p->id);
-
-                            // TODO: signal connection_worker thread that it may continue running
-                            // (right now it just sleeps)
-                            while(!cb_done) {
-                                sleep_msec(10); // wait for thread to call cb_done
-                            }
-
-                            printf("...done\n");
-                        }
+                        stun_config_peer();
 
                         goto response_override;
                     }
@@ -939,9 +928,14 @@ Content-Type: text/html
 
                     r = send(sock, hdr, strlen(hdr), flags);
                     r = send(sock, cookie_hdr, strlen(cookie_hdr), flags);
-                    sprintf(clen_hdr, "Content-Length: %lu\r\n", response_binary? file_buf_len: strlen(response));
+
+                    // all headers prior to content-length (which contains \r\n\r\n and terminates headers)
+                    sprintf(clen_hdr, "Content-Length: %lu\r\nETag: \"wutang4eva\"\r\nLocation: %s\r\n%s",
+                            response_binary? file_buf_len: strlen(response),
+                            purl, // location
+                            content_type
+                            );
                     r = send(sock, clen_hdr, strlen(clen_hdr), flags);
-                    r = send(sock, content_type, strlen(content_type), flags);
                     r = send(sock, response, response_binary? file_buf_len: strlen(response), flags);
                 }
 
@@ -1036,6 +1030,7 @@ webserver_accept_worker(void* p)
 
     //printf("%s:%d exiting\n", __func__, __LINE__);
 }
+
 
 
 

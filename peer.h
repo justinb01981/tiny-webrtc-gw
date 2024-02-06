@@ -5,6 +5,7 @@
 #include "srtp_key_len.h"
 #include "dtls.h"
 #include "rtp.h"
+#include "macro_expand.h"
 
 #define SDP_OFFER_VP8 1
 // TODO: this determines whether mp4 or both+VP8 offered
@@ -46,6 +47,8 @@
 #define PEER_THROTTLE_RESPONSE (0.6)    // TODO: why still using this?
 
 extern char* dtls_fingerprint;
+
+extern const char* webserver_get_localaddr(void);
 
 // TODO: artififially low to smooth jitter calculations and prevent bursts + more fairly schedule?
 #define RECVMSG_NUM (128)
@@ -513,55 +516,67 @@ int peer_stun_bound(peer_session_t* peer)
     return (peer->stun_ice.bound && peer->stun_ice.bound_client);
 }
 
+
+
 const char* sdp_offer_create(peer_session_t* peer)
 {
-    /*
-     "\"a=rtpmap:8 PCMA/8000\\n\" + \n"
-     "\"a=setup:actpass\\n\" + \n"
-     "\"a=ssrc:%d cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\\n\" + \n"
--    "\"m=video 9 RTP/SAVPF 127 120 126 97\\n\" + \n"
-+    "\"m=video 9 RTP/SAVPF 126 97\\n\" + \n"
-     "\"c=IN IP4 0.0.0.0\\n\" + \n"
-     "\"a=sendrecv\\n\" + \n"
--    "\"a=fmtp:120 max-fr=60; max-fs=14400;\\n\" + \n"
-     "\"a=fmtp:126 profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1\\n\" + \n"
-     "\"a=fmtp:97 profile-level-id=42e01f;level-asymmetry-allowed=1\\n\" + \n"
--    "\"a=rtpmap:127 VP9/90000\\n\" + \n"
--    "\"a=rtcp-fb:127 goog-remb\\n\" + \n"
--    "\"a=rtcp-fb:127 transport-cc\\n\" + \n"
--    "\"a=rtcp-fb:127 ccm fir\\n\" + \n"
--    "\"a=rtcp-fb:127 nack\\n\" + \n"
--    "\"a=rtcp-fb:127 nack pli\\n\" + \n"
--    "\"a=fmtp:127 profile-id="VP9PROFILEID"\\n\" + \n"
-     "\"a=ice-pwd:230r89wef32jsdsjJlkj23rndasf23rlknas\\n\" + \n"
-     "\"a=ice-ufrag:%s\\n\" + \n"
-     "\"a=mid:sdparta_1\\n\" + \n"
-     "\"a=msid:{7e5b1422-7cbe-3649-9897-864febd59342} {f46f496f-30aa-bd40-8746-47bda9150d23}\\n\" + \n"
--    "\"a=rtcp-fb:120 ccm fir pli nack\\n\" + \n"
-     "\"a=rtcp-fb:126 ccm fir\\n\" + \n"
-     "\"a=rtcp-fb:97 ccm fir\\n\" + \n"
-     "\"a=rtcp-mux\\n\" + \n"
--    "\"a=rtpmap:120 VP8/90000\\n\" + \n"
-     "\"a=rtpmap:126 H264/90000\\n\" + \n"
-     "\"a=rtpmap:97 H264/90000\\n\" + \n"
-     "\"a=setup:actpass\\n\" + \n"
+    const char* offer_template_obs = ""
+    "\"v=0\\n\" + \n"
+    "\"o=rtc 1669006375 0 IN IP4 127.0.0.1\\n\" + \n"
+    "\"s=-\\n\" + \n"
+    "\"t=0 0\\n\" + \n"
+    "\"a=group:BUNDLE 0 1\\n\" + \n"
+    "\"a=group:LS 0 1\\n\" + \n"
+    "\"a=msid-semantic:WMS *\\n\" + \n"
+    "\"a=setup:actpass\\n\" + \n"
+    "\"a=fingerprint:sha-256 DTLSFINGERPRINT\\n\" + \n"
+    "\"a=ice-ufrag:OFFERUFRAG\\n\" + \n"
+    "\"a=ice-pwd:kp8mwJHTCCCstyaN0PZ2D8\\n\" + \n"
+    "\"a=ice-options:trickle\\n\" + \n"
+    "\"m=audio 50425 UDP/TLS/RTP/SAVPF 111\\n\" + \n"
+    "\"c=IN IP4 LOCALADDRCSDP\\n\" + \n"
+    "\"a=mid:0\\n\" + \n"
+    "\"a=recvonly\\n\" + \n"
+    "\"a=ssrc:OFFERSSRC1 cname:rQcWaxPvcgYTistQ\\n\" + \n"
+    "\"a=ssrc:OFFERSSRC1 msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-audio\\n\" + \n"
+    "\"a=msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-audio\\n\" + \n"
+    "\"a=rtcp-mux\\n\" + \n"
+    "\"a=rtpmap:111 OPUS/48000/2\\n\" + \n"
+    "\"a=fmtp:111 minptime=10;maxaveragebitrate=96000;stereo=1;sprop-stereo=1;useinbandfec=1\\n\" + \n"
+    "\"a=candidate:1 1 UDP 2122317823 LOCALADDRSDP typ host\\n\" + \n"
+    // "\"a=end-of-candidates\\n\" + \n"
+    "\"a=setup:passive\\n\" + \n"
+    "\"m=video 50425 UDP/TLS/RTP/SAVPF 96\\n\" + \n"
+    "\"c=IN IP4 LOCALADDRCSDP\\n\" + \n"
+    "\"a=mid:1\\n\" + \n"
+    "\"a=recvonly\\n\" + \n"
+    "\"a=ssrc:OFFERSSRC1 cname:rQcWaxPvcgYTistQ=\\n\" + \n"
+    "\"a=ssrc:OFFERSSRC1 msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-video\\n\" + \n"
+    "\"a=msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-video\\n\" + \n"
+    "\"a=rtcp-mux\\n\" + \n"
+    "\"a=rtpmap:96 H264/90000\\n\" + \n"
+    "\"a=rtcp-fb:96 nack\\n\" + \n"
+    "\"a=rtcp-fb:96 nack pli\\n\" + \n"
+    "\"a=rtcp-fb:96 goog-remb\\n\" + \n"
+    "\"a=fmtp:96 profile-level-id=42e01f;packetization-mode=1;level-asymmetry-allowed=1\\n\"";
 
-    */
-    const char* offer_template =
+    const char* offer_template2 =
     "\"v=0\\n\" + \n"
     "\"o=mozilla...THIS_IS_SDPARTA-38.0.1_cookiea8f73130 1702670192771025677 0 IN IP4 0.0.0.0\\n\" + \n"
     "\"s=-\\n\" + \n"
     "\"t=0 0\\n\" + \n"
-    "\"a=fingerprint:sha-256 %s\\n\" + \n"
+    "\"a=fingerprint:sha-256 DTLSFINGERPRINT\\n\" + \n"
     "\"a=group:BUNDLE sdparta_0 sdparta_1\\n\" + \n"
     "\"a=ice-options:trickle\\n\" + \n"
     "\"a=msid-semantic:WMS *\\n\" + \n"
     "\"m=audio 9 RTP/SAVPF 109 9 0 8\\n\" + \n"
-    "\"c=IN IP4 0.0.0.0\\n\" + \n"
+    "\"c=IN IP4 LOCALADDRCSDP\\n\" + \n"
     "\"a=sendrecv\\n\" + \n"
     "\"a=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level\\n\" + \n"
     "\"a=ice-pwd:230r89wef32jsdsjJlkj23rndasf23rlknas\\n\" + \n"
-    "\"a=ice-ufrag:%s\\n\" + \n"
+    "\"a=ice-ufrag:OFFERUFRAG\\n\" + \n"
+    //"\"a=candidate:1 1 UDP 2122307823 LOCALADDRSDP typ host\\n\" + \n"
+    "\"a=setup:passive\\n\" + \n"
     "\"a=mid:sdparta_0\\n\" + \n"
     //"\"b=AS:5000\\n\" + \n"
     "\"a=msid:{7e5b1422-7cbe-3649-9897-864febd59342} {6fca7dee-f59d-3c4f-be9c-8dd1092b10e3}\\n\" + \n"
@@ -571,13 +586,13 @@ const char* sdp_offer_create(peer_session_t* peer)
     "\"a=rtpmap:0 PCMU/8000\\n\" + \n"
     "\"a=rtpmap:8 PCMA/8000\\n\" + \n"
     "\"a=setup:actpass\\n\" + \n"
-    "\"a=ssrc:%d cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\\n\" + \n"
+    "\"a=ssrc:OFFERSSRC1 cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\\n\" + \n"
 #if SDP_OFFER_VP8
     "\"m=video 9 RTP/SAVPF 120 126 97\\n\" + \n"
 #else
     "\"m=video 9 RTP/SAVPF 126 97\\n\" + \n"
 #endif
-    "\"c=IN IP4 0.0.0.0\\n\" + \n"
+    "\"c=IN IP4 LOCALADDRCSDP\\n\" + \n"
     "\"a=sendrecv\\n\" + \n"
 #if SDP_OFFER_VP8
     // see link below
@@ -598,7 +613,9 @@ TEST(H264ProfileLevelId, TestParsingLevel) {
     "\"a=fmtp:126 profile-level-id=" "42e01f" ";level-asymmetry-allowed=1;packetization-mode=1\\n\" + \n"
     "\"a=fmtp:97 profile-level-id=" "42e01f" ";level-asymmetry-allowed=1\\n\" + \n"
     "\"a=ice-pwd:230r89wef32jsdsjJlkj23rndasf23rlknas\\n\" + \n"
-    "\"a=ice-ufrag:%s\\n\" + \n"
+    "\"a=ice-ufrag:OFFERUFRAG\\n\" + \n"
+    //"\"a=candidate:1 1 UDP 2122357823 LOCALADDRSDP typ host\\n\" + \n"
+    "\"a=setup:passive\\n\" + \n"
     "\"a=mid:sdparta_1\\n\" + \n"
     "\"a=msid:{7e5b1422-7cbe-3649-9897-864febd59342} {f46f496f-30aa-bd40-8746-47bda9150d23}\\n\" + \n"
 #if SDP_OFFER_VP8
@@ -608,26 +625,37 @@ TEST(H264ProfileLevelId, TestParsingLevel) {
     "\"a=rtcp-fb:97 ccm fir\\n\" + \n"
     "\"a=rtcp-mux\\n\" + \n"
 #if SDP_OFFER_VP8
-    // see: https://tipsycollab.com/sip-video-macroblocks/
-    //"\"a=rtpmap:120 VP8/90000\\n\" + \n"
     "\"a=rtpmap:120 VP8/90000\\n\" + \n"
 #endif
     "\"a=rtpmap:126 H264/90000\\n\" + \n"
     "\"a=rtpmap:97 H264/90000\\n\" + \n"
     "\"a=setup:actpass\\n\" + \n"
-    "\"a=ssrc:%d cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\\n\"\n";
+    "\"a=ssrc:OFFERSSRC2 cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\\n\"\n";
+
+    char* offer_building, *offer_template = offer_template2;
 
     sprintf(sdp_offer_table.t.iceufrag, "%02x%02x", rand() % 0xff, rand() % 0xff);
     
     unsigned long ssrc1 = rand(), ssrc2 = rand();
-    sprintf(sdp_offer_table.t.offer_js,
-            // ufrag, ssrc1, ufrag, ssrc2
-            offer_template,
-            dtls_fingerprint,
-            sdp_offer_table.t.iceufrag,
-            ssrc1,
-            sdp_offer_table.t.iceufrag,
-             ssrc2);
+
+    char* rewrite_offer_template(const char* tmpl)
+    {
+        char sssrc1[64], sssrc2[64];
+        sprintf(sssrc1, "%d", ssrc1);
+        sprintf(sssrc2, "%d", ssrc2);
+
+        offer_building = strdup(tmpl);
+        offer_building = macro_str_expand(offer_building, "DTLSFINGERPRINT", dtls_fingerprint);
+        offer_building = macro_str_expand(offer_building, "OFFERUFRAG", sdp_offer_table.t.iceufrag);
+        offer_building = macro_str_expand(offer_building, "OFFERSSRC1", sssrc1);
+        offer_building = macro_str_expand(offer_building, "OFFERSSRC2", sssrc2);
+        offer_building = macro_str_expand(offer_building, "LOCALADDRSDP", webserver_get_localaddr());
+        offer_building = macro_str_expand(offer_building, "LOCALADDRCSDP", iplookup_addr);
+        return offer_building;
+    }
+
+    offer_building = rewrite_offer_template(offer_template);
+    strcpy(sdp_offer_table.t.offer_js, offer_building);
 
     char offer_template_clean[OFFER_SDP_SIZE], *p_read = offer_template, *p_write = offer_template_clean;
     while(*p_read)
@@ -658,14 +686,9 @@ TEST(H264ProfileLevelId, TestParsingLevel) {
 
     extern char* dtls_fingerprint;
 
-    sprintf(sdp_offer_table.t.offer,
-            // ufrag, ssrc1, ufrag, ssrc2,
-            offer_template_clean,
-            dtls_fingerprint,
-            sdp_offer_table.t.iceufrag,
-            ssrc1,
-            sdp_offer_table.t.iceufrag,
-            ssrc2);
+    offer_building = rewrite_offer_template(offer_template_clean);
+
+    strcpy(sdp_offer_table.t.offer, offer_building);
     
     if(peer)
     {
@@ -678,6 +701,58 @@ TEST(H264ProfileLevelId, TestParsingLevel) {
     
     return sdp_offer_table.t.offer_js;
 }
+/*
+const char* sdp_answer_create(peer_session_t* peer)
+{
+    // TODO: learn WHIP parsing from obs - e.g.
+    const char* sdp_templ = ""
+        "v=0\n"
+        "o=rtc 1630632207 0 IN IP4 127.0.0.1\n"
+        "s=-\n"
+        "t=0 0\n"
+        "a=group:BUNDLE 0 1\n"
+        "a=group:LS 0 1\n"
+        "a=msid-semantic:WMS *\n"
+        "a=setup:actpass\n"
+        "a=ice-ufrag:%s\n"
+        "a=ice-pwd:%s\n"
+        "a=ice-options:ice2,trickle\n"
+        "a=fingerprint:sha-256 AA:EE:01:FB:97:ED:DD:88:F3:8E:F1:8A:DD:93:A1:A7:DA:C0:B3:38:C6:14:CD:84:B1:9A:8F:F8:0D:32:F0:C5\n"
+        "m=audio 63597 UDP/TLS/RTP/SAVPF 111\n"
+        "c=IN IP4 192.168.1.109\n"
+        "a=mid:0\n"
+        "a=sendonly\n"
+        "a=ssrc:1102699791 cname:rQcWaxPvcgYTistQ\n"
+        "a=ssrc:1102699791 msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-audio\n"
+        "a=msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-audio\n"
+        "a=rtcp-mux\n"
+        "a=rtpmap:111 OPUS/48000/2\n"
+        "a=fmtp:111 minptime=10;maxaveragebitrate=96000;stereo=1;sprop-stereo=1;useinbandfec=1\n"
+        "a=candidate:1 1 UDP 2130706431 2001:5a8:40e7:6500:f0f3:50f7:8ad0:d1fe 63597 typ host\n"
+        "a=candidate:2 1 UDP 2122317567 192.168.1.109 63597 typ host\n"
+        "a=end-of-candidates\n"
+        "m=video 63597 UDP/TLS/RTP/SAVPF 96\n"
+        "c=IN IP4 192.168.1.109\n"
+        "a=mid:1\n"
+        "a=sendonly\n"
+        "a=ssrc:1102699792 cname:rQcWaxPvcgYTistQ\n"
+        "a=ssrc:1102699792 msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-video\n"
+        "a=msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-video\n"
+        "a=rtcp-mux\n"
+        "a=rtpmap:96 H264/90000\n"
+        "a=rtcp-fb:96 nack\n"
+        "a=rtcp-fb:96 nack pli\n"
+        "a=rtcp-fb:96 goog-remb\n"
+        "a=fmtp:96 profile-level-id=42e01f;packetization-mode=1;level-asymmetry-allowed=1\n"
+        "";
+
+    // HERE PEER->SDP.OFFER CONTAINED - return an answer compatible with our stun table (ice-ufrag, ice-pwd)
+
+    strcpy(peer->sdp.answer, sdp_offer_table.t.offer);
+    strcpy(sdp_offer_table.t.offer, peer->sdp.offer);
+
+    return (const) peer->sdp.answer;
+}*/
 
 const char* sdp_offer_create_apprtc(peer_session_t* peer)
 {
@@ -717,8 +792,7 @@ const char* sdp_offer_find(const char* ufrag, const char* ufrag_answer)
         }
     }
     sprintf(sdp_offer_find_buf, "[no offer found for user_fragment: \"%s\"]\n", ufrag);
-    return sdp_offer_find_buf;
+    return (const) sdp_offer_find_buf;
 }
-
 
 #endif

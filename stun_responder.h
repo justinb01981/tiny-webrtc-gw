@@ -55,7 +55,10 @@ typedef struct {
 typedef struct {
     u16 type; // 0x06
     u16 len;  // 32 - PAD
-    char name[20]; // pad with 0x0
+
+    //char name[20]; // pad with 0x0
+    char name[12]; // pad with 0x0
+
 } ATTR_PACKED attr_username_short;
 
 typedef struct {
@@ -70,6 +73,20 @@ typedef struct {
     u16 len;
     char name[4];
 } ATTR_PACKED attr_username;
+
+typedef struct {
+    u16 type; // 0x06
+    u16 len;  // 32 - PAD
+    char name[64]; // pad with 0x0
+    //char name[28]; // pad with 0x0
+} ATTR_PACKED attr_softwarename;
+
+typedef struct {
+    u16 type; // 0x06
+    u16 len;  // 32 - PAD
+    char name[8]; // pad with 0x0
+    //char name[28]; // pad with 0x0
+} ATTR_PACKED attr_softwarename_libjuice;
 
 #define ATTR_USECANDIDATE_TYPE 0x0025
 typedef struct {
@@ -130,6 +147,15 @@ typedef struct
         struct {
             attr_fingerprint fingerprint;
         } ATTR_PACKED stun_binding_request3;
+
+        struct {
+            attr_priority priority;
+            attr_icecontrolling icecontrolling;
+            attr_softwarename_libjuice software;
+            attr_username_short username;
+            attr_hmac_sha1 hmac_sha1;
+            attr_fingerprint fingerprint;
+        } ATTR_PACKED stun_binding_request4;
 
         struct {
             attr_xor_mapped_address xor_mapped_address;
@@ -281,7 +307,22 @@ stun_username(unsigned char* buf, int len, char* uname_out)
 {
     stun_binding_msg_t *bind_msg = (stun_binding_msg_t*) buf;
     uname_out[0] = '\0';
-    if(len <= sizeof(stun_hdr_t)+sizeof(bind_msg->attrs.stun_binding_request1))
+
+    if(/*len >= sizeof(stun_hdr_t)+sizeof(bind_msg->attrs.stun_binding_request4)*/ 0)
+    {
+        unsigned short l = ntohs(bind_msg->attrs.stun_binding_request4.username.len);
+        if(l <= 64)
+        {
+            memcpy(uname_out, bind_msg->attrs.stun_binding_request4.username.name, l);
+            uname_out[l] = '\0';
+        }
+        else
+        {
+            // seeing this only during disconnect so save to ignore
+            //printf("stun_username WARN: l > 64\n", l);
+        }
+    }
+    else if(len <= sizeof(stun_hdr_t)+sizeof(bind_msg->attrs.stun_binding_request1))
     {
         unsigned short l = ntohs(bind_msg->attrs.stun_binding_request1.username.len);
         if(l <= 64)
@@ -294,6 +335,10 @@ stun_username(unsigned char* buf, int len, char* uname_out)
             // seeing this only during disconnect so save to ignore 
             //printf("stun_username WARN: l > 64\n", l);
         }
+    }
+    else
+    {
+        assert(0);
     }
 }
 

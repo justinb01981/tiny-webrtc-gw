@@ -49,8 +49,8 @@ int stun_xor_addr(int sockfd,char * stun_server_ip,unsigned short stun_server_po
         return -1;
     }
 
-    // time wait
-    usleep(1000 * 1000);
+    // time wait 3 sec
+    usleep(1000 * 3000);
 
     n = recvfrom(sockfd, buf, 300, 0, NULL,0); // recv UDP
     if (n == -1)

@@ -401,7 +401,7 @@ connection_worker(void* p)
 {
     peer_session_t* peer = (peer_session_t*) p;
     peer_buffer_node_t *buffer_next = NULL, *cur, *prev;
-    int si, subscribing, L;
+    int i, si, subscribing, L;
     int rtp_idx;
     rtp_frame_t *rtpFrame;
 
@@ -441,8 +441,18 @@ connection_worker(void* p)
 
     if(!peer->recv_only)
     {
+        // find 2 unique ssrc in the sdp
         answer_ssrc[0] = peer->srtp[0].ssrc_answer = strToULong(PEER_ANSWER_SDP_GET_SSRC(peer, "a=ssrc:", 0));
-        answer_ssrc[1] = peer->srtp[1].ssrc_answer = strToULong(PEER_ANSWER_SDP_GET_SSRC(peer, "a=ssrc:", 1));
+        for(i = 0; i < 4; i++) {
+            unsigned long stmp = peer->srtp[1].ssrc_answer = strToULong(PEER_ANSWER_SDP_GET_SSRC(peer, "a=ssrc:", i));
+
+            // hack: if sdp has 2 lines with identical ssrc, read the 3rd instance
+            if(stmp != 0 && stmp != answer_ssrc[0]) {
+                answer_ssrc[1] = stmp;
+                break;
+            }
+        }
+        printf("fetched answer ssrc (not empty!): %u / %u\n", answer_ssrc[0], answer_ssrc[1]);
     }
 
     offer_ssrc[0] = peer->srtp[0].ssrc_offer = strToULong(PEER_OFFER_SDP_GET_SSRC(peer, "a=ssrc:", 0));
@@ -474,7 +484,8 @@ connection_worker(void* p)
     if(!strlen(peer->name)) strcpy(peer->name, peer->stun_ice.ufrag_answer);
     
     char* room_name = PEER_ANSWER_SDP_GET_ICE(peer, "a=roomname=", 0);
-    sprintf(peer->roomname, "%s", room_name);
+    if(room_name) strcpy(peer->roomname, room_name);
+    else strcpy(peer->roomname, "lobby");
 
     // log something to cause clients to refresh
     chatlog_append("");
@@ -696,6 +707,9 @@ connection_worker(void* p)
                 send_len = sizeof(bind_resp->hdr) + attr_len;
 
                 /* require peer respond to our bind first in some cases */
+
+
+                // TODO: needs testing - but removing this hacky requirement for obs libjuice
                 if(peer->stun_ice.bound > 0)
                 {
                     peer_send_block(peer, (char*) bind_resp, send_len);
@@ -997,7 +1011,7 @@ connection_worker(void* p)
                                 u32 sr_delay = ntohl(report->blocks[issrc].last_sr_timestamp_delay), sr_delay_cmp = peer->srtp[report_rtp_idx].receiver_report_sr_delay_last;
 
                                 // increasing delay = increase throttle, throttle always incrementing by Dthrottle below
-                                Dthrottle = 0.0001 + PEER_THROTTLE_RESPONSE / (1 + (sr_delay/sr_delay_cmp)); //* (sr_delay > sr_delay_cmp ? -1.0: 1.0);
+                                if(sr_delay_cmp != 0) Dthrottle = 0.0001 + PEER_THROTTLE_RESPONSE / (1 + (sr_delay/sr_delay_cmp)); //* (sr_delay > sr_delay_cmp ? -1.0: 1.0);
 
                                 // store
                                 peer->srtp[report_rtp_idx].receiver_report_jitter_last = jitter;
@@ -1602,7 +1616,7 @@ int main( int argc, char* argv[] ) {
         msgs[i].msg_hdr.msg_namelen= sizeof(struct sockaddr_in);
     }
 
-    /* the main thread loop processing data from peer sockets and enqueueing for connection_worker threads */
+    /* the main thread loop processing data from peer sockets and enqueueing for /*connection_worker*/
     while(!terminated)
     {
         PERFTIME_BEGIN(PERFTIMER_MAIN_LOOP);
