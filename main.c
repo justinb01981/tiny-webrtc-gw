@@ -995,9 +995,8 @@ connection_worker(void* p)
                                 peer->srtp[report_rtp_idx].pkt_lost = rpt_pkt_lost;
 
                                 u32 sr_delay = ntohl(report->blocks[issrc].last_sr_timestamp_delay), sr_delay_cmp = peer->srtp[report_rtp_idx].receiver_report_sr_delay_last;
-
                                 // increasing delay = increase throttle, throttle always incrementing by Dthrottle below
-                                Dthrottle = 0.0001 + PEER_THROTTLE_RESPONSE / (1 + (sr_delay/sr_delay_cmp)); //* (sr_delay > sr_delay_cmp ? -1.0: 1.0);
+                                if(sr_delay_cmp != 0) Dthrottle = 0.0001 + PEER_THROTTLE_RESPONSE / (1 + (sr_delay/sr_delay_cmp)); //* (sr_delay > sr_delay_cmp ? -1.0: 1.0);
 
                                 // store
                                 peer->srtp[report_rtp_idx].receiver_report_jitter_last = jitter;
