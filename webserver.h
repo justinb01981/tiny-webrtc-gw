@@ -16,13 +16,14 @@
 #define sha1_ sha1
 #define assert_ assert
 
-#define CHATLOG_SIZE 16384
+#define CHATLOG_SIZE 256000 // js takes up a lot of this space..
+
 
 #define TMPTRACE \
     printf("TRACE:%d",__FILE__,__LINE__)
 
 extern int listen_port_base;
-extern peer_session_t peers[];
+extern peer_session_t peers[MAX_PEERS];
 extern int stun_binding_response_count;
 extern char* dtls_fingerprint;
 
@@ -65,10 +66,9 @@ static char *tag_sdp_offer1 = "%$SDP_OFFER$%";
 static char* tag_joinroom_ws = "POST /join/";
 static char* tag_msgroom_ws = "POST /message/domain17/";
 static char* webserver_staticc;
-static char buf_nonreentrant[1024];
+// static char ufrag_answer_tmp[1024];
 static char ufrag_offeranswer_tmp[256];
 static int cb_done = 0;
-
 
 static char webserver_get_localaddr_buf[64];
 
@@ -188,7 +188,6 @@ void setupSTUN(void* voidp) {
     printf("setupSTUN: ICE peer matched....\n");
 
     // init stun-ice attributes
-    buf_nonreentrant[0] = '\0';
     strcpy(p->sdp.answer, *sdp);
 
     // HACK: leaking a buffer here for sdp so it can be shared between threads
@@ -640,7 +639,7 @@ webserver_worker(void* p)
                         pthread_mutex_lock(&webmtx);
 
                         // MARK: -- sdp offer created here
-                        char* offer = sdp_offer_create(peer_found_via_cookie);
+                        char* offer = sdp_offer_create();
                         response = macro_str_expand(response, tag_sdp, offer);
 
                         pthread_mutex_unlock(&webmtx);
@@ -697,12 +696,10 @@ webserver_worker(void* p)
                 {
 
                     sprintf(path, "./%s", purl);//posturl
-
                     printf("%s:%d webserver POST for file (content_len:%d):\n\t%s\n", __func__, __LINE__, content_len, purl);
 
-                    char tmp[256];
                     char** sdp = &g_sdp;
-                    const char* (*ufrag_offerget)(void);
+                    const char* (*ufrag_offerget)(void), (*ufrag_answerget)(void);
                     char* frag;
 
                     const char* ufrag_offerget_whep(void) {
@@ -711,20 +708,40 @@ webserver_worker(void* p)
                         ok_hdr = accepted_hdr;
 
                         // stuff the uploaded offer as if we had prior created so it will be found during stun
-                        sdp_offer_create(&peers[sidx]);
 
-                        strcpy(peers[sidx].stun_ice.ufrag_answer, sdp_read(*sdp, "a=ice-ufrag:"));   // shit should wind up in peer->stun_ice.answerufrag
+                        strcpy(offer_frag, sdp_read(*sdp, kSDPICEUFRAG));
+                        strcpy(offer_pwd, sdp_read(*sdp, kSDPICEPWD));
 
-                        strcpy(peers[sidx].sdp.answer, *sdp);
+                        sdp_whep_answer_create(*sdp); // actually an answer reusing offer_table
+
+                        char* g_answer = offer_building_whep;
+                        char* myufrag = sdp_offer_table.t.iceufrag; // actually an answer reusing offer_table
+
+                        // change peers init fn
+                        peers[sidx].init_sesscb = peer_cb_init_sesh_whepice;
+
+                        strcpy(peers[sidx].sdp.offer, *sdp); // save original offer from client
+                        strcpy(peers[sidx].sdp.answer, g_answer);   // save our answer
+
+                        // DONT FORGET ICE PARAMS - stun_ice used temporarily before cxn-worker starts
+                        //strcpy(peers[sidx].stun_ice.ufrag_answer, offer_frag);  // TODO: ??? redundant? we are setting ufrag_offer/answer all over !!
+                        //strcpy(peers[sidx].stun_ice.answer_pwd, sdp_read(peers[sidx].sdp.offer, kSDPICEPWD));
+
+                        //strcpy(peers[sidx].stun_ice.offer_pwd, sdp_read(peers[sidx].sdp.answer, kSDPICEPWD));
 
                         // do not copy sdp offer from offer-table to peer yet - STUN happens and does that
-
-                        return sdp_offer_table.t.iceufrag; // user fragment
+                        // breakpoint!
+                        return offer_frag;   // return offer:answer (here whep is offer, we answer)
                     }
 
                     const char* ufrag_offerget_pbody(void) {
+                        // here offer is previously already created by a GET for /sdp.js
                         ok_hdr = ok_hdr_ok;
-                        return sdp_offer_table.t.iceufrag;
+
+                        strcpy(peers[sidx].sdp.answer, *sdp); // save original offer and use as answer
+                        strcpy(peers[sidx].sdp.offer, sdp_offer_table.t.offer);
+
+                        return sdp_offer_table.t.iceufrag;  // return offer:answer (here we extended offer, *sdp is answer)
                     }
 
                     int sdp_upload_parse(void) {
@@ -735,9 +752,6 @@ webserver_worker(void* p)
 
                         memdebug_sanity(*sdp);
                         *sdp = sdp_decode(*sdp);
-
-                        // this is the answer SDP containing 1/2 of stun id
-                        strcat(buf_nonreentrant, sdp_read(*sdp, "a=ice-ufrag:"));// wtf is buf_nonreentrant lol
 
                         // anonymous+watching-only peers use new slot
                         if(peer_found_via_cookie && strstr(*sdp, "a=recvonly") != NULL)
@@ -766,13 +780,8 @@ webserver_worker(void* p)
                         peer_init(&peers[sidx], sidx);
                         peers[sidx].broadcastingID = peer_broadcast_from_cookie;
 
-                        // CALLING CREATE-OFFER HERE
-                        strcpy(ufrag_offeranswer_tmp, ufrag_offerget());
-                        // offer_table is inited now
-
-                        // spoof: take peers offer as our own, but first copy out the answer we stored
-                        strcpy(peers[sidx].sdp.offer, sdp_offer_table.t.offer);
-                        strcpy(peers[sidx].stun_ice.ufrag_answer, buf_nonreentrant);
+                        // CALLING CREATE-OFFER HERE or create-answer (whep) in ufrag_offerget()
+                        char *offeranswermaybe = ufrag_offerget();  // see ufrag_offerget_whep
 
                         // still LOCKED!
                         return 0;
@@ -814,12 +823,13 @@ webserver_worker(void* p)
                             sleep_msec(10); // wait for thread to call cb_done
                         } while(!cb_done);
 
-                        printf("found offer:\n%s\n", p->sdp.offer);
-                        strcpy(p->stun_ice.ufrag_offer, sdp_offer_table.t.iceufrag);
+                        // copy more from offer-table to peer? (leaving work in connection_worker) to parse from sdp -- but this copy has to happen for stun matching prior
+                        // NOOOOO dont change shit here while it is being asynchronously modified
 
-                        printf("...done\n");
+                        // todo: send peer a stun bind request here
+
+                        printf("stun_config_peer: userfrag: %s:%s\n", p->stun_ice.ufrag_offer, p->stun_ice.ufrag_answer);
                     }
-
 
                     // parse uri
                     printf("purl=%s\n", purl);
@@ -832,13 +842,14 @@ webserver_worker(void* p)
 
                         free(response);
                         response = malloc(strlen(page_buf_sdp_uploaded) + 2048);
+                        strcpy(response, peers[sidx].sdp.answer);
+
+                        content_type = content_type_sdp;
 
                         // our SDP answer is stuffed into the sdp offer table...and will be copied to peerX when stun matches
                         stun_config_peer();
 
-                        strcpy(response, sdp_offer_table.t.offer);
 
-                        content_type = content_type_sdp;
 
                         goto response_override;
                     }

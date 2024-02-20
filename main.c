@@ -35,16 +35,17 @@
 #include "crc32.h"
 #include "srtp_priv.h"
 #include "srtp.h"
-#include "util.h"
-#include "peer.h"
-
 
 #include "sdp_decode.h"
-#include "webserver.h"
+
 #include "debug.h"
 #include "memdebughack.h"
 #include "u32helper.h"
 #include "iplookup_hack.h"
+
+#include "peer.h"
+#include "util.h"
+#include "webserver.h"
 
 #include "filecache.h"
 #ifndef SO_REUSEPORT
@@ -64,7 +65,7 @@
 #define RTP_PSFB 1 
 
 struct sockaddr_in bindsocket_addr_last;
-peer_session_t peers[MAX_PEERS+1];
+peer_session_t peers[MAX_PEERS];
 FILECACHE_INSTANTIATE()
 
 struct webserver_state webserver;
@@ -341,7 +342,7 @@ connection_srtp_init(peer_session_t* peer, int rtp_idx, u32 ssid, u32 write_ssrc
 
     if(srtp_create(&peer->srtp[rtp_idx].session, srtp_policy) != srtp_err_status_ok)
     {
-        printf("%s:%d srtp_create failed\n", __func__, __LINE__);
+        printf("%s:%d srtp_create failed\n", __func__, __LINE__); assert(0);
     }
     else
     {
@@ -387,11 +388,12 @@ connection_srtp_init(peer_session_t* peer, int rtp_idx, u32 ssid, u32 write_ssrc
 
         if(srtp_create(&(peer->srtp[rtp_idx_write].session), srtp_policy) != srtp_err_status_ok)
         {
-            printf("%s:%d srtp_create failed\n", __func__, __LINE__);
+            printf("%s:%d srtp_create failed\n", __func__, __LINE__); assert(0);
         }
         else
         {
             peer->srtp[rtp_idx_write].inited = 1;
+            printf("srtp_connection_init[%d]: write_ssrc %u\n", rtp_idx_write, write_ssrc);
         }
     }
 }
@@ -404,14 +406,16 @@ connection_worker(void* p)
     int i, si, subscribing, L;
     int rtp_idx;
     rtp_frame_t *rtpFrame;
-
-    u32 answer_ssrc[PEER_RTP_CTX_WRITE] = {0, 0};
-    u32 offer_ssrc[PEER_RTP_CTX_WRITE] = {0, 0};
+    unsigned int answer_ssrc[PEER_RTP_CTX_WRITE] = {0, 0};
+    unsigned int offer_ssrc[PEER_RTP_CTX_WRITE] = {0, 0};
     char str256[256];
     char dtls_buf[DTLS_MAX_CERT_SIZE];
     int nrecv, nwait = 0;
     int flush_outbuf_overrun = 0;
     int awaitStun = 16;
+    unsigned int *init_args[] = {
+      &offer_ssrc[0], &offer_ssrc[1], &answer_ssrc[0], &answer_ssrc[1],
+    };
     unsigned long time_ms = get_time_ms();
     long long buffering_until = time_ms + 4000, ts_winrng_begin = 0;
     float Mthrottle = 1.0, Dthrottle = 1.0;
@@ -421,13 +425,13 @@ connection_worker(void* p)
 
     // this delay is not to allow for network traffic but to allow webserver_worker and main thread time to init
     // peer (working around a race condition)
+
+    // MOVED WAITING HERE SO SDP CAN PARSE
     while(!peer->alive && retries > 0) {
         // sometimes the other thread takes awhilee to get client to connect, wait here
-        sleep_msec(100);
+        sleep_msec(10);
         retries--;
     }
-
-    if(!peer->alive) assert(0);
 
     // blocking here while peer set up by main thread
     PEER_LOCK(peer->id);
@@ -436,32 +440,12 @@ connection_worker(void* p)
 
     printf("%s:%d stunID32: %lu\nsdp answer:\n %s\nsdp offer:\n%s\n", __func__, __LINE__, peer->stunID32, peer->sdp.answer, peer->sdp.offer);
 
-    if(strstr(peer->sdp.answer, "a=recvonly")) { peer->recv_only = 1; }
-    if(strstr(peer->sdp.answer, "a=sendonly")) { peer->send_only = 1; }
+    peer->init_sesscb(peer, init_args);
 
-    if(!peer->recv_only)
-    {
-        // find 2 unique ssrc in the sdp
-        answer_ssrc[0] = peer->srtp[0].ssrc_answer = strToULong(PEER_ANSWER_SDP_GET_SSRC(peer, "a=ssrc:", 0));
-        for(i = 0; i < 4; i++) {
-            unsigned long stmp = peer->srtp[1].ssrc_answer = strToULong(PEER_ANSWER_SDP_GET_SSRC(peer, "a=ssrc:", i));
+    peer->srtp[0].ssrc_offer = offer_ssrc[0]; peer->srtp[0].ssrc_answer = answer_ssrc[0];
+    peer->srtp[1].ssrc_offer = offer_ssrc[1]; peer->srtp[1].ssrc_answer = answer_ssrc[1];
 
-            // hack: if sdp has 2 lines with identical ssrc, read the 3rd instance
-            if(stmp != 0 && stmp != answer_ssrc[0]) {
-                answer_ssrc[1] = stmp;
-                break;
-            }
-        }
-        printf("fetched answer ssrc (not empty!): %u / %u\n", answer_ssrc[0], answer_ssrc[1]);
-    }
-
-    offer_ssrc[0] = peer->srtp[0].ssrc_offer = strToULong(PEER_OFFER_SDP_GET_SSRC(peer, "a=ssrc:", 0));
-    offer_ssrc[1] = peer->srtp[1].ssrc_offer = strToULong(PEER_OFFER_SDP_GET_SSRC(peer, "a=ssrc:", 1));
-
-    strcpy(peer->stun_ice.ufrag_answer, PEER_ANSWER_SDP_GET_ICE(peer, "a=ice-ufrag:", 0));
-    strcpy(peer->stun_ice.answer_pwd, PEER_ANSWER_SDP_GET_ICE(peer, "a=ice-pwd:", 0));
-    strcpy(peer->stun_ice.offer_pwd, PEER_OFFER_SDP_GET_ICE(peer, "a=ice-pwd:", 0));
-    strcpy(peer->stun_ice.ufrag_offer, PEER_OFFER_SDP_GET_ICE(peer, "a=ice-ufrag:", 0));
+    if(!peer->alive) assert(0);
 
     stats_printf(counts_log, "%s:%d (ufrag-offer:%s ufrag-answer:%s pwd-answer:%s pwd-offer:%s, "
                  "offer_ssrc:%u/%u answer_ssrc:%u/%u)\n", __func__, __LINE__,
@@ -484,7 +468,7 @@ connection_worker(void* p)
     if(!strlen(peer->name)) strcpy(peer->name, peer->stun_ice.ufrag_answer);
     
     char* room_name = PEER_ANSWER_SDP_GET_ICE(peer, "a=roomname=", 0);
-    if(room_name) strcpy(peer->roomname, room_name);
+    if(strlen(room_name) > 0) strcpy(peer->roomname, room_name);
     else strcpy(peer->roomname, "lobby");
 
     // log something to cause clients to refresh
@@ -685,10 +669,16 @@ connection_worker(void* p)
                 {
                     bind_resp->attrs.stun_binding_response1.hmac_sha1.type = htons(0x08);
                     bind_resp->attrs.stun_binding_response1.hmac_sha1.len = htons(20);
+
+                    const char *iceofferpwd = peer->stun_ice.offer_pwd;
+
                     char hmac[20];
                     calc_hmac_sha1((unsigned char*) bind_resp,
                                    sizeof(stun_hdr_t)+attr_len-sizeof(attr_hmac_sha1)-sizeof(attr_fingerprint),
-                                   hmac, /*get_offer_sdp("a=ice-pwd:")*/ peer->stun_ice.offer_pwd, peer);
+                                   hmac,
+                                   // HEY YO THIS IS IMPORTANT NOW
+                                   /*get_offer_sdp("a=ice-pwd:")*/ iceofferpwd,
+                                   peer);
                     memcpy(bind_resp->attrs.stun_binding_response1.hmac_sha1.hmac_sha1, hmac, 20);
 
                     ATTR_FINGERPRINT_SET(bind_resp->attrs.stun_binding_response1.fingerprint, 0);
@@ -706,13 +696,11 @@ connection_worker(void* p)
                 ATTR_FINGERPRINT_SET((*fp_ptr), crc);
                 send_len = sizeof(bind_resp->hdr) + attr_len;
 
-                /* require peer respond to our bind first in some cases */
-
-
-                // TODO: needs testing - but removing this hacky requirement for obs libjuice
+                /* require peer respond to our bind first in some cases -- but seeing a 401 unauthenticate unauthorized from OBS sendonly */
                 if(peer->stun_ice.bound > 0)
                 {
                     peer_send_block(peer, (char*) bind_resp, send_len);
+                    //printf("stun-ice: bind response sent (warn: peer has not bound us yet)");
                 }
                 peer->stun_ice.bound_client++;
             }
@@ -745,19 +733,19 @@ connection_worker(void* p)
 
                 memset(&bind_req, 0, sizeof(bind_req));
 
-                char stun_user[256];
-                sprintf(stun_user, "%s:%s", peer->stun_ice.ufrag_answer, peer->stun_ice.ufrag_offer);
+                const char *stunO, *stunA, *iceresponsepwd;
+                stunO = peer->stun_ice.ufrag_offer; stunA = peer->stun_ice.ufrag_answer;
+                iceresponsepwd = peer->stun_ice.answer_pwd; // this ia already fixed in peer_cb_init_sesh_whepice
 
-                //printf("STUN binding request @ peer[%d] with stun_user: %s\n", PEER_INDEX(peer), stun_user);
-
-                stun_build_msg_init(&build_msg, &bind_req, stun_user);
+                stun_build_msg_init(&build_msg, &bind_req, stunA, stunO);
+                printf("STUN binding request @ peer[%d] with stun_user(ans/off): %s:%s\n", peer->id, stunA, stunO);
 
                 *build_msg.hdr = ((stun_binding_msg_t*)buffer_last)->hdr;
 
                 build_msg.hdr->type = htons(type);
                 build_msg.hdr->txid[0] = 0x23;
 
-                STUN_ATTR_USERNAME_SET(build_msg, stun_user);
+                //STUN_ATTR_USERNAME_SET(build_msg, stun_user); // moved inside build_msg_init
 
                 build_msg.usecandidate->type = htons(ATTR_USECANDIDATE_TYPE);
                 build_msg.usecandidate->len = htons(0);
@@ -778,7 +766,7 @@ connection_worker(void* p)
                 char hmac[20];
                 calc_hmac_sha1((u8*) build_msg.hdr,
                                build_msg.len - sizeof(attr_hmac_sha1) - sizeof(attr_fingerprint),
-                               hmac, peer->stun_ice.answer_pwd, peer);
+                               hmac, iceresponsepwd, peer);
                 memcpy(build_msg.hmac_sha1->hmac_sha1, hmac, 20);
 
                 build_msg.hdr->len = htons(build_msg.len - sizeof(stun_hdr_t));
@@ -812,6 +800,7 @@ connection_worker(void* p)
             while(length_srtp > 0) 
             {
                 unsigned int curlen = length_srtp;
+
 
                 if(curlen >= sizeof(rtp_frame_t) && peer->dtls.ssl)
                 {
@@ -854,6 +843,7 @@ connection_worker(void* p)
                     }
                     else
                     {
+                        printf("connection_worker: unrecognized in_ssrc %u(%ubytes)\n", in_ssrc, (unsigned) curlen);
                         rtp_idx = 0; // hoping that receiver report isnt encrypted so wont care about srtp state
 
                         // send cleartext
@@ -981,6 +971,7 @@ connection_worker(void* p)
                                 //    peer->id, report_rtp_idx, sr_delta, sr_delay_delta,
                                 //    rpt_pkt_lost);
 
+
                                 if(peer->srtp[report_rtp_idx].pkt_lost < rpt_pkt_lost /* || frac_pkt_lost != 0*/ && peer->subscriptionID != PEER_IDX_INVALID)
                                 {
                                     // NOTE: -- pkt_lost indicates # pkts that were expected to have been received by the point
@@ -1008,10 +999,10 @@ connection_worker(void* p)
 
                                 peer->srtp[report_rtp_idx].pkt_lost = rpt_pkt_lost;
 
-                                u32 sr_delay = ntohl(report->blocks[issrc].last_sr_timestamp_delay), sr_delay_cmp = peer->srtp[report_rtp_idx].receiver_report_sr_delay_last;
+                                u32 sr_delay = ntohl(report->blocks[issrc].last_sr_timestamp_delay), *sr_delay_cmp = &peer->srtp[report_rtp_idx].receiver_report_sr_delay_last;
 
                                 // increasing delay = increase throttle, throttle always incrementing by Dthrottle below
-                                if(sr_delay_cmp != 0) Dthrottle = 0.0001 + PEER_THROTTLE_RESPONSE / (1 + (sr_delay/sr_delay_cmp)); //* (sr_delay > sr_delay_cmp ? -1.0: 1.0);
+                                Dthrottle = PEER_THROTTLE_RESPONSE * ((sr_delay+1) / (*sr_delay_cmp + 1.0));
 
                                 // store
                                 peer->srtp[report_rtp_idx].receiver_report_jitter_last = jitter;
@@ -1030,7 +1021,7 @@ connection_worker(void* p)
 
                             if(peers[p].alive && peers[p].subscriptionID != p &&
                                (
-                                (is_sender_report && peers[p].subscriptionID == peer->id && !peers[p].send_only)
+                                (is_sender_report && peers[p].subscriptionID == peer->id)
                                  || (is_receiver_report && peers[p].id == peer->subscriptionID)
                                )
                                && peers[p].srtp[rtp_idx].inited)
@@ -1092,13 +1083,16 @@ connection_worker(void* p)
                                 rtp_frame_out->hdr.timestamp = htonl(timestamp_new);
                                
                                 PEER_UNLOCK(peer->id);
+                                // TODO: there is a potential for peer session to have become invalid /disconnected during unlocked and I have seen the crash
                                 PEER_LOCK(p);
 
                                 srtp_sess_t* sess = &peers[p].srtp[rtp_idx_write];
 
                                 // MARK: -- srtp_protect_rtcp + send to one of peer subscribers
                                 if(protect_len > 0 &&
-                                    sess->inited && srtp_protect_rtcp(sess->session, reportPeer, &protect_len) == srtp_err_status_ok) 
+                                    sess->inited &&
+                                    sess->session != NULL &&
+                                    srtp_protect_rtcp(sess->session, reportPeer, &protect_len) == srtp_err_status_ok)
                                 {  
                                     //printf("srtp_protect_rtcp+fwd: @[%d] lengthPeer:%d", p, protect_len);
 
@@ -1170,6 +1164,10 @@ connection_worker(void* p)
                         else if (rtp_idx == 1) {
                             peer->cb_ssrc2d(rtpFrame->payload, unprotect_len, peer);
                         }
+                        else {
+                            printf("%s:%d WARN: unrecognized rtp_idx %u unhandled!\n", rtp_idx);
+                            assert(0);
+                        }
 
                         peer_buffer_node_t* cur = NULL;
 
@@ -1182,13 +1180,7 @@ connection_worker(void* p)
                         /// TODO: what? this is the incoming decrypt stage - not affected by subscribers
                         *idx = (*idx+1) % PEER_STAT_TS_WIN_LEN;
 
-                        // TODO: divide ts response by # peers reporting  RR (subscribed)
-                        // HACKHACKHACK - for now only pay attention to the last peer to subscribe
-
                         //printf("jitter peer[%d]:tsdelta %ld (mthrottle:%lu)\n", peer->id, (long) rr_expected - (long) *stat, Mthrottle);
-
-                        // end rtp timestamp handling "pacing"
-
                         peer->stats.stat[8] = rtpFrame->hdr.payload_type & 0x7f;
 
                         // TODO: remove this dead code
@@ -1211,7 +1203,7 @@ connection_worker(void* p)
                                !peers[p].send_only &&
                                p != peer->id &&
                                peers[p].subscriptionID == peer->id &&
-                               /*ps[rtp_idx].inited*/ peers[p].srtp[rtp_idx].inited &&
+                               /*ps[rtp_idx].inited*/ peers[p].srtp[rtp_idx_write].inited &&
                                peers[p].srtp_inited
                                )
                             {
@@ -1240,7 +1232,7 @@ connection_worker(void* p)
                                 srtp_sess_t *sess = &peers[p].srtp[rtp_idx_write];
 
                                 if(sess->session == NULL) {
-                                    printf("ERROR: race condition: srtp_protect called with session == null and inited=%d", sess->inited);
+                                    printf("ERROR: race condition: srtp_protect called with session == null and inited=%d (rtp_idx_write:%u)", sess->inited, rtp_idx_write);
                                     continue;
                                 }
 
@@ -1261,7 +1253,6 @@ connection_worker(void* p)
                                 else
                                 {
                                     peers[p].stats.stat[10] += 1;
-                                    //printf("srtp_protect peer[%d]: failed with rtp_idx %d\n", p, rtp_idx);
                                     //peers[p].subscriptionID = PEER_IDX_INVALID;
                                 }
                             }
@@ -1434,7 +1425,7 @@ connection_worker(void* p)
             //printf("usleep:%f\n", Mthrottle);
 
             Mthrottle += Dthrottle;
-            Dthrottle = Dthrottle*(1.0+PEER_THROTTLE_RESPONSE);
+            Dthrottle = Dthrottle*(PEER_THROTTLE_RESPONSE);
 
             if(Mthrottle > 0 && Mthrottle <= PEER_THROTTLE_MAX) {
                 usleep(Mthrottle*jiff);
@@ -1761,7 +1752,11 @@ int main( int argc, char* argv[] ) {
             /* webserver has created a "pending" peer with stun fields set based on SDP */
             for(p = 0; strlen(stun_uname) > 1 && p < MAX_PEERS; p++)
             {
-                sprintf(stun_uname_expected, "%s:%s", peers[p].stun_ice.ufrag_offer, peers[p].stun_ice.ufrag_answer);
+                char* stunA = peers[p].stun_ice.ufrag_offer, *stunO = peers[p].stun_ice.ufrag_answer;
+
+                sprintf(stun_uname_expected, "%s:%s",
+                        stunA,
+                        stunO);
 
                 if(strlen(stun_uname_expected) > 0 &&
                     strncmp(stun_uname_expected, stun_uname, strlen(stun_uname_expected)) == 0)
@@ -2077,8 +2072,8 @@ DTLS_peer_init(struct peer_session_t* peer)
         const int on = 1;
         int timeout_msec = 100;
 
-    	setsockopt(peer->sock, SOL_SOCKET, SO_REUSEADDR, (const void*) &on, (socklen_t) sizeof(on));
-    	setsockopt(peer->sock, SOL_SOCKET, SO_REUSEPORT, (const void*) &on, (socklen_t) sizeof(on));
+        setsockopt(peer->sock, SOL_SOCKET, SO_REUSEADDR, (const void*) &on, (socklen_t) sizeof(on));
+        setsockopt(peer->sock, SOL_SOCKET, SO_REUSEPORT, (const void*) &on, (socklen_t) sizeof(on));
 
         bio = BIO_new_dgram(peer->sock, BIO_NOCLOSE);
 
@@ -2088,7 +2083,7 @@ DTLS_peer_init(struct peer_session_t* peer)
         {
             SSL_set_bio(ssl, bio, bio);
 
-    	    BIO_set_fd(SSL_get_rbio(ssl), peer->sock, BIO_NOCLOSE);
+            BIO_set_fd(SSL_get_rbio(ssl), peer->sock, BIO_NOCLOSE);
 
         	//BIO_ctrl(SSL_get_rbio(ssl), BIO_CTRL_DGRAM_SET_CONNECTED, 0, &peer->addr);
 
