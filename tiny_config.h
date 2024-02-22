@@ -183,7 +183,7 @@ char* get_stun_local_port()
 unsigned long
 strToULong(char* str)
 {
-    if(!str || strlen(str) == 0) return -1;
+    if(!str || strlen(str) == 0) return 0;
     return strtoul(str, NULL, 10);
 }
 

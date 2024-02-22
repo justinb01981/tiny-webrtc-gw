@@ -8,7 +8,7 @@
 #include "macro_expand.h"
 #include "util.h"
 
-#define SDP_OFFER_VP8 1
+#define SDP_OFFER_VP8 0
 // TODO: this determines whether mp4 or both+VP8 offered
 
 #define MAX_PEERS 64
@@ -34,18 +34,20 @@
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&peers[x].mcond, &peers[x].mutex)
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 8000
-#define PEER_RECV_BUFFER_COUNT_MS (260)
+#define PEER_RECV_BUFFER_COUNT_MS (320) // trying this out with OBS - this is more like MS-times-10 (1500 bytes = ?? ms avg?)
 // TODO: this is RTP and we should be doing minimal buffering
-#define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*2) // 5k pkt/sec sounds good? this is the theoretical max buffered
+#define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*3) // 5k pkt/sec sounds good? this is the theoretical max buffered
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 10000
 #define PEER_STAT_TS_WIN_LEN /*32*/ 9 // this needs to go away since we're not tracking each pkt to determine bitrate anymore?
 
 // this magic number influences the pace epoll/recvmmsg takes packets in - started with 5 trying lower values to see if that helps even out streams
 #define EPOLL_TIMEOUT_MS 3
 // ms
-#define PEER_THROTTLE_MAX (1000/PEER_RECV_BUFFER_COUNT_MS) // usleep - jiffs
-#define PEER_THROTTLE_USLEEPJIFF (PEER_RECV_BUFFER_COUNT_MS)
-#define PEER_THROTTLE_RESPONSE (0.5)    // TODO: why still using this?
+
+
+#define PEER_THROTTLE_MAX (1.0) // usleep - jiffs
+#define PEER_THROTTLE_USLEEPJIFF (100)
+//#define PEER_THROTTLE_RESPONSE (0.5)    // MUST BE < 1.0 -- represents the Mthrottle feedback loop
 
 #define ICE_ALLCHARS "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/+"
 
@@ -164,6 +166,9 @@ typedef struct {
     u32 recv_report_tslast;
     unsigned long last_sr;
     unsigned long pkt_lost;
+    long jiterr_sub;    // subscribers receiver reports influence this
+    unsigned long sr_ntp, sr_rtp;
+    float sr_drate;
     
     long receiver_report_jitter_last;
     long receiver_report_sr_last;
@@ -249,6 +254,7 @@ typedef struct peer_session_t
     pthread_mutex_t mutex_sender;
     pthread_cond_t mcond;
     int thread_inited;
+    int rr_decrypt_hack;
 
     int fwd;
 
@@ -275,7 +281,7 @@ typedef struct peer_session_t
     void (*cb_ssrc1d)(void*, size_t, struct peer_session_t*);
     void (*cb_ssrc2d)(void*, size_t, struct peer_session_t*);
 
-    int (*init_sesscb)(struct peer_session_t*, unsigned int* args);  // called by peer thread to init stun from description already copied to peer offer/answer
+    int (*init_sesscb)(struct peer_session_t*, unsigned long* args);  // called by peer thread to init stun from description already copied to peer offer/answer
 
     int pad2[256];
 
@@ -430,7 +436,7 @@ static void peer_buffers_clear(peer_session_t* peer) {
 }
 
 static
-int peer_cb_init_sesh(peer_session_t* peer, unsigned int *args[]) {
+int peer_cb_init_sesh(peer_session_t* peer, unsigned long *args[]) {
 
     int i;
 
@@ -455,7 +461,7 @@ int peer_cb_init_sesh(peer_session_t* peer, unsigned int *args[]) {
 }
 
 static
-int peer_cb_init_sesh_whepice(peer_session_t* peer, unsigned int *args[]) {
+int peer_cb_init_sesh_whepice(peer_session_t* peer, unsigned long *args[]) {
 
     int i;
 
@@ -465,8 +471,11 @@ int peer_cb_init_sesh_whepice(peer_session_t* peer, unsigned int *args[]) {
 
     //find 2 unique ssrc in the sdp ---
     // tho stored in peer->offer SDP the ssrc should become the answer_ssrc used in connection_worker
-    *(args[2]) = *(args[0]) = strToULong(PEER_OFFER_SDP_GET_SSRC(peer, kSDPSSRC, 0));   // offer
-    *(args[3]) = *(args[1]) = strToULong(PEER_OFFER_SDP_GET_SSRC(peer, kSDPSSRC, 3));   // offer
+
+    *(args[2]) = strToULong(PEER_OFFER_SDP_GET_SSRC(peer, kSDPSSRC, 0));   // offer
+    *(args[3]) = strToULong(PEER_OFFER_SDP_GET_SSRC(peer, kSDPSSRC, 3));   // offer
+    *(args[0]) = *(args[2]);
+    *(args[1]) = *(args[3]);
 
     // here we are answering - swap ice
     strcpy(peer->stun_ice.ufrag_offer, PEER_ANSWER_SDP_GET_ICE(peer, kSDPICEUFRAG, 0));
@@ -647,8 +656,8 @@ static const char* sdp_whep_answer_create(char* off)
     "c=IN IP4 LOCALADDRCSDP\n"
     "a=mid:0\n"
     "a=sendrecv\n"
-    //"a=ssrc:OFFERSSRC1 cname:rQcWaxPvcgYTistQ\\n\" + \n"    // hax
-    //"a=ssrc:OFFERSSRC1 msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-audio\n"
+    "a=ssrc:OFFERSSRC1 cname:rQcWaxPvcgYTistQ\\n\" + \n"    // hax
+    "a=ssrc:OFFERSSRC1 msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-audio\n"
     "a=msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-audio\n"
     "a=rtcp-mux\n"
     "a=rtpmap:111 OPUS/48000/2\n"
@@ -659,8 +668,8 @@ static const char* sdp_whep_answer_create(char* off)
     "c=IN IP4 LOCALADDRCSDP\n"
     "a=mid:1\n"
     "a=sendrecv\n"
-    //"a=ssrc:OFFERSSRC2 cname:rQcWaxPvcgYTistQ=\n"
-    //"a=ssrc:OFFERSSRC2 msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-video\n"
+    "a=ssrc:OFFERSSRC2 cname:rQcWaxPvcgYTistQ=\n"
+    "a=ssrc:OFFERSSRC2 msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-video\n"
     "a=msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-video\n"
     "a=rtcp-mux\n"
     "a=rtpmap:96 H264/90000\n"
