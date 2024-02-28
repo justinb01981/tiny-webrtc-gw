@@ -49,8 +49,8 @@ int stun_xor_addr(int sockfd,char * stun_server_ip,unsigned short stun_server_po
         return -1;
     }
 
-    // time wait
-    usleep(1000 * 1000);
+    // time wait 2 sec
+    usleep(1000 * 2);
 
     n = recvfrom(sockfd, buf, 300, 0, NULL,0); // recv UDP
     if (n == -1)
@@ -107,18 +107,21 @@ static const char *server = "173.194.193.127";
 
 const char* ip2LocationFetchIPV4Public(int sockfd)
 {
-    int n = stun_xor_addr(sockfd, server, 19302, (char*) iplookup_addr, &iplookup_portnum);
+    int n;
 
-    if(n != 0) assert(0);
+    do   {
+        n = stun_xor_addr(sockfd, server, 19302, (char*) iplookup_addr, &iplookup_portnum);
+    } while (n != 0);
 
     return (const char*) iplookup_addr;
 }
 
 const unsigned int ip2LocationFetchIPV4PublicPort(int sockfd)
 {
-    int n = stun_xor_addr(sockfd, server, 19302, (char*) iplookup_addr, &iplookup_portnum);
-
-    if(n != 0) assert(0);
+    int n;
+    do {
+        n = stun_xor_addr(sockfd, server, 19302, (char*) iplookup_addr, &iplookup_portnum);
+    } while (n != 0);
 
     return iplookup_portnum;
 }

@@ -8,6 +8,7 @@
 #define SRTP_MASTER_KEY_KEY_LEN 16
 #define SRTP_MASTER_KEY_SALT_LEN 14
 #define FILENAME_SDP_ANSWER "sdp_answer.txt"
+#define FILENAME_SDP_WHEP_OFFER "content/upload"
 
 extern char g_file_read_buf[4096];
 extern volatile char* get_sdp_idx_file_r;
@@ -182,7 +183,7 @@ char* get_stun_local_port()
 unsigned long
 strToULong(char* str)
 {
-    if(!str || strlen(str) == 0) return -1;
+    if(!str || strlen(str) == 0) return 0;
     return strtoul(str, NULL, 10);
 }
 

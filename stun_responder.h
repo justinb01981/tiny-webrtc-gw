@@ -55,8 +55,18 @@ typedef struct {
 typedef struct {
     u16 type; // 0x06
     u16 len;  // 32 - PAD
-    char name[20]; // pad with 0x0
+
+    char name[12]; // pad with 0x0
+
 } ATTR_PACKED attr_username_short;
+
+typedef struct {
+    u16 type; // 0x06
+    u16 len;  // 32 - PAD
+
+    char name[20]; // pad with 0x0
+
+} ATTR_PACKED attr_username_med;
 
 typedef struct {
     u16 type; // 0x06
@@ -70,6 +80,20 @@ typedef struct {
     u16 len;
     char name[4];
 } ATTR_PACKED attr_username;
+
+typedef struct {
+    u16 type; // 0x06
+    u16 len;  // 32 - PAD
+    char name[64]; // pad with 0x0
+    //char name[28]; // pad with 0x0
+} ATTR_PACKED attr_softwarename;
+
+typedef struct {
+    u16 type; // 0x06
+    u16 len;  // 32 - PAD
+    char name[8]; // pad with 0x0
+    //char name[28]; // pad with 0x0
+} ATTR_PACKED attr_softwarename_libjuice;
 
 #define ATTR_USECANDIDATE_TYPE 0x0025
 typedef struct {
@@ -119,7 +143,7 @@ typedef struct
         } ATTR_PACKED stun_binding_request1;
 
         struct {
-            attr_username_short username;
+            attr_username_med username;
             attr_usecandidate usecandidate;
             attr_priority priority;
             attr_icecontrolling icecontrolling;
@@ -130,6 +154,15 @@ typedef struct
         struct {
             attr_fingerprint fingerprint;
         } ATTR_PACKED stun_binding_request3;
+
+        struct {
+            attr_priority priority;
+            attr_icecontrolling icecontrolling;
+            attr_softwarename_libjuice software;
+            attr_username_short username;
+            attr_hmac_sha1 hmac_sha1;
+            attr_fingerprint fingerprint;
+        } ATTR_PACKED stun_binding_request4;
 
         struct {
             attr_xor_mapped_address xor_mapped_address;
@@ -177,23 +210,28 @@ typedef struct {
     unsigned int len;
 } stun_build_msg_t;
 
-void stun_build_msg_init(stun_build_msg_t* dest, stun_binding_msg_t* msg, char* username)
+#define STUN_ATTR_USERNAME_SET(x, uname) {x.attr_username->len = htons(strlen(uname)); x.attr_username->type = htons(ATTR_USERNAME_TYPE); strcpy(x.attr_username->name, uname); }
+
+void stun_build_msg_init(stun_build_msg_t* dest, stun_binding_msg_t* msg, char* usernameA, char* usernameB)
 {
+    int username_len = strlen(usernameA) + strlen(usernameB) + 1;
     u8* ptr = (u8*) msg;
     dest->hdr = (stun_hdr_t*) ptr;
     ptr += sizeof(stun_hdr_t);
-    int pad = (strlen(username) % 4);
+    int pad = (username_len % 4);
     if(pad != 0) pad = 4 - pad;
-    dest->attr_username = (attr_username*) ptr; ptr += sizeof(attr_base); ptr += (strlen(username) + pad);
+    dest->attr_username = (attr_username*) ptr; ptr += sizeof(attr_base); ptr += (username_len + pad);
     dest->usecandidate = (attr_usecandidate*) ptr; ptr += sizeof(attr_usecandidate);
     dest->priority = (attr_priority*) ptr; ptr += sizeof(attr_priority);
     dest->icecontrolling = (attr_icecontrolling*) ptr; ptr += sizeof(attr_icecontrolling);
     dest->hmac_sha1 = (attr_hmac_sha1*) ptr; ptr += sizeof(attr_hmac_sha1);
     dest->fingerprint = (attr_fingerprint*) ptr; ptr += sizeof(attr_fingerprint);
     dest->len = ptr - (u8*) msg;
-}
 
-#define STUN_ATTR_USERNAME_SET(x, uname) {x.attr_username->len = htons(strlen(uname)); x.attr_username->type = htons(ATTR_USERNAME_TYPE); strcpy(x.attr_username->name, uname); }
+    char stun_user[64];
+    sprintf(stun_user, "%s:%s", usernameA, usernameB);
+    STUN_ATTR_USERNAME_SET( (*dest), stun_user);
+}
 
 typedef unsigned int stun_id_t;
 
@@ -281,7 +319,22 @@ stun_username(unsigned char* buf, int len, char* uname_out)
 {
     stun_binding_msg_t *bind_msg = (stun_binding_msg_t*) buf;
     uname_out[0] = '\0';
-    if(len <= sizeof(stun_hdr_t)+sizeof(bind_msg->attrs.stun_binding_request1))
+
+    if(len >= sizeof(stun_hdr_t)+sizeof(bind_msg->attrs.stun_binding_request4))
+    {
+        unsigned short l = ntohs(bind_msg->attrs.stun_binding_request4.username.len);
+        if(l <= 64)
+        {
+            memcpy(uname_out, bind_msg->attrs.stun_binding_request4.username.name, l);
+            uname_out[l] = '\0';
+        }
+        else
+        {
+            // seeing this only during disconnect so save to ignore
+            //printf("stun_username WARN: l > 64\n", l);
+        }
+    }
+    else if(len <= sizeof(stun_hdr_t)+sizeof(bind_msg->attrs.stun_binding_request1))
     {
         unsigned short l = ntohs(bind_msg->attrs.stun_binding_request1.username.len);
         if(l <= 64)
@@ -294,6 +347,10 @@ stun_username(unsigned char* buf, int len, char* uname_out)
             // seeing this only during disconnect so save to ignore 
             //printf("stun_username WARN: l > 64\n", l);
         }
+    }
+    else
+    {
+        assert(0);
     }
 }
 

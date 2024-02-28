@@ -1,204 +1,28 @@
 #ifndef __util_h__
 #define __util_h__
 
-#include "memdebughack.h"
 #include <assert.h>
-#include "peer.h"
 
-#define ICE_ALLCHARS "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/+"
 
-#define PEER_OFFER_SDP_GET_ICE(peer, val, index) \
-    str_read_unsafe_allowedchars((peer)->sdp.offer, val, index, ICE_ALLCHARS)
-
-#define PEER_ANSWER_SDP_GET_ICE(peer, val, index) \
-    str_read_unsafe_allowedchars((peer)->sdp.answer, val, index, ICE_ALLCHARS)
-
-#define PEER_OFFER_SDP_GET_SSRC(peer, val, index) \
-    str_read_unsafe_allowedchars((peer)->sdp.offer, val, index, "0123456789")
-
-#define PEER_ANSWER_SDP_GET_SSRC(peer, val, index) \
-    str_read_unsafe_allowedchars((peer)->sdp.answer, val, index, "0123456789")
-
-extern peer_session_t peers[];
-    
-static int
-str_read(const char* src, char* dest, char *endChars, unsigned int maxlen)
-{
-    char* pDest = dest;
-    while (*src != '\0' && pDest - dest < maxlen-1) {
-        char* pDelim = endChars;
-        while(*pDelim) { if (*pDelim == *src) {pDelim = NULL; break;} else  pDelim++; }
-        if(!pDelim) break;
-        *pDest = *src;
-        src++;
-        pDest++;
-    }
-    *pDest = '\0';
-    return pDest - dest;
-}
+int
+str_read(const char* src, char* dest, char *endChars, unsigned int maxlen);
 
 static int
-str_read_from_key(char* key, char* buf, char* dest, char* endchars, unsigned int maxlen, int index)
-{
-    char *p = buf;
+str_read_from_key(char* key, char* buf, char* dest, char* endchars, unsigned int maxlen, int index);
 
-    while(index >= 0)
-    {
-        p = strstr(p, key);
-        if(!p) return 0;
-        p += strlen(key);
-        index--;
-    }
+char* str_read_unsafe(char* buf, char* key, int index);
 
-    return str_read(p, dest, endchars, maxlen);
-}
+char* str_read_unsafe_delim(char* buf, char* key, int index, char* delim);
 
-extern char str_read_key_buf[4096];
+char* str_read_unsafe_allowedchars(char* buf, char* key, int index, const char* allowedchars);
 
-static char* str_read_unsafe(char* buf, char* key, int index)
-{
-    char* delim = ":\r\n";
+void
+hex_print(char* dest, unsigned char *buf, int buf_len);
 
-    memset(str_read_key_buf, 0, sizeof(str_read_key_buf));
-    /* hack: */
-    int result = 
-    str_read_from_key(key, buf, str_read_key_buf, delim, sizeof(str_read_key_buf), index);
-
-    return str_read_key_buf;
-}
-
-static char* str_read_unsafe_delim(char* buf, char* key, int index, char* delim)
-{
-    memset(str_read_key_buf, 0, sizeof(str_read_key_buf));
-    /* hack: */
-    str_read_from_key(key, buf, str_read_key_buf, delim, sizeof(str_read_key_buf), index);
-    return str_read_key_buf;
-}
-
-static char* str_read_unsafe_allowedchars(char* buf, char* key, int index, const char* allowedchars)
-{
-    char *offset = buf;
-    char *p = buf;
-
-    memset(str_read_key_buf, 0, sizeof(str_read_key_buf));
-
-    while(1)
-    {
-        p = strstr(offset, key);
-        if(!p) return str_read_key_buf;
-
-        offset = p + strlen(key);
-        if(index == 0) break;
-        index -= 1;
-    }
-
-    if(index == 0 && offset != NULL)
-    {
-        p = offset;
-
-        while(1)
-        {
-            int allowed = 0;
-            for(int i = 0; i < strlen(allowedchars); i++)
-            {
-                if(*p == allowedchars[i]) { allowed = 1; break; }
-            }
-            if(!allowed) break;
-            p += 1;
-        }
-
-        strncpy(str_read_key_buf, offset, p-offset);
-    }
-
-    return str_read_key_buf;
-}
-
-static void
-hex_print(char* dest, u8 *buf, int buf_len)
-{
-    dest[0] = '\0';
-    int k = 0;
-    while(k < buf_len && buf) {
-        char tmp[64];
-        sprintf(tmp, "%02x", (unsigned char) buf[k]);
-        strcat(dest, tmp);
-        k++;
-    }
-}
-
-peer_session_t*
-peer_find_by_cookie(const char* cookie) {
-    int p = 0;
-    while( p < MAX_PEERS ) {
-        if(strlen(cookie) > 0 && strncmp(peers[p].http.cookie, cookie, sizeof(peers[p].http.cookie)) == 0) {
-            return &peers[p];
-        }
-        p++;
-    }
-    return NULL;
-}
-
-const static char *sdp_read_fail = "";
-static char sdp_read_resultbuf[1024];
 const char*
-sdp_read(const char* sdp, const char* key)
-{
-    int l = 0;
-    char *p = strstr(sdp, key);
-    if(p) {
-        p += strlen(key);
-        while(*p != '\r' && *p != '\n' && *p != '\0' && l < sizeof(sdp_read_resultbuf)-1) {
-            sdp_read_resultbuf[l] = *p;
-            p++;
-            l++;
-        }
-        sdp_read_resultbuf[l] = '\0';
-        return sdp_read_resultbuf;
-    }
-    return sdp_read_fail;
-}
+sdp_read(const char* sdp, const char* key);
 
-static int PEER_INDEX(peer_session_t* ptr)
-{
-    return (ptr - (&peers[0]));
-}
-
-static const char* websocket_header_upgrade_token = "Sec-WebSocket-Key: ";
-
-char* websocket_accept_header(const char* headers_buf, char storage[256]) {
-    char buf[512], result[512];
-    const char* header_token = websocket_header_upgrade_token;
-    const char* ws_const = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-
-    char* key = strstr(headers_buf, header_token);
-
-    memset(storage, 0, 256);
-
-    if(!key) {
-        return storage;
-    }
-
-    key += strlen(header_token);
-    int l = 0;
-    while(key[l] != '\r' && key[l] != '\n' && key[l] != '\0') l++;
-    strncpy(buf, key, l);
-    buf[l] = '\0';
-    strcat(buf, ws_const);
-
-    #if !DTLS_BUILD_WITH_BORINGSSL
-    sha1(buf, strlen(buf), result);
-    #else
-    #warning "websocket_accept_header not implemented with boringssl"
-    #endif
-
-    EVP_ENCODE_CTX ctx;
-    int b64_len = 0;
-
-    EVP_EncodeInit(&ctx);
-    EVP_EncodeUpdate(&ctx, storage, &b64_len, result, strlen(result));
-    EVP_EncodeFinal(&ctx, storage, &b64_len);
-    return storage;
-}
+char* websocket_accept_header(const char* headers_buf, char storage[256]);
 
 static void print_bytes(char* str, size_t len) {
     while(len > 0) {

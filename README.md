@@ -25,13 +25,14 @@ Welcome to the tiny-webrtc-gw readme!
 * easy compilation (just git checkout --recursive and "make all")
 * select media devices
 * code includes submodule referencing the standalone HTTPS server + example certificate
+* Works directly with OBS via WHIP
 
 ## Demo:
   [&#128247;chat lobby on a raspi4;](https://wintermute.nonroutable.net/content/index_broadcast.html?joinroom=lobby)
 
 ## Pics:
-  ![&#9729;"cloud"&#9729;](http://secure.domain17.net/justin/webrtc-bcast-obs-gaming.png)
-  ![Web interface + lobby + chat](http://secure.domain17.net/justin/webrtc-morn.png)
+  ![&#9729;"cloud"&#9729;](https://secure.domain17.net/justin/webrtc-bcast-obs-gaming.png)
+  ![Web interface + lobby + chat](https://secure.domain17.net/justin/webrtc-morn.png)
 
 ## Caveats:
   since browsers won't allow webRTC to be negotiated unencrypted (https)
@@ -46,24 +47,10 @@ Welcome to the tiny-webrtc-gw readme!
 ## Building:
 
 building requires 'go' to compile boringssl (so install those packages)
-
-*OUTDATED?*
-Make sure you checked out the websocket git submodule by checking out
-with --recurse-submodules or doing
-git submodule init xxx && git submodule update xxx
-(for both ws and SSLTools I think)
-
 from the base directory just run 'make all'.
 
-~~You will need to edit at least one line in config.txt so the built-in STUN
-server knows its own IP address (relative to the clients connecting, if
-you're using NAT). Go to whatismyipaddress.com and replace the
-udpserver_addr=x.x.x.x line with your own IP address. I recommend config
-uring the port for 3478 because technically we are using the port for STUN/ICE
-AND for RTP.~~
-
 ## Etc:
-  * 8/15 - NO SETUP necessary (beyond making ports accessible) - this is possible with the new stun_client.c code - but in airgapped networks config.txt still nec.
+  * 8/15 - NO host setup necessary (beyond making ports accessible) - this is possible with the new stun_client.c code - but in airgapped networks config.txt is the way to go.
   * 9/14 - OBS-direct (no browser) streaming support coming - see https://webrtchacks.com/webrtc-cracks-the-whip-on-obs/
   * constructing a share URL: 
   ```
