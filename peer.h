@@ -36,7 +36,7 @@
 #define OFFER_SDP_SIZE 8000
 #define PEER_RECV_BUFFER_COUNT_MS (320) // trying this out with OBS - this is more like MS-times-10 (1500 bytes = ?? ms avg?)
 // TODO: this is RTP and we should be doing minimal buffering
-#define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*3) // 5k pkt/sec sounds good? this is the theoretical max buffered
+#define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*4) // 5k pkt/sec sounds good? this is the theoretical max buffered
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 10000
 #define PEER_STAT_TS_WIN_LEN /*32*/ 9 // this needs to go away since we're not tracking each pkt to determine bitrate anymore?
 
@@ -45,9 +45,11 @@
 // ms
 
 
-#define PEER_THROTTLE_MAX (1.0) // usleep - jiffs
-#define PEER_THROTTLE_USLEEPJIFF (100)
-//#define PEER_THROTTLE_RESPONSE (0.5)    // MUST BE < 1.0 -- represents the Mthrottle feedback loop
+#define PEER_THROTTLE_MAX (10.0) // usleep - jiffs
+#define PEER_THROTTLE_USLEEPJIFF (100) // dialing this in using top
+
+#define PEER_THROTTLEWATCH_RTP_IDX (1) // more pkts?
+#define PEER_THROTTLE_RESPONSE (0.90)    // MUST BE < 1.0 -- represents the Mthrottle feedback loop
 
 #define ICE_ALLCHARS "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/+"
 
@@ -168,7 +170,8 @@ typedef struct {
     unsigned long pkt_lost;
     long jiterr_sub;    // subscribers receiver reports influence this
     unsigned long sr_ntp, sr_rtp;
-    float sr_drate;
+    float sr_drate, sr_octets;
+    float rrsub_jit;    // for subscribers to write to
     
     long receiver_report_jitter_last;
     long receiver_report_sr_last;

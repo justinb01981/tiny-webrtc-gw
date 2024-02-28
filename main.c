@@ -913,13 +913,14 @@ connection_worker(void* p)
                         int i, p, reportsize, stat_idx = is_sender_report ? 14 : 15;
                         int nrep = report->hdr.ver & 0x1F;
 
+                        peer_session_t* peerpub = &peers[peer->subscriptionID];
+
                         counts[stat_idx]++;
 
                         if(is_sender_report)
                         {
                             int issrc = 0;
                             sendreport = (rtp_report_sender_t*) report;
-
 
                             rtp_idx = -1;
                             if(in_ssrc == answer_ssrc[0]) rtp_idx = 0;
@@ -929,21 +930,23 @@ connection_worker(void* p)
 
                             float Drtp = ntohl(sendreport->timestamp_rtp) - peer->srtp[rtp_idx].sr_rtp;
                             float Dntp = ntohl(sendreport->timestamp_lsw) - peer->srtp[rtp_idx].sr_ntp;
-                            float det = Drtp/Dntp;
+                            float Dpkt = ntohl(sendreport->pkt_count) - peer->srtp[rtp_idx].sr_octets;
+                            float det = Dpkt/Dntp;
 
-                            if(rtp_idx == 0) {
+                            if(rtp_idx == PEER_THROTTLEWATCH_RTP_IDX) {
                                 // hack to not confuse ssrc report stats
-                                Dthrottle = (peer->srtp[rtp_idx].sr_drate - det) / 3.1; // bullshit from rfc incorrectly interpreted
+                                Dthrottle += Dthrottle/((peer->srtp[rtp_idx].sr_drate - det)); // bullshit from rfc incorrectly interpreted
                             }
 
                             peer->srtp[rtp_idx].sr_drate = det;
 
                             peer->srtp[rtp_idx].sr_rtp = ntohl(sendreport->timestamp_rtp);
                             peer->srtp[rtp_idx].sr_ntp = ntohl(sendreport->timestamp_lsw);
+                            peer->srtp[rtp_idx].sr_octets = ntohl(sendreport->pkt_count);
 
-                            printf("SR: %u rtpidx %d len %u nrep %u jiterr %f dthrottle %f\n",
+                            printf("SR: %u rtpidx %d len %u nrep %u jiterr %f rrsub_jit %f Mthrottlejiff %f Dthrottle %f\n",
                                    in_ssrc, rtp_idx, unprotect_len, nrep,
-                            (Drtp/Dntp), Dthrottle);
+                            det, peer->srtp[rtp_idx].rrsub_jit, Mthrottle, Dthrottle);
 
                             /*
                             while(issrc < nrep)
@@ -1007,8 +1010,6 @@ connection_worker(void* p)
                                 last_sr = ntohl(report->blocks[issrc].last_sr_timestamp);
                                 delay_last_sr = ntohl(report->blocks[issrc].last_sr_timestamp_delay);
 
-
-
                                 //peer->srtp[report_rtp_idx].last_sr = last_sr;   // this is dumb to get from the RR
                                 //peerpub->srtp[report_rtp_idx].last_sr = last_sr;
 
@@ -1071,7 +1072,7 @@ connection_worker(void* p)
                                     peer->stats.stat[4] = rpt_pkt_lost;
 
                                     //  tell peer of underrun
-                                    peer_session_t* peerpub = &peers[peer->subscriptionID];
+
 
                                     peerpub->underrun_signal = 1;
 
@@ -1091,8 +1092,10 @@ connection_worker(void* p)
 
                                 // increasing delay = increase throttle, throttle always incrementing by Dthrottle below
 
-                                if(report_rtp_idx == 1) {
-                                    Dthrottle += /*((sr_delay) - (*sr_delay_cmp))*/ jitter_delta / 16.0;
+                                // HACK: limiting Dthrottle to recvonlty peers on receive-report
+                                if(report_rtp_idx == PEER_THROTTLEWATCH_RTP_IDX) {
+                                    Dthrottle += jitter_delta/16;
+                                    peerpub->srtp[report_rtp_idx].rrsub_jit = (peerpub->srtp[report_rtp_idx].rrsub_jit + jitter)/2;    // hack; write average jitter to publisher
                                 }
 
                                 // store
@@ -1210,7 +1213,8 @@ connection_worker(void* p)
 
                         goto peer_again;
                     }
-                    else if(psrtpsess && erru != srtp_err_status_ok) {
+                    else if(psrtpsess && erru != srtp_err_status_ok)
+                    {
                         assert(!is_receiver_report && !is_sender_report);
 
                         counts[11]++;   // unprotect fail
@@ -1432,8 +1436,7 @@ connection_worker(void* p)
         if(peer->dtls.connected && !peer->srtp_inited)
         {
             int rtp_idx_init;
-            for(rtp_idx_init = 0; rtp_idx_init < PEER_RTP_CTX_WRITE; rtp_idx_init++)
-            {
+            for(rtp_idx_init = 0; rtp_idx_init < PEER_RTP_CTX_WRITE; rtp_idx_init++){
                 connection_srtp_init(peer, rtp_idx_init, answer_ssrc[rtp_idx_init], offer_ssrc[rtp_idx_init]);
             }
             peer->srtp_inited = 1;
@@ -1465,7 +1468,7 @@ connection_worker(void* p)
         if(buffering_until/* -Mthrottle */ <= get_time_ms() /* && !peer->recv_only */ )
         {
             // stick with this decision for some t (100ms as a baseline is working very very well with <200ms lag)
-            buffering_until = buffering_until + 1000; // TODO: figure out optimal interval to measure bitrate over
+            buffering_until = buffering_until + PEER_RECV_BUFFER_COUNT_MS; // TODO: figure out optimal interval to measure bitrate over
 
             // MARK: -- make no mistake this is what determines the target latency we aim (we're trying not to let receiver underrun) for
             // e.g. too low and we see hiccups 
@@ -1515,27 +1518,30 @@ connection_worker(void* p)
 
         // sleep approx to the recv_time delta (based on testing w 1 chrome stream this approach is optimal
         // -- seeing bitrate increase to peak 5MB/s in < 1 sec - much improved over honoring the Trecv delta-1
+        //if(signal_under)
         {
             //printf("usleep:%f\n", Mthrottle);
 
-            Mthrottle += Dthrottle;
-            //Dthrottle = Dthrottle*(PEER_THROTTLE_RESPONSE);
+            Mthrottle = Dthrottle;
+            Dthrottle += 0.0001;
 
-            if(Mthrottle > 0 && Mthrottle <= PEER_THROTTLE_MAX) {
+            if(Mthrottle > 0 && Mthrottle <= PEER_THROTTLE_MAX)
+            {
                 usleep(Mthrottle * PEER_THROTTLE_USLEEPJIFF);
             }
             else {
                 // should only come here first time?
                 usleep(PEER_THROTTLE_MAX * PEER_THROTTLE_USLEEPJIFF);
-                Mthrottle = 0.1;
+                Mthrottle = PEER_THROTTLE_MAX/2;
+                Dthrottle = 0.0000001;
             }
-            //printf("Mt/Dt: %f/%f\n", Mthrottle, Dthrottle);
+            //printf("\rMt/Dt: %02f/%02f", Mthrottle, Dthrottle);
         }
 
         // todo: ? avg recv rate in the stats window?
     }
 
-    assert(peer->id == peerid_at_start);
+    //assert(peer->id == peerid_at_start);
     peer->running = 0;
     printf("%s:%d connection_worker exiting peer_id: %d\n", __FILE__, __LINE__, peer->id);
     return NULL;
@@ -1928,6 +1934,13 @@ int main( int argc, char* argv[] ) {
         //printf("enqueueing: peer[%d] len:%d\n", sidx, node->len);
 
         peers[sidx].stats.stat[5] += 1;
+
+        if(node->len > 0) { // todo just check buffer avail count?
+            PEER_UNLOCK(sidx);
+            printf("peer buffers:[%d] FULL warning frames lost\n", sidx);
+            length = 0;
+            goto select_timeout;
+        }
 
         node->recv_time = node->timestamp = time_ms;
 

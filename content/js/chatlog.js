@@ -47,6 +47,7 @@ function appendMessagesToUnorderedList(l, array) {
     var offset = 0;
     let maxLen = 1000;
     var str = array[i];
+
     var isItalic = str.indexOf('server:') >= 0;
     var bgColor = 'transparent';
     var textColor = isItalic ? 'darkgrey' : 'white';
@@ -55,13 +56,17 @@ function appendMessagesToUnorderedList(l, array) {
 
     str = str.replace(/\+/g, ' ');
     while(offset < str.length && str.length > 0) {
-      if(str.indexOf('server:') != 0) {
-        var listElem = appendMessageListElem(l, str.substring(offset, offset+maxLen, str.indexOf('server:') >= 0));
-     
-        listElem.style.cssText = 'color:' + textColor + '; ' + 'background-color:'+ bgColor + '; list-style-type:none;' + 
-        (isItalic ? ' font-style:italic; display:none;' : '');
+
+      var lo = str.indexOf('server:');
+      if(lo < 0) {
+          let ss = str.substring(offset, offset+maxLen, lo);
+          var listElem = appendMessageListElem(l, ss);
+          listElem.style.cssText = 'color:' + textColor + '; ' + 'background-color:'+ bgColor + '; list-style-type:none;' + (isItalic ? ' font-style:italic; display:none;' : '');
+
+          console.debug("chatlog append:["+ss+"]");
       }
-      offset += maxLen;
+
+      offset += maxLen; // all done w this line
     }
 
     i += 1;
