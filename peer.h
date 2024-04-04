@@ -36,7 +36,7 @@
 #define OFFER_SDP_SIZE 8000
 #define PEER_RECV_BUFFER_COUNT_MS (320) // trying this out with OBS - this is more like MS-times-10 (1500 bytes = ?? ms avg?)
 // TODO: this is RTP and we should be doing minimal buffering
-#define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*3) // 5k pkt/sec sounds good? this is the theoretical max buffered
+#define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*8) // 5k pkt/sec sounds good? this is the theoretical max buffered
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 10000
 #define PEER_STAT_TS_WIN_LEN /*32*/ 9 // this needs to go away since we're not tracking each pkt to determine bitrate anymore?
 
@@ -45,8 +45,8 @@
 // ms
 
 
-#define PEER_THROTTLE_MAX (1.0) // usleep - jiffs
-#define PEER_THROTTLE_USLEEPJIFF (100)
+#define PEER_THROTTLE_MAX (10) // usleep - jiffs
+#define PEER_THROTTLE_USLEEPJIFF (66)
 //#define PEER_THROTTLE_RESPONSE (0.5)    // MUST BE < 1.0 -- represents the Mthrottle feedback loop
 
 #define ICE_ALLCHARS "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/+"
