@@ -555,7 +555,7 @@ connection_worker(void* p)
 
     peer->underrun_signal = 1;
 
-    unsigned counter = 0;
+    unsigned counter = 0, underrun_counter = 0;
     int subscribers = 0;
 
     // MARK: -- enter main peer connection worker loop
@@ -572,6 +572,8 @@ connection_worker(void* p)
         static unsigned long locked_last = 0;
 
         PERFTIME_INTERVAL_SINCE(&locked_last);
+
+        unsigned long time_ms_since_last_run = time_ms - peer->time_last_run;
 
         time_ms = peer->time_last_run = get_time_ms();
         time_sec = wall_time;
@@ -933,7 +935,7 @@ connection_worker(void* p)
 
                             if(rtp_idx == 1) {
                                 // hack to not confuse ssrc report stats
-                                Dthrottle = peer->srtp[rtp_idx].sr_drate/det; // bullshit from rfc incorrectly interpreted
+                                Dthrottle = peer->srtp[rtp_idx].sr_drate/det + 1; // bullshit from rfc incorrectly interpreted
                             }
 
                             peer->srtp[rtp_idx].sr_drate = det;
@@ -1075,14 +1077,14 @@ connection_worker(void* p)
 
                                     peerpub->underrun_signal = 1;
 
-                                    printf("WARN: peer reports stream underrun (pkt loss or jitter)\n");
+                                    printf("WARN: peer reports stream underrun (pkt loss or jitter) throttle:%f\n", Mthrottle);
 
                                     // MARK: -- HACK - covering up our jitter (delayed/underrun on subscriber) by requesting a full frame refresh
                                     // cap at X/second or we'll get overwhelmed
                                     peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-250); // force picture loss
 
                                     // TODO: flush faster? slower? usually here because of an underrun that happened at peer
-                                    //Mthrottle += 1;
+                                    Mthrottle += 1; // shrug
                                 }
 
                                 peer->srtp[report_rtp_idx].pkt_lost = rpt_pkt_lost;
@@ -1515,19 +1517,24 @@ connection_worker(void* p)
         // -- seeing bitrate increase to peak 5MB/s in < 1 sec - much improved over honoring the Trecv delta-1
         if(/*underrun_signal*/ signal_under)
         {
+            underrun_counter += 1;
+
             //printf("usleep:%f\n", Mthrottle);
             peer->underrun_signal = 0;
-            Mthrottle += Dthrottle;
 
             usleep(Mthrottle * PEER_THROTTLE_USLEEPJIFF );
 
-            if(counter % 1000 == 1) printf("Mt/Dt: %f (%f)\n", Mthrottle, Dthrottle);
+            Dthrottle++;
+            Mthrottle += Dthrottle;
+
+            if(counter % 100 == 1) printf("Mt/Dt: %f (%f) %lu, (RR: %lu)\n", Mthrottle, Dthrottle, underrun_counter, peer->buffer_count, peer->srtp[1].receiver_report_sr_delay_last);
         }
         else
         {
-            Mthrottle = 1;
+            Mthrottle -= Dthrottle;
+            Dthrottle /= 2;
         }
-
+        
         // todo: ? avg recv rate in the stats window?
     }
 

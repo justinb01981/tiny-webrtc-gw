@@ -46,7 +46,7 @@
 
 
 #define PEER_THROTTLE_MAX (10) // usleep - jiffs
-#define PEER_THROTTLE_USLEEPJIFF (66)
+#define PEER_THROTTLE_USLEEPJIFF (100)
 //#define PEER_THROTTLE_RESPONSE (0.5)    // MUST BE < 1.0 -- represents the Mthrottle feedback loop
 
 #define ICE_ALLCHARS "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/+"

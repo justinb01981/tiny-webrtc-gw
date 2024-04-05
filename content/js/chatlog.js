@@ -47,6 +47,7 @@ function appendMessagesToUnorderedList(l, array) {
     var offset = 0;
     let maxLen = 1000;
     var str = array[i];
+
     var isItalic = str.indexOf('server:') >= 0;
     var bgColor = 'transparent';
     var textColor = isItalic ? 'darkgrey' : 'white';
@@ -54,14 +55,17 @@ function appendMessagesToUnorderedList(l, array) {
     // this prefix must match the one used in main.c so we can color chat-lines by their prefix
 
     str = str.replace(/\+/g, ' ');
-    while(offset < str.length && str.length > 0) {
-      if(str.indexOf('server:') != 0) {
-        var listElem = appendMessageListElem(l, str.substring(offset, offset+maxLen, str.indexOf('server:') >= 0));
-     
-        listElem.style.cssText = 'color:' + textColor + '; ' + 'background-color:'+ bgColor + '; list-style-type:none;' + 
-        (isItalic ? ' font-style:italic; display:none;' : '');
+    while(offset < str.length) {
+
+      if(!isItalic) {
+          let ss = str.substring(offset, offset+maxLen, 0);
+          var listElem = appendMessageListElem(l, ss);
+          listElem.style.cssText = 'color:' + textColor + '; ' + 'background-color:'+ bgColor + '; list-style-type:none;' + (isItalic ? ' font-style:italic; display:none;' : '');
+
+          console.debug("chatlog append:["+ss+"]");
       }
-      offset += maxLen;
+
+      offset += maxLen; // all done w this line
     }
 
     i += 1;
