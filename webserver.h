@@ -94,6 +94,10 @@ void
 chatlog_append(const char* pchatmsg)
 {
     size_t appendlen = strlen(pchatmsg);
+    if(appendlen == 0) {
+        chatlog_ts_update();
+        return;
+    }
     if(strlen(pchatmsg) >= CHATLOG_SIZE-1) appendlen = (CHATLOG_SIZE-1);
     
     // rotate buffer

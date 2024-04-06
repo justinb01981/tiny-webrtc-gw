@@ -1084,7 +1084,8 @@ connection_worker(void* p)
                                     peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-250); // force picture loss
 
                                     // TODO: flush faster? slower? usually here because of an underrun that happened at peer
-                                    Mthrottle += 1; // shrug
+                                    //Mthrottle = 100; // out of whack
+                                    Mthrottle += 1;
                                 }
 
                                 peer->srtp[report_rtp_idx].pkt_lost = rpt_pkt_lost;
@@ -1450,6 +1451,7 @@ connection_worker(void* p)
         buffer_next = buffer_next->next;
 
         int signal_under = peer->underrun_signal;
+        peer->underrun_signal = 0;
 
         PEER_UNLOCK(peer->id);
 
@@ -1467,7 +1469,7 @@ connection_worker(void* p)
         if(buffering_until/* -Mthrottle */ <= get_time_ms() /* && !peer->recv_only */ )
         {
             // stick with this decision for some t (100ms as a baseline is working very very well with <200ms lag)
-            buffering_until = buffering_until + 10; // TODO: figure out optimal interval to measure bitrate over
+            buffering_until = buffering_until + 100; // TODO: figure out optimal interval to measure bitrate over
 
             // MARK: -- make no mistake this is what determines the target latency we aim (we're trying not to let receiver underrun) for
             // e.g. too low and we see hiccups 
@@ -1515,26 +1517,29 @@ connection_worker(void* p)
 
         // sleep approx to the recv_time delta (based on testing w 1 chrome stream this approach is optimal
         // -- seeing bitrate increase to peak 5MB/s in < 1 sec - much improved over honoring the Trecv delta-1
-        if(/*underrun_signal*/ signal_under)
+        if(/*underrun_signal*/ signal_under || Dthrottle > Mthrottle)
         {
-            underrun_counter += 1;
-
-            //printf("usleep:%f\n", Mthrottle);
             peer->underrun_signal = 0;
 
             usleep(Mthrottle * PEER_THROTTLE_USLEEPJIFF );
 
-            Dthrottle++;
+            Dthrottle += 1;
+
             Mthrottle += Dthrottle;
 
-            if(counter % 100 == 1) printf("Mt/Dt: %f (%f) %lu, (RR: %lu)\n", Mthrottle, Dthrottle, underrun_counter, peer->buffer_count, peer->srtp[1].receiver_report_sr_delay_last);
+            if(counter % 10 == 1) printf("Mt/Dt: %f (%f) %lu, (RR: %lu)\n", Mthrottle, Dthrottle, underrun_counter, peer->srtp[1].receiver_report_jitter_last);
+
+            underrun_counter = 0;
         }
         else
         {
-            Mthrottle -= Dthrottle;
-            Dthrottle /= 2;
+            underrun_counter += 1;
+            
+            Mthrottle = Mthrottle - Dthrottle;
+            
+            Dthrottle = Dthrottle/2;
         }
-        
+
         // todo: ? avg recv rate in the stats window?
     }
 
