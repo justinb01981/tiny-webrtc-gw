@@ -7,7 +7,7 @@ Welcome to the tiny-webrtc-gw readme!
 ## Goals
 * Infinite &#x231A; duration streams     (security &#x1F4F9; friendly)
 * private rooms
-* 1-click-join [links](https://wintermute.nonroutable.net/content/index_broadcast.html?joinroom=lobby&camera=0)
+* 1-click-join [links](https://wintermute.nonroutable.net/content/index_broadcast.html?joinroom=lobby&camera=1)
 * VP8,VP9,H.264
 * very fast stream multiplexing via lightweight C
 * NO cloud or external STUN/TURN involved ergo: raspberry-pi + airgapped LAN
@@ -30,8 +30,8 @@ Welcome to the tiny-webrtc-gw readme!
   [&#128247;chat lobby on a raspi4;](https://wintermute.nonroutable.net/content/index_broadcast.html?joinroom=lobby)
 
 ## Pics:
-  ![&#9729;"cloud"&#9729;](http://secure.domain17.net/justin/webrtc-bcast-obs-gaming.png)
-  ![Web interface + lobby + chat](http://secure.domain17.net/justin/webrtc-morn.png)
+  ![&#9729;"cloud"&#9729;](https://secure.domain17.net/justin/webrtc-bcast-obs-gaming.png)
+  ![Web interface + lobby + chat](https://secure.domain17.net/justin/webrtc-morn.png)
 
 ## Caveats:
   since browsers won't allow webRTC to be negotiated unencrypted (https)
