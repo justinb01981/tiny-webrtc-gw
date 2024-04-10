@@ -1475,10 +1475,12 @@ connection_worker(void* p)
 
         //printf("rate:%d\n", peer->buffer_count);
         if(PEER_RECV_BUFFER_COUNT-peer->buffer_count < 1) {
-            signal_under = 1;
+            //signal_under = 1;
+            peer->underrun_signal = 1;
+            peer->underrun_last = get_time_ms();
             printf(".");
         }
-        if(get_time_ms() - peer->underrun_last > 20) peer->underrun_signal = 0;
+        if(get_time_ms() - peer->underrun_last > 50) peer->underrun_signal = 0;
 
         PEER_UNLOCK(peer->id);
 
