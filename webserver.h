@@ -16,7 +16,7 @@
 #define sha1_ sha1
 #define assert_ assert
 
-#define CHATLOG_SIZE 256000 // js takes up a lot of this space..
+#define CHATLOG_SIZE 512000 // js takes up a lot of this space..
 
 
 #define TMPTRACE \
@@ -94,10 +94,10 @@ void
 chatlog_append(const char* pchatmsg)
 {
     size_t appendlen = strlen(pchatmsg);
-    if(appendlen == 0) {
-        chatlog_ts_update();
-        return;
-    }
+    //if(appendlen == 0) {
+    //    chatlog_ts_update();
+    //    return;
+    //}
     if(strlen(pchatmsg) >= CHATLOG_SIZE-1) appendlen = (CHATLOG_SIZE-1);
     
     // rotate buffer

@@ -615,7 +615,6 @@ connection_worker(void* p)
             peer->underrun_signal = 1;
             goto peer_again;
         }
-        //printf(".");
 
         // begin processing this buffer
         peer->stats.stat[2] += 1;
@@ -948,10 +947,11 @@ connection_worker(void* p)
                             float Dntp = ntohl(sendreport->timestamp_lsw) - peer->srtp[rtp_idx].sr_ntp;
                             float det = Drtp/Dntp;
 
-                            if(rtp_idx == 1) {
+                            if(rtp_idx == 1 && peer->srtp[rtp_idx].sr_drate != 0) {
                                 // hack to not confuse ssrc report stats
                                 Dthrottle = peer->srtp[rtp_idx].sr_drate/det + 1; // bullshit from rfc incorrectly interpreted
                             }
+
 
                             peer->srtp[rtp_idx].sr_drate = det;
 
@@ -1469,9 +1469,13 @@ connection_worker(void* p)
 
         int signal_under = 
             (peer->underrun_signal 
-            //||
-            //PEER_RECV_BUFFER_COUNT-peer->buffer_count < 1
             );// or buffers getting full arbitrarily
+
+        //printf("rate:%d\n", peer->buffer_count);
+        if(PEER_RECV_BUFFER_COUNT-peer->buffer_count < 1) {
+            signal_under = 1;
+            printf(".");
+        }
         peer->underrun_signal = 0;
 
         PEER_UNLOCK(peer->id);
@@ -1544,7 +1548,7 @@ connection_worker(void* p)
 
             usleep(Mthrottle * PEER_THROTTLE_USLEEPJIFF );
 
-            Dthrottle += 1;
+            Dthrottle *= 1.5;
 
             Mthrottle += Dthrottle;
 
@@ -1562,6 +1566,7 @@ connection_worker(void* p)
         }
 
         if(Mthrottle > 1000) Mthrottle = 1000;
+        if(Dthrottle > 100) Dthrottle = 100;
 
         // todo: ? avg recv rate in the stats window?
     }
