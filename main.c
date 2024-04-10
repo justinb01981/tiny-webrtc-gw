@@ -551,7 +551,7 @@ connection_worker(void* p)
 
     buffer_next = peer->in_buffers_head.next;
 
-    peer->underrun_signal = 1;
+    peer->underrun_signal = 1; peer->underrun_last = get_time_ms();
 
     unsigned counter = 0, underrun_counter = 0;
     int subscribers = 0;
@@ -613,6 +613,7 @@ connection_worker(void* p)
 
         if(buffer_next->len == 0) {
             peer->underrun_signal = 1;
+            peer->underrun_last = get_time_ms();
             goto peer_again;
         }
 
@@ -798,7 +799,7 @@ connection_worker(void* p)
         /* don't process packets until stun completed */
         if(!peer_stun_bound(peer))
         {
-            peer->underrun_signal = 1;
+            peer->underrun_signal = 1; peer->underrun_last = get_time_ms();
             goto peer_again;
         }
 
@@ -1093,6 +1094,7 @@ connection_worker(void* p)
                                     peer_session_t* peerpub = &peers[peer->subscriptionID];
 
                                     peerpub->underrun_signal = 1;
+                                    peerpub->underrun_last = get_time_ms();
 
                                     printf("WARN: peer reports stream underrun (pkt loss or jitter) throttle:%f\n", Mthrottle);
 
@@ -1476,7 +1478,7 @@ connection_worker(void* p)
             signal_under = 1;
             printf(".");
         }
-        peer->underrun_signal = 0;
+        if(get_time_ms() - peer->underrun_last > 20) peer->underrun_signal = 0;
 
         PEER_UNLOCK(peer->id);
 
@@ -1565,8 +1567,8 @@ connection_worker(void* p)
             Dthrottle = Dthrottle/2;
         }
 
-        if(Mthrottle > 1000) Mthrottle = 1000;
-        if(Dthrottle > 100) Dthrottle = 100;
+        if(Mthrottle > PEER_THROTTLE_MAX) Mthrottle = PEER_THROTTLE_MAX;
+        if(Dthrottle > PEER_THROTTLE_MAX/2) Dthrottle = PEER_THROTTLE_MAX/2;
 
         // todo: ? avg recv rate in the stats window?
     }

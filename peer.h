@@ -44,6 +44,7 @@
 #define EPOLL_TIMEOUT_MS 3
 // ms
 
+#define PEER_THROTTLE_MAX (100)
 
 #define PEER_THROTTLE_USLEEPJIFF ( 100 ) // usleep - jiffs
 //#define PEER_THROTTLE_RESPONSE (0.5)    // MUST BE < 1.0 -- represents the Mthrottle feedback loop
@@ -310,6 +311,7 @@ typedef struct peer_session_t
     //int restart_done;
     void (*cb_restart)(struct peer_session_t*);
     int underrun_signal;
+    long underrun_last;
     int pad4[256];
 
     u32 ts_last_unprotect[PEER_STAT_TS_WIN_LEN];
