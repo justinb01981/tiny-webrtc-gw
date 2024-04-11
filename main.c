@@ -1103,9 +1103,10 @@ connection_worker(void* p)
                                     peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-250); // force picture loss
 
                                     // TODO: flush faster? slower? usually here because of an underrun that happened at peer
-                                    //Mthrottle = 100; // out of whack
                                     Mthrottle = Mthrottle*2 + 1;
                                     Dthrottle = 1;
+
+                                    peer->underrun_signal = 1;
                                 }
 
                                 peer->srtp[report_rtp_idx].pkt_lost = rpt_pkt_lost;
@@ -1469,18 +1470,26 @@ connection_worker(void* p)
         buffer_next->len = 0;
         buffer_next = buffer_next->next;
 
+            // SLEEP PACING CODE:
+
         int signal_under = 
-            (peer->underrun_signal 
-            );// or buffers getting full arbitrarily
+            peer->underrun_signal;
+            
+            
+            // or buffers getting full arbitrarily
 
         //printf("rate:%d\n", peer->buffer_count);
         if(PEER_RECV_BUFFER_COUNT-peer->buffer_count < 1) {
-            //signal_under = 1;
             peer->underrun_signal = 1;
+            signal_under = 1;
             peer->underrun_last = get_time_ms();
             printf(".");
         }
-        if(get_time_ms() - peer->underrun_last > 50) peer->underrun_signal = 0;
+
+        // MARK: -- underrun for some period OR buffers trending full
+        if(get_time_ms() - peer->underrun_last > 25 ||
+             peer->buffer_count < PEER_RECV_BUFFER_COUNT/2)
+            peer->underrun_signal = 0;  // stop pacing
 
         PEER_UNLOCK(peer->id);
 
@@ -1552,9 +1561,8 @@ connection_worker(void* p)
 
             usleep(Mthrottle * PEER_THROTTLE_USLEEPJIFF );
 
-            Dthrottle *= 1.5;
-
             Mthrottle += Dthrottle;
+            Dthrottle = Dthrottle+1; // TODO: experimenting with bias towards more throttling, see above
 
             if(counter % 100 == 1) printf("Mt/Dt: %f (%f) %lu, (RR: %lu)\n", Mthrottle, Dthrottle, underrun_counter, peer->srtp[1].receiver_report_jitter_last);
 
@@ -1566,11 +1574,11 @@ connection_worker(void* p)
             
             Mthrottle = Mthrottle - Dthrottle;
             
-            Dthrottle = Dthrottle/2;
+            Dthrottle = Dthrottle-1;
         }
 
         if(Mthrottle > PEER_THROTTLE_MAX) Mthrottle = PEER_THROTTLE_MAX;
-        if(Dthrottle > PEER_THROTTLE_MAX/2) Dthrottle = PEER_THROTTLE_MAX/2;
+        if(Dthrottle > PEER_THROTTLE_MAX/3) Dthrottle = PEER_THROTTLE_MAX/3;
 
         // todo: ? avg recv rate in the stats window?
     }
