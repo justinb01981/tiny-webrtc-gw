@@ -1116,7 +1116,7 @@ connection_worker(void* p)
                                 // increasing delay = increase throttle, throttle always incrementing by Dthrottle below
 
                                 if(report_rtp_idx == 1) {
-                                    Dthrottle = /*((sr_delay) - (*sr_delay_cmp))*/ jitter_delta / 16.0;
+                                    //Dthrottle = /*((sr_delay) - (*sr_delay_cmp))*/ jitter_delta / 16.0;
                                 }
 
                                 // store

@@ -44,7 +44,7 @@
 #define EPOLL_TIMEOUT_MS 3
 
 // ms
-#define PEER_THROTTLE_MAX (100)
+#define PEER_THROTTLE_MAX (1000)
 
 #define PEER_THROTTLE_USLEEPJIFF ( 100 ) // usleep - jiffs
 //#define PEER_THROTTLE_RESPONSE (0.5)    // MUST BE < 1.0 -- represents the Mthrottle feedback loop
