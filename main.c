@@ -1555,7 +1555,7 @@ connection_worker(void* p)
 
         // sleep approx to the recv_time delta (based on testing w 1 chrome stream this approach is optimal
         // -- seeing bitrate increase to peak 5MB/s in < 1 sec - much improved over honoring the Trecv delta-1
-        if(/*underrun_signal*/ signal_under || Dthrottle > Mthrottle)
+        if(/*underrun_signal*/ signal_under || Dthrottle > Mthrottle )
         {
             peer->underrun_signal = 0;
 
@@ -1579,6 +1579,7 @@ connection_worker(void* p)
 
         if(Mthrottle > PEER_THROTTLE_MAX) Mthrottle = PEER_THROTTLE_MAX;
         if(Dthrottle > PEER_THROTTLE_MAX/3) Dthrottle = PEER_THROTTLE_MAX/3;
+        if(Dthrottle < 0) Dthrottle = 0.1;
 
         // todo: ? avg recv rate in the stats window?
     }
@@ -1651,7 +1652,7 @@ int main( int argc, char* argv[] ) {
 
     memset(g_chatlog, 0, sizeof(g_chatlog));
     chatlog_reload();
-    chatlog_append("");
+    chatlog_append("\n");
 
     for(i = 0; i < MAX_PEERS; i++) {
         memset(&peers[i], 0, sizeof(peer_session_t));
