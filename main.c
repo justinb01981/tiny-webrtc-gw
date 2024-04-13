@@ -1104,9 +1104,9 @@ connection_worker(void* p)
 
                                     // TODO: flush faster? slower? usually here because of an underrun that happened at peer
                                     Mthrottle = Mthrottle*2 + 1;
-                                    Dthrottle = 1;
+                                    //Dthrottle = 1;
 
-                                    peer->underrun_signal = 1;
+                                    peer->underrun_signal = 1; peer->underrun_last = get_time_ms();
                                 }
 
                                 peer->srtp[report_rtp_idx].pkt_lost = rpt_pkt_lost;
@@ -1472,7 +1472,7 @@ connection_worker(void* p)
 
             // SLEEP PACING CODE:
 
-        const int D = 8;
+        const int D = 3;
         int signal_under = 
             peer->underrun_signal;
             
@@ -1566,7 +1566,7 @@ connection_worker(void* p)
             usleep(Mthrottle * PEER_THROTTLE_USLEEPJIFF );
 
             Mthrottle += Dthrottle;
-            Dthrottle = Dthrottle + underrun_counter + 1; // TODO: experimenting with bias towards more throttling, see above
+            Dthrottle += 1; // TODO: experimenting with bias towards more throttling, see above
 
             if(counter % 100 == 1) printf("Mt/Dt: %f (%f) %lu, (RR: %lu)\n", Mthrottle, Dthrottle, underrun_counter, peer->srtp[1].receiver_report_jitter_last);
 
@@ -1577,8 +1577,8 @@ connection_worker(void* p)
             underrun_counter += 1;
             
             Mthrottle = Mthrottle - Dthrottle;
-            
-            Dthrottle = Dthrottle-1;
+           
+            Dthrottle /= 2;
         }
 
         if(Mthrottle > PEER_THROTTLE_MAX) Mthrottle = PEER_THROTTLE_MAX;
