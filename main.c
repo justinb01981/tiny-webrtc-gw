@@ -905,7 +905,7 @@ connection_worker(void* p)
                     unsigned long *peerts = &peer->rtp_states[rtp_idx].timestamp;
                     if(timestamp_in < *peerts) {
                         //printf("timestamp order wrong: %u (%u)\n", timestamp_in, *peerts);
-                        //peer->underrun_signal = 1;
+                        //peer->underrun_signal = 1; peer->underrun_last = get_time_ms();
                         //break;
                     }
 
@@ -1472,6 +1472,7 @@ connection_worker(void* p)
 
             // SLEEP PACING CODE:
 
+        const int D = 8;
         int signal_under = 
             peer->underrun_signal;
             
@@ -1479,16 +1480,19 @@ connection_worker(void* p)
             // or buffers getting full arbitrarily
 
         //printf("rate:%d\n", peer->buffer_count);
-        if(PEER_RECV_BUFFER_COUNT-peer->buffer_count < 1) {
-            peer->underrun_signal = 1;
-            signal_under = 1;
+        if(PEER_RECV_BUFFER_COUNT-peer->buffer_count <= PEER_RECV_BUFFER_COUNT_MS/D) { 
+            
+            // oh god so arbitrary and bad - 
+            
+            // TODO: measure change rate, not threshold
+            signal_under = peer->underrun_signal = 1;
             peer->underrun_last = get_time_ms();
             printf(".");
         }
 
         // MARK: -- underrun for some period OR buffers trending full
-        if(get_time_ms() - peer->underrun_last > 25 ||
-             peer->buffer_count < PEER_RECV_BUFFER_COUNT/2)
+        if(get_time_ms() - peer->underrun_last > PEER_RECV_BUFFER_COUNT_MS/D ||
+             peer->buffer_count < PEER_RECV_BUFFER_COUNT/D)
             peer->underrun_signal = 0;  // stop pacing
 
         PEER_UNLOCK(peer->id);
@@ -1562,7 +1566,7 @@ connection_worker(void* p)
             usleep(Mthrottle * PEER_THROTTLE_USLEEPJIFF );
 
             Mthrottle += Dthrottle;
-            Dthrottle = Dthrottle+1; // TODO: experimenting with bias towards more throttling, see above
+            Dthrottle = Dthrottle + underrun_counter + 1; // TODO: experimenting with bias towards more throttling, see above
 
             if(counter % 100 == 1) printf("Mt/Dt: %f (%f) %lu, (RR: %lu)\n", Mthrottle, Dthrottle, underrun_counter, peer->srtp[1].receiver_report_jitter_last);
 
