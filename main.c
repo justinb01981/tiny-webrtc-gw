@@ -950,7 +950,7 @@ connection_worker(void* p)
 
                             if(rtp_idx == 1 && peer->srtp[rtp_idx].sr_drate != 0) {
                                 // hack to not confuse ssrc report stats
-                                Dthrottle = peer->srtp[rtp_idx].sr_drate/det + 1; // bullshit from rfc incorrectly interpreted
+                                //Dthrottle = peer->srtp[rtp_idx].sr_drate/det + 1; // bullshit from rfc incorrectly interpreted
                             }
 
 
@@ -1103,7 +1103,7 @@ connection_worker(void* p)
                                     peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-250); // force picture loss
 
                                     // TODO: flush faster? slower? usually here because of an underrun that happened at peer
-                                    Mthrottle = Mthrottle*2 + 1;
+                                    //Mthrottle = Mthrottle*2 + 1;
                                     //Dthrottle = 1;
 
                                     peer->underrun_signal = 1; peer->underrun_last = get_time_ms();
@@ -1480,20 +1480,18 @@ connection_worker(void* p)
             // or buffers getting full arbitrarily
 
         //printf("rate:%d\n", peer->buffer_count);
-        if(PEER_RECV_BUFFER_COUNT-peer->buffer_count <= PEER_RECV_BUFFER_COUNT_MS/D) { 
+
+        // MARK: -- underrun for some period OR buffers trending full
+        if(PEER_RECV_BUFFER_COUNT-peer->buffer_count < 8) { 
             
             // oh god so arbitrary and bad - 
             
             // TODO: measure change rate, not threshold
             signal_under = peer->underrun_signal = 1;
             peer->underrun_last = get_time_ms();
-            printf(".");
+            //printf(".");
         }
 
-        // MARK: -- underrun for some period OR buffers trending full
-        if(get_time_ms() - peer->underrun_last > PEER_RECV_BUFFER_COUNT_MS/D ||
-             peer->buffer_count < PEER_RECV_BUFFER_COUNT/D)
-            peer->underrun_signal = 0;  // stop pacing
 
         PEER_UNLOCK(peer->id);
 
@@ -1559,30 +1557,28 @@ connection_worker(void* p)
 
         // sleep approx to the recv_time delta (based on testing w 1 chrome stream this approach is optimal
         // -- seeing bitrate increase to peak 5MB/s in < 1 sec - much improved over honoring the Trecv delta-1
-        if(/*underrun_signal*/ signal_under || Dthrottle > Mthrottle )
+        if(/*underrun_signal*/ get_time_ms() - peer->underrun_last < 50)
         {
             peer->underrun_signal = 0;
 
-            usleep(Mthrottle * PEER_THROTTLE_USLEEPJIFF );
+            usleep(Mthrottle/2 * PEER_THROTTLE_USLEEPJIFF );
 
             Mthrottle += Dthrottle;
-            Dthrottle += 1; // TODO: experimenting with bias towards more throttling, see above
 
-            if(counter % 100 == 1) printf("Mt/Dt: %f (%f) %lu, (RR: %lu)\n", Mthrottle, Dthrottle, underrun_counter, peer->srtp[1].receiver_report_jitter_last);
+            Dthrottle = Dthrottle-1; // TODO: experimenting with bias towards more throttling, see above
+
+            if(counter % 100 == 1 && Mthrottle > 0) printf("Mt/Dt: %f (%f) %lu, (RR: %lu)\n", Mthrottle, Dthrottle, underrun_counter, peer->srtp[1].receiver_report_jitter_last);
 
             underrun_counter = 0;
         }
         else
         {
             underrun_counter += 1;
-            
             Mthrottle = Mthrottle - Dthrottle;
-           
-            Dthrottle /= 2;
+            Dthrottle += 1;
         }
 
         if(Mthrottle > PEER_THROTTLE_MAX) Mthrottle = PEER_THROTTLE_MAX;
-        if(Dthrottle > PEER_THROTTLE_MAX/3) Dthrottle = PEER_THROTTLE_MAX/3;
         if(Dthrottle < 0) Dthrottle = 0.1;
 
         // todo: ? avg recv rate in the stats window?

@@ -34,7 +34,7 @@
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&peers[x].mcond, &peers[x].mutex)
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 8000
-#define PEER_RECV_BUFFER_COUNT_MS (320) // trying this out with OBS - this is more like MS-times-10 (1500 bytes = ?? ms avg?)
+#define PEER_RECV_BUFFER_COUNT_MS (250) // trying this out with OBS - this is more like MS-times-10 (1500 bytes = ?? ms avg?)
 // TODO: this is RTP and we should be doing minimal buffering
 #define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*8) // 5k pkt/sec sounds good? this is the theoretical max buffered
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 10000
