@@ -1236,10 +1236,8 @@ connection_worker(void* p)
                     }
                     else if(psrtpsess && erru != srtp_err_status_ok) {
 
-                        assert(!is_receiver_report && !is_sender_report);
-
                         counts[11]++;   // unprotect fail ?
-                        //printf("mysterious unprotect_fail error\n");
+                        printf("ALERT: mysterious unprotect_fail error (disconnect?) (%d) report (s:%d r:%d) psrtpsess:%02x\n", errru, is_sender_report, is_receiver_report, (unsigned long) psrtpsess);
                         //break;
                     }
 
@@ -1482,7 +1480,7 @@ connection_worker(void* p)
         //printf("rate:%d\n", peer->buffer_count);
 
         // MARK: -- underrun for some period OR buffers trending full
-        if(PEER_RECV_BUFFER_COUNT-peer->buffer_count < 8) { 
+        if(PEER_RECV_BUFFER_COUNT-peer->buffer_count < 8 && get_time_ms() - peer->underrun_last > 50) { 
             
             // oh god so arbitrary and bad - 
             
@@ -1557,7 +1555,7 @@ connection_worker(void* p)
 
         // sleep approx to the recv_time delta (based on testing w 1 chrome stream this approach is optimal
         // -- seeing bitrate increase to peak 5MB/s in < 1 sec - much improved over honoring the Trecv delta-1
-        if(/*underrun_signal*/ get_time_ms() - peer->underrun_last < 50)
+        if(/*underrun_signal*/ get_time_ms() - peer->underrun_last < 50 )
         {
             peer->underrun_signal = 0;
 
@@ -1565,7 +1563,7 @@ connection_worker(void* p)
 
             Mthrottle += Dthrottle;
 
-            Dthrottle = Dthrottle-1; // TODO: experimenting with bias towards more throttling, see above
+            Dthrottle = Dthrottle+1; // TODO: experimenting with bias towards more throttling, see above
 
             if(counter % 100 == 1 && Mthrottle > 0) printf("Mt/Dt: %f (%f) %lu, (RR: %lu)\n", Mthrottle, Dthrottle, underrun_counter, peer->srtp[1].receiver_report_jitter_last);
 
@@ -1575,10 +1573,11 @@ connection_worker(void* p)
         {
             underrun_counter += 1;
             Mthrottle = Mthrottle - Dthrottle;
-            Dthrottle += 1;
+            Dthrottle = Dthrottle-1;
         }
 
         if(Mthrottle > PEER_THROTTLE_MAX) Mthrottle = PEER_THROTTLE_MAX;
+        if(Mthrottle < 0) Mthrottle = 1;
         if(Dthrottle < 0) Dthrottle = 0.1;
 
         // todo: ? avg recv rate in the stats window?
