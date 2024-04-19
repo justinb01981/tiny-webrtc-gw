@@ -551,7 +551,7 @@ connection_worker(void* p)
 
     buffer_next = peer->in_buffers_head.next;
 
-    peer->underrun_signal = 1; peer->underrun_last = get_time_ms();
+    peer->underrun_signal = 1; peer->underrun_last = get_time_ms() - PEER_RECV_BUFFER_COUNT;
 
     unsigned counter = 0, underrun_counter = 0;
     int subscribers = 0;
@@ -960,7 +960,7 @@ connection_worker(void* p)
                             peer->srtp[rtp_idx].sr_ntp = ntohl(sendreport->timestamp_lsw);
 
                             if(rtp_idx == 1) { // hax
-                                printf("SR: %u rtpidx %d len %u nrep %u jiterr %f Mthrottle %f\n",
+                                printf("SR: [%u] %u rtpidx %d len %u nrep %u jiterr %f Mthrottle %f\n", peer->id,
                                        in_ssrc, rtp_idx, unprotect_len, nrep,
                                 (Drtp/Dntp), Mthrottle);
                             }
@@ -1106,7 +1106,9 @@ connection_worker(void* p)
                                     //Mthrottle = Mthrottle*2 + 1;
                                     //Dthrottle = 1;
 
-                                    peer->underrun_signal = 1; peer->underrun_last = get_time_ms();
+                                    
+                                    //long penaltyms = PEER_RECV_BUFFER_COUNT_MS/ 3;
+                                    //peer->underrun_signal = 1; peer->underrun_last = get_time_ms() + penaltyms;
                                 }
 
                                 peer->srtp[report_rtp_idx].pkt_lost = rpt_pkt_lost;
@@ -1236,8 +1238,36 @@ connection_worker(void* p)
                     }
                     else if(psrtpsess && erru != srtp_err_status_ok) {
 
+/*
+ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
+ALERT: mysterious unprotect_fail error (disconnect?) (14) report (s:0 r:0) psrtpsess:b3e03768
+ALERT: mysterious unprotect_fail error (disconnect?) (14) report (s:0 r:0) psrtpsess:b3e03768
+ALERT: mysterious unprotect_fail error (disconnect?) (14) report (s:0 r:0) psrtpsess:b3e02160
+SR: 4288779017 rtpidx 1 len 56 nrep 0 jiterr 0.000981 Mthrottle 32.500008
+ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
+ALERT: mysterious unprotect_fail error (disconnect?) (14) report (s:0 r:0) psrtpsess:b3e03768
+ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
+ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
+ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
+ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
+ALERT: mysterious unprotect_fail error (disconnect?) (14) report (s:0 r:0) psrtpsess:b3e03768
+ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
+ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
+ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
+ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
+ALERT: mysterious unprotect_fail error (disconnect?) (14) report (s:0 r:0) psrtpsess:b3e02160
+ALERT: mysterious unprotect_fail error (disconnect?) (14) report (s:0 r:0) psrtpsess:b3e02160
+ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
+ALERT: mysterious unprotect_fail error (disconnect?) (14) report (s:0 r:0) psrtpsess:b3e03768
+ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
+ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
+in_STUN:0 in_SRTP:9 in_stun_ufrag_bad:0 DROP:0 BYTES_FWD:0 :0 USER_ID:9 master:0 rtp_underrun:0 rtp_ok:0 unknown_srtp_ssrc:0 srtp_unprotect_fail:5782027 buf_reclaimed_pkt:0 buf_reclaimed_rtp:0 snd_rpt_fix:120581 rcv_rpt_fix:157461 subscription_resume:0 recv_timeout:0 stun-RTTmsec:0 uptimesec:0 #cxn_worker_foundbuf:0 time=4088741194
+peer[4] l32V       /b18f:l32V stats:,stun-RTTmsec=0,uptimesec=814,#cxn_worker_foundbuf=229128,#worker_underrun=0,#jitter_estimate=0,#enqueued4read=229151,#####=0,srtpreceived=455178,rtpcodec=96,send_underrun=0,protect_fail=0,unprotect_fail=0,publisher_received=8255
+peer[5] nobody475(watch)/bc27:tone stats:,stun-RTTmsec=5,uptimesec=812,#cxn_worker_foundbuf=4384,#worker_underrun=0,#jitter_estimate=324,#enqueued4read=4384,#####=0,srtpreceived=4077,rtpcodec=0,send_underrun=0,protect_fail=0,unprotect_fail=227172,publisher_received=1581
+peer[7] nobody525(watch)/800c:VvrT stats:,stun-RTTmsec=5,uptimesec=798,#cxn_worker_foundbuf=4451,#worker_underrun=0,#jitter_estimate=324,#enqueued4read=4451,#####=0,srtpreceived=4142,rtpcodec=0,send_underrun=0,protect_fail=0,unprotect_fail=223247,publisher_received=1554
+*/
                         counts[11]++;   // unprotect fail ?
-                        printf("ALERT: mysterious unprotect_fail error (disconnect?) (%d) report (s:%d r:%d) psrtpsess:%02x\n", errru, is_sender_report, is_receiver_report, (unsigned long) psrtpsess);
+                        //printf("ALERT: mysterious unprotect_fail error (disconnect?) (%d) report (s:%d r:%d) psrtpsess:%02x\n", erru, is_sender_report, is_receiver_report, (unsigned long) psrtpsess);
                         //break;
                     }
 
@@ -1475,21 +1505,11 @@ connection_worker(void* p)
             peer->underrun_signal;
             
             
-            // or buffers getting full arbitrarily
+        // or buffers getting full arbitrarily
 
         //printf("rate:%d\n", peer->buffer_count);
 
         // MARK: -- underrun for some period OR buffers trending full
-        if(PEER_RECV_BUFFER_COUNT-peer->buffer_count < 8 && get_time_ms() - peer->underrun_last > 50) { 
-            
-            // oh god so arbitrary and bad - 
-            
-            // TODO: measure change rate, not threshold
-            signal_under = peer->underrun_signal = 1;
-            peer->underrun_last = get_time_ms();
-            //printf(".");
-        }
-
 
         PEER_UNLOCK(peer->id);
 
@@ -1553,19 +1573,32 @@ connection_worker(void* p)
         
         counter++;
 
+        //float rtpestimate_snce = (now-start)*RATERTP; // ????
+        // start....
+
         // sleep approx to the recv_time delta (based on testing w 1 chrome stream this approach is optimal
         // -- seeing bitrate increase to peak 5MB/s in < 1 sec - much improved over honoring the Trecv delta-1
-        if(/*underrun_signal*/ get_time_ms() - peer->underrun_last < 50 )
+        if(
+            signal_under 
+            ||
+            get_time_ms() - peer->underrun_last 
+            
+            <  
+            
+            // TODO: really the underrun-penalty is what ought to be be adjusted here
+            PEER_RECV_BUFFER_COUNT_MS/10 )
         {
             peer->underrun_signal = 0;
 
-            usleep(Mthrottle/2 * PEER_THROTTLE_USLEEPJIFF );
+            if(Mthrottle > 0.0)
+            usleep(JIFFPENALTY(Mthrottle));
 
             Mthrottle += Dthrottle;
 
-            Dthrottle = Dthrottle+1; // TODO: experimenting with bias towards more throttling, see above
+            Dthrottle = Dthrottle + 1.0;  // TODO: experimenting with bias towards more throttling, see above
 
-            if(counter % 100 == 1 && Mthrottle > 0) printf("Mt/Dt: %f (%f) %lu, (RR: %lu)\n", Mthrottle, Dthrottle, underrun_counter, peer->srtp[1].receiver_report_jitter_last);
+            if(peer->id == 0 && (Mthrottle < 20 || Mthrottle > 300)  )
+            printf("Mt/Dt: %u (%f) %lu, (RR: %lu)\n", (unsigned) Mthrottle, Dthrottle, underrun_counter, peer->srtp[1].receiver_report_jitter_last);
 
             underrun_counter = 0;
         }
@@ -1573,12 +1606,13 @@ connection_worker(void* p)
         {
             underrun_counter += 1;
             Mthrottle = Mthrottle - Dthrottle;
-            Dthrottle = Dthrottle-1;
+            Dthrottle = Dthrottle - 1.0;
+            //Dthrottle = Dthrottle / 2;
         }
 
         if(Mthrottle > PEER_THROTTLE_MAX) Mthrottle = PEER_THROTTLE_MAX;
-        if(Mthrottle < 0) Mthrottle = 1;
-        if(Dthrottle < 0) Dthrottle = 0.1;
+        if(Mthrottle <= 0.0) { Mthrottle = PEER_THROTTLE_SANE_MIN; Dthrottle = PEER_THROTTLE_SANE_MIN; }
+        //if(Dthrottle < 0) Dthrottle = 0.1;
 
         // todo: ? avg recv rate in the stats window?
     }

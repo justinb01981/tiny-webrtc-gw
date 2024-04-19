@@ -15,7 +15,8 @@ demo: webrtc_xcast
 	
 webrtc_xcast: lib/libcrypto.a lib/libsrtp2.a lib/libssl.a iplookup_hack.o
 # add -pg to profile with gprof
-	gcc -g -v -o webrtc_xcast -DMEMDEBUGHACK=1 -DDTLS_BUILD_WITH_BORINGSSL=1 -I${INC_LIBSRTP} -I${INC_LIBSRTP_CFG} -I${INC_LIBSRTP_CRYPTO} -I${INC_OPENSSL} -I${INC_LIBWS} -L${LIB_OPENSSL} stubs.c main.c util.c tiny_config.c filecache.c iplookup_hack.c ${LDARGS};
+# todo: add visual indicator whether vp8 enabled/disabled ? example sdp offer? next to viewers label?
+	gcc -g -v -o webrtc_xcast -DSDP_OFFER_VP8=1 -DMEMDEBUGHACK=1 -DDTLS_BUILD_WITH_BORINGSSL=1 -I${INC_LIBSRTP} -I${INC_LIBSRTP_CFG} -I${INC_LIBSRTP_CRYPTO} -I${INC_OPENSSL} -I${INC_LIBWS} -L${LIB_OPENSSL} stubs.c main.c util.c tiny_config.c filecache.c iplookup_hack.c ${LDARGS};
 #	gcc -v -o webrtc_gw -DDTLS_BUILD_WITH_BORINGSSL=1 -I${INC_LIBSRTP} -I${INC_LIBSRTP_CFG} -I${INC_LIBSRTP_CRYPTO} -I${INC_OPENSSL} -I${INC_LIBWS} -L${LIB_OPENSSL} stubs.c main.c util.c tiny_config.c ws/cwebsocket/lib/*.c ${LDARGS};
 
 lib/libcrypto.a:
