@@ -34,9 +34,9 @@
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&peers[x].mcond, &peers[x].mutex)
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 8000
-#define PEER_RECV_BUFFER_COUNT_MS (200) // trying this out with OBS - this is more like MS-times-10 (1500 bytes = ?? ms avg?)
+#define PEER_RECV_BUFFER_COUNT_MS (150) // trying this out with OBS - this is more like MS-times-10 (1500 bytes = ?? ms avg?)
 // TODO: this is RTP and we should be doing minimal buffering
-#define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*16) // 5k pkt/sec sounds good? this is the theoretical max buffered
+#define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*8) // 5k pkt/sec sounds good? this is the theoretical max buffered
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 10000
 #define PEER_STAT_TS_WIN_LEN /*32*/ 9 // this needs to go away since we're not tracking each pkt to determine bitrate anymore?
 
@@ -44,11 +44,10 @@
 #define EPOLL_TIMEOUT_MS 3
 
 // ms
-#define PEER_THROTTLE_MAX (1000)
+#define PEER_THROTTLE_MAX (2000)
 #define PEER_THROTTLE_SANE_MIN (1.0)
 
-#define PEER_THROTTLE_USLEEPJIFF ( 100 ) // usleep - jiffs
-//#define PEER_THROTTLE_RESPONSE (0.5)    // MUST BE < 1.0 -- represents the Mthrottle feedback loop
+#define PEER_THROTTLE_USLEEPJIFF (100 ) // usleep - jiffs
 #define JIFFPENALTY(th) ( (th/2) * PEER_THROTTLE_USLEEPJIFF )
 
 #define ICE_ALLCHARS "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/+"
@@ -58,7 +57,6 @@
 
 /*"kp8mwJHTCCCstyaN0PZ2D8s"*/
 #define ICE_PWD_WHEP "230r89wef32jsdsjJlkj23rndasf23rlknas"
-
 #define PEER_OFFER_SDP_GET_ICE(peer, val, index) \
     str_read_unsafe_allowedchars( \
     (peer)->sdp.offer, \
@@ -89,7 +87,7 @@ extern char* dtls_fingerprint;
 extern const char* webserver_get_localaddr(void);
 
 // TODO: artififially low to smooth jitter calculations and prevent bursts + more fairly schedule?
-#define RECVMSG_NUM (32)
+#define RECVMSG_NUM (128)
 
 //
 // -- fwiw i have never seen the buffers used go beyond 64 at 12mbitsec  on wifi on my pi 4
@@ -640,7 +638,6 @@ int peer_stun_bound(peer_session_t* peer)
 }
 
 
-
 static const char* sdp_whep_answer_create(char* off)
 {
     const char* answer_template_obs = ""
@@ -707,20 +704,15 @@ static const char* sdp_whep_answer_create(char* off)
      a=msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-video
      a=rtcp-mux
      */
-#if SDP_OFFER_VP8
+#if SDP_OFFER_VP8 
     "a=fmtp:96 max-fr=60; max-fs=64800; x-google-max-bitrate=720000; x-google-min-bitrate=3200;\n"
-    "a=rtpmap:96 VP9/90000\n"
+    "a=rtpmap:96 VP8/90000\n"
     "a=rtcp-fb:96 nack pli\n"
-    "a=rtcp-fb:96 goog-remb\n"
-
-    //a=rtpmap:96 VP9/90000
-    //a=fmtp:96 max-fr=60; max-fs=64800; x-google-max-bitrate=720000; x-google-min-bitrate=3200;
     //a=rtcp-fb:96 nack pli
-    //a=rtcp-fb:96 goog-remb
 #else
     "a=rtpmap:96 H264/90000\n"
     "a=fmtp:96 profile-level-id="H264PROFILEHEX";level-asymmetry-allowed=1\n"
-    "a=rtcp-fb:96 nack\n"   // sure this applies to h.264?
+    "a=rtcp-fb:96 nack pli\n"   // sure this applies to h.264?
 #endif
     "c=IN IP4 LOCALADDRCSDP\n"
     "a=mid:1\n"
@@ -778,47 +770,41 @@ static const char* sdp_offer_create(void)
     "\"a=ice-pwd:"ICE_PWD_WHEP"\\n\" + \n"
     "\"a=ice-ufrag:OFFERUFRAG\\n\" + \n"
     "\"a=candidate:1 1 UDP 1 LOCALADDRSDP typ host\\n\" + \n"
-    "\"a=setup:passive\\n\" + \n"
     "\"a=mid:sdparta_0\\n\" + \n"
     //"\"b=AS:5000\\n\" + \n"
     "\"a=msid:{7e5b1422-7cbe-3649-9897-864febd59342} {6fca7dee-f59d-3c4f-be9c-8dd1092b10e3}\\n\" + \n"
-    "\"a=rtcp-mux\\n\" + \n"
     "\"a=rtpmap:111 opus/48000/2\\n\" + \n"
     "\"a=rtpmap:9 G722/8000/1\\n\" + \n"
     "\"a=rtpmap:0 PCMU/8000\\n\" + \n"
     "\"a=rtpmap:8 PCMA/8000\\n\" + \n"
+    "\"a=rtcp-mux\\n\" + \n"
+    "\"a=setup:actpass\\n\" + \n"
     "\"a=ssrc:OFFERSSRC1 cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\\n\" + \n"
-#if SDP_OFFER_VP8
-    "\"m=video 9 RTP/SAVPF 126 96\\n\" + \n"
-#else
-    "\"m=video 9 RTP/SAVPF 126 96\\n\" + \n"
-#endif
+    "\"m=video 9 RTP/SAVPF 96\\n\" + \n"
     "\"c=IN IP4 LOCALADDRCSDP\\n\" + \n"
     "\"a=sendrecv\\n\" + \n"
-
-    "\"a=ice-pwd:"ICE_PWD_WHEP"\\n\" + \n"
-    "\"a=ice-ufrag:OFFERUFRAG\\n\" + \n"
-    "\"a=candidate:1 1 UDP 1 LOCALADDRSDP typ host\\n\" + \n"
-    "\"a=setup:passive\\n\" + \n"
-    "\"a=mid:sdparta_1\\n\" + \n"
-    "\"a=msid:{7e5b1422-7cbe-3649-9897-864febd59342} {f46f496f-30aa-bd40-8746-47bda9150d23}\\n\" + \n"
-
-    "\"a=rtcp-mux\\n\" + \n"
-#if SDP_OFFER_VP8
-    "\"a=rtpmap:96 AV1/90000\\n\" + \n" // AKA VP9 sometimes VP8
-    "\"a=rtcp-fb:96 ccm fir pli" " nack""\\n\" + \n"
-#else
-    "\"a=rtpmap:96 H264/90000\\n\" + \n"
-    "\"a=rtcp-fb:96 ccm fir\\n\" + \n"
-    "\"a=rtcp-fb:96 nack pli\\n\" + \n"
-#endif
 #if SDP_OFFER_VP8
     // see link below
-    "\"a=fmtp:96 max-fr=60; max-fs=64800; x-google-max-bitrate=720000; x-google-min-bitrate=3200;\\n\" + \n"
+    "\"a=fmtp:96 max-fr=60; max-fs=64800;\\n\" + \n"
 #else
     // TODO: worth it to offer more mp4 profile-id? this was cribbed from chrome webrtc
     "\"a=fmtp:96 profile-level-id=" H264PROFILEHEX ";level-asymmetry-allowed=1\\n\" + \n"
 #endif
+    
+    "\"a=ice-pwd:"ICE_PWD_WHEP"\\n\" + \n"
+    "\"a=ice-ufrag:OFFERUFRAG\\n\" + \n"
+    "\"a=candidate:1 1 UDP 1 LOCALADDRSDP typ host\\n\" + \n"
+    "\"a=mid:sdparta_1\\n\" + \n"
+    "\"a=msid:{7e5b1422-7cbe-3649-9897-864febd59342} {f46f496f-30aa-bd40-8746-47bda9150d23}\\n\" + \n"
+    "\"a=rtcp-fb:96 ccm fir pli nack""\\n\" + \n" // do we allow all these? spoofing client side here
+    "\"a=rtcp-mux\\n\" + \n"
+#if SDP_OFFER_VP8
+    "\"a=rtpmap:96 VP8/90000\\n\" + \n" // AKA VP9 sometimes VP8
+#else
+    "\"a=rtpmap:96 H264/90000\\n\" + \n"
+#endif
+
+    "\"a=setup:actpass\\n\" + \n"
     "\"a=ssrc:OFFERSSRC2 cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\\n\"\n";
 
     char* offer_building, *offer_template = offer_template2;
@@ -1007,6 +993,5 @@ static int PEER_INDEX(peer_session_t* ptr)
 {
     return (ptr - (&peers[0]));
 }
-
 
 #endif
