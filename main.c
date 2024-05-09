@@ -532,19 +532,12 @@ connection_worker(void* p)
 
     PEER_UNLOCK(peer->id);
 
-    if(!peer->recv_only)
-    {
-        snprintf(str256, sizeof(str256)-1,
-        "server:%s %s in %s\n",
-        peer->name,
+    snprintf(str256, sizeof(str256)-1,
+        "server:%s(ip %s) %s in %s\n",
+        peer->name, inet_ntoa(peer->addr.sin_addr),
         (!peer->recv_only ? "broadcasting" : "watching"),
         peer->roomname);
-        chatlog_append(str256);
-    }
-    else
-    {
-        chatlog_append("\n"); // refresh chat iframes
-    }
+    chatlog_append(str256);
 
     buffer_next = peer->in_buffers_head.next;
 
@@ -1100,12 +1093,8 @@ connection_worker(void* p)
                                     peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-250); // force picture loss
 
                                     // TODO: flush faster? slower? usually here because of an underrun that happened at peer
-                                    Mthrottle = Mthrottle*2 + 1;
-                                    Dthrottle = 1;
-
-                                    
-                                    //long penaltyms = PEER_RECV_BUFFER_COUNT_MS / 4;
-                                    //peer->underrun_signal = 1; peer->underrun_last = get_time_ms() + penaltyms;
+                                    //Mthrottle = Mthrottle*2 + 1;
+                                    //Dthrottle = 1;
                                 }
 
                                 peer->srtp[report_rtp_idx].pkt_lost = rpt_pkt_lost;
@@ -1380,7 +1369,7 @@ peer[7] nobody525(watch)/800c:VvrT stats:,stun-RTTmsec=5,uptimesec=798,#cxn_work
                                 assert(peers[p].srtp_inited);
 
                                 // MARK: -- srtp_protect
-                                if(sess->inited && srtp_protect(sess->session, rtp_frame_out, &lengthPeer) == srtp_err_status_ok)
+                                if(sess->inited && sess->session != NULL && srtp_protect(sess->session, rtp_frame_out, &lengthPeer) == srtp_err_status_ok)
                                 {
                                     //printf("srtp_protect+fwd: @[%d] lengthPeer:%d", p, lengthPeer);
                                     //printf("srtp_protect: ok + sent\n");
@@ -1583,7 +1572,9 @@ peer[7] nobody525(watch)/800c:VvrT stats:,stun-RTTmsec=5,uptimesec=798,#cxn_work
             <  
             
             // TODO: really the underrun-penalty is what ought to be be adjusted here
-            (PEER_RECV_BUFFER_COUNT_MS/Mthrottle) )
+            floor(PEER_RECV_BUFFER_COUNT_MS/Mthrottle) 
+            //|| (underrun_counter > Mthrottle)
+        )
         {
             peer->underrun_signal = 0;
 
@@ -1592,7 +1583,7 @@ peer[7] nobody525(watch)/800c:VvrT stats:,stun-RTTmsec=5,uptimesec=798,#cxn_work
 
             Mthrottle += Dthrottle;
 
-            Dthrottle = Dthrottle + 1 ;   //3.0 / (underrun_counter+1);  // TODO: experimenting with bias towards more throttling, see above
+            Dthrottle = Dthrottle * 2 + 1;  // TODO: experimenting with bias towards more throttling, see above
 
             //if(peer->id == 0 && (Mthrottle < 20 || Mthrottle > 300)  )printf("Mt/Dt: %u (%f) %lu, (RR: %lu)\n", (unsigned) Mthrottle, Dthrottle, underrun_counter, peer->srtp[1].receiver_report_jitter_last);
 
@@ -1602,7 +1593,7 @@ peer[7] nobody525(watch)/800c:VvrT stats:,stun-RTTmsec=5,uptimesec=798,#cxn_work
         {
             underrun_counter += 1;
             Mthrottle = Mthrottle - Dthrottle;
-            Dthrottle = Dthrottle - (1.0 / underrun_counter);
+            Dthrottle = Dthrottle - 1;
         }
 
         if(Mthrottle > PEER_THROTTLE_MAX) Mthrottle = PEER_THROTTLE_MAX;

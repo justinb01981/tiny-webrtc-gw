@@ -43,7 +43,7 @@ debug: clean demo wintermutecfg
 
 preparechat:
 
-	cp chatlog.txt ${MYCLONE} && cat ${MYCLONE} | grep '.$$' > chatlog.txt;
+	cp chatlog.txt ${MYCLONE} && cat ${MYCLONE} | sed '/server:/d' | grep '.$$' > chatlog.txt;
 	cat chatlog.txt;
 
 clean:
