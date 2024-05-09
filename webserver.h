@@ -16,7 +16,7 @@
 #define sha1_ sha1
 #define assert_ assert
 
-#define CHATLOG_SIZE 256000 // js takes up a lot of this space..
+#define CHATLOG_SIZE 512000 // js takes up a lot of this space..
 
 
 #define TMPTRACE \
@@ -91,9 +91,40 @@ chatlog_ts_update()
 }
 
 void
+chatlog_prune(char* str) 
+{
+    char *dst = str;
+    const char *src = str;
+
+    while(*src != '\0')
+    {
+        if(*src == '\n')
+        {
+            if(src-dst > 1)
+            {
+
+                while(dst < src)
+                {
+                    *dst = *src;
+                    dst++;
+                }
+                *dst = '\n';
+                
+            }
+        }
+        src++;
+    }
+}
+
+void
 chatlog_append(const char* pchatmsg)
 {
     size_t appendlen = strlen(pchatmsg);
+    if(appendlen <= 1) {
+        printf("chatlogappend ignoring empty line\n");
+        chatlog_ts_update();
+        return;
+    }
     if(strlen(pchatmsg) >= CHATLOG_SIZE-1) appendlen = (CHATLOG_SIZE-1);
     
     // rotate buffer
@@ -118,6 +149,7 @@ chatlog_append(const char* pchatmsg)
     chatlog_ts_update();
 }
 
+
 void
 chatlog_reload()
 {
@@ -131,6 +163,8 @@ chatlog_reload()
         memcpy(g_chatlog, file_buf, file_buf_len);
         free(file_buf);
     }
+
+    chatlog_prune(file_buf);
 }
 
 static void cb_disconnect_first(peer_session_t* p) {
@@ -647,10 +681,11 @@ webserver_worker(void* p)
 
                     if(strstr(response, tag_chatlogjs))
                     {
+                        // TODO: ignore empty lines in file here
                         size_t jslen = sizeof(g_chatlog)*4;
                         char* js = malloc(jslen);
                         if(!js) return NULL;
-                        char* ptr = g_chatlog;
+                        char* ptr = g_chatlog+1;
                         char* wptr = js;
 
 
@@ -671,6 +706,7 @@ webserver_worker(void* p)
                             }
                             else if(*ptr == '\r') { ptr++; continue; }
                             else if(*ptr == '\'') { ptr++; continue; }
+                            else if(*ptr == '\n' && *(ptr-1) == '\n') { ptr++; continue; }
                             else {
                                 *wptr = *ptr;
                             }

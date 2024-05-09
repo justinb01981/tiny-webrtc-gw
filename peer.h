@@ -8,7 +8,7 @@
 #include "macro_expand.h"
 #include "util.h"
 
-#define SDP_OFFER_VP8 0
+// #define SDP_OFFER_VP8 1
 // TODO: this determines whether mp4 or both+VP8 offered
 
 #define MAX_PEERS 64
@@ -20,7 +20,7 @@
  \
     int i;                                      \
     for(i = 0; i < PEER_RTP_CTX_COUNT; i++) {   \
-        x[i] = 0;                               \
+                         \
     }                                           \
 }
 
@@ -34,22 +34,21 @@
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&peers[x].mcond, &peers[x].mutex)
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 8000
-#define PEER_RECV_BUFFER_COUNT_MS (320) // trying this out with OBS - this is more like MS-times-10 (1500 bytes = ?? ms avg?)
+#define PEER_RECV_BUFFER_COUNT_MS (300) // trying this out with OBS - this is more like MS-times-10 (1500 bytes = ?? ms avg?)
 // TODO: this is RTP and we should be doing minimal buffering
-#define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*4) // 5k pkt/sec sounds good? this is the theoretical max buffered
+#define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*8) // 5k pkt/sec sounds good? this is the theoretical max buffered
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 10000
 #define PEER_STAT_TS_WIN_LEN /*32*/ 9 // this needs to go away since we're not tracking each pkt to determine bitrate anymore?
 
 // this magic number influences the pace epoll/recvmmsg takes packets in - started with 5 trying lower values to see if that helps even out streams
 #define EPOLL_TIMEOUT_MS 3
+
 // ms
+#define PEER_THROTTLE_MAX (5000)
+#define PEER_THROTTLE_SANE_MIN (1.0)
 
-
-#define PEER_THROTTLE_MAX (10.0) // usleep - jiffs
-#define PEER_THROTTLE_USLEEPJIFF (100) // dialing this in using top
-
-#define PEER_THROTTLEWATCH_RTP_IDX (1) // more pkts?
-#define PEER_THROTTLE_RESPONSE (0.90)    // MUST BE < 1.0 -- represents the Mthrottle feedback loop
+#define PEER_THROTTLE_USLEEPJIFF (100) // usleep - jiffs
+#define JIFFPENALTY(th) ( (th/2) * PEER_THROTTLE_USLEEPJIFF )
 
 #define ICE_ALLCHARS "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/+"
 
@@ -58,7 +57,6 @@
 
 /*"kp8mwJHTCCCstyaN0PZ2D8s"*/
 #define ICE_PWD_WHEP "230r89wef32jsdsjJlkj23rndasf23rlknas"
-
 #define PEER_OFFER_SDP_GET_ICE(peer, val, index) \
     str_read_unsafe_allowedchars( \
     (peer)->sdp.offer, \
@@ -314,6 +312,7 @@ typedef struct peer_session_t
     //int restart_done;
     void (*cb_restart)(struct peer_session_t*);
     int underrun_signal;
+    long underrun_last;
     int pad4[256];
 
     u32 ts_last_unprotect[PEER_STAT_TS_WIN_LEN];
@@ -640,7 +639,6 @@ int peer_stun_bound(peer_session_t* peer)
 }
 
 
-
 static const char* sdp_whep_answer_create(char* off)
 {
     const char* answer_template_obs = ""
@@ -667,7 +665,56 @@ static const char* sdp_whep_answer_create(char* off)
     "a=fmtp:111 minptime=10;maxaveragebitrate=96000;stereo=1;sprop-stereo=1;useinbandfec=1\n"
     "a=candidate:1 1 UDP 1 LOCALADDRSDP typ host\n"
     "a=setup:passive\n"
-    "m=video 50425 UDP/TLS/RTP/SAVPF 96\n"
+    "m=video 50425 UDP/TLS/RTP/SAVPF 96\n"  // HEADS UP CODEC PARAMETERS MUST AGREE WITH SDP FROM BROWSER (NON WHEP) OFFERS! 
+    // hey this sdp from obs was found by looking at WHEP post from OBS - see webserver.h
+
+/*
+     v=0
+     o=rtc 1669006375 0 IN IP4 198.27.181.153
+     s=-
+     t=0 0
+     a=group:BUNDLE 0 1  
+     a=group:LS 0 1
+     a=msid-semantic:WMS *
+     a=fingerprint:sha-256 2D:2B:85:5D:38:C1:95:5F:2A:7C:35:99:00:87:E4:56:85:E7:51:1E:C1:F8:A4:D6:EF:C7:C0:70:48:10:C5:3C
+     a=ice-options:ice2,trickle
+     a=ice-ufrag:a005
+     a=ice-pwd:230r89wef32jsdsjJlkj23rndasf23rlknas
+     m=audio 50424 UDP/TLS/RTP/SAVPF 111
+     c=IN IP4 198.27.181.153
+     a=mid:0
+     a=sendrecv
+     a=ssrc:3137931080 cname cname:rQcWaxPvcgYTistQ\n" +
+     a=ssrc:3137931080 cname msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-audio
+     a=msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-audio
+     a=rtcp-mux
+     a=rtpmap:111 OPUS/48000/2  
+     a=fmtp:111 minptime=10;maxaveragebitrate=96000;stereo=1;sprop-stereo=1;useinbandfec=1
+     a=candidate:1 1 UDP 1 198.27.181.153 3478 typ host
+     a=setup:passive
+     m=video 50425 UDP/TLS/RTP/SAVPF 96
+     a=rtpmap:96 VP9/90000
+     a=fmtp:96 max-fr=60; max-fs=64800; x-google-max-bitrate=720000; x-google-min-bitrate=3200;
+     a=rtcp-fb:96 nack pli
+     a=rtcp-fb:96 goog-remb
+     c=IN IP4 198.27.181.153
+     a=mid:1
+     a=sendrecv
+     a=ssrc:3137931081 cname cname:rQcWaxPvcgYTistQ=
+     a=ssrc:3137931081 cname msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-video
+     a=msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-video
+     a=rtcp-mux
+     */
+#if SDP_OFFER_VP8 
+    "a=fmtp:96 max-fr=60; max-fs=64800; x-google-max-bitrate=720000; x-google-min-bitrate=3200;\n"
+    "a=rtpmap:96 VP8/90000\n"
+    "a=rtcp-fb:96 nack pli\n"
+    //a=rtcp-fb:96 nack pli
+#else
+    "a=rtpmap:96 H264/90000\n"
+    "a=fmtp:96 profile-level-id="H264PROFILEHEX";level-asymmetry-allowed=1\n"
+    "a=rtcp-fb:96 nack pli\n"   // sure this applies to h.264?
+#endif
     "c=IN IP4 LOCALADDRCSDP\n"
     "a=mid:1\n"
     "a=sendrecv\n"
@@ -675,13 +722,8 @@ static const char* sdp_whep_answer_create(char* off)
     "a=ssrc:OFFERSSRC2 msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-video\n"
     "a=msid:fAB8s1VfJrRwiz2r fAB8s1VfJrRwiz2r-video\n"
     "a=rtcp-mux\n"
-    "a=rtpmap:96 H264/90000\n"
-    //"a=rtcp-fb:96 nack\n"
-    "a=rtcp-fb:96 nack pli\n"
-    //"a=rtcp-fb:96 goog-remb\n"
-    "a=fmtp:96 profile-level-id="H264PROFILEHEX";level-asymmetry-allowed=1\n";
-
-
+    ;
+    
     char ans_ufrag_new[64], sssrc1[64], sssrc2[64];
     char* offer_building = offer_building_whep, *offer_template = answer_template_obs;
     strcpy(sssrc1, str_read_unsafe(off, kSDPSSRC, 0));
@@ -729,46 +771,41 @@ static const char* sdp_offer_create(void)
     "\"a=ice-pwd:"ICE_PWD_WHEP"\\n\" + \n"
     "\"a=ice-ufrag:OFFERUFRAG\\n\" + \n"
     "\"a=candidate:1 1 UDP 1 LOCALADDRSDP typ host\\n\" + \n"
-    "\"a=setup:passive\\n\" + \n"
     "\"a=mid:sdparta_0\\n\" + \n"
     //"\"b=AS:5000\\n\" + \n"
     "\"a=msid:{7e5b1422-7cbe-3649-9897-864febd59342} {6fca7dee-f59d-3c4f-be9c-8dd1092b10e3}\\n\" + \n"
-    "\"a=rtcp-mux\\n\" + \n"
     "\"a=rtpmap:111 opus/48000/2\\n\" + \n"
     "\"a=rtpmap:9 G722/8000/1\\n\" + \n"
     "\"a=rtpmap:0 PCMU/8000\\n\" + \n"
     "\"a=rtpmap:8 PCMA/8000\\n\" + \n"
+    "\"a=rtcp-mux\\n\" + \n"
+    "\"a=setup:actpass\\n\" + \n"
     "\"a=ssrc:OFFERSSRC1 cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\\n\" + \n"
-#if SDP_OFFER_VP8
-    "\"m=video 9 RTP/SAVPF 120 126 96\\n\" + \n"
-#else
-    "\"m=video 9 RTP/SAVPF 126 96\\n\" + \n"
-#endif
+    "\"m=video 9 RTP/SAVPF 96\\n\" + \n"
     "\"c=IN IP4 LOCALADDRCSDP\\n\" + \n"
     "\"a=sendrecv\\n\" + \n"
 #if SDP_OFFER_VP8
     // see link below
-    "\"a=fmtp:120 max-fr=60; max-fs=64800; x-google-max-bitrate=720000; x-google-min-bitrate=3200;\\n\" + \n"
-#endif
+    "\"a=fmtp:96 max-fr=60; max-fs=64800;\\n\" + \n"
+#else
     // TODO: worth it to offer more mp4 profile-id? this was cribbed from chrome webrtc
     "\"a=fmtp:96 profile-level-id=" H264PROFILEHEX ";level-asymmetry-allowed=1\\n\" + \n"
+#endif
+    
     "\"a=ice-pwd:"ICE_PWD_WHEP"\\n\" + \n"
     "\"a=ice-ufrag:OFFERUFRAG\\n\" + \n"
     "\"a=candidate:1 1 UDP 1 LOCALADDRSDP typ host\\n\" + \n"
-    "\"a=setup:passive\\n\" + \n"
     "\"a=mid:sdparta_1\\n\" + \n"
     "\"a=msid:{7e5b1422-7cbe-3649-9897-864febd59342} {f46f496f-30aa-bd40-8746-47bda9150d23}\\n\" + \n"
-#if SDP_OFFER_VP8
-    "\"a=rtcp-fb:120 ccm fir pli" " nack""\\n\" + \n"
-#endif
-
+    "\"a=rtcp-fb:96 ccm fir pli nack""\\n\" + \n" // do we allow all these? spoofing client side here
     "\"a=rtcp-mux\\n\" + \n"
 #if SDP_OFFER_VP8
-    "\"a=rtpmap:120 VP8/90000\\n\" + \n"
-#endif
+    "\"a=rtpmap:96 VP8/90000\\n\" + \n" // AKA VP9 sometimes VP8
+#else
     "\"a=rtpmap:96 H264/90000\\n\" + \n"
-    "\"a=rtcp-fb:96 ccm fir\\n\" + \n"
-    "\"a=rtcp-fb:96 nack pli\\n\" + \n"
+#endif
+
+    "\"a=setup:actpass\\n\" + \n"
     "\"a=ssrc:OFFERSSRC2 cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\\n\"\n";
 
     char* offer_building, *offer_template = offer_template2;
@@ -957,6 +994,5 @@ static int PEER_INDEX(peer_session_t* ptr)
 {
     return (ptr - (&peers[0]));
 }
-
 
 #endif

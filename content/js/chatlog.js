@@ -55,11 +55,10 @@ function appendMessagesToUnorderedList(l, array) {
     // this prefix must match the one used in main.c so we can color chat-lines by their prefix
 
     str = str.replace(/\+/g, ' ');
-    while(offset < str.length && str.length > 0) {
+    while(offset < str.length) {
 
-      var lo = str.indexOf('server:');
-      if(lo < 0) {
-          let ss = str.substring(offset, offset+maxLen, lo);
+      if(!isItalic) {
+          let ss = str.substring(offset, offset+maxLen, 0);
           var listElem = appendMessageListElem(l, ss);
           listElem.style.cssText = 'color:' + textColor + '; ' + 'background-color:'+ bgColor + '; list-style-type:none;' + (isItalic ? ' font-style:italic; display:none;' : '');
 

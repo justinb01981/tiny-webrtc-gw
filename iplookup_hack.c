@@ -103,7 +103,7 @@ int stun_xor_addr(int sockfd,char * stun_server_ip,unsigned short stun_server_po
 unsigned char iplookup_addr[64] = {0};
 unsigned short iplookup_portnum;
 
-static const char *server = "173.194.193.127";
+static const char *server = "74.125.250.129"; //"173.194.193.127";
 
 const char* ip2LocationFetchIPV4Public(int sockfd)
 {
