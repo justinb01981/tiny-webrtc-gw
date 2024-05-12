@@ -1490,8 +1490,8 @@ peer[7] nobody525(watch)/800c:VvrT stats:,stun-RTTmsec=5,uptimesec=798,#cxn_work
         int signal_under = 
             peer->underrun_signal;
             
-            
-        // or buffers getting full arbitrarily
+        // TODO: or buffers getting full arbitrarily
+
 
         //printf("rate:%d\n", peer->buffer_count);
 
@@ -1581,9 +1581,9 @@ peer[7] nobody525(watch)/800c:VvrT stats:,stun-RTTmsec=5,uptimesec=798,#cxn_work
             if(Mthrottle > 0.0)
                 usleep(JIFFPENALTY(Mthrottle));
 
-            Mthrottle += Dthrottle;
+            Mthrottle = Mthrottle + Dthrottle;
 
-            Dthrottle = Dthrottle * 2 + 1;  // TODO: experimenting with bias towards more throttling, see above
+            Dthrottle = Dthrottle + 1;  // TODO: experimenting with bias towards more throttling, see above
 
             //if(peer->id == 0 && (Mthrottle < 20 || Mthrottle > 300)  )printf("Mt/Dt: %u (%f) %lu, (RR: %lu)\n", (unsigned) Mthrottle, Dthrottle, underrun_counter, peer->srtp[1].receiver_report_jitter_last);
 
@@ -1593,11 +1593,11 @@ peer[7] nobody525(watch)/800c:VvrT stats:,stun-RTTmsec=5,uptimesec=798,#cxn_work
         {
             underrun_counter += 1;
             Mthrottle = Mthrottle - Dthrottle;
-            Dthrottle = Dthrottle - 1;
+            Dthrottle = (Dthrottle  / 2)+1;
         }
 
-        if(Mthrottle > PEER_THROTTLE_MAX) Mthrottle = PEER_THROTTLE_MAX;
-        if(Mthrottle <= 0.0) { Mthrottle = PEER_THROTTLE_SANE_MIN; Dthrottle = PEER_THROTTLE_SANE_MIN; }
+        //if(Mthrottle > PEER_THROTTLE_MAX) Mthrottle = PEER_THROTTLE_MAX;
+        //if(Mthrottle <= 0.0) { Mthrottle = PEER_THROTTLE_SANE_MIN; Dthrottle = PEER_THROTTLE_SANE_MIN; }
         //if(Dthrottle < 0) Dthrottle = 0.1;
 
         // todo: ? avg recv rate in the stats window?

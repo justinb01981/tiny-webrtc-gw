@@ -792,7 +792,7 @@ webserver_worker(void* p)
                         // anonymous+watching-only peers use new slot
                         if(peer_found_via_cookie && strstr(*sdp, "a=recvonly") != NULL)
                         {
-                            assert(0); // peer_found_via is dead code
+                            //assert(0); // peer_found_via is dead code
                             peer_broadcast_from_cookie = peer_found_via_cookie->id;
                             peer_found_via_cookie = NULL;
                         }
