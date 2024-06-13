@@ -418,7 +418,7 @@ function joinPopupClose(connection, userName, recvOnlyChecked, roomName) {
 
     console.debug('joinPopupClose called4');
 
-    //window.parent.updateViewersLabelDEPRECATED(window.parent.peersList);
+    window.parent.updateViewersLabel();
 }
 
 function joinIframeOnLoadBroadcast() {

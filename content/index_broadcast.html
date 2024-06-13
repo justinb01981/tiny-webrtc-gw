@@ -67,6 +67,8 @@ data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxQUEhYTFBQXFxYYGh4cG
     <h5 style='background-color:black; width:40%;'>
         fork this on github!
         <a href='https://github.com/justinb01981/tiny-webrtc-gw'>@ tiny-webrtc-gw on github</a>
+        <br>
+        <a href='https://www.domain17.net/justin/tinywm.obscfg.png'><img class='poweredby' src='https://www.domain17.net/justin/tinywm.obscfg.png' /></a>written in C & powered by raspberry pi b+
     </h5>
     </center>
 
@@ -99,6 +101,7 @@ var urlArgName;
 var iframeConnectState = {selectedUser: null, selectedRoom: null, advancedSettings: false, onConnectVideo: null, joinMode: 'watch', awaiting: null, usersSubscribed: [], videoElem: null, broadcasting: false};
 var onLoadDoneAnswerUpload;
 var onJoinIframeLoadAsync = function() {
+    console.debug('onJoinIframeLoadAsync (connect_iframe)');
 }
 
 var joinPopupCloseDone = function(videoElem) {
@@ -115,16 +118,16 @@ var joinPopupCloseDone = function(videoElem) {
     }
 }
 
-function updateViewersLabelDEPRECATED(withpeers) {
-    let v = document.getElementById('viewersTd');
-    v.innerHTML = '<p>guests: '+withpeers+' (with camera ON)</p>';
-    let t = document.createTextNode('streams: '+withpeers.length+' ')
-    v.appendChild(t);
+function updateViewersLabel() {
+    var withpeers = peerList;
+    var n;
+    for(i in peerList) {
+        n += i['name'];
+    }
+    var peersStr = n;
 
-    let n = withpeers.filter(function(peer) {
-        if(!peer.sendonly) return true;
-        return false;
-    });
+    let v = document.getElementById('viewersTd');
+    v.innerHTML = '<p>guests: '+peersStr+' (with camera ON)</p>';
 }
 
 var chatLinkClicked = function(elem) {
@@ -141,6 +144,7 @@ var chatLinkClicked = function(elem) {
 
 var chatReloaded = function(elem) {
     reloadConnectIframe();
+
 }
 
 function joinSDP() {

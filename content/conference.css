@@ -13,17 +13,22 @@ select {
     font-size: larger;
 }
 
-td {
-    font-size: larger;
-}
 */
+td {
+    font-size: smaller;
+}
 
 body.outerBody {
     color: white;
     margin:8 8 8 8;
-    border-collapse: collapse;
+    border-collapse: scroll;
     height: 85%;
     width: 70%;
+    min-width: 640px;
+}
+
+body.chatBody {
+    text-size:smaller;
 }
 
 tr.videoCellRow {
@@ -34,7 +39,10 @@ td.videoCell {
 }
 
 td.chat {
+    /*
     width:30%;
+    */
+    min-width:350px;
 }
 
 td.tdPresenter {
@@ -51,7 +59,7 @@ table.mainTable {
     background-repeat:no-repeat;
     background-size:100%;
     background-blend-mode: soft-light;
-    font-size:larger;
+    font-size:smaller;
     position:relative;
     height:100%;
 }
@@ -102,7 +110,7 @@ p.videoLabel {
 div.localPreview {
     position:fixed;
     top:3%;
-    left:60%;
+    left:3%;
     width:5%;
     height:15%;
 }
@@ -195,6 +203,11 @@ img.joinButtonVisible {
 
 img.joinButtonNotVisible {
     display:none;
+}
+
+img.poweredby {
+    width:32px;
+    height:32px;
 }
 
 button.retryButton {
