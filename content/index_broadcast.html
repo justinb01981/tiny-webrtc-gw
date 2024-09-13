@@ -118,16 +118,18 @@ var joinPopupCloseDone = function(videoElem) {
     }
 }
 
-function updateViewersLabel() {
-    var withpeers = peerList;
-    var n;
-    for(i in peerList) {
-        n += i['name'];
+function updateViewersLabel(arg) {
+    var withpeers = arg;
+    var n = ' ';
+
+    for(i in withpeers) {
+        let P = withpeers[i];
+        n += P['name'] + ', ';
     }
     var peersStr = n;
 
     let v = document.getElementById('viewersTd');
-    v.innerHTML = '<p>guests: '+peersStr+' (with camera ON)</p>';
+    v.innerHTML = '<p>guests: '+peersStr+'</p>';
 }
 
 var chatLinkClicked = function(elem) {

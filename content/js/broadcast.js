@@ -418,11 +418,13 @@ function joinPopupClose(connection, userName, recvOnlyChecked, roomName) {
 
     console.debug('joinPopupClose called4');
 
-    window.parent.updateViewersLabel();
+    window.parent.updateViewersLabel(window.parent.peerList);
 }
 
 function joinIframeOnLoadBroadcast() {
     console.debug('joinIframeOnLoadBroadcast');
+
+    window.parent.updateViewersLabel(window.parent.peerList);
 
     var connIFrameState = window.iframeConnectState;
 
