@@ -247,9 +247,10 @@ webserver_worker(void* p)
     char *page_buf_redirect_back = "<html><body onload='location=\"/content/chat.html\";'>redirecting...</body></html>";
     char *page_buf_redirect_subscribe = "<html><body onload='location=\"/content/iframe_channel.html\";'>redirecting...</body></html>";
     char *page_buf_slotbusy = "<html><body onload='window.location=\"content/uploadDone.html\";'><p>peer connection resources busy - please try again</p></body></html>";
-    char *ok_hdr_ok = "HTTP/1.0 200 OK\r\n", *ok_hdr = ok_hdr_ok;
-    char *accepted_hdr = "HTTP/1.0 201 Created\r\n";
-    char *fail_hdr = "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n";
+    char *ok_hdr_ok = "HTTP/1.1 200 OK\r\n", *ok_hdr = ok_hdr_ok;
+    char *cont_hdr_ok = "HTTP/1.1 100 Continue\r\n\r\n", *cont_hdr = /*cont_hdr_ok*/NULL;
+    char *accepted_hdr = "HTTP/1.1 201 Created\r\n";
+    char *fail_hdr = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
     char *content_type_html = "Content-Type: text/html\r\n\r\n";
     char *content_type_sdp = "Content-Type: application/sdp\r\n\r\n";
     char *content_type = content_type_html;
@@ -332,7 +333,9 @@ webserver_worker(void* p)
                 }
 
                 r = recv(sock, roff, recv_left, flags);
-                if(r <= 0) break;
+                if(r <= 0) {
+                    break;
+                }
 
                 const char *cookietoken;
                 char* pcookie;
@@ -356,7 +359,24 @@ webserver_worker(void* p)
                 }
 
                 char* phdr_end = strstr(recvbuf, "\r\n\r\n");
-                if(phdr_end && content_len == 0) break;
+                if(phdr_end) {
+                    // TODO: handling WHIP from ffmpeg which sends chunked encoding no content-length
+                    if(content_len == 0) {
+                        if(cont_hdr) {
+                            // 100 Continue
+                            printf("sending 100 Continue..\n");
+                            send(sock, cont_hdr, strlen(cont_hdr), flags);
+                            cont_hdr = NULL;
+
+                            // consume buffer and re-read next http requestr
+                            memset(recvbuf, 0, buf_size);
+                            continue;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                }
 
                 roff += r; 
                 recv_left -= r;

@@ -87,7 +87,10 @@ extern char* dtls_fingerprint;
 extern const char* webserver_get_localaddr(void);
 
 // TODO: artififially low to smooth jitter calculations and prevent bursts + more fairly schedule?
-#define RECVMSG_NUM (128)
+#define RECVMSG_NUM (16)
+// jb: 128 too high (BUFFERS FULL frequent at 4500kbit h264 initially)
+
+
 
 //
 // -- fwiw i have never seen the buffers used go beyond 64 at 12mbitsec  on wifi on my pi 4
@@ -706,10 +709,12 @@ static const char* sdp_whep_answer_create(char* off)
      a=rtcp-mux
      */
 #if SDP_OFFER_VP8 
-    "a=fmtp:96 max-fr=60; max-fs=64800; x-google-max-bitrate=720000; x-google-min-bitrate=3200;\n"
     "a=rtpmap:96 VP8/90000\n"
+    "a=rtcp-fb:96 goog-remb\n"
+    "a=rtcp-fb:96 transport-cc\n"
+    "a=rtcp-fb:96 ccm fir\n"
+    "a=rtcp-fb:96 nack\n"
     "a=rtcp-fb:96 nack pli\n"
-    //a=rtcp-fb:96 nack pli
 #else
     "a=rtpmap:96 H264/90000\n"
     "a=fmtp:96 profile-level-id="H264PROFILEHEX";level-asymmetry-allowed=1\n"
@@ -784,27 +789,26 @@ static const char* sdp_offer_create(void)
     "\"m=video 9 RTP/SAVPF 96\\n\" + \n"
     "\"c=IN IP4 LOCALADDRCSDP\\n\" + \n"
     "\"a=sendrecv\\n\" + \n"
-#if SDP_OFFER_VP8
-    // see link below
-    "\"a=fmtp:96 max-fr=60; max-fs=64800;\\n\" + \n"
-#else
-    // TODO: worth it to offer more mp4 profile-id? this was cribbed from chrome webrtc
-    "\"a=fmtp:96 profile-level-id=" H264PROFILEHEX ";level-asymmetry-allowed=1\\n\" + \n"
-#endif
-    
     "\"a=ice-pwd:"ICE_PWD_WHEP"\\n\" + \n"
     "\"a=ice-ufrag:OFFERUFRAG\\n\" + \n"
     "\"a=candidate:1 1 UDP 1 LOCALADDRSDP typ host\\n\" + \n"
     "\"a=mid:sdparta_1\\n\" + \n"
     "\"a=msid:{7e5b1422-7cbe-3649-9897-864febd59342} {f46f496f-30aa-bd40-8746-47bda9150d23}\\n\" + \n"
-    "\"a=rtcp-fb:96 ccm fir pli nack""\\n\" + \n" // do we allow all these? spoofing client side here
     "\"a=rtcp-mux\\n\" + \n"
 #if SDP_OFFER_VP8
     "\"a=rtpmap:96 VP8/90000\\n\" + \n" // AKA VP9 sometimes VP8
+    // https://pastebin.com/raw/2EwuU38g -- safari sdp offer payload
+    "\"a=rtcp-fb:96 goog-remb transport-cc ccm fir nack pli\\n\" + \n" // do we allow all these? spoofing client side here
+    //"\"a=fmtp:96 max-fr=60; max-fs=64800; x-google-max-bitrate=720000; x-google-min-bitrate=3200;\\n\" + \n"
 #else
     "\"a=rtpmap:96 H264/90000\\n\" + \n"
+    "\"a=rtcp-fb:96 goog-remb transport-cc ccm fir nack pli""\\n\" + \n" // do we allow all these? spoofing client side here
+    "\"a=fmtp:96 profile-level-id=" H264PROFILEHEX ";level-asymmetry-allowed=1\\n\" + \n"
 #endif
 
+#if SDP_OFFER_VP8
+#else
+#endif
     "\"a=setup:actpass\\n\" + \n"
     "\"a=ssrc:OFFERSSRC2 cname:{5f2c7e38-d761-f64c-91f4-682ab07ec727}\\n\"\n";
 

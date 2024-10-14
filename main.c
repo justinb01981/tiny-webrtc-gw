@@ -1084,8 +1084,9 @@ connection_worker(void* p)
                                     //  tell peer of underrun
 
 
-                                    peerpub->underrun_signal = 1;
-                                    peerpub->underrun_last = get_time_ms();
+                                    //peerpub->underrun_signal = 0;
+                                    //Mthrottle /= 10; Dthrottle = 1;
+                                    //peerpub->underrun_last = get_time_ms()-120;
 
                                     printf("WARN: peer reports stream underrun (pkt loss or jitter) throttle:%f\n", Mthrottle);
 
@@ -1096,6 +1097,7 @@ connection_worker(void* p)
                                     // TODO: flush faster? slower? usually here because of an underrun that happened at peer
                                     //Mthrottle = Mthrottle*2 + 1;
                                     //Dthrottle = 1;
+                                    peer->underrun_signal = 1;
                                 }
 
                                 peer->srtp[report_rtp_idx].pkt_lost = rpt_pkt_lost;
@@ -1573,7 +1575,7 @@ peer[7] nobody525(watch)/800c:VvrT stats:,stun-RTTmsec=5,uptimesec=798,#cxn_work
             
             // TODO: really the underrun-penalty is what ought to be be adjusted here
             floor(PEER_RECV_BUFFER_COUNT_MS/Mthrottle) 
-            //|| (underrun_counter > Mthrottle)
+            || (underrun_counter > 8)
         )
         {
             peer->underrun_signal = 0;
@@ -1593,695 +1595,695 @@ peer[7] nobody525(watch)/800c:VvrT stats:,stun-RTTmsec=5,uptimesec=798,#cxn_work
         {
             underrun_counter += 1;
             Mthrottle = Mthrottle - Dthrottle;
-            Dthrottle = (Dthrottle  / 2)+1;
+            Dthrottle = (Dthrottle  / 2);
         }
 
         //if(Mthrottle > PEER_THROTTLE_MAX) Mthrottle = PEER_THROTTLE_MAX;
         //if(Mthrottle <= 0.0) { Mthrottle = PEER_THROTTLE_SANE_MIN; Dthrottle = PEER_THROTTLE_SANE_MIN; }
-        //if(Dthrottle < 0) Dthrottle = 0.1;
+            //if(Dthrottle < 0) Dthrottle = 0.1;
 
-        // todo: ? avg recv rate in the stats window?
-    }
-
-    //assert(peer->id == peerid_at_start);
-    peer->running = 0;
-    printf("%s:%d connection_worker exiting peer_id: %d\n", __FILE__, __LINE__, peer->id);
-    return NULL;
-}
-
-void bogus_srtp_event_handler(struct srtp_event_data_t* data)
-{
-}
-
-void bogus_sigpipe_handler(int sig)
-{
-}
-
-void sigint_handler(int sig)
-{
-    printf("terminating process....\n");
-    terminated = 1;
-}
-
-void cb_disconnect(peer_session_t* p) {
-    printf("cb_disconnect! peer:%02x %d\n", (void*) p, p->id);
-
-    // everything unnecessary here since peer is already re-inited
-    // but in cb_restart the callback can decide whether to alive
-    //p->alive = 0; // unnecessary
-    //memset(&p->stun_ice, 0, sizeof(p->stun_ice));
-    //p->stun_ice.bound = p->stun_ice.bound_client = 0; // already done as well
-    p->time_pkt_last = 0;
-    p->alive = 0;
-
-    p->in_buffers_head.tail = p->in_buffers_head.next;
-    p->in_buffers_head.tail->len = 0;
-}
-
-
-int main( int argc, char* argv[] ) {
-    static int i = 0;
-    struct sockaddr_in src;
-    struct sockaddr_in dst;
-    struct sockaddr_in ret;
-    char strbuf[2048];
-    peer_buffer_node_t* node = NULL;
-    struct sockaddr_in addr;
-    struct mmsghdr msgs[RECVMSG_NUM];
-    struct iovec iovecs[RECVMSG_NUM];
-    char bufs[RECVMSG_NUM][PEER_BUFFER_NODE_BUFLEN];
-    struct sockaddr_in msg_name[RECVMSG_NUM];
-    int msg_recv_count = 0;
-    int msg_recv_offset = 0;
-    int epoll_fd = -1;
-    struct epoll_event ep_events[RECVMSG_NUM];
-    peer_buffer_node_t* cur;
-
-    FILE* fp = fopen("webrtc_gw.log", "w+");
-    //freopen(STDIN, fp);
-
-    DTLS_init();
-
-    thread_init();
-
-    int peersLen = 0;
-    pthread_t thread_webserver;
-
-    signal(SIGINT, sigint_handler);
-
-    memset(g_chatlog, 0, sizeof(g_chatlog));
-    chatlog_reload();
-    chatlog_append("\n");
-
-    for(i = 0; i < MAX_PEERS; i++) {
-        memset(&peers[i], 0, sizeof(peer_session_t));
-    }
-
-    FILECACHE_INIT();
-
-    get_sdp_idx_init();
-
-    srtp_init();
-    srtp_install_event_handler(bogus_srtp_event_handler);
-    
-    memset(&sdp_offer_table, 0, sizeof(sdp_offer_table));
-
-    strcpy(udpserver.inip, "0.0.0.0"); // for now bind to all interfaces
-    udpserver.sock_buffer_size = strToULong(get_config("udpserver_sock_buffer_size="));
-    udpserver.inport = strToULong(get_config("udpserver_port="));
-
-    if(strlen(get_config("udpserver_addr=")) <= 0)
-    {
-        int disc_sock = bindsocket("0.0.0.0", udpserver.inport, 0);
-
-        printf("udpsever_addr unconfigured (edit config.txt with this servers public IP address and port unless using stun.l.google.com to discover (experimental)\n");
-
-        // pause to detect local ip via stun (so this server takes no configuration for most folks I hope)
-        printf("detecting local ip...\n");
-        strcpy(strbuf, ip2LocationFetchIPV4Public(disc_sock));
-        // must rely on stun port 3478 being NAT forwarded to this host but STUN discovery here won't reveal that so ignore it
-        udpserver.inport = ip2LocationFetchIPV4PublicPort(disc_sock); 
-
-        close(disc_sock);
-    }
-    else
-    {
-        strcpy(iplookup_addr, get_config("udpserver_addr="));
-    }
-
-    strcpy(webserver.inip, udpserver.inip);
-    
-    listen_port_base = udpserver.inport;
-    int common_sock = bindsocket(udpserver.inip, listen_port_base, 0); // just cloned below
-    
-    epoll_fd = epoll_create1(0);
-    if(epoll_fd == -1) return;
-
-    peers[0].sock = common_sock;
-    peers[0].port = listen_port_base;
-
-    for(i = 0; i < MAX_PEERS; i++)
-    {
-        struct epoll_event ep_event;
-
-        peers[i].sock = peers[0].sock;
-        peers[i].port = listen_port_base;
-
-        ep_event.events = EPOLLIN;
-        ep_event.data.fd = peers[i].sock;
-        if(i == 0 && epoll_ctl(epoll_fd, EPOLL_CTL_ADD, peers[i].sock, &ep_event) != 0)
-        {
-            printf("epoll_ctl got error %s\n", strerror(errno));
-            exit(0);
+            // todo: ? avg recv rate in the stats window?
         }
 
-
-        // init each peers buffers _once_
-        peer_buffers_init(&peers[i]);
+        //assert(peer->id == peerid_at_start);
+        peer->running = 0;
+        printf("%s:%d connection_worker exiting peer_id: %d\n", __FILE__, __LINE__, peer->id);
+        return NULL;
     }
 
-    ret.sin_addr.s_addr = 0;
-    
-    DTLS_sock_init(udpserver.inport);
-
-    webserver_init();
-    pthread_create(&thread_webserver, NULL, webserver_accept_worker, NULL);
-
-    DEBUG_INIT();
-
-    for (i = 0; i < MAX_PEERS; i++)
+    void bogus_srtp_event_handler(struct srtp_event_data_t* data)
     {
-        pthread_mutex_init(&peers[i].mutex, NULL);
-        pthread_cond_init(&peers[i].mcond, NULL);
-        peer_buffers_init(&peers[i]);
-        peers[i].id = i;
     }
 
-    // prepare iovecs
-    memset(msgs, 0, sizeof(msgs));
-    for (i = 0; i < RECVMSG_NUM; i++) 
+    void bogus_sigpipe_handler(int sig)
     {
-        iovecs[i].iov_base         = bufs[i];
-        iovecs[i].iov_len          = PEER_BUFFER_NODE_BUFLEN;
-        msgs[i].msg_hdr.msg_iov    = &iovecs[i];
-        msgs[i].msg_hdr.msg_iovlen = 1;
-        msgs[i].msg_hdr.msg_name   = &msg_name[i];
-        msgs[i].msg_hdr.msg_namelen= sizeof(struct sockaddr_in);
     }
 
-    /* the main thread loop processing data from peer sockets and enqueueing for /*connection_worker*/
-    while(!terminated)
+    void sigint_handler(int sig)
     {
-        PERFTIME_BEGIN(PERFTIMER_MAIN_LOOP);
+        printf("terminating process....\n");
+        terminated = 1;
+    }
 
-        unsigned int size;
-        int recv_flags = 0;
-        //struct timeval te;
-        unsigned long time_ms = get_time_ms();
-        wall_time = time(NULL);
-        char *buffer;
-        int sidx = -1;
+    void cb_disconnect(peer_session_t* p) {
+        printf("cb_disconnect! peer:%02x %d\n", (void*) p, p->id);
 
-        //gettimeofday(&te, NULL); // get current time
+        // everything unnecessary here since peer is already re-inited
+        // but in cb_restart the callback can decide whether to alive
+        //p->alive = 0; // unnecessary
+        //memset(&p->stun_ice, 0, sizeof(p->stun_ice));
+        //p->stun_ice.bound = p->stun_ice.bound_client = 0; // already done as well
+        p->time_pkt_last = 0;
+        p->alive = 0;
+
+        p->in_buffers_head.tail = p->in_buffers_head.next;
+        p->in_buffers_head.tail->len = 0;
+    }
+
+
+    int main( int argc, char* argv[] ) {
+        static int i = 0;
+        struct sockaddr_in src;
+        struct sockaddr_in dst;
+        struct sockaddr_in ret;
+        char strbuf[2048];
+        peer_buffer_node_t* node = NULL;
+        struct sockaddr_in addr;
+        struct mmsghdr msgs[RECVMSG_NUM];
+        struct iovec iovecs[RECVMSG_NUM];
+        char bufs[RECVMSG_NUM][PEER_BUFFER_NODE_BUFLEN];
+        struct sockaddr_in msg_name[RECVMSG_NUM];
+        int msg_recv_count = 0;
+        int msg_recv_offset = 0;
+        int epoll_fd = -1;
+        struct epoll_event ep_events[RECVMSG_NUM];
+        peer_buffer_node_t* cur;
+
+        FILE* fp = fopen("webrtc_gw.log", "w+");
+        //freopen(STDIN, fp);
+
+        DTLS_init();
+
+        thread_init();
+
+        int peersLen = 0;
+        pthread_t thread_webserver;
+
+        signal(SIGINT, sigint_handler);
+
+        memset(g_chatlog, 0, sizeof(g_chatlog));
+        chatlog_reload();
+        chatlog_append("\n");
+
+        for(i = 0; i < MAX_PEERS; i++) {
+            memset(&peers[i], 0, sizeof(peer_session_t));
+        }
+
+        FILECACHE_INIT();
+
+        get_sdp_idx_init();
+
+        srtp_init();
+        srtp_install_event_handler(bogus_srtp_event_handler);
         
-        static time_t time_last_stats = 0;
-        
-        // TODO: move this to a new thread and/or read stdin before printing
-        if(wall_time - time_last_stats >= 5)
+        memset(&sdp_offer_table, 0, sizeof(sdp_offer_table));
+
+        strcpy(udpserver.inip, "0.0.0.0"); // for now bind to all interfaces
+        udpserver.sock_buffer_size = strToULong(get_config("udpserver_sock_buffer_size="));
+        udpserver.inport = strToULong(get_config("udpserver_port="));
+
+        if(strlen(get_config("udpserver_addr=")) <= 0)
         {
-            /* print counters */
-            int c;
-            
-            for(c = 0; c < sizeof(counts)/sizeof(int); c++) printf("%s:%d ", counts_names[c], counts[c]);
-            printf("time=%lu", time_ms);
-            printf("\n");
-            time_last_stats = time(NULL);
-            
-            for(c = 0; c < MAX_PEERS; c++)
+            int disc_sock = bindsocket("0.0.0.0", udpserver.inport, 0);
+
+            printf("udpsever_addr unconfigured (edit config.txt with this servers public IP address and port unless using stun.l.google.com to discover (experimental)\n");
+
+            // pause to detect local ip via stun (so this server takes no configuration for most folks I hope)
+            printf("detecting local ip...\n");
+            strcpy(strbuf, ip2LocationFetchIPV4Public(disc_sock));
+            // must rely on stun port 3478 being NAT forwarded to this host but STUN discovery here won't reveal that so ignore it
+            udpserver.inport = ip2LocationFetchIPV4PublicPort(disc_sock); 
+
+            close(disc_sock);
+        }
+        else
+        {
+            strcpy(iplookup_addr, get_config("udpserver_addr="));
+        }
+
+        strcpy(webserver.inip, udpserver.inip);
+        
+        listen_port_base = udpserver.inport;
+        int common_sock = bindsocket(udpserver.inip, listen_port_base, 0); // just cloned below
+        
+        epoll_fd = epoll_create1(0);
+        if(epoll_fd == -1) return;
+
+        peers[0].sock = common_sock;
+        peers[0].port = listen_port_base;
+
+        for(i = 0; i < MAX_PEERS; i++)
+        {
+            struct epoll_event ep_event;
+
+            peers[i].sock = peers[0].sock;
+            peers[i].port = listen_port_base;
+
+            ep_event.events = EPOLLIN;
+            ep_event.data.fd = peers[i].sock;
+            if(i == 0 && epoll_ctl(epoll_fd, EPOLL_CTL_ADD, peers[i].sock, &ep_event) != 0)
             {
-                if(peers[c].alive)
+                printf("epoll_ctl got error %s\n", strerror(errno));
+                exit(0);
+            }
+
+
+            // init each peers buffers _once_
+            peer_buffers_init(&peers[i]);
+        }
+
+        ret.sin_addr.s_addr = 0;
+        
+        DTLS_sock_init(udpserver.inport);
+
+        webserver_init();
+        pthread_create(&thread_webserver, NULL, webserver_accept_worker, NULL);
+
+        DEBUG_INIT();
+
+        for (i = 0; i < MAX_PEERS; i++)
+        {
+            pthread_mutex_init(&peers[i].mutex, NULL);
+            pthread_cond_init(&peers[i].mcond, NULL);
+            peer_buffers_init(&peers[i]);
+            peers[i].id = i;
+        }
+
+        // prepare iovecs
+        memset(msgs, 0, sizeof(msgs));
+        for (i = 0; i < RECVMSG_NUM; i++) 
+        {
+            iovecs[i].iov_base         = bufs[i];
+            iovecs[i].iov_len          = PEER_BUFFER_NODE_BUFLEN;
+            msgs[i].msg_hdr.msg_iov    = &iovecs[i];
+            msgs[i].msg_hdr.msg_iovlen = 1;
+            msgs[i].msg_hdr.msg_name   = &msg_name[i];
+            msgs[i].msg_hdr.msg_namelen= sizeof(struct sockaddr_in);
+        }
+
+        /* the main thread loop processing data from peer sockets and enqueueing for /*connection_worker*/
+        while(!terminated)
+        {
+            PERFTIME_BEGIN(PERFTIMER_MAIN_LOOP);
+
+            unsigned int size;
+            int recv_flags = 0;
+            //struct timeval te;
+            unsigned long time_ms = get_time_ms();
+            wall_time = time(NULL);
+            char *buffer;
+            int sidx = -1;
+
+            //gettimeofday(&te, NULL); // get current time
+            
+            static time_t time_last_stats = 0;
+            
+            // TODO: move this to a new thread and/or read stdin before printing
+            if(wall_time - time_last_stats >= 5)
+            {
+                /* print counters */
+                int c;
+                
+                for(c = 0; c < sizeof(counts)/sizeof(int); c++) printf("%s:%d ", counts_names[c], counts[c]);
+                printf("time=%lu", time_ms);
+                printf("\n");
+                time_last_stats = time(NULL);
+                
+                for(c = 0; c < MAX_PEERS; c++)
                 {
-                    printf("peer[%d] %s%s/%s:%s stats:", c, peers[c].name, peers[c].recv_only ? "" : "       ",
-                        peers[c].stun_ice.ufrag_offer, peers[c].stun_ice.ufrag_answer);
-                    
-                    peers[c].stats.stat[0] = peers[c].stun_ice.bind_req_rtt;
-                    peers[c].stats.stat[1] = wall_time - peers[c].time_start;
-                    
-                    int si;
-                    for(si = 0; si < sizeof(peers[c].stats)/sizeof(peers[c].stats.stat[0]); si++)
+                    if(peers[c].alive)
                     {
-                        printf(",%s=%lu", peer_stat_names[si], peers[c].stats.stat[si]);
+                        printf("peer[%d] %s%s/%s:%s stats:", c, peers[c].name, peers[c].recv_only ? "" : "       ",
+                            peers[c].stun_ice.ufrag_offer, peers[c].stun_ice.ufrag_answer);
+                        
+                        peers[c].stats.stat[0] = peers[c].stun_ice.bind_req_rtt;
+                        peers[c].stats.stat[1] = wall_time - peers[c].time_start;
+                        
+                        int si;
+                        for(si = 0; si < sizeof(peers[c].stats)/sizeof(peers[c].stats.stat[0]); si++)
+                        {
+                            printf(",%s=%lu", peer_stat_names[si], peers[c].stats.stat[si]);
+                        }
+                        printf("\n");
+                        DIAG_PEER(&peers[c]);
                     }
-                    printf("\n");
-                    DIAG_PEER(&peers[c]);
+                }
+                
+                printf("last log:\n%s\n", counts_log);
+                counts_log[0] = '\0';
+            }
+
+            // check socket for new data
+            int length = 0;
+            if(msg_recv_count == 0)
+            {
+                PERFTIME_BEGIN(PERFTIMER_SELECT);
+
+                msg_recv_offset = 0;
+
+                int event_count = epoll_wait(epoll_fd, ep_events, RECVMSG_NUM, EPOLL_TIMEOUT_MS);
+                if(event_count <= 0)
+                {
+                    PERFTIME_END(PERFTIMER_SELECT);
+                    if(event_count < 0) printf("epoll_wait got error: %s\n", strerror(errno));
+                    goto select_timeout;
+                }
+
+                PERFTIME_END(PERFTIMER_SELECT);
+
+                PERFTIME_BEGIN(PERFTIMER_RECV);
+
+                int bytes = 0;
+                i = 0;
+                while(i < event_count && msg_recv_count < RECVMSG_NUM)
+                {
+                    int p;
+                    int sck = -1;
+
+                    sck = ep_events[i].data.fd;
+                    
+                    int navail = RECVMSG_NUM-msg_recv_count;
+                    if(navail <= 0) {
+                        printf("ERROR: no room to call recvmmsg, epoll buffers all full\n");
+                        break;
+                    }
+       
+                    int result = recvmmsg(sck, msgs+msg_recv_count, navail, MSG_DONTWAIT, NULL);
+                    if(result < 0)
+                    {
+                        printf("recvmmsg: error %s\n", strerror(errno));
+                        i++;
+                        continue;
+                    }
+
+                    msg_recv_count += result;
+
+                    //if(msg_recv_count > 1) printf("recvmmsg got packets: %d\n", msg_recv_count);
+                    i++;
+                }
+
+                PERFTIME_END(PERFTIMER_RECV);
+                goto select_timeout;
+            }
+            else
+            {
+                PERFTIME_BEGIN(PERFTIMER_PROCESS_BUFFER);
+
+                assert(msg_recv_offset/2 < RECVMSG_NUM); // dont think it ever happens
+
+                buffer = bufs[msg_recv_offset];
+                memcpy(&src, msgs[msg_recv_offset].msg_hdr.msg_name, msgs[msg_recv_offset].msg_hdr.msg_namelen);
+                length = msgs[msg_recv_offset].msg_len;
+                msg_recv_offset++;
+                msg_recv_count--;
+            }
+
+            /* find which peer sent this packet */
+            for(i = 0; i < MAX_PEERS; i++)
+            {
+                if(peers[i].alive &&
+                   (src.sin_addr.s_addr == peers[i].addr.sin_addr.s_addr &&
+                    src.sin_port == peers[i].addr.sin_port))
+                {
+                    sidx = i;
+                    //printf("incoming: (%s:%d) / %d\n",inet_ntoa(src.sin_addr), ntohs(src.sin_port),  sidx);
+                    peers[sidx].time_pkt_last = get_time_ms();
+                    break;
                 }
             }
-            
-            printf("last log:\n%s\n", counts_log);
-            counts_log[0] = '\0';
-        }
 
-        // check socket for new data
-        int length = 0;
-        if(msg_recv_count == 0)
-        {
-            PERFTIME_BEGIN(PERFTIMER_SELECT);
-
-            msg_recv_offset = 0;
-
-            int event_count = epoll_wait(epoll_fd, ep_events, RECVMSG_NUM, EPOLL_TIMEOUT_MS);
-            if(event_count <= 0)
+            /* if peer has not started STUN negotiation */
+            while(sidx == -1)
             {
-                PERFTIME_END(PERFTIMER_SELECT);
-                if(event_count < 0) printf("epoll_wait got error: %s\n", strerror(errno));
+                int p;
+                char stun_uname[64];
+                char stun_uname_expected[64];
+                int nalive = 0;
+
+                stun_username(buffer, length, stun_uname);
+
+                // TODO: -- i think this is dead code
+                /* webserver has created a "pending" peer with stun fields set based on SDP */
+                for(p = 0; strlen(stun_uname) > 1 && p < MAX_PEERS; p++)
+                {
+                    char* stunA = peers[p].stun_ice.ufrag_offer, *stunO = peers[p].stun_ice.ufrag_answer;
+
+                    sprintf(stun_uname_expected, "%s:%s",
+                            stunA,
+                            stunO);
+
+                    if(strlen(stun_uname_expected) > 0 &&
+                        strncmp(stun_uname_expected, stun_uname, strlen(stun_uname_expected)) == 0)
+                    {
+                        sidx = p;
+                        printf("stun_locate: found peer %s has uname: %s\n", peers[sidx].name, stun_uname);
+                        peers[p].time_pkt_last = time_ms;
+                        break;
+                    }
+                    else
+                    {
+                        //printf("stun_locate: \"%s\" != \"%s\"\n", stun_uname, stun_uname_expected);
+                    }
+                }
+
+                if(sidx == -1)
+                {
+                    counts[1]++;
+                    sprintf(counts_log, "ICE binding request: peer matching user-fragment (%s) and _alive_ not found\n", stun_uname);
+                    break;
+                }
+
+                // here we are PEER_LOCKED(sidx)
+
+                // mark -- init new peer
+                printf("[%d] STUN bound + adding %s:%d\n", sidx,
+                       inet_ntoa(src.sin_addr), ntohs(src.sin_port));
+
+                peers[sidx].addr = src;
+                peers[sidx].addr_listen = bindsocket_addr_last;
+                peers[sidx].stunID32 = stunID(buffer, length);
+                peers[sidx].fwd = MAX_PEERS;
+
+                DTLS_peer_init(&peers[sidx]);
+
+                peers[sidx].cleartext.len = 0;
+
+                peers[sidx].alive = 1;
+
+                counts[6]++;
+                PEER_UNLOCK(sidx);
+            }
+            
+            if(sidx < 0) {
                 goto select_timeout;
             }
 
-            PERFTIME_END(PERFTIMER_SELECT);
+            // MARK: -- add to the read-ll for cxn_worker
 
-            PERFTIME_BEGIN(PERFTIMER_RECV);
+            // now sending peer is known, enqueue it for that peers connection_worker thread        
+            PEER_LOCK(sidx);
 
-            int bytes = 0;
-            i = 0;
-            while(i < event_count && msg_recv_count < RECVMSG_NUM)
+            if(peers[sidx].init_needed) {
+                PEER_UNLOCK(sidx);
+                goto select_timeout;
+            }
+            
+            node = peers[sidx].in_buffers_head.tail;
+
+            if(!node)
             {
-                int p;
-                int sck = -1;
+                // TODO: very hard to do but I did hit the below assert when this happened so
+                peers[sidx].in_buffers_head.tail = peers[sidx].in_buffers_head.next;
+                printf("epoll_memcpy: in_buffers_head.tail = 0!  (TODO: SHOULDNT HAPPEN unless this is a tolerable race cond?)\n");
+                PEER_UNLOCK(sidx);
+                goto select_timeout;
+            }
 
-                sck = ep_events[i].data.fd;
+            // sanity check
+            assert(/*node->len == 0 &&*/ node->next != node);
+
+            //printf("peer[%d] used buffers:%d\n", peers[sidx.id, used);
+                    
+            //printf("enqueueing: peer[%d] len:%d\n", sidx, node->len);
+
+            peers[sidx].stats.stat[5] += 1;
+
+            if(node->len > 0) { // todo just check buffer avail count?
+                PEER_UNLOCK(sidx);
+                printf("peer buffers:[%d] FULL warning frames lost\n", sidx);
+                length = 0;
+                goto select_timeout;
+            }
+
+            node->recv_time = node->timestamp = time_ms;
+
+            peers[sidx].in_buffers_head.tail = node->next;
+
+            // TODO: avoid this memcpy by having separate msgs buffers for each peer
+            memcpy(node->buf, buffer, length);
+            node->id = sidx;
+            node->len = length;
+
+            if(length > 0) peers[sidx].buffer_count -= 1;
+
+            cur = &peers[sidx].in_buffers_head.next;
+
+            peer_buffer_node_t** ptail = &(peers[sidx].in_buffers_head.tail);
+            *ptail = (*ptail)->next;
+
+            if((*ptail)->len > 0)
+            {
+                // out of room, drop
                 
-                int navail = RECVMSG_NUM-msg_recv_count;
-                if(navail <= 0) {
-                    printf("ERROR: no room to call recvmmsg, epoll buffers all full\n");
-                    break;
+                //printf("peer buffers:[%d] FULL warning frames lost\n", sidx);
+                (*ptail)->len = 0;
+                *ptail = cur->next;
+                peers[sidx].buffer_count += 1;
+                PEER_UNLOCK(sidx);
+                goto select_timeout;
+            }
+
+            //assert(cur != node && peers[sidx].in_buffers_head.rnext != NULL && peers[sidx].in_buffers_head.rnext != &peers[sidx].in_buffers_head);
+
+            // end of processing pkt
+            PEER_UNLOCK(sidx);
+
+            if(msg_recv_count > 0)
+            {
+                continue;
+            }
+
+            // no mutex should be held now...
+            select_timeout:
+
+            // HACKHACKHACK: adding a sleep here? this appears to help avoid context switching so much (or, im just keeping this around for posterity)
+            //sleep_msec(/*EPOLL_TIMEOUT_MS*/1);
+
+            // MARK: -- house-keeping of peers connection state
+            i = 0;
+            while(i < MAX_PEERS)
+            {
+                if(peers[i].init_needed) {
+                    PEER_LOCK(i);
+                    goto peer_prep;
                 }
-   
-                int result = recvmmsg(sck, msgs+msg_recv_count, navail, MSG_DONTWAIT, NULL);
-                if(result < 0)
+
+                if(!peers[i].alive) // I dont give a fuck bout no dead-ass threads bitch
                 {
-                    printf("recvmmsg: error %s\n", strerror(errno));
+                    // gtfo
                     i++;
                     continue;
                 }
 
-                msg_recv_count += result;
+                PEER_LOCK(i);
 
-                //if(msg_recv_count > 1) printf("recvmmsg got packets: %d\n", msg_recv_count);
-                i++;
-            }
-
-            PERFTIME_END(PERFTIMER_RECV);
-            goto select_timeout;
-        }
-        else
-        {
-            PERFTIME_BEGIN(PERFTIMER_PROCESS_BUFFER);
-
-            assert(msg_recv_offset/2 < RECVMSG_NUM); // dont think it ever happens
-
-            buffer = bufs[msg_recv_offset];
-            memcpy(&src, msgs[msg_recv_offset].msg_hdr.msg_name, msgs[msg_recv_offset].msg_hdr.msg_namelen);
-            length = msgs[msg_recv_offset].msg_len;
-            msg_recv_offset++;
-            msg_recv_count--;
-        }
-
-        /* find which peer sent this packet */
-        for(i = 0; i < MAX_PEERS; i++)
-        {
-            if(peers[i].alive &&
-               (src.sin_addr.s_addr == peers[i].addr.sin_addr.s_addr &&
-                src.sin_port == peers[i].addr.sin_port))
-            {
-                sidx = i;
-                //printf("incoming: (%s:%d) / %d\n",inet_ntoa(src.sin_addr), ntohs(src.sin_port),  sidx);
-                peers[sidx].time_pkt_last = get_time_ms();
-                break;
-            }
-        }
-
-        /* if peer has not started STUN negotiation */
-        while(sidx == -1)
-        {
-            int p;
-            char stun_uname[64];
-            char stun_uname_expected[64];
-            int nalive = 0;
-
-            stun_username(buffer, length, stun_uname);
-
-            // TODO: -- i think this is dead code
-            /* webserver has created a "pending" peer with stun fields set based on SDP */
-            for(p = 0; strlen(stun_uname) > 1 && p < MAX_PEERS; p++)
-            {
-                char* stunA = peers[p].stun_ice.ufrag_offer, *stunO = peers[p].stun_ice.ufrag_answer;
-
-                sprintf(stun_uname_expected, "%s:%s",
-                        stunA,
-                        stunO);
-
-                if(strlen(stun_uname_expected) > 0 &&
-                    strncmp(stun_uname_expected, stun_uname, strlen(stun_uname_expected)) == 0)
+                if(!peers[i].thread_inited)
                 {
-                    sidx = p;
-                    printf("stun_locate: found peer %s has uname: %s\n", peers[sidx].name, stun_uname);
-                    peers[p].time_pkt_last = time_ms;
-                    break;
+                    peers[i].thread_inited = 1;
+
+                    printf("add-peer: initializing cxn_worker thread...");
+
+                    pthread_create(&peers[i].thread, NULL, connection_worker, (void*) &peers[i]);
+
+                    printf("...done (i=%d peer.id=%d)\n", i, peers[i].id);
                 }
-                else
+            
+                // TODO: confirm this can be removed
+                /*
+                if(peers[i].bufs.out_len > 0)
                 {
-                    //printf("stun_locate: \"%s\" != \"%s\"\n", stun_uname, stun_uname_expected);
+                    int r = sendto(peers[i].sock, peers[i].bufs.out, peers[i].bufs.out_len, 0, (struct sockaddr*)&peers[i].addr, sizeof(peers[i].addr));
+                    //printf("UDP sent %d bytes (%s:%d)\n", r, inet_ntoa(peers[i].addr.sin_addr), ntohs(peers[i].addr.sin_port));
+                    peers[i].bufs.out_len = 0;
                 }
-            }
+                */
 
-            if(sidx == -1)
-            {
-                counts[1]++;
-                sprintf(counts_log, "ICE binding request: peer matching user-fragment (%s) and _alive_ not found\n", stun_uname);
-                break;
-            }
-
-            // here we are PEER_LOCKED(sidx)
-
-            // mark -- init new peer
-            printf("[%d] STUN bound + adding %s:%d\n", sidx,
-                   inet_ntoa(src.sin_addr), ntohs(src.sin_port));
-
-            peers[sidx].addr = src;
-            peers[sidx].addr_listen = bindsocket_addr_last;
-            peers[sidx].stunID32 = stunID(buffer, length);
-            peers[sidx].fwd = MAX_PEERS;
-
-            DTLS_peer_init(&peers[sidx]);
-
-            peers[sidx].cleartext.len = 0;
-
-            peers[sidx].alive = 1;
-
-            counts[6]++;
-            PEER_UNLOCK(sidx);
-        }
-        
-        if(sidx < 0) {
-            goto select_timeout;
-        }
-
-        // MARK: -- add to the read-ll for cxn_worker
-
-        // now sending peer is known, enqueue it for that peers connection_worker thread        
-        PEER_LOCK(sidx);
-
-        if(peers[sidx].init_needed) {
-            PEER_UNLOCK(sidx);
-            goto select_timeout;
-        }
-        
-        node = peers[sidx].in_buffers_head.tail;
-
-        if(!node)
-        {
-            // TODO: very hard to do but I did hit the below assert when this happened so
-            peers[sidx].in_buffers_head.tail = peers[sidx].in_buffers_head.next;
-            printf("epoll_memcpy: in_buffers_head.tail = 0!  (TODO: SHOULDNT HAPPEN unless this is a tolerable race cond?)\n");
-            PEER_UNLOCK(sidx);
-            goto select_timeout;
-        }
-
-        // sanity check
-        assert(/*node->len == 0 &&*/ node->next != node);
-
-        //printf("peer[%d] used buffers:%d\n", peers[sidx.id, used);
+                int log_user_exit = !peers[i].init_needed;
                 
-        //printf("enqueueing: peer[%d] len:%d\n", sidx, node->len);
+                // close reinit if alive and stalled traffic
+                int timed_out = (peers[i].alive && (get_time_ms() - peers[i].time_pkt_last) / 1000 >= peers[i].timeout_sec);
+                if(timed_out) printf("[%d] timed out: %lums idle\n", i, get_time_ms()-peers[i].time_pkt_last);
 
-        peers[sidx].stats.stat[5] += 1;
+                peers[i].init_needed = peers[i].init_needed | timed_out;
 
-        if(node->len > 0) { // todo just check buffer avail count?
-            PEER_UNLOCK(sidx);
-            printf("peer buffers:[%d] FULL warning frames lost\n", sidx);
-            length = 0;
-            goto select_timeout;
-        }
+                // check whether to reinit this peer
+                // init_needed will be set when webserver is adding new peer OR if time_pkt_last sufficiently distant
+                peer_prep:
 
-        node->recv_time = node->timestamp = time_ms;
-
-        peers[sidx].in_buffers_head.tail = node->next;
-
-        // TODO: avoid this memcpy by having separate msgs buffers for each peer
-        memcpy(node->buf, buffer, length);
-        node->id = sidx;
-        node->len = length;
-
-        if(length > 0) peers[sidx].buffer_count -= 1;
-
-        cur = &peers[sidx].in_buffers_head.next;
-
-        peer_buffer_node_t** ptail = &(peers[sidx].in_buffers_head.tail);
-        *ptail = (*ptail)->next;
-
-        if((*ptail)->len > 0)
-        {
-            // out of room, drop
-            
-            //printf("peer buffers:[%d] FULL warning frames lost\n", sidx);
-            (*ptail)->len = 0;
-            *ptail = cur->next;
-            peers[sidx].buffer_count += 1;
-            PEER_UNLOCK(sidx);
-            goto select_timeout;
-        }
-
-        //assert(cur != node && peers[sidx].in_buffers_head.rnext != NULL && peers[sidx].in_buffers_head.rnext != &peers[sidx].in_buffers_head);
-
-        // end of processing pkt
-        PEER_UNLOCK(sidx);
-
-        if(msg_recv_count > 0)
-        {
-            continue;
-        }
-
-        // no mutex should be held now...
-        select_timeout:
-
-        // HACKHACKHACK: adding a sleep here? this appears to help avoid context switching so much (or, im just keeping this around for posterity)
-        //sleep_msec(/*EPOLL_TIMEOUT_MS*/1);
-
-        // MARK: -- house-keeping of peers connection state
-        i = 0;
-        while(i < MAX_PEERS)
-        {
-            if(peers[i].init_needed) {
-                PEER_LOCK(i);
-                goto peer_prep;
-            }
-
-            if(!peers[i].alive) // I dont give a fuck bout no dead-ass threads bitch
-            {
-                // gtfo
-                i++;
-                continue;
-            }
-
-            PEER_LOCK(i);
-
-            if(!peers[i].thread_inited)
-            {
-                peers[i].thread_inited = 1;
-
-                printf("add-peer: initializing cxn_worker thread...");
-
-                pthread_create(&peers[i].thread, NULL, connection_worker, (void*) &peers[i]);
-
-                printf("...done (i=%d peer.id=%d)\n", i, peers[i].id);
-            }
-        
-            // TODO: confirm this can be removed
-            /*
-            if(peers[i].bufs.out_len > 0)
-            {
-                int r = sendto(peers[i].sock, peers[i].bufs.out, peers[i].bufs.out_len, 0, (struct sockaddr*)&peers[i].addr, sizeof(peers[i].addr));
-                //printf("UDP sent %d bytes (%s:%d)\n", r, inet_ntoa(peers[i].addr.sin_addr), ntohs(peers[i].addr.sin_port));
-                peers[i].bufs.out_len = 0;
-            }
-            */
-
-            int log_user_exit = !peers[i].init_needed;
-            
-            // close reinit if alive and stalled traffic
-            int timed_out = (peers[i].alive && (get_time_ms() - peers[i].time_pkt_last) / 1000 >= peers[i].timeout_sec);
-            if(timed_out) printf("[%d] timed out: %lums idle\n", i, get_time_ms()-peers[i].time_pkt_last);
-
-            peers[i].init_needed = peers[i].init_needed | timed_out;
-
-            // check whether to reinit this peer
-            // init_needed will be set when webserver is adding new peer OR if time_pkt_last sufficiently distant
-            peer_prep:
-
-            if (peers[i].init_needed)
-            {
-                peers[i].init_needed = 0;
-
-                int s;
-
-                printf("%s:%d %s peer %d\n", __func__, __LINE__, timed_out ? "timeout" : "reclaim", i);
-
-                //sprintf(strbuf, "%s ", peers[i].name);
-                //chatlog_append(strbuf);
-
-                PEER_UNLOCK(i);
-
-                /* reset all this peer's subscribers -- either close cxn or mark subscriptionId=-1 */
-                for(s = 0; s < MAX_PEERS; s++) 
+                if (peers[i].init_needed)
                 {
-                    peer_session_t* subpeer = &peers[s];
+                    peers[i].init_needed = 0;
 
-                    if(s == i) continue;
+                    int s;
 
-                    // TODO: this results in a cycle - must release peer[i] lock first
-                    PEER_LOCK(s);
+                    printf("%s:%d %s peer %d\n", __func__, __LINE__, timed_out ? "timeout" : "reclaim", i);
 
-                    if(subpeer->alive && subpeer->subscriptionID == i)
-                    {
-                        // TODO: trying to make ssl_close cause peers dtls_read to return -1 but after close still need to write packets
-                        if(subpeer->srtp_inited)
-                        {
-                            DTLS_peer_shutdown(subpeer);
-                        }
-
-                        // TODO: -- this won't allow for the clean shutdown?
-                        subpeer->time_pkt_last = 0;
-
-                        // TODO: -- trying this out but frontend will probably disconnect anyway ..
-                        // should experiment with keeping publishing-peer alive temporarily to allow the frontend to reconnect on client
-                        // and resume on subscribers
-                        //subpeer->subscriptionID = PEER_IDX_INVALID;
-                        //printf("peer_init[%d]: unlocking...\n", subpeer->id);
-                    }
-                    PEER_UNLOCK(s);
-                }
-                PEER_LOCK(i);
-
-                DTLS_peer_uninit(&peers[i]);
-                memset(&peers[i].dtls, 0, sizeof(peers[i].dtls));
-
-                s = 0;
-                while(s < PEER_RTP_CTX_COUNT)
-                {
-                    peers[i].srtp_inited = 0;
-                    if(peers[i].srtp[s].inited)
-                    {
-                        peers[i].srtp[s].inited = 0;
-                        srtp_dealloc(peers[i].srtp[s].session);
-                    }
-                    s++;
-                }
-                memset(peers[i].srtp, 0, sizeof(peers[i].srtp));
-
-                peer_stun_init(&peers[i]);
-
-                memset(&peers[i].addr, 0, sizeof(peers[i].addr));
-                memset(&peers[i].addr_listen, 0, sizeof(peers[i].addr_listen));
- 
-                if(log_user_exit && strlen(peers[i].name) > 0 && !peers[i].recv_only)
-                {
-                    sprintf(strbuf, "server: %s/%s broadcast ended\n", peers[i].roomname, peers[i].name);
-                    chatlog_append(strbuf);
-                }
-
-                peers[i].name[0] = '\0';
-                peers[i].subscribed = PEER_IDX_INVALID;
-
-                peers[i].alive = 0; // thank god >:->
-
-                if(peers[i].thread_inited)
-                {
-                    peers[i].thread_inited = 0;
-                    printf("%s:%d terminating/waiting peer[%d] threads...", __func__, __LINE__, i);
+                    //sprintf(strbuf, "%s ", peers[i].name);
+                    //chatlog_append(strbuf);
 
                     PEER_UNLOCK(i);
-                    pthread_join(peers[i].thread, NULL);
-                    peers[i].thread = 0;
 
-                    // let other threads get the message...
+                    /* reset all this peer's subscribers -- either close cxn or mark subscriptionId=-1 */
+                    for(s = 0; s < MAX_PEERS; s++) 
+                    {
+                        peer_session_t* subpeer = &peers[s];
 
-                    assert(!peers[i].running);
-                    printf("...stopped\n");
+                        if(s == i) continue;
 
+                        // TODO: this results in a cycle - must release peer[i] lock first
+                        PEER_LOCK(s);
+
+                        if(subpeer->alive && subpeer->subscriptionID == i)
+                        {
+                            // TODO: trying to make ssl_close cause peers dtls_read to return -1 but after close still need to write packets
+                            if(subpeer->srtp_inited)
+                            {
+                                DTLS_peer_shutdown(subpeer);
+                            }
+
+                            // TODO: -- this won't allow for the clean shutdown?
+                            subpeer->time_pkt_last = 0;
+
+                            // TODO: -- trying this out but frontend will probably disconnect anyway ..
+                            // should experiment with keeping publishing-peer alive temporarily to allow the frontend to reconnect on client
+                            // and resume on subscribers
+                            //subpeer->subscriptionID = PEER_IDX_INVALID;
+                            //printf("peer_init[%d]: unlocking...\n", subpeer->id);
+                        }
+                        PEER_UNLOCK(s);
+                    }
+                    PEER_LOCK(i);
+
+                    DTLS_peer_uninit(&peers[i]);
+                    memset(&peers[i].dtls, 0, sizeof(peers[i].dtls));
+
+                    s = 0;
+                    while(s < PEER_RTP_CTX_COUNT)
+                    {
+                        peers[i].srtp_inited = 0;
+                        if(peers[i].srtp[s].inited)
+                        {
+                            peers[i].srtp[s].inited = 0;
+                            srtp_dealloc(peers[i].srtp[s].session);
+                        }
+                        s++;
+                    }
+                    memset(peers[i].srtp, 0, sizeof(peers[i].srtp));
+
+                    peer_stun_init(&peers[i]);
+
+                    memset(&peers[i].addr, 0, sizeof(peers[i].addr));
+                    memset(&peers[i].addr_listen, 0, sizeof(peers[i].addr_listen));
+     
+                    if(log_user_exit && strlen(peers[i].name) > 0 && !peers[i].recv_only)
+                    {
+                        sprintf(strbuf, "server: %s/%s broadcast ended\n", peers[i].roomname, peers[i].name);
+                        chatlog_append(strbuf);
+                    }
+
+                    peers[i].name[0] = '\0';
+                    peers[i].subscribed = PEER_IDX_INVALID;
+
+                    peers[i].alive = 0; // thank god >:->
+
+                    if(peers[i].thread_inited)
+                    {
+                        peers[i].thread_inited = 0;
+                        printf("%s:%d terminating/waiting peer[%d] threads...", __func__, __LINE__, i);
+
+                        PEER_UNLOCK(i);
+                        pthread_join(peers[i].thread, NULL);
+                        peers[i].thread = 0;
+
+                        // let other threads get the message...
+
+                        assert(!peers[i].running);
+                        printf("...stopped\n");
+
+                    }
+
+                    // TODO: there is a race+crash here during timeout
+                    peers[i].cb_restart(&peers[i]);
+                    printf("restart_done[%d]: = 1 ..", i);
                 }
 
-                // TODO: there is a race+crash here during timeout
-                peers[i].cb_restart(&peers[i]);
-                printf("restart_done[%d]: = 1 ..", i);
+                // depending on whether we have just re-initialized or disconnected (alive=0) a peer..
+                if(peers[i].alive) PEER_UNLOCK(i);
+
+                i++;
             }
 
-            // depending on whether we have just re-initialized or disconnected (alive=0) a peer..
-            if(peers[i].alive) PEER_UNLOCK(i);
-
-            i++;
+            PERFTIME_END(PERFTIMER_MAIN_LOOP);
         }
 
-        PERFTIME_END(PERFTIMER_MAIN_LOOP);
+        printf("main loop exiting..\n");
+
+        webserver_deinit(thread_webserver);
+
+        for(i = 0; i < MAX_PEERS; i++) peer_buffers_uninit(&peers[i]);
+
+        DEBUG_DEINIT();
     }
-
-    printf("main loop exiting..\n");
-
-    webserver_deinit(thread_webserver);
-
-    for(i = 0; i < MAX_PEERS; i++) peer_buffers_uninit(&peers[i]);
-
-    DEBUG_DEINIT();
-}
 
 
 #include "dtls.c"
 
-void
-DTLS_peer_init(struct peer_session_t* peer)
-{
-    int timeout_msec = 10;
-    SSL *ssl = NULL;
-    BIO* bio = NULL;
-    int ret = 0;
-
-    peer->dtls.use_membio = 1;
-
-    if(!peer->dtls.ssl)
+    void
+    DTLS_peer_init(struct peer_session_t* peer)
     {
-        struct timeval timeout;
-        const int on = 1;
-        int timeout_msec = 100;
+        int timeout_msec = 10;
+        SSL *ssl = NULL;
+        BIO* bio = NULL;
+        int ret = 0;
 
-        setsockopt(peer->sock, SOL_SOCKET, SO_REUSEADDR, (const void*) &on, (socklen_t) sizeof(on));
-        setsockopt(peer->sock, SOL_SOCKET, SO_REUSEPORT, (const void*) &on, (socklen_t) sizeof(on));
+        peer->dtls.use_membio = 1;
 
-        bio = BIO_new_dgram(peer->sock, BIO_NOCLOSE);
-
-        ssl = SSL_new(DTLS_ssl_ctx_global);
-
-        if(!peer->dtls.use_membio)
+        if(!peer->dtls.ssl)
         {
-            SSL_set_bio(ssl, bio, bio);
+            struct timeval timeout;
+            const int on = 1;
+            int timeout_msec = 100;
 
-            BIO_set_fd(SSL_get_rbio(ssl), peer->sock, BIO_NOCLOSE);
+            setsockopt(peer->sock, SOL_SOCKET, SO_REUSEADDR, (const void*) &on, (socklen_t) sizeof(on));
+            setsockopt(peer->sock, SOL_SOCKET, SO_REUSEPORT, (const void*) &on, (socklen_t) sizeof(on));
 
-        	//BIO_ctrl(SSL_get_rbio(ssl), BIO_CTRL_DGRAM_SET_CONNECTED, 0, &peer->addr);
+            bio = BIO_new_dgram(peer->sock, BIO_NOCLOSE);
 
-            //BIO_ctrl(SSL_get_rbio(ssl), BIO_CTRL_DGRAM_GET_RECV_TIMER_EXP, 0, NULL);
+            ssl = SSL_new(DTLS_ssl_ctx_global);
 
-		    /* Set and activate timeouts */
+            if(!peer->dtls.use_membio)
+            {
+                SSL_set_bio(ssl, bio, bio);
+
+                BIO_set_fd(SSL_get_rbio(ssl), peer->sock, BIO_NOCLOSE);
+
+                //BIO_ctrl(SSL_get_rbio(ssl), BIO_CTRL_DGRAM_SET_CONNECTED, 0, &peer->addr);
+
+                //BIO_ctrl(SSL_get_rbio(ssl), BIO_CTRL_DGRAM_GET_RECV_TIMER_EXP, 0, NULL);
+
+                /* Set and activate timeouts */
+                #if !DTLS_BUILD_WITH_BORINGSSL
+                timeout.tv_sec = 0;
+                timeout.tv_usec = timeout_msec * 1000;
+                BIO_ctrl(SSL_get_rbio(ssl), BIO_CTRL_DGRAM_SET_RECV_TIMEOUT, 0, &timeout);
+                #endif
+            }
+            else
+            {
+                SSL_set_bio(ssl, BIO_new(BIO_s_mem()), BIO_new(BIO_s_mem()));
+                
+                ret = SSL_get_wbio(ssl) == NULL? 1: 0;
+                printf("SSL_get_wbio:%d\n", ret);
+
+                ret = BIO_set_nbio(SSL_get_wbio(ssl), 1);
+                SSL_RESULT_CHECK("SSL_set_nbio", ssl, ret);
+
+                ret = BIO_set_nbio(SSL_get_rbio(ssl), 1);
+                SSL_RESULT_CHECK("SSL_set_nbio", ssl, ret);
+            }
+
+            /* removed by switch to boringssl */
             #if !DTLS_BUILD_WITH_BORINGSSL
-        	timeout.tv_sec = 0;
-        	timeout.tv_usec = timeout_msec * 1000;
-    	    BIO_ctrl(SSL_get_rbio(ssl), BIO_CTRL_DGRAM_SET_RECV_TIMEOUT, 0, &timeout);
+            ret = SSL_set_options(ssl, SSL_OP_COOKIE_EXCHANGE);
+            SSL_RESULT_CHECK("SSL_set_options(COOKIE_EXHCANGE)", ssl, ret);
             #endif
+
+            //SSL_CTX_set_cookie_generate_cb(DTLS_ssl_ctx_global, generate_cookie);
+            //SSL_CTX_set_cookie_verify_cb(DTLS_ssl_ctx_global, verify_cookie);
+
+            peer->dtls.ssl = ssl;
+
+            memcpy(&peer_pending, &peer->addr, sizeof(peer->addr));
         }
-        else
-        {
-            SSL_set_bio(ssl, BIO_new(BIO_s_mem()), BIO_new(BIO_s_mem()));
-            
-            ret = SSL_get_wbio(ssl) == NULL? 1: 0;
-            printf("SSL_get_wbio:%d\n", ret);
-
-            ret = BIO_set_nbio(SSL_get_wbio(ssl), 1);
-            SSL_RESULT_CHECK("SSL_set_nbio", ssl, ret);
-
-            ret = BIO_set_nbio(SSL_get_rbio(ssl), 1);
-            SSL_RESULT_CHECK("SSL_set_nbio", ssl, ret);
-        }
-
-        /* removed by switch to boringssl */
-        #if !DTLS_BUILD_WITH_BORINGSSL
-        ret = SSL_set_options(ssl, SSL_OP_COOKIE_EXCHANGE);
-        SSL_RESULT_CHECK("SSL_set_options(COOKIE_EXHCANGE)", ssl, ret);
-        #endif
-
-	    //SSL_CTX_set_cookie_generate_cb(DTLS_ssl_ctx_global, generate_cookie);
-    	//SSL_CTX_set_cookie_verify_cb(DTLS_ssl_ctx_global, verify_cookie);
-
-        peer->dtls.ssl = ssl;
-
-        memcpy(&peer_pending, &peer->addr, sizeof(peer->addr));
     }
-}
 
