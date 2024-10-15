@@ -35,6 +35,7 @@ Welcome to the tiny-webrtc-gw readme!
   ![&#9729;"cloud"&#9729;](https://secure.domain17.net/justin/webrtc-bcast-obs-gaming.png)
   ![Web interface + lobby + chat](https://secure.domain17.net/justin/webrtc-morn.png)
   ![test image](http://github.com/justinb01981/tiny-webrtc-gw/blob/master/IMG-8094.jpg?raw=true)
+  ![configuring OBS](https://www.domain17.net/justin/tinywm.obscfg.png)
 
 ## Caveats:
   since browsers won't allow webRTC to be negotiated unencrypted (https)
