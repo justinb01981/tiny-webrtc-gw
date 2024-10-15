@@ -790,6 +790,7 @@ connection_worker(void* p)
         if(!peer_stun_bound(peer))
         {
             peer->underrun_signal = 1; peer->underrun_last = get_time_ms();
+            printf("STUN UNBOUND! FUCK pkt drop\n");
             goto peer_again;
         }
 
@@ -1092,7 +1093,7 @@ connection_worker(void* p)
 
                                     // MARK: -- HACK - covering up our jitter (delayed/underrun on subscriber) by requesting a full frame refresh
                                     // cap at X/second or we'll get overwhelmed
-                                    peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-250); // force picture loss
+                                    //peerpub->srtp[report_rtp_idx].pli_last = time_ms - (RTP_PICT_LOSS_INDICATOR_INTERVAL-250); // force picture loss
 
                                     // TODO: flush faster? slower? usually here because of an underrun that happened at peer
                                     //Mthrottle = Mthrottle*2 + 1;
@@ -1488,7 +1489,6 @@ peer[7] nobody525(watch)/800c:VvrT stats:,stun-RTTmsec=5,uptimesec=798,#cxn_work
 
             // SLEEP PACING CODE:
 
-        const int D = 3;
         int signal_under = 
             peer->underrun_signal;
             
@@ -1575,7 +1575,7 @@ peer[7] nobody525(watch)/800c:VvrT stats:,stun-RTTmsec=5,uptimesec=798,#cxn_work
             
             // TODO: really the underrun-penalty is what ought to be be adjusted here
             floor(PEER_RECV_BUFFER_COUNT_MS/Mthrottle) 
-            || (underrun_counter > 8)
+//            || (underrun_counter > 16)
         )
         {
             peer->underrun_signal = 0;
@@ -1595,11 +1595,11 @@ peer[7] nobody525(watch)/800c:VvrT stats:,stun-RTTmsec=5,uptimesec=798,#cxn_work
         {
             underrun_counter += 1;
             Mthrottle = Mthrottle - Dthrottle;
-            Dthrottle = (Dthrottle  / 2);
+            Dthrottle = Dthrottle - 1;
         }
 
-        //if(Mthrottle > PEER_THROTTLE_MAX) Mthrottle = PEER_THROTTLE_MAX;
-        //if(Mthrottle <= 0.0) { Mthrottle = PEER_THROTTLE_SANE_MIN; Dthrottle = PEER_THROTTLE_SANE_MIN; }
+        if(Mthrottle > PEER_THROTTLE_MAX) Mthrottle = PEER_THROTTLE_MAX;
+        if(Mthrottle <= 0.0) { Mthrottle = PEER_THROTTLE_SANE_MIN; Dthrottle = PEER_THROTTLE_SANE_MIN; }
             //if(Dthrottle < 0) Dthrottle = 0.1;
 
             // todo: ? avg recv rate in the stats window?

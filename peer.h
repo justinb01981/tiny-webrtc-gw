@@ -34,7 +34,7 @@
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&peers[x].mcond, &peers[x].mutex)
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 8000
-#define PEER_RECV_BUFFER_COUNT_MS (300) // trying this out with OBS - this is more like MS-times-10 (1500 bytes = ?? ms avg?)
+#define PEER_RECV_BUFFER_COUNT_MS (320) // trying this out with OBS - this is more like MS-times-10 (1500 bytes = ?? ms avg?)
 // TODO: this is RTP and we should be doing minimal buffering
 #define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*8) // 5k pkt/sec sounds good? this is the theoretical max buffered
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 10000
@@ -43,9 +43,13 @@
 // this magic number influences the pace epoll/recvmmsg takes packets in - started with 5 trying lower values to see if that helps even out streams
 #define EPOLL_TIMEOUT_MS 3
 
+// TODO: artififially low to smooth jitter calculations and prevent bursts + more fairly schedule?
+#define RECVMSG_NUM (128)
+// jb: 128 too high (BUFFERS FULL frequent at 4500kbit h264 initially)
+
 // ms
-#define PEER_THROTTLE_MAX (5000)
-#define PEER_THROTTLE_SANE_MIN (1.0)
+#define PEER_THROTTLE_MAX (1000)
+#define PEER_THROTTLE_SANE_MIN (2.0)
 
 #define PEER_THROTTLE_USLEEPJIFF (100) // usleep - jiffs
 #define JIFFPENALTY(th) ( (th/2) * PEER_THROTTLE_USLEEPJIFF )
@@ -85,10 +89,6 @@
 extern char* dtls_fingerprint;
 
 extern const char* webserver_get_localaddr(void);
-
-// TODO: artififially low to smooth jitter calculations and prevent bursts + more fairly schedule?
-#define RECVMSG_NUM (16)
-// jb: 128 too high (BUFFERS FULL frequent at 4500kbit h264 initially)
 
 
 
