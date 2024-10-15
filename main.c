@@ -1585,7 +1585,7 @@ peer[7] nobody525(watch)/800c:VvrT stats:,stun-RTTmsec=5,uptimesec=798,#cxn_work
 
             Mthrottle = Mthrottle + Dthrottle;
 
-            Dthrottle = Dthrottle + 1;  // TODO: experimenting with bias towards more throttling, see above
+            Dthrottle = Dthrottle*2;  // TODO: experimenting with bias towards more throttling, see above
 
             //if(peer->id == 0 && (Mthrottle < 20 || Mthrottle > 300)  )printf("Mt/Dt: %u (%f) %lu, (RR: %lu)\n", (unsigned) Mthrottle, Dthrottle, underrun_counter, peer->srtp[1].receiver_report_jitter_last);
 
@@ -1595,7 +1595,7 @@ peer[7] nobody525(watch)/800c:VvrT stats:,stun-RTTmsec=5,uptimesec=798,#cxn_work
         {
             underrun_counter += 1;
             Mthrottle = Mthrottle - Dthrottle;
-            Dthrottle = Dthrottle - 1;
+            Dthrottle = Dthrottle / 2;
         }
 
         if(Mthrottle > PEER_THROTTLE_MAX) Mthrottle = PEER_THROTTLE_MAX;
