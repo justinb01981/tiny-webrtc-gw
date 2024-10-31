@@ -14,12 +14,12 @@ MYCLONE="chatlog.`date -I`.txt.bak"
 all:
 	echo "kidding, edit config.txt first then run make demo; - justin@domain17.net /// holla @ me :-) for help! (make sure you did git checkout --recursive-submodules or git submodule checkout xyz or build fails)";
 
-demo: webrtc_xcast
+demo: xcast
 	
-webrtc_xcast: lib/libcrypto.a lib/libsrtp2.a lib/libssl.a iplookup_hack.o
+xcast: lib/libcrypto.a lib/libsrtp2.a lib/libssl.a iplookup_hack.o
 # add -pg to profile with gprof
 # todo: add visual indicator whether vp8 enabled/disabled ? example sdp offer? next to viewers label?
-	gcc -g -v -o webrtc_xcast -DSDP_OFFER_VP8=${OFFERVP8} -DMEMDEBUGHACK=1 -DDTLS_BUILD_WITH_BORINGSSL=1 -I${INC_LIBSRTP} -I${INC_LIBSRTP_CFG} -I${INC_LIBSRTP_CRYPTO} -I${INC_OPENSSL} -I${INC_LIBWS} -L${LIB_OPENSSL} stubs.c main.c util.c tiny_config.c filecache.c iplookup_hack.c ${LDARGS};
+	gcc -g -v -o ${BINARY_NAME} -DSDP_OFFER_VP8=${OFFERVP8} -DMEMDEBUGHACK=1 -DDTLS_BUILD_WITH_BORINGSSL=1 -I${INC_LIBSRTP} -I${INC_LIBSRTP_CFG} -I${INC_LIBSRTP_CRYPTO} -I${INC_OPENSSL} -I${INC_LIBWS} -L${LIB_OPENSSL} stubs.c main.c util.c tiny_config.c filecache.c iplookup_hack.c ${LDARGS};
 #	gcc -v -o webrtc_gw -DDTLS_BUILD_WITH_BORINGSSL=1 -I${INC_LIBSRTP} -I${INC_LIBSRTP_CFG} -I${INC_LIBSRTP_CRYPTO} -I${INC_OPENSSL} -I${INC_LIBWS} -L${LIB_OPENSSL} stubs.c main.c util.c tiny_config.c ws/cwebsocket/lib/*.c ${LDARGS};
 
 lib/libcrypto.a:
@@ -40,7 +40,7 @@ wintermutecfg: preparechat
 	echo "pruning chatlog..."
 
 debug: clean demo wintermutecfg
-	gdb -ex "run" webrtc_xcast
+	gdb -ex "run" ${BINARY_NAME}
 
 preparechat:
 

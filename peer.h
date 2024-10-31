@@ -34,9 +34,9 @@
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&peers[x].mcond, &peers[x].mutex)
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 8000
-#define PEER_RECV_BUFFER_COUNT_MS (200) // trying this out with OBS - this is more like MS-times-10 (1500 bytes = ?? ms avg?)
+#define PEER_RECV_BUFFER_COUNT_MS (300) // trying this out with OBS - this is more like MS-times-10 (1500 bytes = ?? ms avg?)
 // TODO: this is RTP and we should be doing minimal buffering
-#define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*16) // 5k pkt/sec sounds good? this is the theoretical max buffered
+#define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*8) // 5k pkt/sec sounds good? this is the theoretical max buffered
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 10000
 #define PEER_STAT_TS_WIN_LEN /*32*/ 9 // this needs to go away since we're not tracking each pkt to determine bitrate anymore?
 
@@ -56,9 +56,11 @@
 #define ICE_ALLCHARS "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/+"
 
 //If not included, the default value is 420010, as specified in RFC 6184.
-#define H264PROFILEHEX "42e01f"/*"4D001E"*//*42e01f*/ // https://stackoverflow.com/questions/23494168/h264-profile-iop-explained
+#define H264PROFILEHEX "42e01f"
+// https://stackoverflow.com/questions/23494168/h264-profile-iop-explained
+// safari shows different profiles, see pastebin below for browsers
 
-/*"kp8mwJHTCCCstyaN0PZ2D8s"*/
+
 #define ICE_PWD_WHEP "230r89wef32jsdsjJlkj23rndasf23rlknas"
 #define PEER_OFFER_SDP_GET_ICE(peer, val, index) \
     str_read_unsafe_allowedchars( \
@@ -800,9 +802,19 @@ static const char* sdp_offer_create(void)
     "\"a=rtcp-fb:96 goog-remb transport-cc ccm fir nack pli\\n\" + \n" // do we allow all these? spoofing client side here
     //"\"a=fmtp:96 max-fr=60; max-fs=64800; x-google-max-bitrate=720000; x-google-min-bitrate=3200;\\n\" + \n"
 #else
+    /* jb@10-31-2024: ONLY FOUND ONE H264 PROFILE THAT WORKS EVERYWHERE: (42E01F) 
+     * cribbed from chrome android sdp offer:
+     * pastebin.com/raw/62Wh7u2c
+     * & this is safari on macbook:
+     https://pastebin.com/raw/xxD6N1S8
+    */
     "\"a=rtpmap:96 H264/90000\\n\" + \n"
-    "\"a=rtcp-fb:96 goog-remb transport-cc ccm fir nack pli""\\n\" + \n" // do we allow all these? spoofing client side here
-    "\"a=fmtp:96 profile-level-id=" H264PROFILEHEX ";level-asymmetry-allowed=1\\n\" + \n"
+    "\"a=rtcp-fb:96 goog-remb\\n\" + \n"
+    "\"a=rtcp-fb:96 transport-cc\\n\" + \n"
+    "\"a=rtcp-fb:96 ccm fir\\n\" + \n"
+    "\"a=rtcp-fb:96 nack\\n\" + \n"
+    "\"a=rtcp-fb:96 nack pli\\n\" + \n"
+    "\"a=fmtp:96 packetization-mode=1;level-asymmetry-allowed=1;profile-level-id="H264PROFILEHEX"\\n\" + \n"
 #endif
 
 #if SDP_OFFER_VP8
