@@ -259,7 +259,8 @@ typedef struct peer_session_t
     pthread_mutex_t mutex_sender;
     pthread_cond_t mcond;
     int thread_inited;
-    int rr_decrypt_hack;
+
+    unsigned int viewers;
 
     int fwd;
 

@@ -488,6 +488,7 @@ connection_worker(void* p)
                     printf("incoming peer %d subscribed to peer %s\n", PEER_INDEX(peer), peer->watchname);
                     peer->subscriptionID = peers[si].id;
                     peers[si].subscribed = peer->id;
+                    peers[si].viewers++;
                     // schedule picutre-loss-indicator (full-frame-refresh
                     for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_COUNT; rtp_idx++)
                     {
@@ -510,6 +511,7 @@ connection_worker(void* p)
                     // also connect opposing/waiting peer (probably no matter since stream is incoming)
                     peers[si].subscriptionID = PEER_INDEX(peer);
                     peer->subscribed = peer->id; // most recent sub
+                    peers[si].viewers++;
                     // schedule picture-loss-indicator
                     for(rtp_idx = 0; rtp_idx < PEER_RTP_CTX_COUNT; rtp_idx++)
                     {
@@ -819,15 +821,33 @@ connection_worker(void* p)
                     int pt = rtpFrame->hdr.payload_type & 0xff;
                     int mark = 0x80 & pt;
 
+                    // TODO: rtp_idx should not be a var but calculated func()
+                    u32 rpt_match_idx(void) {
+                        if(rtp_idx != -1) return rtp_idx; 
+
+                        u32 m;
+                        if(is_receiver_report) {
+                            m = ntohl(report->blocks[0].ssrc_block1);
+                        }
+                        else {
+                            m = ntohl(sendreport->hdr.seq_src_id);
+                        }
+
+                        for(int r = 0; r < 2; r++) {
+                            if(offer_ssrc[r] == m || answer_ssrc[r] == m) return r;
+                        }
+                        // fall thru assume not a report
+                        assert(0);
+                    }
+
                     /* fix sender/receiver reports */
                     if(pt == rtp_receiver_report_type) 
                     {
                         is_receiver_report = 1;
                         // hdr ssrc will always be 0x01
                         // ssrc cannot be determined yet because block is encrypted
-
-                        in_ssrc = offer_ssrc[0];
-                        // see rfc 3550 header length format
+                        in_ssrc = 0;
+                        //rtp_idx = in_ssrc == offer_ssrc[1] ? 1 : 0; // this happens below
                     }
                     else if(pt == rtp_sender_report_type)
                     {
@@ -851,29 +871,8 @@ connection_worker(void* p)
                     }
                     else
                     {
-                        // find report ssrc
-                        if(is_sender_report) {
 
-                            u32 old_ssrc = in_ssrc;
-
-
-                            if(old_ssrc == answer_ssrc[0] || old_ssrc == offer_ssrc[0]) {
-                                rtp_idx = 0; // hoping that receiver report isnt encrypted so wont care about srtp state
-                            } else if (old_ssrc == answer_ssrc[1] || old_ssrc == offer_ssrc[1]) {
-                                rtp_idx = 1; // hoping that receiver report isnt encrypted so wont care about srtp state
-                            }
-                            else {
-                                printf("SR: cxn_worker unrecognized ssrc %u(%ubytes ptype=%d)\n", in_ssrc, (unsigned) curlen, pt);
-                                rtp_idx = -1;
-                            }
-                        }
-                        else {
-
-                            rtp_idx = peer->rr_decrypt_hack;
-                            peer->rr_decrypt_hack += 1; if(peer->rr_decrypt_hack > 1) peer->rr_decrypt_hack = 0;
-
-                        }
-
+                        // moved RR report ssrc handling after decrypt
 
                         // send cleartext
                         /*
@@ -914,8 +913,11 @@ connection_worker(void* p)
                         break;
                     }
 
-                    srtp_err_status_t erru = srtp_unprotect_rtcp(psrtpsess, report, &unprotect_len);
+                    // NOW decrypt ... 
+                    srtp_err_status_t erru = srtp_err_status_fail;
+
                     if((is_receiver_report || is_sender_report) &&
+                        (erru = srtp_unprotect_rtcp(psrtpsess, report, &unprotect_len)) &&
                         erru == srtp_err_status_ok)
                     {
                         int i, p, reportsize, stat_idx = is_sender_report ? 14 : 15;
@@ -925,14 +927,16 @@ connection_worker(void* p)
 
                         counts[stat_idx]++;
 
+                        rtp_idx = rpt_match_idx();
+
                         if(is_sender_report)
                         {
                             int issrc = 0;
                             sendreport = (rtp_report_sender_t*) report;
 
-                            rtp_idx = -1;
-                            if(in_ssrc == answer_ssrc[0]) rtp_idx = 0;
-                            if(in_ssrc == answer_ssrc[1]) rtp_idx = 1;
+                            //rtp_idx = -1;
+                            //if(in_ssrc == answer_ssrc[0]) rtp_idx = 0;
+                            //if(in_ssrc == answer_ssrc[1]) rtp_idx = 1;
 
                             assert(rtp_idx >= 0);
 
@@ -1014,6 +1018,8 @@ connection_worker(void* p)
                                 }
                                 else
                                 {
+                                    // blamm cant come here use diff rtp field
+                                    // jb: this happens because decrypted garbage misidentifying rtp_idx earlier!!
                                     printf("unknown ssrc in RR: %u (answer? %u)\n", ssrc_block, answer_ssrc[0]);
                                 }
 
@@ -1226,41 +1232,15 @@ connection_worker(void* p)
 
                         break;
                     }
+                    /*
                     else if(psrtpsess && erru != srtp_err_status_ok) {
 
-/*
-ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
-ALERT: mysterious unprotect_fail error (disconnect?) (14) report (s:0 r:0) psrtpsess:b3e03768
-ALERT: mysterious unprotect_fail error (disconnect?) (14) report (s:0 r:0) psrtpsess:b3e03768
-ALERT: mysterious unprotect_fail error (disconnect?) (14) report (s:0 r:0) psrtpsess:b3e02160
-SR: 4288779017 rtpidx 1 len 56 nrep 0 jiterr 0.000981 Mthrottle 32.500008
-ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
-ALERT: mysterious unprotect_fail error (disconnect?) (14) report (s:0 r:0) psrtpsess:b3e03768
-ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
-ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
-ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
-ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
-ALERT: mysterious unprotect_fail error (disconnect?) (14) report (s:0 r:0) psrtpsess:b3e03768
-ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
-ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
-ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
-ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
-ALERT: mysterious unprotect_fail error (disconnect?) (14) report (s:0 r:0) psrtpsess:b3e02160
-ALERT: mysterious unprotect_fail error (disconnect?) (14) report (s:0 r:0) psrtpsess:b3e02160
-ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
-ALERT: mysterious unprotect_fail error (disconnect?) (14) report (s:0 r:0) psrtpsess:b3e03768
-ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
-ALERT: mysterious unprotect_fail error (disconnect?) (7) report (s:0 r:0) psrtpsess:b3e03768
-in_STUN:0 in_SRTP:9 in_stun_ufrag_bad:0 DROP:0 BYTES_FWD:0 :0 USER_ID:9 master:0 rtp_underrun:0 rtp_ok:0 unknown_srtp_ssrc:0 srtp_unprotect_fail:5782027 buf_reclaimed_pkt:0 buf_reclaimed_rtp:0 snd_rpt_fix:120581 rcv_rpt_fix:157461 subscription_resume:0 recv_timeout:0 stun-RTTmsec:0 uptimesec:0 #cxn_worker_foundbuf:0 time=4088741194
-peer[4] l32V       /b18f:l32V stats:,stun-RTTmsec=0,uptimesec=814,#cxn_worker_foundbuf=229128,#worker_underrun=0,#jitter_estimate=0,#enqueued4read=229151,#####=0,srtpreceived=455178,rtpcodec=96,send_underrun=0,protect_fail=0,unprotect_fail=0,publisher_received=8255
-peer[5] nobody475(watch)/bc27:tone stats:,stun-RTTmsec=5,uptimesec=812,#cxn_worker_foundbuf=4384,#worker_underrun=0,#jitter_estimate=324,#enqueued4read=4384,#####=0,srtpreceived=4077,rtpcodec=0,send_underrun=0,protect_fail=0,unprotect_fail=227172,publisher_received=1581
-peer[7] nobody525(watch)/800c:VvrT stats:,stun-RTTmsec=5,uptimesec=798,#cxn_worker_foundbuf=4451,#worker_underrun=0,#jitter_estimate=324,#enqueued4read=4451,#####=0,srtpreceived=4142,rtpcodec=0,send_underrun=0,protect_fail=0,unprotect_fail=223247,publisher_received=1554
-*/
                         counts[11]++;   // unprotect fail ?
-                        //printf("ALERT: mysterious unprotect_fail error (disconnect?) (%d) report (s:%d r:%d) psrtpsess:%02x\n", erru, is_sender_report, is_receiver_report, (unsigned long) psrtpsess);
+                        assert(is_sender_report | is_receiver_report);
+                        printf("ALERT: mysterious unprotect_fail error (disconnect?) (%d) report (s:%d r:%d) psrtpsess:%02x\n", erru, is_sender_report, is_receiver_report, (unsigned long) psrtpsess);
                         //break;
                     }
-
+*/
                     if(is_sender_report || is_receiver_report)
                     {
                         break;    // our work here is done
@@ -2167,7 +2147,7 @@ peer[7] nobody525(watch)/800c:VvrT stats:,stun-RTTmsec=5,uptimesec=798,#cxn_work
      
                     if(log_user_exit && strlen(peers[i].name) > 0 && !peers[i].recv_only)
                     {
-                        sprintf(strbuf, "server: %s/%s broadcast ended\n", peers[i].roomname, peers[i].name);
+                        sprintf(strbuf, "server: %s/%s broadcast ended with %u views\n", peers[i].roomname, peers[i].name, peers[i].viewers);
                         chatlog_append(strbuf);
                     }
 
