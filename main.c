@@ -812,7 +812,8 @@ connection_worker(void* p)
                 {
                     rtpFrame = ptrbuffer;
 
-                    u32 in_ssrc = 0;
+                        // not an RTP report, probably data packets but override below
+                    u32 in_ssrc = ntohl(rtpFrame->hdr.seq_src_id);
                     u32 timestamp_in = ntohl(rtpFrame->hdr.timestamp);
                     u16 sequence_in = ntohs(rtpFrame->hdr.sequence);
                     int is_receiver_report = 0, is_sender_report = 0;
@@ -822,6 +823,7 @@ connection_worker(void* p)
                     int mark = 0x80 & pt;
 
                     // TODO: rtp_idx should not be a var but calculated func()
+                    /*
                     u32 rpt_match_idx(void) {
                         if(rtp_idx != -1) return rtp_idx; 
 
@@ -839,15 +841,15 @@ connection_worker(void* p)
                         // fall thru assume not a report
                         assert(0);
                     }
+                    */
 
                     /* fix sender/receiver reports */
                     if(pt == rtp_receiver_report_type) 
                     {
                         is_receiver_report = 1;
-                        // hdr ssrc will always be 0x01
                         // ssrc cannot be determined yet because block is encrypted
+                        //in_ssrc = ntohl(report->blocks[0].ssrc_block1);
                         in_ssrc = 0;
-                        //rtp_idx = in_ssrc == offer_ssrc[1] ? 1 : 0; // this happens below
                     }
                     else if(pt == rtp_sender_report_type)
                     {
@@ -855,28 +857,23 @@ connection_worker(void* p)
                         in_ssrc = ntohl(sendreport->hdr.seq_src_id);  // redundant
                         // see rfc 3550 header length format
                     }
-                    else
-                    {
-                        // not an RTP report, probably data packets
-                        in_ssrc = ntohl(rtpFrame->hdr.seq_src_id);
-                    }
 
-                    if(in_ssrc == answer_ssrc[0])
+                    if(in_ssrc == answer_ssrc[0] || in_ssrc == offer_ssrc[0])
                     {
                         rtp_idx = 0;
                     }
-                    else if(in_ssrc == answer_ssrc[1])
+                    else if(in_ssrc == answer_ssrc[1] || in_ssrc == offer_ssrc[1])
                     {
                         rtp_idx = 1;
                     }
                     else
                     {
-
                         // moved RR report ssrc handling after decrypt
 
                         // send cleartext
+                        printf("unknown [%d] cleartext PT/ssrc: %u %lu", peer->id, pt, in_ssrc);
+                        rtp_idx = -1;
                         /*
-                        printf("unknown cleartext PT/ssrc: %u %lu\n", pt, in_ssrc);
                         for (int ps = 0; ps < MAX_PEERS; ps++) {
                             peer_session_t* pdst = &peers[ps];
                             if(pdst->alive && pdst->subscriptionID == peer->id) peer_send_block(pdst, rtpFrame, length);
@@ -907,18 +904,31 @@ connection_worker(void* p)
                     void* psrtpsess = peer->srtp[rtp_idx].session;
 
                     if(psrtpsess == NULL) {
-                        printf("ERR srtp[%d]: psrtpsess==NULL unexpected race!\n", peer->id);
-                        peer->time_pkt_last = 0;
-                        peer->underrun_signal = 1;
+                        printf("ERR srtp[%d]: psrtpsess==NULL unexpected race rtp_idx %d!\n", peer->id, rtp_idx);
+                        //peer->time_pkt_last = 0;
+                        //peer->underrun_signal = 1;
                         break;
                     }
 
                     // NOW decrypt ... 
                     srtp_err_status_t erru = srtp_err_status_fail;
 
-                    if((is_receiver_report || is_sender_report) &&
-                        (erru = srtp_unprotect_rtcp(psrtpsess, report, &unprotect_len)) &&
-                        erru == srtp_err_status_ok)
+                    if((is_receiver_report || is_sender_report) ) {
+                        erru = srtp_unprotect_rtcp(psrtpsess, report, &unprotect_len);
+                    }
+                    else {
+                        // use PT to determine rtp_idx for decrypt
+                        // SEE SDP OFFER in peer.h
+                        rtp_idx = pt == 111 ? 0 : 1;
+
+                        if(pt != 96 && pt != 111) {
+
+                            //printf("wtf PT: %d\n", pt);
+                            //break;
+                        }
+                    }
+
+                    if(erru == srtp_err_status_ok)
                     {
                         int i, p, reportsize, stat_idx = is_sender_report ? 14 : 15;
                         int nrep = report->hdr.ver & 0x1F;
@@ -927,7 +937,7 @@ connection_worker(void* p)
 
                         counts[stat_idx]++;
 
-                        rtp_idx = rpt_match_idx();
+                        //rtp_idx = rpt_match_idx();
 
                         if(is_sender_report)
                         {
@@ -957,44 +967,12 @@ connection_worker(void* p)
                             peer->srtp[rtp_idx].sr_ntp = ntohl(sendreport->timestamp_lsw);
                             peer->srtp[rtp_idx].sr_octets = ntohl(sendreport->pkt_count);
 
-                            if(rtp_idx == 1) { // hax
+                            if(1) { // hax
                                 printf("SR: [%u] %u rtpidx %d len %u nrep %u jiterr %f Mthrottle %f\n", peer->id,
                                        in_ssrc, rtp_idx, unprotect_len, nrep,
                                 (Drtp/Dntp), Mthrottle);
                             }
 
-                            /*
-                            while(issrc < nrep)
-                            {
-                                u32 ssrc_block = in_ssrc; //ntohl(sendreport->blocks[issrc].ssrc_block1);
-
-                                int report_rtp_idx = 0;
-                                if(ssrc_block == answer_ssrc[0] || ssrc_block == offer_ssrc[0])
-                                {
-                                    report_rtp_idx = 0;
-                                }
-                                else if(ssrc_block == answer_ssrc[1] || ssrc_block == offer_ssrc[1])
-                                {
-                                    report_rtp_idx = 1;
-                                }
-                                else
-                                {
-                                    printf("FATAL: ssrc_block %u\n", ssrc_block);
-                                    //assert(0);
-                                    break;
-                                }
-
-
-
-                                jitter = ntohl(sendreport->blocks[issrc].interarrival_jitter);
-                                u32 last_sr = ntohl(sendreport->blocks[issrc].last_sr_timestamp);
-                                delay_last_sr = ntohl(sendreport->blocks[issrc].last_sr_timestamp_delay);
-
-                                peer->srtp[report_rtp_idx].last_sr = last_sr;
-
-                                printf("SRHAX:last_sr %u\n", last_sr);
-                            }
-                            */
                             if(nrep > 0) assert(0);
                         }
                         
@@ -1003,6 +981,8 @@ connection_worker(void* p)
                             int issrc = 0;
                             rtp_report_receiver_t* preport = report;
                             u32 jitter = 0, last_sr = 0, delay_last_sr = 0;
+
+                            printf("fixing RR[%d]\n", rtp_idx);
 
                             while(issrc < nrep || (nrep == 0 && issrc == 0))
                             {
@@ -1232,17 +1212,18 @@ connection_worker(void* p)
 
                         break;
                     }
-                    /*
-                    else if(psrtpsess && erru != srtp_err_status_ok) {
-
-                        counts[11]++;   // unprotect fail ?
-                        assert(is_sender_report | is_receiver_report);
-                        printf("ALERT: mysterious unprotect_fail error (disconnect?) (%d) report (s:%d r:%d) psrtpsess:%02x\n", erru, is_sender_report, is_receiver_report, (unsigned long) psrtpsess);
-                        //break;
+                    
+                    else {
+                        if(is_sender_report || is_receiver_report) {
+                            counts[11]++;   // unprotect fail ?
+                            printf("ALERT: mysterious unprotect_fail error (disconnect?) (%d) PT (%d) ssrc (%d) report (s:%d r:%d) psrtpsess:%02x\n", pt, erru, is_sender_report, is_receiver_report, (unsigned long) psrtpsess);
+                            break;
+                        }
                     }
-*/
+
                     if(is_sender_report || is_receiver_report)
                     {
+                        assert(0); // TODO DELETE THIS BC above else break
                         break;    // our work here is done
                     }
 
@@ -1257,7 +1238,7 @@ connection_worker(void* p)
 
                     if(srtp_unprotect(psrtpsess, rtpFrame, &unprotect_len) != srtp_err_status_ok)
                     {
-                        printf("%s:%d srtp_unprotect failed %d bytes rtp_idx %d\n", __func__, __LINE__, was_len, rtp_idx);
+                        printf("%s:%d srtp_unprotect failed %d pkttype %d bytes rtp_idx %d\n", __func__, __LINE__, pt, was_len, rtp_idx);
                         peer->stats.stat[11]++;
                         break;
                     }
