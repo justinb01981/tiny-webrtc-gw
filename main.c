@@ -982,8 +982,6 @@ connection_worker(void* p)
                             rtp_report_receiver_t* preport = report;
                             u32 jitter = 0, last_sr = 0, delay_last_sr = 0;
 
-                            printf("fixing RR[%d]\n", rtp_idx);
-
                             while(issrc < nrep || (nrep == 0 && issrc == 0))
                             {
                                 u32 ssrc_block = ntohl(report->blocks[issrc].ssrc_block1);
@@ -1056,9 +1054,9 @@ connection_worker(void* p)
                                 unsigned int pktlossmask = 0x3FFF; 
                                 u32 rpt_pkt_lost = pktlossmask & ntohl(report->blocks[issrc].frac_lost_and_cumpktlost);
                                 u32 frac_pkt_lost = 0x8000 & ntohl(report->blocks[issrc].frac_lost_and_cumpktlost);
-                                //printf("peer[%d].rtp[%d] sr_delta: %ld sr_delay_delta: %ld, pkt_dropped:%u\n",
-                                //    peer->id, report_rtp_idx, sr_delta, sr_delay_delta,
-                                //    rpt_pkt_lost);
+                                printf("RR[%d]: rtp[%d] sr_delta: %ld sr_delay_delta: %ld, pkt_dropped:%u\n",
+                                    peer->id, report_rtp_idx, sr_delta, sr_delay_delta,
+                                    rpt_pkt_lost);
 
                                 if(peer->srtp[report_rtp_idx].pkt_lost < rpt_pkt_lost /* || frac_pkt_lost != 0*/ && peer->subscriptionID != PEER_IDX_INVALID)
                                 {
