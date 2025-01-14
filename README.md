@@ -7,7 +7,7 @@ Welcome to the tiny-webrtc-gw readme!
 ## Goals
 * Infinite &#x231A; duration streams     (security &#x1F4F9; friendly)
 * private rooms
-* 1-click-join [links](https://wintermute.nonroutable.net/content/index_broadcast.html?joinroom=lobby&camera=1)
+* 1-click-join [links](https://www.domain17.net:8016/content/index_broadcast.html?joinroom=lobby&camera=1)
 * VP8,VP9,H.264
 * very fast stream multiplexing via lightweight C
 * NO cloud or external STUN/TURN involved ergo: raspberry-pi + airgapped LAN
@@ -28,7 +28,7 @@ Welcome to the tiny-webrtc-gw readme!
 * Works directly with OBS via WHIP
 
 ## Demo:
-  [&#128247;chat lobby on a raspi4;](https://wintermute.nonroutable.net/content/index_broadcast.html?joinroom=lobby)
+  [&#128247;chat lobby on a raspi4;](https://www.domain17.net:8016/content/index_broadcast.html?joinroom=lobby)
   [&#x261D;WHIP url (for OBS)](https://www.domain17.net/justin/tinywm.obscfg.png)
 
 ## Pics:
