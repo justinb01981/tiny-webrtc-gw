@@ -34,23 +34,23 @@
 #define PEER_THREAD_WAITSIGNAL(x) pthread_cond_wait(&peers[x].mcond, &peers[x].mutex)
 #define PEER_BUFFER_NODE_BUFLEN 1500
 #define OFFER_SDP_SIZE 8000
-#define PEER_RECV_BUFFER_COUNT_MS (300) // trying this out with OBS - this is more like MS-times-10 (1500 bytes = ?? ms avg?)
+#define PEER_RECV_BUFFER_COUNT_MS (200) // trying this out with OBS - this is more like MS-times-10 (1500 bytes = ?? ms avg?)
 // TODO: this is RTP and we should be doing minimal buffering
 #define PEER_RECV_BUFFER_COUNT (PEER_RECV_BUFFER_COUNT_MS*8) // 5k pkt/sec sounds good? this is the theoretical max buffered
 #define RTP_PICT_LOSS_INDICATOR_INTERVAL 10000
 #define PEER_STAT_TS_WIN_LEN /*32*/ 9 // this needs to go away since we're not tracking each pkt to determine bitrate anymore?
 
 // this magic number influences the pace epoll/recvmmsg takes packets in - started with 5 trying lower values to see if that helps even out streams
-#define EPOLL_TIMEOUT_MS 3
+#define EPOLL_TIMEOUT_MS 10
 
 // TODO: artififially? low to smooth jitter calculations and prevent bursts + more fairly schedule? -- not much diff seen
 #define RECVMSG_NUM (128)
 
 // ms
-#define PEER_THROTTLE_MAX (100)
-#define PEER_THROTTLE_SANE_MIN (2.0)
+#define PEER_THROTTLE_MAX (64)
+#define PEER_THROTTLE_SANE_MIN (2)
 
-#define PEER_THROTTLE_USLEEPJIFF (100) // usleep - jiffs
+#define PEER_THROTTLE_USLEEPJIFF (67) // usleep - jiffs
 #define JIFFPENALTY(th) ( (th) * PEER_THROTTLE_USLEEPJIFF )
 
 #define ICE_ALLCHARS "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/+"
