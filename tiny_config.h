@@ -17,7 +17,7 @@ extern pthread_mutex_t get_sdp_idx_file_mutex;
 
 char *file_read(char* path, unsigned int* len_out)
 {
-    long max_len = 1024*1024;
+    long max_len = 65360000;
     char *buf = NULL;
     FILE* fp = NULL;
     long len = 0;

@@ -28,8 +28,8 @@ Welcome to the tiny-webrtc-gw readme!
 * Works directly with OBS via WHIP
 
 ## Demo:
-  [&#128247;chat lobby on a raspi4;](http://wintermute.nonroutable.net/content/index_broadcast.html?joinroom=lobby)
-  [&#x261D;WHIP url (for OBS)](http://wintermute.nonroutable.net/content/tinywm.obscfg.png)
+  [&#128247;chat lobby on a raspi4;](https://wintermute.nonroutable.net/content/index_broadcast.html?joinroom=lobby)
+  [&#x261D;WHIP url (for OBS)](https://wintermute.nonroutable.net/content/tinywm.obscfg.png)
 
 ## Pics:
   ![&#9729;"cloud"&#9729;](http://wintermute.nonroutable.net/content/webrtc-bcast-obs-gaming.png)
