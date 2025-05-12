@@ -53,4 +53,4 @@ clean:
 
 install:
 
-	echo "no";
+	echo "OK..." && cp -f webrtc_xcast /usr/local/bin;
