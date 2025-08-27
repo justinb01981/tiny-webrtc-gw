@@ -246,13 +246,12 @@ div.selectUser {
 
 iframe.chatFrame {
     border-width:2px;
-    overflow:scroll;
     height:100%;
     width:100%;
 }
 
 body.chatIframeBody {
-    overflow: scroll;
+  width:120%;
 }
 
 @keyframes loadingAnimation {
