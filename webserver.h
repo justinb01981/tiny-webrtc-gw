@@ -46,6 +46,7 @@ struct webserver_state {
     int running;
     unsigned int peer_idx_next;
     int sock;
+    int port;
 };
 extern struct webserver_state webserver;
 
@@ -288,6 +289,7 @@ webserver_worker(void* p)
     char* recvbuf = malloc(buf_size*2);
     pthread_t thr_boot;
     pthread_attr_t thread_attrs;
+    char port_str[64];
 
 
     memset(cookie, 0, sizeof(cookie));
@@ -319,7 +321,7 @@ webserver_worker(void* p)
             unsigned int recv_left = buf_size-1;
             int timed_out = 0;
             int do_shutdown = 1;
-            int timeout_ms = 10000;
+            int timeout_ms = 5000;
             while(1)
             {
                 /* new request */
@@ -330,6 +332,7 @@ webserver_worker(void* p)
 
                     do_shutdown = 1;
                     timed_out = 1;
+                    break;
                 }
 
                 r = recv(sock, roff, recv_left, flags);
@@ -585,7 +588,10 @@ webserver_worker(void* p)
                     response = macro_str_expand(response, tag_hostname, iplookup_addr);
                     response = macro_str_expand(response, tag_urlargsname, str_read_unsafe_delim(url_args, "name=", 0, "&"));
                     response = macro_str_expand(response, tag_urlargsroom, str_read_unsafe_delim(url_args, "room=", 0, "&"));
-                    response = macro_str_expand(response, tag_webport, get_config("webserver_port="));
+
+                    sprintf(port_str, "%d", webserver.port);
+                    response = macro_str_expand(response, tag_webport, port_str);
+
                     response = macro_str_expand(response, tag_rtpport, listen_port_str);
                     
                     {
@@ -1032,10 +1038,11 @@ webserver_worker(void* p)
     return NULL;
 }
 
-void webserver_init()
+void webserver_init(int port)
 {
     webserver.running = 1;
     webserver.peer_idx_next = 0;
+    webserver.port = port;
 
     pthread_mutex_init(&webmtx, NULL);
 }
@@ -1057,7 +1064,7 @@ webserver_accept_worker(void* p)
 
     thread_init();
 
-    int sock_web = bindsocket(webserver.inip, strToULong(get_config("webserver_port=")), 1);
+    int sock_web = bindsocket(webserver.inip, webserver.port, 1);
     webserver.sock = sock_web;
 
     if(sock_web >= 0)
@@ -1089,7 +1096,7 @@ webserver_accept_worker(void* p)
                 args->sock = sock;
                 if(pthread_create(&thread, &thread_attrs, webserver_worker, args) != 0)
                 {
-                    printf("creating thread failed (errno=%s)\n", strerror(errno));
+                    printf("pthread_creating thread failed (errno=(%d))\n", errno);
                 }
             }
         }
