@@ -1694,7 +1694,7 @@ int main( int argc, char* argv[] ) {
         ep_event.data.fd = peers[i].sock;
         if(i == 0 && epoll_ctl(epoll_fd, EPOLL_CTL_ADD, peers[i].sock, &ep_event) != 0)
         {
-            printf("epoll_ctl got error %s\n", strerror(errno));
+            printf("epoll_ctl got error %d\n", errno);
             exit(0);
         }
 
@@ -1707,7 +1707,7 @@ int main( int argc, char* argv[] ) {
     
     DTLS_sock_init(udpserver.inport);
 
-    webserver_init();
+    webserver_init(strToULong(get_config("webserver_port=")));
     pthread_create(&thread_webserver, NULL, webserver_accept_worker, NULL);
     pthread_create(&thread_webserver, NULL, stats_print_loop, NULL);
 
@@ -1762,7 +1762,7 @@ int main( int argc, char* argv[] ) {
             if(event_count <= 0)
             {
                 PERFTIME_END(PERFTIMER_SELECT);
-                if(event_count < 0) printf("epoll_wait got error: %s\n", strerror(errno));
+                if(event_count < 0) printf("epoll_wait got error\n");
                 goto select_timeout;
             }
 
@@ -1788,7 +1788,7 @@ int main( int argc, char* argv[] ) {
                 int result = recvmmsg(sck, msgs+msg_recv_count, navail, MSG_DONTWAIT, NULL);
                 if(result < 0)
                 {
-                    printf("recvmmsg: error %s\n", strerror(errno));
+                    printf("recvmmsg: error %d\n", errno);
                     i++;
                     continue;
                 }
