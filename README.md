@@ -7,7 +7,7 @@ Welcome to the tiny-webrtc-gw readme!
 ## Goals
 * Infinite &#x231A; duration streams     (security &#x1F4F9; friendly)
 * private rooms
-* 1-click-join [links](https://wintermute.nonroutable.net/content/index_broadcast.html?joinroom=lobby&camera=1)
+* 1-click-join [links](https://www.domain17.net:8016/content/index_broadcast.html?joinroom=lobby&camera=1)
 * VP8,VP9,H.264
 * very fast stream multiplexing via lightweight C
 * NO cloud or external STUN/TURN involved ergo: raspberry-pi + airgapped LAN
@@ -28,14 +28,14 @@ Welcome to the tiny-webrtc-gw readme!
 * Works directly with OBS via WHIP
 
 ## Demo:
-  [&#128247;chat lobby on a raspi4;](https://wintermute.nonroutable.net/content/index_broadcast.html?joinroom=lobby)
-  [&#x261D;WHIP url (for OBS)](https://wintermute.nonroutable.net/content/tinywm.obscfg.png)
+  [&#128247;chat lobby on a raspi4;](https://www.domain17.net:8016/content/index_broadcast.html?joinroom=lobby)
+  [&#x261D;WHIP url (for OBS)](https://www.domain17.net:8016/content/tinywm.obscfg.png)
 
 ## Pics:
-  ![&#9729;"cloud"&#9729;](https://wintermute.nonroutable.net/content/webrtc-bcast-obs-gaming.png)
-  ![Web interface + lobby + chat](https://wintermute.nonroutable.net/content/webrtc-morn.png)
+  ![&#9729;"cloud"&#9729;](https://www.domain17.net:8016/content/webrtc-bcast-obs-gaming.png)
+  ![Web interface + lobby + chat](https://www.domain17.net:8016/content/webrtc-morn.png)
   ![test image](https://github.com/justinb01981/tiny-webrtc-gw/blob/master/IMG-8094.jpg?raw=true)
-  ![configuring OBS](https://wintermute.nonroutable.net/content/tinywm.obscfg.png)
+  ![configuring OBS](https://www.domain17.net:8016/content/tinywm.obscfg.png)
 
 ## Caveats:
   since browsers won't allow webRTC to be negotiated unencrypted (https)
