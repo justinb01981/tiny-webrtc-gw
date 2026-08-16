@@ -59,7 +59,7 @@ from the base directory just run 'make all'.
   ```
   <your_https_prefix>/content/index_broadcast.html?joinroom=<roomname>&camera=0
   ```
-  --- e.g. https://tinyurl.com/jbhatestypingthis
+  --- e.g. https://www.domain17.net:8016/content/index_broadcast.html?joinroom=lobby
   ```
   (drops a user in "lobby" with camera disabled)
   ```
